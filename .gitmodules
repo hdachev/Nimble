@@ -1,0 +1,6 @@
+[submodule "external/json"]
+	path = external/json
+	url = https://github.com/nlohmann/json.git
+[submodule "external/dwSampleFramework"]
+	path = external/dwSampleFramework
+	url = https://github.com/diharaw/dwSampleFramework.git
