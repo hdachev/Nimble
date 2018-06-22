@@ -85,7 +85,13 @@ namespace demo
 	{
 		dw::Texture* texture;
 
-		std::fstream f(path, std::ios::in | std::ios::binary);
+		std::fstream f(dw::utility::path_for_resource("assets/" + path), std::ios::in | std::ios::binary);
+
+		if (!f.is_open())
+		{
+			DW_LOG_ERROR("Failed to open file: " + path);
+			return nullptr;
+		}
 
 		ImageFileHeader file_header;
 		uint16_t name_length = 0;
@@ -176,7 +182,7 @@ namespace demo
 		else
 		{
 			char* data = nullptr;
-			FILE *file = fopen(dw::utility::path_for_resource(path).c_str(), "rb");
+			FILE *file = fopen(dw::utility::path_for_resource("assets/" + path).c_str(), "rb");
 			fseek(file, 0, SEEK_END);
 			long len = ftell(file);
 			data = (char*)malloc(len);
@@ -264,7 +270,7 @@ namespace demo
 			if (json.find("diffuse_map") != json.end())
 			{
 				std::string tex_path = json["diffuse_map"];
-				textures[num_textures++] = dw::Material::load_texture(dw::utility::path_for_resource("assets/" + tex_path), true);
+				textures[num_textures++] = dw::Material::load_texture(dw::utility::path_for_resource("assets/texture/" + tex_path), true);
 
 				if (!textures[num_textures - 1])
 				{
@@ -282,7 +288,7 @@ namespace demo
 			if (json.find("normal_map") != json.end())
 			{
 				std::string tex_path = json["normal_map"];
-				textures[num_textures++] = dw::Material::load_texture(dw::utility::path_for_resource("assets/" + tex_path));
+				textures[num_textures++] = dw::Material::load_texture(dw::utility::path_for_resource("assets/texture/" + tex_path));
 
 				if (!textures[num_textures - 1])
 				{
@@ -293,7 +299,7 @@ namespace demo
 			if (json.find("metalness_map") != json.end())
 			{
 				std::string tex_path = json["metalness_map"];
-				textures[num_textures++] = dw::Material::load_texture(dw::utility::path_for_resource("assets/" + tex_path));
+				textures[num_textures++] = dw::Material::load_texture(dw::utility::path_for_resource("assets/texture/" + tex_path));
 
 				if (!textures[num_textures - 1])
 				{
@@ -308,7 +314,7 @@ namespace demo
 			if (json.find("roughness_map") != json.end())
 			{
 				std::string tex_path = json["roughness_map"];
-				textures[num_textures++] = dw::Material::load_texture(dw::utility::path_for_resource("assets/" + tex_path));
+				textures[num_textures++] = dw::Material::load_texture(dw::utility::path_for_resource("assets/texture/" + tex_path));
 
 				if (!textures[num_textures - 1])
 				{

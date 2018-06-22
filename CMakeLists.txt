@@ -11,8 +11,10 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
+set(JSON_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/external/json/single_include/nlohmann")
+
 add_subdirectory(external/dwSampleFramework)
 
-include_directories("${DW_SAMPLE_FRAMEWORK_INCLUDES}")
+include_directories("${DW_SAMPLE_FRAMEWORK_INCLUDES}" "${JSON_INCLUDE_DIR}")
 
 add_subdirectory(src)

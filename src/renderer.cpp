@@ -11,84 +11,34 @@
 
 const float clear_color[] = { 0.1f, 0.1f, 0.1f, 1.0f };
 
-Renderer::Renderer(uint16_t width, uint16_t height) : m_width(width), m_height(height)
+Renderer::Renderer(uint16_t width, uint16_t height) : m_width(width), m_height(height), m_scene(nullptr)
 {
-	BufferCreateDesc per_frame_ubo_desc;
-	DW_ZERO_MEMORY(per_frame_ubo_desc);
-	per_frame_ubo_desc.data = nullptr;
-	per_frame_ubo_desc.data_type = DataType::FLOAT;
-	per_frame_ubo_desc.size = sizeof(PerFrameUniforms);
-	per_frame_ubo_desc.usage_type = BufferUsageType::DYNAMIC;
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-	BufferCreateDesc per_entity_ubo_desc;
-	DW_ZERO_MEMORY(per_entity_ubo_desc);
-	per_entity_ubo_desc.data = nullptr;
-	per_entity_ubo_desc.data_type = DataType::FLOAT;
-	per_entity_ubo_desc.size = 1024 * sizeof(PerEntityUniforms);
-	per_entity_ubo_desc.usage_type = BufferUsageType::DYNAMIC;
+    m_per_frame = std::make_unique<dw::UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerFrameUniforms));
+	m_per_entity = std::make_unique<dw::UniformBuffer>(GL_DYNAMIC_DRAW, 1024 * sizeof(PerEntityUniforms));
+	m_per_scene = std::make_unique<dw::UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
+	m_per_frustum_split = std::make_unique<dw::UniformBuffer>(GL_DYNAMIC_DRAW, 256 * 8);
 
-	BufferCreateDesc per_scene_ubo_desc;
-	DW_ZERO_MEMORY(per_scene_ubo_desc);
-	per_scene_ubo_desc.data = nullptr;
-	per_scene_ubo_desc.data_type = DataType::FLOAT;
-	per_scene_ubo_desc.size = sizeof(PerSceneUniforms);
-	per_scene_ubo_desc.usage_type = BufferUsageType::DYNAMIC;
+    m_color_buffer = std::make_unique<dw::Texture2D>(m_height, m_height, 1, 1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	m_depth_buffer = std::make_unique<dw::Texture2D>(m_height, m_height, 1, 1, 1, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+    m_color_fbo = std::make_unique<dw::Framebuffer>();
+    
+    m_color_fbo->attach_render_target(0, m_color_buffer.get(), 0, 0);
+    m_color_fbo->attach_depth_stencil_target(m_depth_buffer.get(), 0, 0);
 
-	BufferCreateDesc per_frustum_split_ubo_desc;
-	DW_ZERO_MEMORY(per_frustum_split_ubo_desc);
-	per_frustum_split_ubo_desc.data = nullptr;
-	per_frustum_split_ubo_desc.data_type = DataType::FLOAT;
-	per_frustum_split_ubo_desc.size = 256 * 8;
-	per_frustum_split_ubo_desc.usage_type = BufferUsageType::DYNAMIC;
-
-	m_per_frame = m_device->create_uniform_buffer(per_frame_ubo_desc);
-	m_per_entity = m_device->create_uniform_buffer(per_entity_ubo_desc);
-	m_per_scene = m_device->create_uniform_buffer(per_scene_ubo_desc);
-	m_per_frustum_split = m_device->create_uniform_buffer(per_frustum_split_ubo_desc);
-
-	Texture2DCreateDesc color_buffer_desc;
-	DW_ZERO_MEMORY(color_buffer_desc);
-
-	color_buffer_desc.height = m_height;
-	color_buffer_desc.width = m_width;
-	color_buffer_desc.mipmap_levels = 1;
-	color_buffer_desc.format = TextureFormat::R8G8B8A8_UNORM;
-
-	m_color_buffer = m_device->create_texture_2d(color_buffer_desc);
-
-	Texture2DCreateDesc depth_buffer_desc;
-	DW_ZERO_MEMORY(depth_buffer_desc);
-
-	depth_buffer_desc.height = m_height;
-	depth_buffer_desc.width = m_width;
-	depth_buffer_desc.mipmap_levels = 1;
-	depth_buffer_desc.format = TextureFormat::D32_FLOAT_S8_UINT;
-
-	m_depth_buffer = m_device->create_texture_2d(depth_buffer_desc);
-
-	FramebufferCreateDesc fbo_desc;
-	DW_ZERO_MEMORY(fbo_desc);
-
-	fbo_desc.depthStencilTarget.texture = m_depth_buffer;
-	fbo_desc.depthStencilTarget.mipSlice = 0;
-	fbo_desc.depthStencilTarget.arraySlice = 0;
-	fbo_desc.renderTargetCount = 1;
-	fbo_desc.renderTargets[0].texture = m_color_buffer;
-	fbo_desc.renderTargets[0].arraySlice = 0;
-	fbo_desc.renderTargets[0].mipSlice = 0;
-
-	m_color_fbo = m_device->create_framebuffer(fbo_desc);
-
-	m_brdfLUT = std::unique_ptr<dw::Texture2D>((dw::Texture2D*)demo::load_image(dw::utility::path_for_resource("assets/texture/brdfLUT.trm"), GL_RG16F, GL_RG, GL_HALF_FLOAT));
+	m_brdfLUT = std::unique_ptr<dw::Texture2D>((dw::Texture2D*)demo::load_image("texture/brdfLUT.trm", GL_RG16F, GL_RG, GL_HALF_FLOAT));
+	m_brdfLUT->set_min_filter(GL_LINEAR);
+	m_brdfLUT->set_mag_filter(GL_LINEAR);
 
 	create_cube();
 	create_quad();
 
 	// Load cubemap shaders
 	{
-		std::string path = dw::utility::path_for_resource("assets/shader/cubemap_vs.glsl");
+		std::string path = "shader/cubemap_vs.glsl";
 		m_cube_map_vs = load_shader(GL_VERTEX_SHADER, path, nullptr);
-		path = dw::utility::path_for_resource("assets/shader/cubemap_fs.glsl");
+		path = "shader/cubemap_fs.glsl";
 		m_cube_map_fs = load_shader(GL_FRAGMENT_SHADER, path, nullptr);
 
 		dw::Shader* shaders[] = { m_cube_map_vs, m_cube_map_fs };
@@ -104,9 +54,9 @@ Renderer::Renderer(uint16_t width, uint16_t height) : m_width(width), m_height(h
 
 	// Load shadowmap shaders
 	{
-		std::string path = dw::utility::path_for_resource("assets/shader/pssm_vs.glsl");
+		std::string path = "shader/pssm_vs.glsl";
 		m_pssm_vs = load_shader(GL_VERTEX_SHADER, path, nullptr);
-		path = dw::utility::path_for_resource("assets/shader/pssm_fs.glsl");
+		path = "shader/pssm_fs.glsl";
 		m_pssm_fs = load_shader(GL_FRAGMENT_SHADER, path, nullptr);
 
 		dw::Shader* shaders[] = { m_pssm_vs, m_pssm_fs };
@@ -130,7 +80,7 @@ Renderer::Renderer(uint16_t width, uint16_t height) : m_width(width), m_height(h
 	m_per_scene_uniforms.pointLights[3].position = glm::vec4(10.0f, -20.0f, 10.0f, 1.0f);
 	m_per_scene_uniforms.pointLights[3].color = glm::vec4(300.0f);
 
-	m_per_scene_uniforms.directionalLight.color = glm::vec4(1.0f);
+	m_per_scene_uniforms.directionalLight.color = glm::vec4(1.0f, 1.0f, 1.0f, 20.0f);
 	m_per_scene_uniforms.directionalLight.direction = glm::vec4(glm::normalize(glm::vec3(1.0f, -1.0f, 0.0f)), 1.0f);
 }
 
@@ -195,7 +145,7 @@ void Renderer::create_cube()
 		-1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
 	};
 
-	m_cube_vbo = std::make_unique<dw::VertexBuffer>(GL_STATIC_DRAW, sizeof(cube_vertices), cube_vertices);
+	m_cube_vbo = std::make_unique<dw::VertexBuffer>(GL_STATIC_DRAW, sizeof(cube_vertices), (void*)cube_vertices);
 
 	dw::VertexAttrib attribs[] =
 	{
@@ -224,7 +174,7 @@ void Renderer::create_quad()
 		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f
 	};
 
-	m_quad_vbo = std::make_unique<dw::VertexBuffer>(GL_STATIC_DRAW, sizeof(vertices), vertices);
+	m_quad_vbo = std::make_unique<dw::VertexBuffer>(GL_STATIC_DRAW, sizeof(vertices), (void*)vertices);
 
 	dw::VertexAttrib quad_attribs[] =
 	{
@@ -241,9 +191,9 @@ void Renderer::create_quad()
 
 	// Load quad shaders
 	{
-		std::string path = dw::utility::executable_path() + "/assets/shader/quad_vs.glsl";
+		std::string path = "shader/quad_vs.glsl";
 		m_quad_vs = load_shader(GL_VERTEX_SHADER, path, nullptr);
-		path = dw::utility::executable_path() + "/assets/shader/quad_fs.glsl";
+		path = "shader/quad_fs.glsl";
 		m_quad_fs = load_shader(GL_FRAGMENT_SHADER, path, nullptr);
 
 		dw::Shader* shaders[] = { m_quad_vs, m_quad_fs };
@@ -305,6 +255,12 @@ dw::Program* Renderer::load_program(std::string& combined_name, uint32_t count, 
 
 void Renderer::render(dw::Camera* camera, uint16_t w, uint16_t h, dw::Framebuffer* fbo)
 {
+	if (!m_scene)
+	{
+		DW_LOG_ERROR("Scene has not been set!");
+		return;
+	}
+
 	Entity** entities = m_scene->entities();
 	int entity_count = m_scene->entity_count();
 
@@ -358,6 +314,11 @@ void Renderer::render_scene(uint16_t w, uint16_t h, dw::Framebuffer* fbo)
 		fbo->bind();
 	else
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Set rasterizer and depth states.
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	
 	// Set viewport and clear framebuffer.
 	glViewport(0, 0, w, h);
@@ -367,6 +328,9 @@ void Renderer::render_scene(uint16_t w, uint16_t h, dw::Framebuffer* fbo)
 	Entity** entities = m_scene->entities();
 	int entity_count = m_scene->entity_count();
 
+	m_per_frame->bind_base(0);
+	m_per_scene->bind_base(2);
+
 	for (int i = 0; i < entity_count; i++)
 	{
 		Entity* entity = entities[i];
@@ -374,20 +338,16 @@ void Renderer::render_scene(uint16_t w, uint16_t h, dw::Framebuffer* fbo)
 		if (!entity->m_mesh || !entity->m_program)
 			continue;
 
+		// Bind vertex array.
+		entity->m_mesh->mesh_vertex_array()->bind();
+
 		// Bind program.
 		dw::Program* current_program = entity->m_program;
-
 		current_program->use();
 
-		// Set rasterizer and depth states.
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-
 		// Bind uniform buffers.
-		m_per_frame->bind_base(0);
-		m_per_scene->bind_base(2);
-
+		m_per_entity->bind_range(1, i * sizeof(PerEntityUniforms), sizeof(PerEntityUniforms));
+	
 		dw::SubMesh* submeshes = entity->m_mesh->sub_meshes();
 
 		// Bind environment textures.
@@ -407,9 +367,6 @@ void Renderer::render_scene(uint16_t w, uint16_t h, dw::Framebuffer* fbo)
 			if (!mat)
 				mat = entity->m_override_mat;
 
-			// Bind vertex array.
-			entity->m_mesh->mesh_vertex_array()->bind();
-
 			// Bind materials.
 			if (mat)
 			{
@@ -425,7 +382,7 @@ void Renderer::render_scene(uint16_t w, uint16_t h, dw::Framebuffer* fbo)
 
 				if (normal)
 				{
-					normal->bind(0);
+					normal->bind(1);
 					current_program->set_uniform("s_Normal", 1);
 				}
 
@@ -460,10 +417,8 @@ void Renderer::render_scene(uint16_t w, uint16_t h, dw::Framebuffer* fbo)
 					emissive->bind(5);
 					current_program->set_uniform("s_Emissive", 5);
 				}
-			}
 
-			// Bind per-entity uniforms.
-			m_per_entity->bind_range(1, i * sizeof(PerEntityUniforms), sizeof(PerEntityUniforms));
+			}
 
 			// Issue draw call.
 			glDrawElementsBaseVertex(GL_TRIANGLES, submeshes[j].index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * submeshes[j].base_index), submeshes[j].base_vertex);

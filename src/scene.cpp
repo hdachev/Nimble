@@ -13,8 +13,10 @@
 Scene* Scene::load(const std::string& file, Renderer* renderer)
 {
 	std::string scene_json;
-	bool result = dw::utility::read_text(file, scene_json);
-	assert(result);
+	
+	if (!dw::utility::read_text(file, scene_json))
+		return nullptr;
+	
 	nlohmann::json json = nlohmann::json::parse(scene_json.c_str());
 
 	Scene* scene = new Scene();
@@ -22,15 +24,16 @@ Scene* Scene::load(const std::string& file, Renderer* renderer)
 	std::string sceneName = json["name"];
 	scene->m_name = sceneName;
 	std::string envMap = json["environment_map"];
-	dw::TextureCube* cube = (dw::TextureCube*)demo::load_image("assets/" + envMap, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+	dw::TextureCube* cube = (dw::TextureCube*)demo::load_image(envMap, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 	scene->m_env_map = cube;
 
 	std::string irradianceMap = json["irradiance_map"];
-	cube = (dw::TextureCube*)demo::load_image("assets/" + irradianceMap, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+	cube = (dw::TextureCube*)demo::load_image(irradianceMap, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 	scene->m_irradiance_map = cube;
-
+	scene->m_irradiance_map->set_min_filter(GL_LINEAR);
+	
 	std::string prefilteredMap = json["prefiltered_map"];
-	cube = (dw::TextureCube*)demo::load_image("assets/" + prefilteredMap, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+	cube = (dw::TextureCube*)demo::load_image(prefilteredMap, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 	scene->m_prefiltered_map = cube;
 
 	auto entities = json["entities"];
@@ -57,7 +60,7 @@ Scene* Scene::load(const std::string& file, Renderer* renderer)
 		auto rotationJson = entity["rotation"];
 		glm::vec3 rotation = glm::vec3(rotationJson[0], rotationJson[1], rotationJson[2]);
 
-		dw::Mesh* mesh = demo::load_mesh("assets/" + model);
+		dw::Mesh* mesh = demo::load_mesh(model);
 		Entity* new_entity = scene->create_entity();
 
 		new_entity->m_override_mat = mat_override;
@@ -83,13 +86,17 @@ Scene* Scene::load(const std::string& file, Renderer* renderer)
 		dw::Shader* shaders[2];
 
 		std::string vsFile = shaderJson["vs"];
-		shaders[0] = renderer->load_shader(GL_VERTEX_SHADER, "assets/" + vsFile, nullptr);
+		shaders[0] = renderer->load_shader(GL_VERTEX_SHADER, vsFile, nullptr);
 
 		std::string fsFile = shaderJson["fs"];
-		shaders[1] = renderer->load_shader(GL_FRAGMENT_SHADER, "assets/" + fsFile, nullptr);
+		shaders[1] = renderer->load_shader(GL_FRAGMENT_SHADER, fsFile, nullptr);
 
 		std::string combName = vsFile + fsFile;
 		new_entity->m_program = renderer->load_program(combName, 2, &shaders[0]);
+		
+		new_entity->m_program->uniform_block_binding("u_PerFrame", 0);
+		new_entity->m_program->uniform_block_binding("u_PerEntity", 1);
+		new_entity->m_program->uniform_block_binding("u_PerScene", 2);
 	}
 
 	return scene;
