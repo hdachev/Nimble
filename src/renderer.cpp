@@ -20,12 +20,7 @@ Renderer::Renderer(uint16_t width, uint16_t height) : m_width(width), m_height(h
 	m_per_scene = std::make_unique<dw::UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
 	m_per_frustum_split = std::make_unique<dw::UniformBuffer>(GL_DYNAMIC_DRAW, 256 * 8);
 
-    m_color_buffer = std::make_unique<dw::Texture2D>(m_height, m_height, 1, 1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-	m_depth_buffer = std::make_unique<dw::Texture2D>(m_height, m_height, 1, 1, 1, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
-    m_color_fbo = std::make_unique<dw::Framebuffer>();
-    
-    m_color_fbo->attach_render_target(0, m_color_buffer.get(), 0, 0);
-    m_color_fbo->attach_depth_stencil_target(m_depth_buffer.get(), 0, 0);
+	create_framebuffers();
 
 	m_brdfLUT = std::unique_ptr<dw::Texture2D>((dw::Texture2D*)demo::load_image("texture/brdfLUT.trm", GL_RG16F, GL_RG, GL_HALF_FLOAT));
 	m_brdfLUT->set_min_filter(GL_LINEAR);
@@ -218,6 +213,37 @@ Scene* Renderer::scene()
 	return m_scene;
 }
 
+void Renderer::create_framebuffers()
+{
+	if (m_color_fbo)
+		m_color_fbo.reset();
+	
+	if (m_color_buffer)
+		m_color_buffer.reset();
+
+	if (m_depth_buffer)
+		m_depth_buffer.reset();
+
+	m_color_buffer = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	m_color_buffer->set_min_filter(GL_LINEAR);
+
+	m_depth_buffer = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+	m_depth_buffer->set_min_filter(GL_LINEAR);
+
+	m_color_fbo = std::make_unique<dw::Framebuffer>();
+
+	m_color_fbo->attach_render_target(0, m_color_buffer.get(), 0, 0);
+	m_color_fbo->attach_depth_stencil_target(m_depth_buffer.get(), 0, 0);
+}
+
+void Renderer::on_window_resized(uint16_t width, uint16_t height)
+{
+	m_width = width;
+	m_height = height;
+
+	create_framebuffers();
+}
+
 dw::Shader* Renderer::load_shader(GLuint type, std::string& path, dw::Material* mat)
 {
 	if (m_shader_cache.find(path) == m_shader_cache.end())
@@ -304,7 +330,35 @@ void Renderer::render(dw::Camera* camera, uint16_t w, uint16_t h, dw::Framebuffe
 		m_per_entity->unmap();
 	}
 
-	render_scene(w, h, fbo);
+	render_scene(w, h, m_color_fbo.get());
+
+	// Render quad
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glCullFace(GL_NONE);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glViewport(0, 0, w, h);
+	glClearColor(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	m_quad_program->use();
+
+	m_quad_program->set_uniform("u_CurrentOutput", 0);
+	m_quad_program->set_uniform("u_NearPlane", camera->m_near);
+	m_quad_program->set_uniform("u_FarPlane", camera->m_far);
+
+	m_quad_vao->bind();
+
+	m_color_buffer->bind(0);
+	m_quad_program->set_uniform("s_Color", 0);
+
+	m_depth_buffer->bind(1);
+	m_quad_program->set_uniform("s_Depth", 1);
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void Renderer::render_scene(uint16_t w, uint16_t h, dw::Framebuffer* fbo)

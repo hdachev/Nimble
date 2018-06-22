@@ -65,6 +65,8 @@ protected:
 		// Override window resized method to update camera projection.
 		m_main_camera->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
 		m_debug_camera->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE * 2.0f, float(m_width) / float(m_height));
+
+		m_renderer->on_window_resized(width, height);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

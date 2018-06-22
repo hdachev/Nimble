@@ -79,8 +79,11 @@ public:
 	void render(dw::Camera* camera, uint16_t w = 0, uint16_t h = 0, dw::Framebuffer* fbo = nullptr);
 	dw::Shader* load_shader(GLuint type, std::string& path, dw::Material* mat);
 	dw::Program* load_program(std::string& combined_name, uint32_t count, dw::Shader** shaders);
+	void create_framebuffers();
 
 	inline PerSceneUniforms* per_scene_uniform() { return &m_per_scene_uniforms; }
+
+	void on_window_resized(uint16_t width, uint16_t height);
 
 private:
 	void create_cube();
