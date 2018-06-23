@@ -8,7 +8,9 @@
 class GlobalGraphicsResources
 {
 public:
+	// Create initial resources such as the BRDF lookup table and global UBO's.
 	static void initialize();
+
 	// Cleanup all allocated resources.
 	static void shutdown();
 

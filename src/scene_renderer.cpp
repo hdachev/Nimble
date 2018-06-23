@@ -3,6 +3,7 @@
 #include "mesh.h"
 #include "global_graphics_resources.h"
 #include "uniforms.h"
+#include "constants.h"
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -65,7 +66,7 @@ void SceneRenderer::render(Scene* scene, dw::Framebuffer* fbo, dw::Program* glob
 			scene->prefiltered_map()->bind(5);
 			current_program->set_uniform("s_PrefilteredMap", 5);
 
-			dw::Texture* brdf_lut = GlobalGraphicsResources::lookup_texture("BRDF_LUT");
+			dw::Texture* brdf_lut = GlobalGraphicsResources::lookup_texture(BRDF_LUT);
 			brdf_lut->bind(6);
 			current_program->set_uniform("s_BRDF", 6);
 		}
@@ -122,6 +123,6 @@ void SceneRenderer::render(Scene* scene, dw::Framebuffer* fbo, dw::Program* glob
 			glDrawElementsBaseVertex(GL_TRIANGLES, sub_mesh.index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * sub_mesh.base_index), sub_mesh.base_vertex);
 		}
 	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------

@@ -7,7 +7,7 @@
 #include <camera.h>
 #include <memory>
 #include "scene.h"
-#include "scene_renderer.h"
+#include "forward_renderer.h"
 #include "uniforms.h"
 
 class Renderer
@@ -20,16 +20,14 @@ public:
 	void render(dw::Camera* camera);
 	dw::Shader* load_shader(GLuint type, std::string& path, dw::Material* mat);
 	dw::Program* load_program(std::string& combined_name, uint32_t count, dw::Shader** shaders);
-	void create_framebuffers();
+	void on_window_resized(uint16_t width, uint16_t height);
 
 	inline PerSceneUniforms* per_scene_uniform() { return &m_per_scene_uniforms; }
 
-	void on_window_resized(uint16_t width, uint16_t height);
-
 private:
+	void update_uniforms(dw::Camera* camera);
 	void create_cube();
 	void create_quad();
-	void forward_render();
 
 private:
 	// Current window size.
@@ -40,7 +38,7 @@ private:
 	Scene* m_scene;
 
 	// Renderers
-	SceneRenderer m_scene_renderer;
+	ForwardRenderer m_forward_renderer;
 
 	// Uniform data.
 	PerFrameUniforms m_per_frame_uniforms;
@@ -53,13 +51,6 @@ private:
 	std::unique_ptr<dw::VertexBuffer>  m_quad_vbo;
 	std::unique_ptr<dw::VertexArray>   m_cube_vao;
 	std::unique_ptr<dw::VertexBuffer>  m_cube_vbo;
-
-	// Render targets
-	dw::Texture2D*	   m_color_buffer;
-	dw::Texture2D*	   m_depth_buffer;
-
-	// Framebuffers
-	dw::Framebuffer*   m_color_fbo;
 
 	dw::Shader*		   m_cube_map_vs;
 	dw::Shader*		   m_cube_map_fs;

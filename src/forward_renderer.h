@@ -1,12 +1,27 @@
-//
-//  forward_renderer.h
-//  Nimble
-//
-//  Created by Dihara Wijetunga on 6/22/18.
-//
+#pragma once
 
-#ifndef forward_renderer_h
-#define forward_renderer_h
+#include "scene_renderer.h"
 
+class Scene;
 
-#endif /* forward_renderer_h */
+class ForwardRenderer
+{
+public:
+	ForwardRenderer();
+	~ForwardRenderer();
+	void initialize(uint16_t width, uint16_t height);
+	void shutdown();
+	void on_window_resized(uint16_t width, uint16_t height);
+	void render(Scene* scene, uint32_t w, uint32_t h);
+
+private:
+	// Render targets
+	dw::Texture2D*	 m_color_buffer = nullptr;
+	dw::Texture2D*	 m_depth_buffer = nullptr;
+					 
+	// Framebuffers	 
+	dw::Framebuffer* m_color_fbo = nullptr;
+
+	// Renderers
+	SceneRenderer m_scene_renderer;
+};

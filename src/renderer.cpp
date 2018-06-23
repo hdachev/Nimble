@@ -8,12 +8,9 @@
 
 #include "entity.h"
 #include "global_graphics_resources.h"
+#include "constants.h"
 
-const float clear_color[] = { 0.1f, 0.1f, 0.1f, 1.0f };
-
-#define FRAMEBUFFER_COLOR "Color Buffer"
-#define RENDER_TARGET_COLOR "Color"
-#define RENDER_TARGET_DEPTH "Depth"
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 Renderer::Renderer(uint16_t width, uint16_t height) : m_width(width), m_height(height), m_scene(nullptr)
 {
@@ -22,7 +19,6 @@ Renderer::Renderer(uint16_t width, uint16_t height) : m_width(width), m_height(h
 	// Initialize global resource.
 	GlobalGraphicsResources::initialize();
 
-	create_framebuffers();
 	create_cube();
 	create_quad();
 
@@ -74,10 +70,18 @@ Renderer::Renderer(uint16_t width, uint16_t height) : m_width(width), m_height(h
 
 	m_per_scene_uniforms.directionalLight.color = glm::vec4(1.0f, 1.0f, 1.0f, 20.0f);
 	m_per_scene_uniforms.directionalLight.direction = glm::vec4(glm::normalize(glm::vec3(1.0f, -1.0f, 0.0f)), 1.0f);
+
+	// Initialize renderers
+	m_forward_renderer.initialize(m_width, m_height);
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 Renderer::~Renderer()
 {
+	// Shutdown renderers.
+	m_forward_renderer.shutdown();
+
 	// Clean up global resources.
 	GlobalGraphicsResources::shutdown();
 
@@ -91,6 +95,8 @@ Renderer::~Renderer()
 		DW_SAFE_DELETE(itr.second);
 	}
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 void Renderer::create_cube()
 {
@@ -157,6 +163,8 @@ void Renderer::create_cube()
 	}
 }
 
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void Renderer::create_quad()
 {
 	const float vertices[] = 
@@ -203,41 +211,32 @@ void Renderer::create_quad()
 	}
 }
 
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void Renderer::set_scene(Scene* scene)
 {
 	m_scene = scene;
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 Scene* Renderer::scene()
 {
 	return m_scene;
 }
 
-void Renderer::create_framebuffers()
-{
-	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_COLOR);
-	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_COLOR);
-	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_DEPTH);
-
-	m_color_buffer = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_COLOR, m_width, m_height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-	m_color_buffer->set_min_filter(GL_LINEAR);
-
-	m_depth_buffer = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_DEPTH, m_width, m_height, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
-	m_depth_buffer->set_min_filter(GL_LINEAR);
-
-	m_color_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_COLOR);
-
-	m_color_fbo->attach_render_target(0, m_color_buffer, 0, 0);
-	m_color_fbo->attach_depth_stencil_target(m_depth_buffer, 0, 0);
-}
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 void Renderer::on_window_resized(uint16_t width, uint16_t height)
 {
 	m_width = width;
 	m_height = height;
 
-	create_framebuffers();
+	// Propagate window resize to renderers.
+	m_forward_renderer.on_window_resized(width, height);
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 dw::Shader* Renderer::load_shader(GLuint type, std::string& path, dw::Material* mat)
 {
@@ -255,6 +254,8 @@ dw::Shader* Renderer::load_shader(GLuint type, std::string& path, dw::Material* 
 		return m_shader_cache[path];
 	}
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 dw::Program* Renderer::load_program(std::string& combined_name, uint32_t count, dw::Shader** shaders)
 {
@@ -274,14 +275,10 @@ dw::Program* Renderer::load_program(std::string& combined_name, uint32_t count, 
 	}
 }
 
-void Renderer::render(dw::Camera* camera)
-{
-	if (!m_scene)
-	{
-		DW_LOG_ERROR("Scene has not been set!");
-		return;
-	}
+// -----------------------------------------------------------------------------------------------------------------------------------
 
+void Renderer::update_uniforms(dw::Camera* camera)
+{
 	Entity** entities = m_scene->entities();
 	int entity_count = m_scene->entity_count();
 
@@ -324,8 +321,24 @@ void Renderer::render(dw::Camera* camera)
 		memcpy(mem, &m_per_entity_uniforms[0], sizeof(PerEntityUniforms) * entity_count);
 		GlobalGraphicsResources::per_entity_ubo()->unmap();
 	}
+}
 
-	forward_render();
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::render(dw::Camera* camera)
+{
+	// Check if scene has been set.
+	if (!m_scene)
+	{
+		DW_LOG_ERROR("Scene has not been set!");
+		return;
+	}
+
+	// Update per-frame and per-entity uniforms.
+	update_uniforms(camera);
+
+	// Dispatch forward rendering.
+	m_forward_renderer.render(m_scene, m_width, m_height);
 
 	// Render quad
 
@@ -336,7 +349,7 @@ void Renderer::render(dw::Camera* camera)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glViewport(0, 0, m_width, m_height);
-	glClearColor(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	m_quad_program->use();
@@ -347,136 +360,13 @@ void Renderer::render(dw::Camera* camera)
 
 	m_quad_vao->bind();
 
-	m_color_buffer->bind(0);
+	GlobalGraphicsResources::lookup_texture(RENDER_TARGET_COLOR)->bind(0);
 	m_quad_program->set_uniform("s_Color", 0);
 
-	m_depth_buffer->bind(1);
+	GlobalGraphicsResources::lookup_texture(RENDER_TARGET_DEPTH)->bind(1);
 	m_quad_program->set_uniform("s_Depth", 1);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void Renderer::forward_render()
-{
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-
-	m_scene_renderer.render(m_scene, m_color_fbo, nullptr, m_width, m_height);
-
-	//// Bind framebuffer.
-	//if (fbo)
-	//	fbo->bind();
-	//else
-	//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	//// Set rasterizer and depth states.
-	//glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_BACK);
-	//
-	//// Set viewport and clear framebuffer.
-	//glViewport(0, 0, w, h);
-	//glClearColor(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//Entity** entities = m_scene->entities();
-	//int entity_count = m_scene->entity_count();
-
-	//m_per_frame->bind_base(0);
-	//m_per_scene->bind_base(2);
-
-	//for (int i = 0; i < entity_count; i++)
-	//{
-	//	Entity* entity = entities[i];
-
-	//	if (!entity->m_mesh || !entity->m_program)
-	//		continue;
-
-	//	// Bind vertex array.
-	//	entity->m_mesh->mesh_vertex_array()->bind();
-
-	//	// Bind program.
-	//	dw::Program* current_program = entity->m_program;
-	//	current_program->use();
-
-	//	// Bind uniform buffers.
-	//	m_per_entity->bind_range(1, i * sizeof(PerEntityUniforms), sizeof(PerEntityUniforms));
-	//
-	//	dw::SubMesh* submeshes = entity->m_mesh->sub_meshes();
-
-	//	// Bind environment textures.
-	//	m_scene->irradiance_map()->bind(4);
-	//	current_program->set_uniform("s_IrradianceMap", 4);
-
-	//	m_scene->prefiltered_map()->bind(5);
-	//	current_program->set_uniform("s_PrefilteredMap", 5);
-
-	//	m_brdfLUT->bind(6);
-	//	current_program->set_uniform("s_BRDF", 6);
-
-	//	for (uint32_t j = 0; j < entity->m_mesh->sub_mesh_count(); j++)
-	//	{
-	//		dw::Material* mat = submeshes[j].mat;
-
-	//		if (!mat)
-	//			mat = entity->m_override_mat;
-
-	//		// Bind materials.
-	//		if (mat)
-	//		{
-	//			dw::Texture2D* albedo = mat->texture(TEXTURE_ALBEDO);
-
-	//			if (albedo)
-	//			{
-	//				albedo->bind(0);
-	//				current_program->set_uniform("s_Albedo", 0);
-	//			}
-
-	//			dw::Texture2D* normal = mat->texture(TEXTURE_NORMAL);
-
-	//			if (normal)
-	//			{
-	//				normal->bind(1);
-	//				current_program->set_uniform("s_Normal", 1);
-	//			}
-
-	//			dw::Texture2D* metalness = mat->texture(TEXTURE_METALNESS);
-
-	//			if (metalness)
-	//			{
-	//				metalness->bind(2);
-	//				current_program->set_uniform("s_Metalness", 2);
-	//			}
-
-	//			dw::Texture2D* roughness = mat->texture(TEXTURE_ROUGHNESS);
-
-	//			if (roughness)
-	//			{
-	//				roughness->bind(3);
-	//				current_program->set_uniform("s_Roughness", 3);
-	//			}
-
-	//			dw::Texture2D* displacement = mat->texture(TEXTURE_DISPLACEMENT);
-
-	//			if (displacement)
-	//			{
-	//				displacement->bind(4);
-	//				current_program->set_uniform("s_Displacement", 4);
-	//			}
-
-	//			dw::Texture2D* emissive = mat->texture(TEXTURE_EMISSIVE);
-
-	//			if (emissive)
-	//			{
-	//				emissive->bind(5);
-	//				current_program->set_uniform("s_Emissive", 5);
-	//			}
-
-	//		}
-
-	//		// Issue draw call.
-	//		glDrawElementsBaseVertex(GL_TRIANGLES, submeshes[j].index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * submeshes[j].base_index), submeshes[j].base_vertex);
-	//	}
-	//}
-}
+// -----------------------------------------------------------------------------------------------------------------------------------

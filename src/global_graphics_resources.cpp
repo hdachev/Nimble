@@ -1,6 +1,7 @@
 #include "global_graphics_resources.h"
 #include "demo_loader.h"
 #include "uniforms.h"
+#include "constants.h"
 
 #include <logger.h>
 #include <macros.h>
@@ -15,11 +16,12 @@ dw::UniformBuffer* GlobalGraphicsResources::m_per_entity = nullptr;
 
 void GlobalGraphicsResources::initialize()
 {
+	// Load BRDF look-up-texture.
 	dw::Texture* brdf_lut = demo::load_image("texture/brdfLUT.trm", GL_RG16F, GL_RG, GL_HALF_FLOAT);
 	brdf_lut->set_min_filter(GL_LINEAR);
 	brdf_lut->set_mag_filter(GL_LINEAR);
 
-	m_texture_map["BRDF_LUT"] = brdf_lut;
+	m_texture_map[BRDF_LUT] = brdf_lut;
 
 	// Create uniform buffers.
 	m_per_frame = new dw::UniformBuffer(GL_DYNAMIC_DRAW, sizeof(PerFrameUniforms));

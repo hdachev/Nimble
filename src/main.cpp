@@ -60,6 +60,20 @@ protected:
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	dw::AppSettings intial_app_settings() override
+	{
+		dw::AppSettings settings;
+			
+		settings.resizable = false;
+		settings.width = 1280;
+		settings.height = 720;
+		settings.title = "Nimble - Dihara Wijetunga (c) 2018";
+
+		return settings;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	void window_resized(int width, int height) override
 	{
 		// Override window resized method to update camera projection.
