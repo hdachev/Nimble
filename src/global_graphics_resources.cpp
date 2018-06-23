@@ -2,12 +2,19 @@
 #include "demo_loader.h"
 #include "uniforms.h"
 #include "constants.h"
+#include "utility.h"
 
 #include <logger.h>
 #include <macros.h>
 
 std::unordered_map<std::string, dw::Texture*> GlobalGraphicsResources::m_texture_map;
 std::unordered_map<std::string, dw::Framebuffer*> GlobalGraphicsResources::m_framebuffer_map;
+std::unordered_map<std::string, dw::Program*> GlobalGraphicsResources::m_program_cache;
+std::unordered_map<std::string, dw::Shader*> GlobalGraphicsResources::m_shader_cache;
+dw::VertexArray*   GlobalGraphicsResources::m_quad_vao = nullptr;
+dw::VertexBuffer*  GlobalGraphicsResources::m_quad_vbo = nullptr;
+dw::VertexArray*   GlobalGraphicsResources::m_cube_vao = nullptr;
+dw::VertexBuffer*  GlobalGraphicsResources::m_cube_vbo = nullptr;
 dw::UniformBuffer* GlobalGraphicsResources::m_per_frame = nullptr;
 dw::UniformBuffer* GlobalGraphicsResources::m_per_scene = nullptr;
 dw::UniformBuffer* GlobalGraphicsResources::m_per_entity = nullptr;
@@ -27,27 +34,49 @@ void GlobalGraphicsResources::initialize()
 	m_per_frame = new dw::UniformBuffer(GL_DYNAMIC_DRAW, sizeof(PerFrameUniforms));
 	m_per_scene = new dw::UniformBuffer(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
 	m_per_entity = new dw::UniformBuffer(GL_DYNAMIC_DRAW, 1024 * sizeof(PerEntityUniforms));
+
+	// Create common geometry VBO's and VAO's.
+	create_quad();
+	create_cube();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void GlobalGraphicsResources::shutdown()
 {
+	// Delete common geometry VBO's and VAO's.
+	DW_SAFE_DELETE(m_quad_vao);
+	DW_SAFE_DELETE(m_quad_vbo);
+	DW_SAFE_DELETE(m_cube_vao);
+	DW_SAFE_DELETE(m_cube_vbo);
+
 	// Delete uniform buffers.
 	DW_SAFE_DELETE(m_per_frame);
 	DW_SAFE_DELETE(m_per_scene);
 	DW_SAFE_DELETE(m_per_entity);
 
 	// Delete framebuffers.
-	for (auto pair : m_framebuffer_map)
+	for (auto itr : m_framebuffer_map)
 	{
-		DW_SAFE_DELETE(pair.second);
+		DW_SAFE_DELETE(itr.second);
 	}
 
 	// Delete textures.
-	for (auto pair : m_texture_map)
+	for (auto itr : m_texture_map)
 	{
-		DW_SAFE_DELETE(pair.second);
+		DW_SAFE_DELETE(itr.second);
+	}
+
+	// Delete programs.
+	for (auto itr : m_program_cache)
+	{
+		DW_SAFE_DELETE(itr.second);
+	}
+
+	// Delete shaders.
+	for (auto itr : m_shader_cache)
+	{
+		DW_SAFE_DELETE(itr.second);
 	}
 }
 
@@ -146,6 +175,142 @@ void GlobalGraphicsResources::destroy_framebuffer(const std::string& name)
 		dw::Framebuffer* fbo = m_framebuffer_map[name];
 		DW_SAFE_DELETE(fbo);
 		m_framebuffer_map.erase(name);
+	}
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+dw::Shader* GlobalGraphicsResources::load_shader(GLuint type, std::string& path, dw::Material* mat)
+{
+	if (m_shader_cache.find(path) == m_shader_cache.end())
+	{
+		DW_LOG_INFO("Shader Asset not in cache. Loading from disk.");
+
+		dw::Shader* shader = dw::Shader::create_from_file(type, dw::utility::path_for_resource("assets/" + path));
+		m_shader_cache[path] = shader;
+		return shader;
+	}
+	else
+	{
+		DW_LOG_INFO("Shader Asset already loaded. Retrieving from cache.");
+		return m_shader_cache[path];
+	}
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+dw::Program* GlobalGraphicsResources::load_program(std::string& combined_name, uint32_t count, dw::Shader** shaders)
+{
+	if (m_program_cache.find(combined_name) == m_program_cache.end())
+	{
+		DW_LOG_INFO("Shader Program Asset not in cache. Loading from disk.");
+
+		dw::Program* program = new dw::Program(count, shaders);
+		m_program_cache[combined_name] = program;
+
+		return program;
+	}
+	else
+	{
+		DW_LOG_INFO("Shader Program Asset already loaded. Retrieving from cache.");
+		return m_program_cache[combined_name];
+	}
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void GlobalGraphicsResources::create_cube()
+{
+	float cube_vertices[] =
+	{
+		// back face
+		-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+		1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+		1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
+		1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+		-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+		-1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
+		// front face
+		-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+		1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
+		1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+		1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+		-1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
+		-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+		// left face
+		-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+		-1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
+		-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+		-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+		-1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+		-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+		// right face
+		1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+		1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+		1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
+		1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+		1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+		1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
+		// bottom face
+		-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+		1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
+		1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+		1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+		-1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+		-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+		// top face
+		-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+		1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+		1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
+		1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+		-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+		-1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
+	};
+
+	m_cube_vbo = new dw::VertexBuffer(GL_STATIC_DRAW, sizeof(cube_vertices), (void*)cube_vertices);
+
+	dw::VertexAttrib attribs[] =
+	{
+		{ 3,GL_FLOAT, false, 0, },
+		{ 3,GL_FLOAT, false, sizeof(float) * 3 },
+		{ 2,GL_FLOAT, false, sizeof(float) * 6 }
+	};
+
+	m_cube_vao = new dw::VertexArray(m_cube_vbo, nullptr, sizeof(float) * 8, 3, attribs);
+
+	if (!m_cube_vbo || !m_cube_vao)
+	{
+		DW_LOG_FATAL("Failed to create Vertex Buffers/Arrays");
+	}
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void GlobalGraphicsResources::create_quad()
+{
+	const float vertices[] =
+	{
+		-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+		1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+		1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+		1.0f,  -1.0f, 0.0f, 1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f
+	};
+
+	m_quad_vbo = new dw::VertexBuffer(GL_STATIC_DRAW, sizeof(vertices), (void*)vertices);
+
+	dw::VertexAttrib quad_attribs[] =
+	{
+		{ 3, GL_FLOAT, false, 0, },
+		{ 2, GL_FLOAT, false, sizeof(float) * 3 }
+	};
+
+	m_quad_vao = new dw::VertexArray(m_quad_vbo, nullptr, sizeof(float) * 5, 2, quad_attribs);
+
+	if (!m_quad_vbo || !m_quad_vao)
+	{
+		DW_LOG_INFO("Failed to create Vertex Buffers/Arrays");
 	}
 }
 

@@ -6,11 +6,11 @@
 #include <stb_image.h>
 #include <utility.h>
 #include "demo_loader.h"
-#include "renderer.h"
+#include "global_graphics_resources.h"
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-Scene* Scene::load(const std::string& file, Renderer* renderer)
+Scene* Scene::load(const std::string& file)
 {
 	std::string scene_json;
 	
@@ -86,13 +86,13 @@ Scene* Scene::load(const std::string& file, Renderer* renderer)
 		dw::Shader* shaders[2];
 
 		std::string vsFile = shaderJson["vs"];
-		shaders[0] = renderer->load_shader(GL_VERTEX_SHADER, vsFile, nullptr);
+		shaders[0] = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vsFile, nullptr);
 
 		std::string fsFile = shaderJson["fs"];
-		shaders[1] = renderer->load_shader(GL_FRAGMENT_SHADER, fsFile, nullptr);
+		shaders[1] = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fsFile, nullptr);
 
 		std::string combName = vsFile + fsFile;
-		new_entity->m_program = renderer->load_program(combName, 2, &shaders[0]);
+		new_entity->m_program = GlobalGraphicsResources::load_program(combName, 2, &shaders[0]);
 		
 		new_entity->m_program->uniform_block_binding("u_PerFrame", 0);
 		new_entity->m_program->uniform_block_binding("u_PerEntity", 1);

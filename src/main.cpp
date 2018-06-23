@@ -23,7 +23,7 @@ protected:
     bool init(int argc, const char* argv[]) override
     {
 		m_renderer = std::make_unique<Renderer>(m_width, m_height);
-		m_scene = std::unique_ptr<Scene>(Scene::load("scene.json", m_renderer.get()));
+		m_scene = std::unique_ptr<Scene>(Scene::load("scene.json"));
 
 		if (!m_scene)
 		{

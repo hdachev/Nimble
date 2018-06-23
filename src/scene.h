@@ -4,13 +4,11 @@
 #include <vector>
 #include <string>
 
-class Renderer;
-
 class Scene
 {
 public:
 	// Creates a scene from a description stored in a JSON file.
-	static Scene* load(const std::string& file, Renderer* renderer);
+	static Scene* load(const std::string& file);
 
 	Scene();
 	~Scene();
