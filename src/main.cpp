@@ -48,7 +48,7 @@ protected:
 
 		m_scene->update();
 
-		m_renderer->render(m_debug_mode ? m_debug_camera.get() : m_main_camera.get(), m_width, m_height, nullptr);
+		m_renderer->render(m_debug_mode ? m_debug_camera.get() : m_main_camera.get());
     }
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

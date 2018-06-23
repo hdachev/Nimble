@@ -7,25 +7,22 @@
 #include <fstream>
 
 #include "entity.h"
-#include "demo_loader.h"
+#include "global_graphics_resources.h"
 
 const float clear_color[] = { 0.1f, 0.1f, 0.1f, 1.0f };
+
+#define FRAMEBUFFER_COLOR "Color Buffer"
+#define RENDER_TARGET_COLOR "Color"
+#define RENDER_TARGET_DEPTH "Depth"
 
 Renderer::Renderer(uint16_t width, uint16_t height) : m_width(width), m_height(height), m_scene(nullptr)
 {
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    m_per_frame = std::make_unique<dw::UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerFrameUniforms));
-	m_per_entity = std::make_unique<dw::UniformBuffer>(GL_DYNAMIC_DRAW, 1024 * sizeof(PerEntityUniforms));
-	m_per_scene = std::make_unique<dw::UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
-	m_per_frustum_split = std::make_unique<dw::UniformBuffer>(GL_DYNAMIC_DRAW, 256 * 8);
+	// Initialize global resource.
+	GlobalGraphicsResources::initialize();
 
 	create_framebuffers();
-
-	m_brdfLUT = std::unique_ptr<dw::Texture2D>((dw::Texture2D*)demo::load_image("texture/brdfLUT.trm", GL_RG16F, GL_RG, GL_HALF_FLOAT));
-	m_brdfLUT->set_min_filter(GL_LINEAR);
-	m_brdfLUT->set_mag_filter(GL_LINEAR);
-
 	create_cube();
 	create_quad();
 
@@ -81,6 +78,9 @@ Renderer::Renderer(uint16_t width, uint16_t height) : m_width(width), m_height(h
 
 Renderer::~Renderer()
 {
+	// Clean up global resources.
+	GlobalGraphicsResources::shutdown();
+
 	for (auto itr : m_program_cache)
 	{
 		DW_SAFE_DELETE(itr.second);
@@ -215,25 +215,20 @@ Scene* Renderer::scene()
 
 void Renderer::create_framebuffers()
 {
-	if (m_color_fbo)
-		m_color_fbo.reset();
-	
-	if (m_color_buffer)
-		m_color_buffer.reset();
+	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_COLOR);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_COLOR);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_DEPTH);
 
-	if (m_depth_buffer)
-		m_depth_buffer.reset();
-
-	m_color_buffer = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	m_color_buffer = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_COLOR, m_width, m_height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 	m_color_buffer->set_min_filter(GL_LINEAR);
 
-	m_depth_buffer = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+	m_depth_buffer = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_DEPTH, m_width, m_height, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
 	m_depth_buffer->set_min_filter(GL_LINEAR);
 
-	m_color_fbo = std::make_unique<dw::Framebuffer>();
+	m_color_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_COLOR);
 
-	m_color_fbo->attach_render_target(0, m_color_buffer.get(), 0, 0);
-	m_color_fbo->attach_depth_stencil_target(m_depth_buffer.get(), 0, 0);
+	m_color_fbo->attach_render_target(0, m_color_buffer, 0, 0);
+	m_color_fbo->attach_depth_stencil_target(m_depth_buffer, 0, 0);
 }
 
 void Renderer::on_window_resized(uint16_t width, uint16_t height)
@@ -279,7 +274,7 @@ dw::Program* Renderer::load_program(std::string& combined_name, uint32_t count, 
 	}
 }
 
-void Renderer::render(dw::Camera* camera, uint16_t w, uint16_t h, dw::Framebuffer* fbo)
+void Renderer::render(dw::Camera* camera)
 {
 	if (!m_scene)
 	{
@@ -306,31 +301,31 @@ void Renderer::render(dw::Camera* camera, uint16_t w, uint16_t h, dw::Framebuffe
 		m_per_entity_uniforms[i].worldPos = glm::vec4(entity->m_position.x, entity->m_position.y, entity->m_position.z, 0.0f);
 	}
 
-	void* mem = m_per_frame->map(GL_WRITE_ONLY);
+	void* mem = GlobalGraphicsResources::per_frame_ubo()->map(GL_WRITE_ONLY);
 
 	if (mem)
 	{
 		memcpy(mem, &m_per_frame_uniforms, sizeof(PerFrameUniforms));
-		m_per_frame->unmap();
+		GlobalGraphicsResources::per_frame_ubo()->unmap();
 	}
 
-	mem = m_per_scene->map(GL_WRITE_ONLY);
+	mem = GlobalGraphicsResources::per_scene_ubo()->map(GL_WRITE_ONLY);
 
 	if (mem)
 	{
 		memcpy(mem, &m_per_scene_uniforms, sizeof(PerSceneUniforms));
-		m_per_scene->unmap();
+		GlobalGraphicsResources::per_scene_ubo()->unmap();
 	}
 
-	mem = m_per_entity->map(GL_WRITE_ONLY);
+	mem = GlobalGraphicsResources::per_entity_ubo()->map(GL_WRITE_ONLY);
 
 	if (mem)
 	{
 		memcpy(mem, &m_per_entity_uniforms[0], sizeof(PerEntityUniforms) * entity_count);
-		m_per_entity->unmap();
+		GlobalGraphicsResources::per_entity_ubo()->unmap();
 	}
 
-	render_scene(w, h, m_color_fbo.get());
+	forward_render();
 
 	// Render quad
 
@@ -340,7 +335,7 @@ void Renderer::render(dw::Camera* camera, uint16_t w, uint16_t h, dw::Framebuffe
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	glViewport(0, 0, w, h);
+	glViewport(0, 0, m_width, m_height);
 	glClearColor(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -361,121 +356,127 @@ void Renderer::render(dw::Camera* camera, uint16_t w, uint16_t h, dw::Framebuffe
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void Renderer::render_scene(uint16_t w, uint16_t h, dw::Framebuffer* fbo)
+void Renderer::forward_render()
 {
-	// Bind framebuffer.
-	if (fbo)
-		fbo->bind();
-	else
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	// Set rasterizer and depth states.
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	
-	// Set viewport and clear framebuffer.
-	glViewport(0, 0, w, h);
-	glClearColor(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	Entity** entities = m_scene->entities();
-	int entity_count = m_scene->entity_count();
+	m_scene_renderer.render(m_scene, m_color_fbo, nullptr, m_width, m_height);
 
-	m_per_frame->bind_base(0);
-	m_per_scene->bind_base(2);
+	//// Bind framebuffer.
+	//if (fbo)
+	//	fbo->bind();
+	//else
+	//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	for (int i = 0; i < entity_count; i++)
-	{
-		Entity* entity = entities[i];
+	//// Set rasterizer and depth states.
+	//glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
+	//
+	//// Set viewport and clear framebuffer.
+	//glViewport(0, 0, w, h);
+	//glClearColor(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		if (!entity->m_mesh || !entity->m_program)
-			continue;
+	//Entity** entities = m_scene->entities();
+	//int entity_count = m_scene->entity_count();
 
-		// Bind vertex array.
-		entity->m_mesh->mesh_vertex_array()->bind();
+	//m_per_frame->bind_base(0);
+	//m_per_scene->bind_base(2);
 
-		// Bind program.
-		dw::Program* current_program = entity->m_program;
-		current_program->use();
+	//for (int i = 0; i < entity_count; i++)
+	//{
+	//	Entity* entity = entities[i];
 
-		// Bind uniform buffers.
-		m_per_entity->bind_range(1, i * sizeof(PerEntityUniforms), sizeof(PerEntityUniforms));
-	
-		dw::SubMesh* submeshes = entity->m_mesh->sub_meshes();
+	//	if (!entity->m_mesh || !entity->m_program)
+	//		continue;
 
-		// Bind environment textures.
-		m_scene->irradiance_map()->bind(4);
-		current_program->set_uniform("s_IrradianceMap", 4);
+	//	// Bind vertex array.
+	//	entity->m_mesh->mesh_vertex_array()->bind();
 
-		m_scene->prefiltered_map()->bind(5);
-		current_program->set_uniform("s_PrefilteredMap", 5);
+	//	// Bind program.
+	//	dw::Program* current_program = entity->m_program;
+	//	current_program->use();
 
-		m_brdfLUT->bind(6);
-		current_program->set_uniform("s_BRDF", 6);
+	//	// Bind uniform buffers.
+	//	m_per_entity->bind_range(1, i * sizeof(PerEntityUniforms), sizeof(PerEntityUniforms));
+	//
+	//	dw::SubMesh* submeshes = entity->m_mesh->sub_meshes();
 
-		for (uint32_t j = 0; j < entity->m_mesh->sub_mesh_count(); j++)
-		{
-			dw::Material* mat = submeshes[j].mat;
+	//	// Bind environment textures.
+	//	m_scene->irradiance_map()->bind(4);
+	//	current_program->set_uniform("s_IrradianceMap", 4);
 
-			if (!mat)
-				mat = entity->m_override_mat;
+	//	m_scene->prefiltered_map()->bind(5);
+	//	current_program->set_uniform("s_PrefilteredMap", 5);
 
-			// Bind materials.
-			if (mat)
-			{
-				dw::Texture2D* albedo = mat->texture(TEXTURE_ALBEDO);
+	//	m_brdfLUT->bind(6);
+	//	current_program->set_uniform("s_BRDF", 6);
 
-				if (albedo)
-				{
-					albedo->bind(0);
-					current_program->set_uniform("s_Albedo", 0);
-				}
+	//	for (uint32_t j = 0; j < entity->m_mesh->sub_mesh_count(); j++)
+	//	{
+	//		dw::Material* mat = submeshes[j].mat;
 
-				dw::Texture2D* normal = mat->texture(TEXTURE_NORMAL);
+	//		if (!mat)
+	//			mat = entity->m_override_mat;
 
-				if (normal)
-				{
-					normal->bind(1);
-					current_program->set_uniform("s_Normal", 1);
-				}
+	//		// Bind materials.
+	//		if (mat)
+	//		{
+	//			dw::Texture2D* albedo = mat->texture(TEXTURE_ALBEDO);
 
-				dw::Texture2D* metalness = mat->texture(TEXTURE_METALNESS);
+	//			if (albedo)
+	//			{
+	//				albedo->bind(0);
+	//				current_program->set_uniform("s_Albedo", 0);
+	//			}
 
-				if (metalness)
-				{
-					metalness->bind(2);
-					current_program->set_uniform("s_Metalness", 2);
-				}
+	//			dw::Texture2D* normal = mat->texture(TEXTURE_NORMAL);
 
-				dw::Texture2D* roughness = mat->texture(TEXTURE_ROUGHNESS);
+	//			if (normal)
+	//			{
+	//				normal->bind(1);
+	//				current_program->set_uniform("s_Normal", 1);
+	//			}
 
-				if (roughness)
-				{
-					roughness->bind(3);
-					current_program->set_uniform("s_Roughness", 3);
-				}
+	//			dw::Texture2D* metalness = mat->texture(TEXTURE_METALNESS);
 
-				dw::Texture2D* displacement = mat->texture(TEXTURE_DISPLACEMENT);
+	//			if (metalness)
+	//			{
+	//				metalness->bind(2);
+	//				current_program->set_uniform("s_Metalness", 2);
+	//			}
 
-				if (displacement)
-				{
-					displacement->bind(4);
-					current_program->set_uniform("s_Displacement", 4);
-				}
+	//			dw::Texture2D* roughness = mat->texture(TEXTURE_ROUGHNESS);
 
-				dw::Texture2D* emissive = mat->texture(TEXTURE_EMISSIVE);
+	//			if (roughness)
+	//			{
+	//				roughness->bind(3);
+	//				current_program->set_uniform("s_Roughness", 3);
+	//			}
 
-				if (emissive)
-				{
-					emissive->bind(5);
-					current_program->set_uniform("s_Emissive", 5);
-				}
+	//			dw::Texture2D* displacement = mat->texture(TEXTURE_DISPLACEMENT);
 
-			}
+	//			if (displacement)
+	//			{
+	//				displacement->bind(4);
+	//				current_program->set_uniform("s_Displacement", 4);
+	//			}
 
-			// Issue draw call.
-			glDrawElementsBaseVertex(GL_TRIANGLES, submeshes[j].index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * submeshes[j].base_index), submeshes[j].base_vertex);
-		}
-	}
+	//			dw::Texture2D* emissive = mat->texture(TEXTURE_EMISSIVE);
+
+	//			if (emissive)
+	//			{
+	//				emissive->bind(5);
+	//				current_program->set_uniform("s_Emissive", 5);
+	//			}
+
+	//		}
+
+	//		// Issue draw call.
+	//		glDrawElementsBaseVertex(GL_TRIANGLES, submeshes[j].index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * submeshes[j].base_index), submeshes[j].base_vertex);
+	//	}
+	//}
 }
