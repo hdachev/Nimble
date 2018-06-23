@@ -47,7 +47,9 @@ struct CSM
     void update_far_bounds(dw::Camera* camera);
 	
     inline FrustumSplit* frustum_splits() { return &m_splits[0]; }
+	// Used for rendering shadow map.
     inline glm::mat4 split_view_proj(int i) { return m_crop_matrices[i]; }
+	// Used for transforming fragments into light space.
     inline glm::mat4 texture_matrix(int i) { return m_texture_matrices[i]; }
     inline float far_bound(int i) { return m_far_bounds[i]; }
 	inline dw::Texture2D* shadow_map() { return m_shadow_maps; }

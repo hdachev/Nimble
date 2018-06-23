@@ -15,7 +15,7 @@ SceneRenderer::~SceneRenderer() {}
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void SceneRenderer::render(Scene* scene, dw::Framebuffer* fbo, dw::Program* global_program, uint32_t w, uint32_t h, uint32_t clear_flags, float* clear_color, uint32_t tex_type_count, uint32_t* tex_types)
+void SceneRenderer::render(Scene* scene, dw::Framebuffer* fbo, dw::Program* global_program, uint32_t w, uint32_t h, uint32_t clear_flags, float* clear_color, uint32_t tex_type_count, uint32_t* tex_types, MeshRenderCallback render_callback)
 {
 	dw::Program* current_program = nullptr;
 
@@ -56,6 +56,10 @@ void SceneRenderer::render(Scene* scene, dw::Framebuffer* fbo, dw::Program* glob
 			current_program = entity->m_program;
 			current_program->use();
 		}
+
+		// Call mesh render callback, if given.
+		if (render_callback)
+			render_callback(current_program);
 
 		// Bind environment textures.
 		if (tex_type_count == ALL_TEXTURES)

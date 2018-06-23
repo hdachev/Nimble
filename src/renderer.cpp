@@ -5,6 +5,7 @@
 #include <logger.h>
 #include <utility.h>
 #include <fstream>
+#include <imgui.h>
 
 #include "entity.h"
 #include "global_graphics_resources.h"
@@ -12,8 +13,19 @@
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-Renderer::Renderer(uint16_t width, uint16_t height) : m_width(width), m_height(height), m_scene(nullptr)
+Renderer::Renderer() {}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+Renderer::~Renderer() {}
+
+void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 {
+	m_width = width;
+	m_height = height;
+	m_current_output = 0;
+	set_camera(camera);
+
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	// Initialize global resource.
@@ -70,12 +82,18 @@ Renderer::Renderer(uint16_t width, uint16_t height) : m_width(width), m_height(h
 
 	// Initialize renderers
 	m_forward_renderer.initialize(m_width, m_height);
+
+	// Initialize CSM.
+	m_csm_technique.initialize(0.3, 250.0f, 4, 2048, m_camera, m_width, m_height, glm::vec3(m_per_scene_uniforms.directionalLight.direction.x, m_per_scene_uniforms.directionalLight.direction.y, m_per_scene_uniforms.directionalLight.direction.z));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-Renderer::~Renderer()
+void Renderer::shutdown()
 {
+	// Shutdown CSM.
+	m_csm_technique.shutdown();
+
 	// Shutdown renderers.
 	m_forward_renderer.shutdown();
 
@@ -88,6 +106,14 @@ Renderer::~Renderer()
 void Renderer::set_scene(Scene* scene)
 {
 	m_scene = scene;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+
+void Renderer::set_camera(dw::Camera* camera)
+{
+	m_camera = camera;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -120,8 +146,13 @@ void Renderer::update_uniforms(dw::Camera* camera)
 	m_per_frame_uniforms.viewProj = camera->m_view_projection;
 	m_per_frame_uniforms.viewDir = glm::vec4(camera->m_forward.x, camera->m_forward.y, camera->m_forward.z, 0.0f);
 	m_per_frame_uniforms.viewPos = glm::vec4(camera->m_position.x, camera->m_position.y, camera->m_position.z, 0.0f);
-	//m_per_frame_uniforms.numCascades = shadows->frustum_split_count();
-	//memcpy(&m_per_frame_uniforms.shadowFrustums[0], shadows->frustum_splits(), sizeof(ShadowFrustum) * m_per_frame_uniforms.numCascades);
+	m_per_frame_uniforms.numCascades = m_csm_technique.frustum_split_count();
+
+	for (int i = 0; i < m_per_frame_uniforms.numCascades; i++)
+	{
+		m_per_frame_uniforms.shadowFrustums[i].farPlane = m_csm_technique.m_splits[i].far_plane;
+		m_per_frame_uniforms.shadowFrustums[i].shadowMatrix = m_csm_technique.m_crop_matrices[i];
+	}
 
 	for (int i = 0; i < entity_count; i++)
 	{
@@ -158,7 +189,27 @@ void Renderer::update_uniforms(dw::Camera* camera)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::render(dw::Camera* camera)
+void Renderer::debug_gui()
+{
+	if (ImGui::Begin("Nimble - Debug GUI"))
+	{
+		ImGui::Text("Current Output:");
+
+		ImGui::RadioButton("Scene", &m_current_output, 0);
+		ImGui::RadioButton("Linear Depth", &m_current_output, 1);
+
+		for (int i = 0; i < m_csm_technique.m_split_count; i++)
+		{
+			std::string name = "Cascade " + std::to_string(i + 1);
+			ImGui::RadioButton(name.c_str(), &m_current_output, 8 + i);
+		}
+	}
+	ImGui::End();
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::render()
 {
 	// Check if scene has been set.
 	if (!m_scene)
@@ -168,13 +219,19 @@ void Renderer::render(dw::Camera* camera)
 	}
 
 	// Update per-frame and per-entity uniforms.
-	update_uniforms(camera);
+	update_uniforms(m_camera);
+
+	// Update CSM.
+	m_csm_technique.update(m_camera, glm::vec3(m_per_scene_uniforms.directionalLight.direction.x, m_per_scene_uniforms.directionalLight.direction.y, m_per_scene_uniforms.directionalLight.direction.z));
+
+	// Dispatch shadow map rendering.
+	m_shadow_map_renderer.render(m_scene, &m_csm_technique);
 
 	// Dispatch forward rendering.
 	m_forward_renderer.render(m_scene, m_width, m_height);
 
 	// Render final composition.
-	m_final_composition.render(camera, m_width, m_height);
+	m_final_composition.render(m_camera, m_width, m_height, m_current_output);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

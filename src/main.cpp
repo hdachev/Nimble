@@ -22,7 +22,7 @@ protected:
 
     bool init(int argc, const char* argv[]) override
     {
-		m_renderer = std::make_unique<Renderer>(m_width, m_height);
+		m_renderer = std::make_unique<Renderer>();
 		m_scene = std::unique_ptr<Scene>(Scene::load("scene.json"));
 
 		if (!m_scene)
@@ -31,10 +31,12 @@ protected:
 			return false;
 		}
 
-		m_renderer->set_scene(m_scene.get());
-
 		// Create camera.
 		create_camera();
+
+		m_renderer->initialize(m_width, m_height, m_main_camera.get());
+
+		m_renderer->set_scene(m_scene.get());
 
 		return true;
     }
@@ -48,7 +50,9 @@ protected:
 
 		m_scene->update();
 
-		m_renderer->render(m_debug_mode ? m_debug_camera.get() : m_main_camera.get());
+		m_renderer->debug_gui();
+
+		m_renderer->render();
     }
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

@@ -29,11 +29,11 @@ FinalComposition::~FinalComposition() {}
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void FinalComposition::render(dw::Camera* camera, uint32_t w, uint32_t h)
+void FinalComposition::render(dw::Camera* camera, uint32_t w, uint32_t h, int current_output)
 {
 	m_composition_program->use();
 
-	m_composition_program->set_uniform("u_CurrentOutput", 0);
+	m_composition_program->set_uniform("u_CurrentOutput", current_output);
 	m_composition_program->set_uniform("u_NearPlane", camera->m_near);
 	m_composition_program->set_uniform("u_FarPlane", camera->m_far);
 
@@ -42,6 +42,9 @@ void FinalComposition::render(dw::Camera* camera, uint32_t w, uint32_t h)
 
 	GlobalGraphicsResources::lookup_texture(RENDER_TARGET_DEPTH)->bind(1);
 	m_composition_program->set_uniform("s_Depth", 1);
+
+	GlobalGraphicsResources::lookup_texture(CSM_SHADOW_MAPS)->bind(2);
+	m_composition_program->set_uniform("s_CSMShadowMaps", 2);
 
 	m_post_process_renderer.render(w, h, nullptr);
 }

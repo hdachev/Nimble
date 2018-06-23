@@ -1,9 +1,12 @@
 #pragma once
 
+#include <functional>
 #include <ogl.h>
 #include "demo_loader.h"
 
 class Scene;
+
+using MeshRenderCallback = std::function<void(dw::Program*)>;
 
 // A special value to for "tex_type_count" in order to use all available textures.
 #define ALL_TEXTURES 999
@@ -25,7 +28,8 @@ public:
 				uint32_t clear_flags = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, 
 				float* clear_color = (float*)g_default_clear_color, 
 				uint32_t tex_type_count = ALL_TEXTURES, 
-				uint32_t* tex_types = nullptr);
+				uint32_t* tex_types = nullptr,
+				MeshRenderCallback render_callback = nullptr);
     
 private:
     int32_t m_texture_flags[6] =

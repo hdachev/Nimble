@@ -8,7 +8,7 @@ class FinalComposition
 public:
 	FinalComposition();
 	~FinalComposition();
-	void render(dw::Camera* camera, uint32_t w, uint32_t h);
+	void render(dw::Camera* camera, uint32_t w, uint32_t h, int current_output = 0);
 
 private:
 	dw::Shader*		    m_composition_vs;

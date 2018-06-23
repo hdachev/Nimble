@@ -1,4 +1,6 @@
 #include "csm.h"
+#include "global_graphics_resources.h"
+#include "constants.h"
 #include <gtc/matrix_transform.hpp>
 #include <macros.h>
 
@@ -24,11 +26,8 @@ void CSM::initialize(float lambda, float near_offset, int split_count, int shado
 	m_split_count = split_count;
 	m_shadow_map_size = shadow_map_size;
     
-    if (m_shadow_maps)
-    {
-        DW_SAFE_DELETE(m_shadow_maps);
-        m_shadow_maps = nullptr;
-    }
+	if (m_shadow_maps)
+		GlobalGraphicsResources::destroy_texture(CSM_SHADOW_MAPS);
 
 	for (int i = 0; i < 8; i++)
 	{
@@ -39,7 +38,7 @@ void CSM::initialize(float lambda, float near_offset, int split_count, int shado
         }
 	}
 
-    m_shadow_maps = new dw::Texture2D(m_shadow_map_size, m_shadow_map_size, m_split_count, 1, 1, GL_DEPTH_STENCIL, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+	m_shadow_maps = GlobalGraphicsResources::create_texture_2d(CSM_SHADOW_MAPS, m_shadow_map_size, m_shadow_map_size, GL_DEPTH_STENCIL, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 1, m_split_count);
     m_shadow_maps->set_min_filter(GL_NEAREST);
     m_shadow_maps->set_mag_filter(GL_NEAREST);
     m_shadow_maps->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
@@ -79,8 +78,6 @@ void CSM::shutdown()
 		if (m_shadow_fbos[i])
 			DW_SAFE_DELETE(m_shadow_fbos[i]);
 	}
-
-	DW_SAFE_DELETE(m_shadow_maps);
 }
 
 void CSM::update(dw::Camera* camera, glm::vec3 dir)
