@@ -22,7 +22,7 @@ public:
 	void shutdown();
 	void set_scene(Scene* scene);
 	Scene* scene();
-	void debug_gui();
+	void debug_gui(double delta);
 	void render();
 	void set_camera(dw::Camera* camera);
 	void on_window_resized(uint16_t width, uint16_t height);
@@ -58,4 +58,5 @@ private:
 
 	// Debug options.
 	int m_current_output;
+	glm::vec3 m_light_direction;
 };

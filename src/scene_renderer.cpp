@@ -73,6 +73,10 @@ void SceneRenderer::render(Scene* scene, dw::Framebuffer* fbo, dw::Program* glob
 			dw::Texture* brdf_lut = GlobalGraphicsResources::lookup_texture(BRDF_LUT);
 			brdf_lut->bind(6);
 			current_program->set_uniform("s_BRDF", 6);
+
+			dw::Texture* csm_shadow_map = GlobalGraphicsResources::lookup_texture(CSM_SHADOW_MAPS);
+			csm_shadow_map->bind(7);
+			current_program->set_uniform("s_ShadowMap", 7);
 		}
 
 		// Bind vertex array.

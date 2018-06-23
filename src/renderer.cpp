@@ -77,14 +77,16 @@ void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 	m_per_scene_uniforms.pointLights[3].position = glm::vec4(10.0f, -20.0f, 10.0f, 1.0f);
 	m_per_scene_uniforms.pointLights[3].color = glm::vec4(300.0f);
 
+	m_light_direction = glm::vec3(0.0f, -1.0f, 0.0f);
+
 	m_per_scene_uniforms.directionalLight.color = glm::vec4(1.0f, 1.0f, 1.0f, 20.0f);
-	m_per_scene_uniforms.directionalLight.direction = glm::vec4(glm::normalize(glm::vec3(1.0f, -1.0f, 0.0f)), 1.0f);
+	m_per_scene_uniforms.directionalLight.direction = glm::vec4(m_light_direction, 1.0f);
 
 	// Initialize renderers
 	m_forward_renderer.initialize(m_width, m_height);
 
 	// Initialize CSM.
-	m_csm_technique.initialize(0.3, 250.0f, 4, 2048, m_camera, m_width, m_height, glm::vec3(m_per_scene_uniforms.directionalLight.direction.x, m_per_scene_uniforms.directionalLight.direction.y, m_per_scene_uniforms.directionalLight.direction.z));
+	m_csm_technique.initialize(0.3, 350.0f, 4, 2048, m_camera, m_width, m_height, m_light_direction);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -147,11 +149,13 @@ void Renderer::update_uniforms(dw::Camera* camera)
 	m_per_frame_uniforms.viewDir = glm::vec4(camera->m_forward.x, camera->m_forward.y, camera->m_forward.z, 0.0f);
 	m_per_frame_uniforms.viewPos = glm::vec4(camera->m_position.x, camera->m_position.y, camera->m_position.z, 0.0f);
 	m_per_frame_uniforms.numCascades = m_csm_technique.frustum_split_count();
+	
+	m_per_scene_uniforms.directionalLight.direction = glm::vec4(glm::normalize(m_light_direction), 1.0f);
 
 	for (int i = 0; i < m_per_frame_uniforms.numCascades; i++)
 	{
-		m_per_frame_uniforms.shadowFrustums[i].farPlane = m_csm_technique.m_splits[i].far_plane;
-		m_per_frame_uniforms.shadowFrustums[i].shadowMatrix = m_csm_technique.m_crop_matrices[i];
+		m_per_frame_uniforms.shadowFrustums[i].farPlane = m_csm_technique.far_bound(i);
+		m_per_frame_uniforms.shadowFrustums[i].shadowMatrix = m_csm_technique.texture_matrix(i);
 	}
 
 	for (int i = 0; i < entity_count; i++)
@@ -189,10 +193,12 @@ void Renderer::update_uniforms(dw::Camera* camera)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::debug_gui()
+void Renderer::debug_gui(double delta)
 {
 	if (ImGui::Begin("Nimble - Debug GUI"))
 	{
+		ImGui::Text("Frame Time: %f ms", delta);
+
 		ImGui::Text("Current Output:");
 
 		ImGui::RadioButton("Scene", &m_current_output, 0);
@@ -203,6 +209,9 @@ void Renderer::debug_gui()
 			std::string name = "Cascade " + std::to_string(i + 1);
 			ImGui::RadioButton(name.c_str(), &m_current_output, 8 + i);
 		}
+
+		ImGui::SliderFloat("Light Direction X", &m_light_direction.x, -1.0f, 1.0f);
+		ImGui::SliderFloat("Light Direction Z", &m_light_direction.z, -1.0f, 1.0f);
 	}
 	ImGui::End();
 }
@@ -218,11 +227,11 @@ void Renderer::render()
 		return;
 	}
 
+	// Update CSM.
+	m_csm_technique.update(m_camera, glm::normalize(m_light_direction));
+
 	// Update per-frame and per-entity uniforms.
 	update_uniforms(m_camera);
-
-	// Update CSM.
-	m_csm_technique.update(m_camera, glm::vec3(m_per_scene_uniforms.directionalLight.direction.x, m_per_scene_uniforms.directionalLight.direction.y, m_per_scene_uniforms.directionalLight.direction.z));
 
 	// Dispatch shadow map rendering.
 	m_shadow_map_renderer.render(m_scene, &m_csm_technique);

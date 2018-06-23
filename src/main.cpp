@@ -50,7 +50,7 @@ protected:
 
 		m_scene->update();
 
-		m_renderer->debug_gui();
+		m_renderer->debug_gui(delta);
 
 		m_renderer->render();
     }
@@ -68,7 +68,7 @@ protected:
 	{
 		dw::AppSettings settings;
 			
-		settings.resizable = false;
+		settings.resizable = true;
 		settings.width = 1280;
 		settings.height = 720;
 		settings.title = "Nimble - Dihara Wijetunga (c) 2018";
