@@ -184,17 +184,20 @@ dw::Shader* GlobalGraphicsResources::load_shader(GLuint type, std::string& path,
 {
 	if (m_shader_cache.find(path) == m_shader_cache.end())
 	{
-		DW_LOG_INFO("Shader Asset not in cache. Loading from disk.");
-
 		dw::Shader* shader = dw::Shader::create_from_file(type, dw::utility::path_for_resource("assets/" + path));
+
+		if (!shader || !shader->compiled())
+		{
+			DW_LOG_ERROR("Shader with name '" + path + "' failed to compile!");
+			DW_SAFE_DELETE(shader);
+			return nullptr;
+		}
+
 		m_shader_cache[path] = shader;
 		return shader;
 	}
 	else
-	{
-		DW_LOG_INFO("Shader Asset already loaded. Retrieving from cache.");
 		return m_shader_cache[path];
-	}
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -203,18 +206,20 @@ dw::Program* GlobalGraphicsResources::load_program(std::string& combined_name, u
 {
 	if (m_program_cache.find(combined_name) == m_program_cache.end())
 	{
-		DW_LOG_INFO("Shader Program Asset not in cache. Loading from disk.");
-
 		dw::Program* program = new dw::Program(count, shaders);
+
+		if (!program)
+		{
+			DW_LOG_ERROR("Program with combined name '" + combined_name + "' failed to link!");
+			return nullptr;
+		}
+
 		m_program_cache[combined_name] = program;
 
 		return program;
 	}
 	else
-	{
-		DW_LOG_INFO("Shader Program Asset already loaded. Retrieving from cache.");
 		return m_program_cache[combined_name];
-	}
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

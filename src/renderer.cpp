@@ -11,6 +11,18 @@
 #include "global_graphics_resources.h"
 #include "constants.h"
 
+enum RendererType
+{
+	RENDERER_FORWARD = 0,
+	RENDERER_DEFERRED = 1
+};
+
+static const char* g_renderer_names[] = 
+{
+	"Forward",
+	"Deferred"
+};
+
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 Renderer::Renderer() {}
@@ -24,6 +36,7 @@ void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 	m_width = width;
 	m_height = height;
 	m_current_output = 0;
+	m_current_renderer = 0;
 	set_camera(camera);
 
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -165,6 +178,7 @@ void Renderer::update_uniforms(dw::Camera* camera)
 		Entity* entity = entities[i];
 		m_per_entity_uniforms[i].modalMat = entity->m_transform;
 		m_per_entity_uniforms[i].mvpMat = camera->m_view_projection * entity->m_transform;
+		m_per_entity_uniforms[i].lastMvpMat = camera->m_prev_view_projection * entity->m_prev_transform;
 		m_per_entity_uniforms[i].worldPos = glm::vec4(entity->m_position.x, entity->m_position.y, entity->m_position.z, 0.0f);
 	}
 
@@ -201,16 +215,36 @@ void Renderer::debug_gui(double delta)
 	{
 		ImGui::Text("Frame Time: %f ms", delta);
 
+		int index = m_current_renderer;
+
+		if (ImGui::BeginCombo("Renderer", g_renderer_names[index]))
+		{
+			for (int i = 0; i < 2; i++)
+			{
+				if (ImGui::Selectable(g_renderer_names[i], index == i))
+					m_current_renderer = i;
+			}
+			ImGui::EndCombo();
+		}
+
 		ImGui::Text("Current Output:");
 
 		ImGui::RadioButton("Scene", &m_current_output, SHOW_COLOR);
-		ImGui::RadioButton("Forward Depth (Linear)", &m_current_output, SHOW_FORWARD_DEPTH);
-		ImGui::RadioButton("G-Buffer - Albedo", &m_current_output, SHOW_GBUFFER_ALBEDO);
-		ImGui::RadioButton("G-Buffer - Normals", &m_current_output, SHOW_GBUFFER_NORMALS);
-		ImGui::RadioButton("G-Buffer - Roughness", &m_current_output, SHOW_GBUFFER_ROUGHNESS);
-		ImGui::RadioButton("G-Buffer - Metalness", &m_current_output, SHOW_GBUFFER_METALNESS);
-		ImGui::RadioButton("G-Buffer - Velocity", &m_current_output, SHOW_GBUFFER_VELOCITY);
 
+		if (m_current_renderer == RENDERER_FORWARD)
+		{
+			ImGui::RadioButton("Forward Depth (Linear)", &m_current_output, SHOW_FORWARD_DEPTH);
+		}
+		else if (m_current_renderer == RENDERER_DEFERRED)
+		{
+			ImGui::RadioButton("G-Buffer - Albedo", &m_current_output, SHOW_GBUFFER_ALBEDO);
+			ImGui::RadioButton("G-Buffer - Normals", &m_current_output, SHOW_GBUFFER_NORMALS);
+			ImGui::RadioButton("G-Buffer - Roughness", &m_current_output, SHOW_GBUFFER_ROUGHNESS);
+			ImGui::RadioButton("G-Buffer - Metalness", &m_current_output, SHOW_GBUFFER_METALNESS);
+			ImGui::RadioButton("G-Buffer - Velocity", &m_current_output, SHOW_GBUFFER_VELOCITY);
+			ImGui::RadioButton("G-Buffer - Depth (Linear)", &m_current_output, SHOW_GBUFFER_DEPTH);
+		}
+		
 		for (int i = 0; i < m_csm_technique.m_split_count; i++)
 		{
 			std::string name = "Cascade " + std::to_string(i + 1);
@@ -244,8 +278,10 @@ void Renderer::render()
 	m_shadow_map_renderer.render(m_scene, &m_csm_technique);
 
 	// Dispatch scene rendering.
-	m_forward_renderer.render(m_scene, m_width, m_height);
-	m_gbuffer_renderer.render(m_scene, m_width, m_height);
+	if (m_current_renderer == RENDERER_FORWARD)
+		m_forward_renderer.render(m_scene, m_width, m_height);
+	else if (m_current_renderer == RENDERER_DEFERRED)
+		m_gbuffer_renderer.render(m_scene, m_width, m_height);
 
 	// Render final composition.
 	m_final_composition.render(m_camera, m_width, m_height, m_current_output);

@@ -35,7 +35,7 @@ void GBufferRenderer::initialize(uint16_t width, uint16_t height)
 
 	if (!m_gbuffer_vs || !m_gbuffer_fs || !m_gbuffer_program)
 	{
-		DW_LOG_INFO("Failed to load Composition pass shaders");
+		DW_LOG_ERROR("Failed to load G-Buffer pass shaders");
 	}
 
 	m_gbuffer_program->uniform_block_binding("u_PerFrame", 0);
@@ -71,12 +71,11 @@ void GBufferRenderer::on_window_resized(uint16_t width, uint16_t height)
 	m_gbuffer_depth->set_min_filter(GL_LINEAR);
 
 	// Create FBO.
-	m_gbuffer_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_COLOR);
+	m_gbuffer_fbo = GlobalGraphicsResources::create_framebuffer(GBUFFER_FBO);
 	
 	// Attach render targets to FBO.
-	m_gbuffer_fbo->attach_render_target(0, m_gbuffer_rt0, 0, 0);
-	m_gbuffer_fbo->attach_render_target(1, m_gbuffer_rt1, 0, 0);
-	m_gbuffer_fbo->attach_render_target(2, m_gbuffer_rt2, 0, 0);
+	dw::Texture* render_targets[] = { m_gbuffer_rt0, m_gbuffer_rt1, m_gbuffer_rt2 };
+	m_gbuffer_fbo->attach_multiple_render_targets(3, render_targets);
 	m_gbuffer_fbo->attach_depth_stencil_target(m_gbuffer_depth, 0, 0);
 }
 
@@ -88,6 +87,8 @@ void GBufferRenderer::render(Scene* scene, uint32_t w, uint32_t h)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+
+	m_gbuffer_program->use();
 
 	m_scene_renderer.render(scene, m_gbuffer_fbo, m_gbuffer_program, w, h);
 }

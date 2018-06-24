@@ -65,8 +65,8 @@ in vec3 PS_IN_Normal;
 // ------------------------------------------------------------------
 
 layout (location = 0) out vec4 PS_OUT_Albedo;
-layout (location = 1) out vec2 PS_OUT_NormalMotion;
-layout (location = 2) out vec2 PS_OUT_MetalRoughEmissive;
+layout (location = 1) out vec4 PS_OUT_NormalMotion;
+layout (location = 2) out vec4 PS_OUT_MetalRoughEmissive;
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
@@ -74,7 +74,7 @@ layout (location = 2) out vec2 PS_OUT_MetalRoughEmissive;
 
 vec2 encode_normal(vec3 n)
 {
-    half f = sqrt(8*n.z+8);
+    float f = sqrt(8.0 * n.z + 8.0);
     return n.xy / f + 0.5;
 }
 
@@ -117,7 +117,7 @@ vec3 normal(vec2 tex_coord)
 float metalness(vec2 tex_coord)
 {
 #ifdef METALNESS_TEXTURE
-    return texture(s_Roughness, tex_coord).r;
+    return texture(s_Metalness, tex_coord).r;
 #else
     return metalness_roughness.r;
 #endif
@@ -126,18 +126,18 @@ float metalness(vec2 tex_coord)
 float roughness(vec2 tex_coord)
 {
 #ifdef ROUGHNESS_TEXTURE
-    return texture(s_Metalness, tex_coord).r;
+    return texture(s_Roughness, tex_coord).r;
 #else
     return metalness_roughness.g;
 #endif
 }
 
-vec3 emissive(vec2 tex_coord)
+float emissive(vec2 tex_coord)
 {
 #ifdef EMISSIVE_TEXTURE
     return texture(s_Emissive, tex_coord).rgb;
 #else
-    return vec3(0.0);
+    return 0.0;
 #endif
 }
 
@@ -162,19 +162,22 @@ void main()
     // Store albedo color
     PS_OUT_Albedo = albedo(tex_coord);
 
+    //PS_OUT_NormalMotion = vec4(1.0, 0.0, 0.0, 1.0);
+    //PS_OUT_MetalRoughEmissive = vec4(0.0, 1.0, 0.0, 1.0);
+
     // Store encoded normal vector
     vec3 normal = normal(tex_coord);
-    PS_OUT_Normal.rg = encode_normal(normal);
+    PS_OUT_NormalMotion.rg = encode_normal(normal);
 
     // Store motion vector
     PS_OUT_NormalMotion.ba = motion_vector();
 
     // Store metalness
-    PS_OUT_MetalRough.r = metalness(tex_coord);
+    PS_OUT_MetalRoughEmissive.r = metalness(tex_coord);
 
     // Store roughness
-    PS_OUT_MetalRough.g = roughness(tex_coord);
+    PS_OUT_MetalRoughEmissive.g = roughness(tex_coord);
 
     // Store emissive color
-    PS_OUT_Emissive.rgb = emissive(tex_coord);
+    PS_OUT_MetalRoughEmissive.b = emissive(tex_coord);
 }

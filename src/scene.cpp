@@ -177,8 +177,8 @@ void Scene::update()
 		glm::mat4 S = glm::scale(glm::mat4(1.0f), e->m_scale);
 		glm::mat4 T = glm::translate(glm::mat4(1.0f), e->m_position);
 
-		e->m_transform = T * R * S;
 		e->m_prev_transform = e->m_transform;
+		e->m_transform = T * R * S;
 	}
 }
 

@@ -59,6 +59,7 @@ private:
 	PerMaterialUniforms m_per_material_uniforms[1024];
 
 	// Debug options.
+	int m_current_renderer;
 	int m_current_output;
 	glm::vec3 m_light_direction;
 };

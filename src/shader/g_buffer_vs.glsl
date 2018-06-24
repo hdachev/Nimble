@@ -6,7 +6,7 @@ layout(location = 0) in vec3  VS_IN_Position;
 layout(location = 1) in vec2  VS_IN_TexCoord;
 layout(location = 2) in vec3  VS_IN_Normal;
 layout(location = 3) in vec3  VS_IN_Tangent;
-layout(location = 4) in vec4  VS_IN_Bitangent;
+layout(location = 4) in vec3  VS_IN_Bitangent;
 
 // ------------------------------------------------------------------
 // UNIFORM BUFFERS --------------------------------------------------
@@ -70,7 +70,7 @@ void main()
 	PS_IN_WorldPosition = pos.xyz;
 
 	// Calculate current and previous screen positions
-	PS_IN_ScreenPosition = viewProj * vec4(pos.xyz, 1.0f);
+	PS_IN_ScreenPosition = viewProj * pos;
 	PS_IN_LastScreenPosition = lastMvpMat * vec4(VS_IN_Position, 1.0f);
 	
 	// Calculate TBN vectors

@@ -11,7 +11,8 @@ in vec2 PS_IN_TexCoord;
 #define SHOW_GBUFFER_VELOCITY 6
 #define SHOW_GBUFFER_EMISSIVE 7
 #define SHOW_GBUFFER_DISPLACEMENT 8
-#define SHOW_SHADOW_MAPS 9
+#define SHOW_GBUFFER_DEPTH 9
+#define SHOW_SHADOW_MAPS 10
 
 uniform int u_CurrentOutput;
 uniform float u_FarPlane;
@@ -25,17 +26,17 @@ uniform sampler2D s_GBufferRT1;
 uniform sampler2D s_GBufferRT2;
 uniform sampler2D s_GBufferRTDepth;
 
-float get_linear_depth()
+float get_linear_depth(sampler2D depth_sampler)
 {
     float f = u_FarPlane;
     float n = u_NearPlane;
-    float z = (2 * n) / (f + n - texture( s_Depth, PS_IN_TexCoord ).x * (f - n));
+    float z = (2 * n) / (f + n - texture( depth_sampler, PS_IN_TexCoord ).x * (f - n));
     return z;
 }
 
 vec4 visualize_forward_depth()
 {
-	float depth = get_linear_depth();
+	float depth = get_linear_depth(s_Depth);
 	return vec4(vec3(depth), 1.0);
 }
 
@@ -68,25 +69,31 @@ vec4 visualize_gbuffer_normals()
 
 vec4 visualize_gbuffer_metalness()
 {
-	float metalness = texture(s_GBufferRT2, PS_IN_TexCoord).r;
+	float metalness = texture(s_GBufferRT2, PS_IN_TexCoord).x;
 	return vec4(vec3(metalness), 1.0);
 } 
 
 vec4 visualize_gbuffer_roughness()
 {
-	float roughness = texture(s_GBufferRT2, PS_IN_TexCoord).g;
+	float roughness = texture(s_GBufferRT2, PS_IN_TexCoord).y;
 	return vec4(vec3(roughness), 1.0);
 }
 
 vec4 visualize_gbuffer_velocity()
 {
-	vec2 velocity = texture(s_GBufferRT1, PS_IN_TexCoord).ba;
+	vec2 velocity = texture(s_GBufferRT1, PS_IN_TexCoord).zw;
 
 	// Remap to 0 - 1 range.
-	velocity = (velocity + vec2(1.0)) / 2.0;
+	//velocity = (velocity + vec2(1.0)) / 2.0;
 
 	return vec4(velocity, 0.0, 1.0);
-} 
+}
+
+vec4 visualize_gbuffer_depth()
+{
+	float depth = get_linear_depth(s_GBufferRTDepth);
+	return vec4(vec3(depth), 1.0);
+}
 
 void main()
 {
@@ -95,7 +102,7 @@ void main()
 	else if (u_CurrentOutput == SHOW_FORWARD_DEPTH)
 		FragColor = visualize_forward_depth();
 	else if (u_CurrentOutput == SHOW_GBUFFER_ALBEDO)
-		FragColor = visualize_gbuffer_albedo()
+		FragColor = visualize_gbuffer_albedo();
 	else if (u_CurrentOutput == SHOW_GBUFFER_NORMALS)
 		FragColor = visualize_gbuffer_normals();
 	else if (u_CurrentOutput == SHOW_GBUFFER_ROUGHNESS)
@@ -103,7 +110,9 @@ void main()
 	else if (u_CurrentOutput == SHOW_GBUFFER_METALNESS)
 		FragColor = visualize_gbuffer_metalness();
 	else if (u_CurrentOutput == SHOW_GBUFFER_VELOCITY)
-		FragColor = visualize_gbuffer_velocity()
+		FragColor = visualize_gbuffer_velocity();
+	else if (u_CurrentOutput == SHOW_GBUFFER_DEPTH)
+		FragColor = visualize_gbuffer_depth();
 	else if (u_CurrentOutput >= SHOW_SHADOW_MAPS)
 		FragColor = vec4(vec3(texture(s_CSMShadowMaps, vec3(PS_IN_TexCoord, float(u_CurrentOutput - SHOW_SHADOW_MAPS))).x), 1.0);
 	else 
