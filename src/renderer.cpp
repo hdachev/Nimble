@@ -84,6 +84,7 @@ void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 
 	// Initialize renderers
 	m_forward_renderer.initialize(m_width, m_height);
+	m_gbuffer_renderer.initialize(m_width, m_height);
 
 	// Initialize CSM.
 	m_csm_technique.initialize(0.3, 350.0f, 4, 2048, m_camera, m_width, m_height, m_light_direction);
@@ -134,6 +135,7 @@ void Renderer::on_window_resized(uint16_t width, uint16_t height)
 
 	// Propagate window resize to renderers.
 	m_forward_renderer.on_window_resized(width, height);
+	m_gbuffer_renderer.on_window_resized(width, height);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -201,13 +203,18 @@ void Renderer::debug_gui(double delta)
 
 		ImGui::Text("Current Output:");
 
-		ImGui::RadioButton("Scene", &m_current_output, 0);
-		ImGui::RadioButton("Linear Depth", &m_current_output, 1);
+		ImGui::RadioButton("Scene", &m_current_output, SHOW_COLOR);
+		ImGui::RadioButton("Forward Depth (Linear)", &m_current_output, SHOW_FORWARD_DEPTH);
+		ImGui::RadioButton("G-Buffer - Albedo", &m_current_output, SHOW_GBUFFER_ALBEDO);
+		ImGui::RadioButton("G-Buffer - Normals", &m_current_output, SHOW_GBUFFER_NORMALS);
+		ImGui::RadioButton("G-Buffer - Roughness", &m_current_output, SHOW_GBUFFER_ROUGHNESS);
+		ImGui::RadioButton("G-Buffer - Metalness", &m_current_output, SHOW_GBUFFER_METALNESS);
+		ImGui::RadioButton("G-Buffer - Velocity", &m_current_output, SHOW_GBUFFER_VELOCITY);
 
 		for (int i = 0; i < m_csm_technique.m_split_count; i++)
 		{
 			std::string name = "Cascade " + std::to_string(i + 1);
-			ImGui::RadioButton(name.c_str(), &m_current_output, 8 + i);
+			ImGui::RadioButton(name.c_str(), &m_current_output, SHOW_SHADOW_MAPS + i);
 		}
 
 		ImGui::SliderFloat("Light Direction X", &m_light_direction.x, -1.0f, 1.0f);
@@ -236,8 +243,9 @@ void Renderer::render()
 	// Dispatch shadow map rendering.
 	m_shadow_map_renderer.render(m_scene, &m_csm_technique);
 
-	// Dispatch forward rendering.
+	// Dispatch scene rendering.
 	m_forward_renderer.render(m_scene, m_width, m_height);
+	m_gbuffer_renderer.render(m_scene, m_width, m_height);
 
 	// Render final composition.
 	m_final_composition.render(m_camera, m_width, m_height, m_current_output);

@@ -37,14 +37,26 @@ void FinalComposition::render(dw::Camera* camera, uint32_t w, uint32_t h, int cu
 	m_composition_program->set_uniform("u_NearPlane", camera->m_near);
 	m_composition_program->set_uniform("u_FarPlane", camera->m_far);
 
-	GlobalGraphicsResources::lookup_texture(RENDER_TARGET_COLOR)->bind(0);
-	m_composition_program->set_uniform("s_Color", 0);
+	if (m_composition_program->set_uniform("s_Color", 0))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_COLOR)->bind(0);
 
-	GlobalGraphicsResources::lookup_texture(RENDER_TARGET_DEPTH)->bind(1);
-	m_composition_program->set_uniform("s_Depth", 1);
+	if (m_composition_program->set_uniform("s_Depth", 1))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_DEPTH)->bind(1);
 
-	GlobalGraphicsResources::lookup_texture(CSM_SHADOW_MAPS)->bind(2);
-	m_composition_program->set_uniform("s_CSMShadowMaps", 2);
+	if (m_composition_program->set_uniform("s_CSMShadowMaps", 2))
+		GlobalGraphicsResources::lookup_texture(CSM_SHADOW_MAPS)->bind(2);
+
+	if (m_composition_program->set_uniform("s_GBufferRT0", 3))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT0)->bind(3);
+
+	if (m_composition_program->set_uniform("s_GBufferRT1", 4))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT1)->bind(4);
+
+	if (m_composition_program->set_uniform("s_GBufferRT2", 5))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT2)->bind(5);
+
+	if (m_composition_program->set_uniform("s_GBufferDepth", 6))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_DEPTH)->bind(6);
 
 	m_post_process_renderer.render(w, h, nullptr);
 }

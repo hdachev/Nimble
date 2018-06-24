@@ -165,8 +165,8 @@ private:
 		if (m_mouse_look)
 		{
 			// Activate Mouse Look
-			current->set_rotatation_delta(glm::vec3((float)(m_mouse_delta_y * m_camera_sensitivity * m_delta),
-				(float)(m_mouse_delta_x * m_camera_sensitivity * m_delta),
+			current->set_rotatation_delta(glm::vec3((float)(m_mouse_delta_y * m_camera_sensitivity),
+				(float)(m_mouse_delta_x * m_camera_sensitivity),
 				(float)(0.0f)));
 		}
 		else
@@ -191,7 +191,7 @@ private:
 	bool m_debug_mode = false;
 	float m_heading_speed = 0.0f;
 	float m_sideways_speed = 0.0f;
-	float m_camera_sensitivity = 0.005f;
+	float m_camera_sensitivity = 0.05f;
 	float m_camera_speed = 0.1f;
 
 	std::unique_ptr<Renderer> m_renderer;

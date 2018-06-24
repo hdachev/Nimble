@@ -64,19 +64,23 @@ void SceneRenderer::render(Scene* scene, dw::Framebuffer* fbo, dw::Program* glob
 		// Bind environment textures.
 		if (tex_type_count == ALL_TEXTURES)
 		{
-			scene->irradiance_map()->bind(4);
-			current_program->set_uniform("s_IrradianceMap", 4);
+			if (current_program->set_uniform("s_IrradianceMap", 4))
+				scene->irradiance_map()->bind(4);
 
-			scene->prefiltered_map()->bind(5);
-			current_program->set_uniform("s_PrefilteredMap", 5);
+			if (current_program->set_uniform("s_PrefilteredMap", 5))
+				scene->prefiltered_map()->bind(5);
 
-			dw::Texture* brdf_lut = GlobalGraphicsResources::lookup_texture(BRDF_LUT);
-			brdf_lut->bind(6);
-			current_program->set_uniform("s_BRDF", 6);
+			if (current_program->set_uniform("s_BRDF", 6))
+			{
+				dw::Texture* brdf_lut = GlobalGraphicsResources::lookup_texture(BRDF_LUT);
+				brdf_lut->bind(6);
+			}
 
-			dw::Texture* csm_shadow_map = GlobalGraphicsResources::lookup_texture(CSM_SHADOW_MAPS);
-			csm_shadow_map->bind(7);
-			current_program->set_uniform("s_ShadowMap", 7);
+			if (current_program->set_uniform("s_ShadowMap", 7))
+			{
+				dw::Texture* csm_shadow_map = GlobalGraphicsResources::lookup_texture(CSM_SHADOW_MAPS);
+				csm_shadow_map->bind(7);
+			}
 		}
 
 		// Bind vertex array.
@@ -120,8 +124,8 @@ void SceneRenderer::render(Scene* scene, dw::Framebuffer* fbo, dw::Program* glob
 
 						if (m_texture_flags[texture_idx] == tex_types[requested_type_idx] && texture)
 						{
-							texture->bind(m_texture_flags[texture_idx]);
-							current_program->set_uniform(m_texture_uniform_names[texture_idx], m_texture_flags[texture_idx]);
+							if (current_program->set_uniform(m_texture_uniform_names[texture_idx], m_texture_flags[texture_idx]))
+								texture->bind(m_texture_flags[texture_idx]);
 						}
 					}
 				}

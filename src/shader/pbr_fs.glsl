@@ -85,6 +85,8 @@ in vec4 PS_IN_NDCFragPos;
 in vec3 PS_IN_CamPos;
 in vec3 PS_IN_Normal;
 in vec2 PS_IN_TexCoord;
+in vec3 PS_IN_Tangent;
+in vec3 PS_IN_Bitangent;
 
 // ------------------------------------------------------------------
 // OUTPUT VARIABLES  ------------------------------------------------
@@ -179,19 +181,16 @@ vec3 debug_color(float frag_depth)
 
 vec3 getNormalFromMap()
 {
-    vec3 tangentNormal = texture(s_Normal, PS_IN_TexCoord).xyz * 2.0 - 1.0;
+	// Create TBN matrix.
+    mat3 TBN = mat3(normalize(PS_IN_Tangent), normalize(PS_IN_Bitangent), normalize(PS_IN_Normal));
 
-    vec3 Q1  = dFdx(PS_IN_Position);
-    vec3 Q2  = dFdy(PS_IN_Position);
-    vec2 st1 = dFdx(PS_IN_TexCoord);
-    vec2 st2 = dFdy(PS_IN_TexCoord);
+    // Sample tangent space normal vector from normal map and remap it from [0, 1] to [-1, 1] range.
+    vec3 n = normalize(texture(s_Normal, PS_IN_TexCoord).xyz * 2.0 - 1.0);
 
-    vec3 N   = normalize(PS_IN_Normal);
-    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
-    vec3 B  = -normalize(cross(N, T));
-    mat3 TBN = mat3(T, B, N);
+    // Multiple vector by the TBN matrix to transform the normal from tangent space to world space.
+    n = normalize(TBN * n);
 
-    return normalize(TBN * tangentNormal);
+    return n;
 }
 
 vec3 FresnelSchlickRoughness(float HdotV, vec3 F0, float roughness)

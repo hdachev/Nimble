@@ -1,7 +1,31 @@
 #pragma once
 
+// Forward Renderer
 #define FRAMEBUFFER_COLOR "Color Buffer"
 #define RENDER_TARGET_COLOR "Color"
 #define RENDER_TARGET_DEPTH "Depth"
+
+// PBR
 #define BRDF_LUT "BRDF_LUT"
+
+// CSM
 #define CSM_SHADOW_MAPS "CSMShadowMaps"
+
+// Deferred Renderer
+#define GBUFFER_FBO "GBufferFBO"
+#define RENDER_TARGET_GBUFFER_RT0 "GBuffer_RT0"
+#define RENDER_TARGET_GBUFFER_RT1 "GBuffer_RT1"
+#define RENDER_TARGET_GBUFFER_RT2 "GBuffer_RT2"
+#define RENDER_TARGET_GBUFFER_DEPTH "GBuffer_DEPTH"
+
+// Composition pass
+#define SHOW_COLOR 0
+#define SHOW_FORWARD_DEPTH 1
+#define SHOW_GBUFFER_ALBEDO 2
+#define SHOW_GBUFFER_NORMALS 3
+#define SHOW_GBUFFER_ROUGHNESS 4
+#define SHOW_GBUFFER_METALNESS 5
+#define SHOW_GBUFFER_VELOCITY 6
+#define SHOW_GBUFFER_EMISSIVE 7
+#define SHOW_GBUFFER_DISPLACEMENT 8
+#define SHOW_SHADOW_MAPS 9

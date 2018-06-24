@@ -6,7 +6,7 @@ layout(location = 0) in vec3  VS_IN_Position;
 layout(location = 1) in vec2  VS_IN_TexCoord;
 layout(location = 2) in vec3  VS_IN_Normal;
 layout(location = 3) in vec3  VS_IN_Tangent;
-layout(location = 4) in vec3  VS_IN_Bitangent;
+layout(location = 4) in vec4  VS_IN_Bitangent;
 
 // ------------------------------------------------------------------
 // UNIFORM BUFFERS --------------------------------------------------
@@ -45,13 +45,19 @@ layout (std140) uniform u_PerEntity //#binding 1
 // OUTPUT VARIABLES  ------------------------------------------------
 // ------------------------------------------------------------------
 
-out vec3 PS_IN_CamPos;
-out vec3 PS_IN_Position;
-out vec4 PS_IN_NDCFragPos;
-out vec3 PS_IN_Normal;
+#define NORMAL_TEXTURE
+
 out vec2 PS_IN_TexCoord;
-out vec3 PS_IN_Tangent;
-out vec3 PS_IN_Bitangent;
+out vec3 PS_IN_CamPos;
+out vec3 PS_IN_WorldPosition;
+out vec4 PS_IN_ScreenPosition;
+out vec4 PS_IN_LastScreenPosition;
+out vec3 PS_IN_Normal;
+
+#ifdef NORMAL_TEXTURE
+    out vec3 PS_IN_Tangent;
+    out vec3 PS_IN_Bitangent;
+#endif
 
 // ------------------------------------------------------------------
 // MAIN  ------------------------------------------------------------
@@ -59,20 +65,28 @@ out vec3 PS_IN_Bitangent;
 
 void main()
 {
+	// Calculate world position
 	vec4 pos = modelMat * vec4(VS_IN_Position, 1.0f);
-	PS_IN_Position = pos.xyz;
+	PS_IN_WorldPosition = pos.xyz;
 
-	pos = projMat * viewMat * vec4(pos.xyz, 1.0f);
+	// Calculate current and previous screen positions
+	PS_IN_ScreenPosition = viewProj * vec4(pos.xyz, 1.0f);
+	PS_IN_LastScreenPosition = lastMvpMat * vec4(VS_IN_Position, 1.0f);
 	
+	// Calculate TBN vectors
 	mat3 normal_mat = mat3(modelMat);
 	PS_IN_Normal = normal_mat * VS_IN_Normal;
 
+#ifdef NORMAL_TEXTURE
 	PS_IN_Tangent = normal_mat * VS_IN_Tangent;
 	PS_IN_Bitangent = normal_mat * VS_IN_Bitangent;
+#endif
 
+	// Camera position
 	PS_IN_CamPos = viewPos.xyz;
+
+	// Texture coordinates
 	PS_IN_TexCoord = VS_IN_TexCoord;
 
-	PS_IN_NDCFragPos = pos;
-	gl_Position = pos;
+	gl_Position = PS_IN_ScreenPosition;
 }
