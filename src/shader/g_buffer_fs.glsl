@@ -67,6 +67,7 @@ in vec3 PS_IN_Normal;
 layout (location = 0) out vec4 PS_OUT_Albedo;
 layout (location = 1) out vec4 PS_OUT_NormalMotion;
 layout (location = 2) out vec4 PS_OUT_MetalRoughEmissive;
+layout (location = 3) out vec3 PS_OUT_WorldPosition;
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
@@ -144,10 +145,11 @@ float emissive(vec2 tex_coord)
 vec2 motion_vector()
 {
     // Perspective division and remapping to [0, 1] range.
-    vec2 current = (PS_IN_ScreenPosition.xy / PS_IN_ScreenPosition.w) * 0.5 + 0.5;
-    vec2 last = (PS_IN_LastScreenPosition.xy / PS_IN_LastScreenPosition.w) * 0.5 + 0.5;
+    vec2 current = (PS_IN_ScreenPosition.xy / PS_IN_ScreenPosition.w);
+    vec2 last = (PS_IN_LastScreenPosition.xy / PS_IN_LastScreenPosition.w);
 
-    return current - last;
+    vec2 velocity = (current - last) * 0.5 + 0.5;
+    return velocity;//pow(velocity, 3.0);
 }
 
 // ------------------------------------------------------------------
@@ -160,10 +162,11 @@ void main()
     vec2 tex_coord = tex_coord();
 
     // Store albedo color
-    PS_OUT_Albedo = albedo(tex_coord);
-
-    //PS_OUT_NormalMotion = vec4(1.0, 0.0, 0.0, 1.0);
-    //PS_OUT_MetalRoughEmissive = vec4(0.0, 1.0, 0.0, 1.0);
+    vec4 albedo_color = albedo(tex_coord);
+    
+    if (albedo_color.a < 0.5)
+        discard;
+    PS_OUT_Albedo = albedo_color;
 
     // Store encoded normal vector
     vec3 normal = normal(tex_coord);
@@ -180,4 +183,7 @@ void main()
 
     // Store emissive color
     PS_OUT_MetalRoughEmissive.b = emissive(tex_coord);
+
+    // Store world position (TEMP)
+    PS_OUT_WorldPosition = PS_IN_WorldPosition;
 }

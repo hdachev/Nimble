@@ -55,6 +55,7 @@ void GBufferRenderer::on_window_resized(uint16_t width, uint16_t height)
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_GBUFFER_RT0);
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_GBUFFER_RT1);
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_GBUFFER_RT2);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_GBUFFER_RT3);
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_GBUFFER_DEPTH);
 
 	// Create Render targets.
@@ -67,15 +68,18 @@ void GBufferRenderer::on_window_resized(uint16_t width, uint16_t height)
 	m_gbuffer_rt2 = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_GBUFFER_RT2, width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 	m_gbuffer_rt2->set_min_filter(GL_LINEAR);
 
-	m_gbuffer_depth = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_GBUFFER_DEPTH, width, height, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+	m_gbuffer_rt3 = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_GBUFFER_RT3, width, height, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+	m_gbuffer_rt3->set_min_filter(GL_LINEAR);
+
+	m_gbuffer_depth = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_GBUFFER_DEPTH, width, height, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
 	m_gbuffer_depth->set_min_filter(GL_LINEAR);
 
 	// Create FBO.
 	m_gbuffer_fbo = GlobalGraphicsResources::create_framebuffer(GBUFFER_FBO);
 	
 	// Attach render targets to FBO.
-	dw::Texture* render_targets[] = { m_gbuffer_rt0, m_gbuffer_rt1, m_gbuffer_rt2 };
-	m_gbuffer_fbo->attach_multiple_render_targets(3, render_targets);
+	dw::Texture* render_targets[] = { m_gbuffer_rt0, m_gbuffer_rt1, m_gbuffer_rt2, m_gbuffer_rt3 };
+	m_gbuffer_fbo->attach_multiple_render_targets(4, render_targets);
 	m_gbuffer_fbo->attach_depth_stencil_target(m_gbuffer_depth, 0, 0);
 }
 

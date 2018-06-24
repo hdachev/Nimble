@@ -35,6 +35,10 @@ struct PerFrameUniforms
 	DW_ALIGNED(16) glm::vec4	 viewDir;
 	DW_ALIGNED(16) int			 numCascades;
 	DW_ALIGNED(16) ShadowFrustum shadowFrustums[MAX_SHADOW_FRUSTUM];
+	float		 tanHalfFov;
+	float		 aspectRatio;
+	float		 nearPlane;
+	float		 farPlane;
 };
 
 struct PerEntityUniforms

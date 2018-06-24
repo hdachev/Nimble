@@ -2,17 +2,18 @@ out vec4 FragColor;
 
 in vec2 PS_IN_TexCoord;
 
-#define SHOW_COLOR 0
+#define SHOW_FORWARD_COLOR 0
 #define SHOW_FORWARD_DEPTH 1
-#define SHOW_GBUFFER_ALBEDO 2
-#define SHOW_GBUFFER_NORMALS 3
-#define SHOW_GBUFFER_ROUGHNESS 4
-#define SHOW_GBUFFER_METALNESS 5
-#define SHOW_GBUFFER_VELOCITY 6
-#define SHOW_GBUFFER_EMISSIVE 7
-#define SHOW_GBUFFER_DISPLACEMENT 8
-#define SHOW_GBUFFER_DEPTH 9
-#define SHOW_SHADOW_MAPS 10
+#define SHOW_DEFERRED_COLOR 2
+#define SHOW_GBUFFER_ALBEDO 3
+#define SHOW_GBUFFER_NORMALS 4
+#define SHOW_GBUFFER_ROUGHNESS 5
+#define SHOW_GBUFFER_METALNESS 6
+#define SHOW_GBUFFER_VELOCITY 7
+#define SHOW_GBUFFER_EMISSIVE 8
+#define SHOW_GBUFFER_DISPLACEMENT 9
+#define SHOW_GBUFFER_DEPTH 10
+#define SHOW_SHADOW_MAPS 11
 
 uniform int u_CurrentOutput;
 uniform float u_FarPlane;
@@ -25,6 +26,7 @@ uniform sampler2D s_GBufferRT0;
 uniform sampler2D s_GBufferRT1;
 uniform sampler2D s_GBufferRT2;
 uniform sampler2D s_GBufferRTDepth;
+uniform sampler2D s_DeferredColor;
 
 float get_linear_depth(sampler2D depth_sampler)
 {
@@ -83,8 +85,8 @@ vec4 visualize_gbuffer_velocity()
 {
 	vec2 velocity = texture(s_GBufferRT1, PS_IN_TexCoord).zw;
 
-	// Remap to 0 - 1 range.
-	//velocity = (velocity + vec2(1.0)) / 2.0;
+	//velocity = pow(velocity, 1.0/3.0);
+	velocity = velocity * 2.0 - 1.0;
 
 	return vec4(velocity, 0.0, 1.0);
 }
@@ -97,10 +99,12 @@ vec4 visualize_gbuffer_depth()
 
 void main()
 {
-	if (u_CurrentOutput == SHOW_COLOR)
+	if (u_CurrentOutput == SHOW_FORWARD_COLOR)
 		FragColor = vec4(texture(s_Color, PS_IN_TexCoord).xyz, 1.0);
 	else if (u_CurrentOutput == SHOW_FORWARD_DEPTH)
 		FragColor = visualize_forward_depth();
+	else if (u_CurrentOutput == SHOW_DEFERRED_COLOR)
+		FragColor = vec4(texture(s_DeferredColor, PS_IN_TexCoord).xyz, 1.0);
 	else if (u_CurrentOutput == SHOW_GBUFFER_ALBEDO)
 		FragColor = visualize_gbuffer_albedo();
 	else if (u_CurrentOutput == SHOW_GBUFFER_NORMALS)

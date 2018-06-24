@@ -98,6 +98,7 @@ void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 	// Initialize renderers
 	m_forward_renderer.initialize(m_width, m_height);
 	m_gbuffer_renderer.initialize(m_width, m_height);
+	m_deferred_shading_renderer.initialize(m_width, m_height);
 
 	// Initialize CSM.
 	m_csm_technique.initialize(0.3, 350.0f, 4, 2048, m_camera, m_width, m_height, m_light_direction);
@@ -112,6 +113,8 @@ void Renderer::shutdown()
 
 	// Shutdown renderers.
 	m_forward_renderer.shutdown();
+	m_gbuffer_renderer.shutdown();
+	m_deferred_shading_renderer.shutdown();
 
 	// Clean up global resources.
 	GlobalGraphicsResources::shutdown();
@@ -125,7 +128,6 @@ void Renderer::set_scene(Scene* scene)
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
-
 
 void Renderer::set_camera(dw::Camera* camera)
 {
@@ -149,6 +151,7 @@ void Renderer::on_window_resized(uint16_t width, uint16_t height)
 	// Propagate window resize to renderers.
 	m_forward_renderer.on_window_resized(width, height);
 	m_gbuffer_renderer.on_window_resized(width, height);
+	m_deferred_shading_renderer.on_window_resized(width, height);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -161,9 +164,14 @@ void Renderer::update_uniforms(dw::Camera* camera)
 	m_per_frame_uniforms.projMat = camera->m_projection;
 	m_per_frame_uniforms.viewMat = camera->m_view;
 	m_per_frame_uniforms.viewProj = camera->m_view_projection;
+	m_per_frame_uniforms.invViewProj = glm::inverse(camera->m_view_projection);
 	m_per_frame_uniforms.viewDir = glm::vec4(camera->m_forward.x, camera->m_forward.y, camera->m_forward.z, 0.0f);
 	m_per_frame_uniforms.viewPos = glm::vec4(camera->m_position.x, camera->m_position.y, camera->m_position.z, 0.0f);
 	m_per_frame_uniforms.numCascades = m_csm_technique.frustum_split_count();
+	m_per_frame_uniforms.tanHalfFov = glm::tan(glm::radians(camera->m_fov / 2.0f));
+	m_per_frame_uniforms.aspectRatio = float(m_width) / float(m_height);
+	m_per_frame_uniforms.farPlane = camera->m_far;
+	m_per_frame_uniforms.nearPlane = camera->m_near;
 	
 	m_per_scene_uniforms.directionalLight.direction = glm::vec4(glm::normalize(m_light_direction), 1.0f);
 
@@ -229,14 +237,20 @@ void Renderer::debug_gui(double delta)
 
 		ImGui::Text("Current Output:");
 
-		ImGui::RadioButton("Scene", &m_current_output, SHOW_COLOR);
-
 		if (m_current_renderer == RENDERER_FORWARD)
 		{
+			if (m_current_output > SHOW_FORWARD_DEPTH && m_current_output < SHOW_SHADOW_MAPS)
+				m_current_output = SHOW_FORWARD_COLOR;
+				
+			ImGui::RadioButton("Scene", &m_current_output, SHOW_FORWARD_COLOR);
 			ImGui::RadioButton("Forward Depth (Linear)", &m_current_output, SHOW_FORWARD_DEPTH);
 		}
 		else if (m_current_renderer == RENDERER_DEFERRED)
 		{
+			if (m_current_output < SHOW_DEFERRED_COLOR)
+				m_current_output = SHOW_DEFERRED_COLOR;
+
+			ImGui::RadioButton("Scene", &m_current_output, SHOW_DEFERRED_COLOR);
 			ImGui::RadioButton("G-Buffer - Albedo", &m_current_output, SHOW_GBUFFER_ALBEDO);
 			ImGui::RadioButton("G-Buffer - Normals", &m_current_output, SHOW_GBUFFER_NORMALS);
 			ImGui::RadioButton("G-Buffer - Roughness", &m_current_output, SHOW_GBUFFER_ROUGHNESS);
@@ -281,7 +295,10 @@ void Renderer::render()
 	if (m_current_renderer == RENDERER_FORWARD)
 		m_forward_renderer.render(m_scene, m_width, m_height);
 	else if (m_current_renderer == RENDERER_DEFERRED)
+	{
 		m_gbuffer_renderer.render(m_scene, m_width, m_height);
+		m_deferred_shading_renderer.render(m_scene, m_width, m_height);
+	}
 
 	// Render final composition.
 	m_final_composition.render(m_camera, m_width, m_height, m_current_output);

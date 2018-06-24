@@ -31,6 +31,10 @@ layout (std140) uniform u_PerFrame //#binding 0
 	vec4 		  viewDir;
 	int			  numCascades;
 	ShadowFrustum shadowFrustums[MAX_SHADOW_FRUSTUM];
+	float		  tanHalfFov;
+	float		  aspectRatio;
+	float		  nearPlane;
+	float		  farPlane;
 };
 
 layout (std140) uniform u_PerEntity //#binding 1

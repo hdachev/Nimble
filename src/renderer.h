@@ -9,6 +9,7 @@
 #include "scene.h"
 #include "forward_renderer.h"
 #include "g_buffer_renderer.h"
+#include "deferred_shading_renderer.h"
 #include "final_composition.h"
 #include "uniforms.h"
 #include "csm.h"
@@ -46,6 +47,7 @@ private:
 	// Renderers
 	ForwardRenderer m_forward_renderer;
 	GBufferRenderer m_gbuffer_renderer;
+	DeferredShadingRenderer m_deferred_shading_renderer;
 	FinalComposition m_final_composition;
 	ShadowMapRenderer m_shadow_map_renderer;
 

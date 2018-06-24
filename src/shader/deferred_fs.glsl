@@ -28,7 +28,7 @@ struct ShadowFrustum
 	float farPlane;
 };
 
-layout (std140) uniform u_PerFrame //#binding 0
+layout (std140) uniform u_PerFrame
 { 
 	mat4 		  lastViewProj;
 	mat4 		  viewProj;
@@ -45,15 +45,7 @@ layout (std140) uniform u_PerFrame //#binding 0
 	float		  farPlane;
 };
 
-layout (std140) uniform u_PerEntity //#binding 1
-{
-	mat4 mvpMat;
-	mat4 lastMvpMat;
-	mat4 modelMat;	
-	vec4 worldPos;
-};
-
-layout (std140) uniform u_PerScene //#binding 2
+layout (std140) uniform u_PerScene
 {
 	PointLight 		 pointLights[MAX_POINT_LIGHTS];
 	DirectionalLight directionalLight;
@@ -71,26 +63,22 @@ const float kMaxLOD    = 6.0;
 // SAMPLERS  --------------------------------------------------------
 // ------------------------------------------------------------------
 
-uniform sampler2D s_Albedo; //#slot 0
-uniform sampler2D s_Normal; //#slot 1
-uniform sampler2D s_Metalness; //#slot 2
-uniform sampler2D s_Roughness; //#slot 3
-uniform samplerCube s_IrradianceMap; //#slot 4
-uniform samplerCube s_PrefilteredMap; //#slot 5
-uniform sampler2D s_BRDF; //#slot 6
-uniform sampler2DArray s_ShadowMap; //#slot 7
+uniform sampler2D s_GBufferRT0;
+uniform sampler2D s_GBufferRT1;
+uniform sampler2D s_GBufferRT2;
+uniform sampler2D s_GBufferRTDepth;
+uniform sampler2DArray s_ShadowMap;
+uniform samplerCube s_IrradianceMap;
+uniform samplerCube s_PrefilteredMap;
+uniform sampler2D s_BRDF;
+uniform sampler2D s_GBufferRT3;
 
 // ------------------------------------------------------------------
 // INPUT VARIABLES  -------------------------------------------------
 // ------------------------------------------------------------------
 
-in vec3 PS_IN_Position;
-in vec4 PS_IN_NDCFragPos;
-in vec3 PS_IN_CamPos;
-in vec3 PS_IN_Normal;
 in vec2 PS_IN_TexCoord;
-in vec3 PS_IN_Tangent;
-in vec3 PS_IN_Bitangent;
+in vec2 PS_IN_ViewRay;
 
 // ------------------------------------------------------------------
 // OUTPUT VARIABLES  ------------------------------------------------
@@ -99,7 +87,30 @@ in vec3 PS_IN_Bitangent;
 layout (location = 0) out vec4 PS_OUT_Color;
 
 // ------------------------------------------------------------------
-// FUNCTIONS --------------------------------------------------------
+// HELPER FUNCTIONS -------------------------------------------------
+// ------------------------------------------------------------------
+
+float get_linear_depth(sampler2D depth_sampler)
+{
+    float f = farPlane;
+    float n = nearPlane;
+    float z = (2 * n) / (f + n - texture( depth_sampler, PS_IN_TexCoord ).x * (f - n));
+    return z;
+}
+
+// ------------------------------------------------------------------
+
+vec3 decode_normal(vec2 enc)
+{
+    vec2 fenc = enc * 4.0 - 2.0;
+    float f = dot(fenc, fenc);
+    float g = sqrt(1.0 - f / 4.0);
+    vec3 n;
+    n.xy = fenc * g;
+    n.z = 1 - f / 2.0;
+    return n;
+}
+
 // ------------------------------------------------------------------
 
 float depth_compare(float a, float b, float bias)
@@ -107,7 +118,11 @@ float depth_compare(float a, float b, float bias)
     return a - bias > b ? 1.0 : 0.0;
 }
 
-float shadow_occlussion(float frag_depth, vec3 n, vec3 l)
+// ------------------------------------------------------------------
+// CSM --------------------------------------------------------------
+// ------------------------------------------------------------------
+
+float shadow_occlussion(float frag_depth, vec3 frag_pos, vec3 n, vec3 l)
 {
 	int index = 0;
     float blend = 0.0;
@@ -125,7 +140,7 @@ float shadow_occlussion(float frag_depth, vec3 n, vec3 l)
     //blend *= options.z;
 
 	// Transform frag position into Light-space.
-	vec4 light_space_pos = shadowFrustums[index].shadowMatrix * vec4(PS_IN_Position, 1.0f);
+	vec4 light_space_pos = shadowFrustums[index].shadowMatrix * vec4(frag_pos, 1.0f);
 
 	float current_depth = light_space_pos.z;
     
@@ -162,6 +177,8 @@ float shadow_occlussion(float frag_depth, vec3 n, vec3 l)
     //     return 0.0;
 }
 
+// ------------------------------------------------------------------
+
 vec3 debug_color(float frag_depth)
 {
 	int index = 0;
@@ -183,19 +200,78 @@ vec3 debug_color(float frag_depth)
 		return vec3(1.0, 1.0, 0.0);
 }
 
-vec3 getNormalFromMap()
+// ------------------------------------------------------------------
+// G-BUFFER EXTRACTION ----------------------------------------------
+// ------------------------------------------------------------------
+
+vec3 get_normal()
 {
-	// Create TBN matrix.
-    mat3 TBN = mat3(normalize(PS_IN_Tangent), normalize(PS_IN_Bitangent), normalize(PS_IN_Normal));
-
-    // Sample tangent space normal vector from normal map and remap it from [0, 1] to [-1, 1] range.
-    vec3 n = normalize(texture(s_Normal, PS_IN_TexCoord).xyz * 2.0 - 1.0);
-
-    // Multiple vector by the TBN matrix to transform the normal from tangent space to world space.
-    n = normalize(TBN * n);
-
-    return n;
+	vec2 encoded_normal = texture(s_GBufferRT1, PS_IN_TexCoord).rg;
+    return decode_normal(encoded_normal);
 }
+
+// ------------------------------------------------------------------
+
+vec4 get_albedo()
+{
+    return texture(s_GBufferRT0, PS_IN_TexCoord);
+}
+
+// ------------------------------------------------------------------
+
+float get_metalness()
+{
+    return texture(s_GBufferRT2, PS_IN_TexCoord).x;
+}
+
+// ------------------------------------------------------------------
+
+float get_roughness()
+{
+    return texture(s_GBufferRT2, PS_IN_TexCoord).y;
+}
+
+// ------------------------------------------------------------------
+
+vec3 get_position(float ndc_depth)
+{
+	// float depth = texture(s_GBufferRTDepth, PS_IN_TexCoord).x;
+    // float view_z = projMat[3][2] / (2 * depth - 1 - projMat[2][2]);
+    
+	// float view_x = PS_IN_ViewRay.x * view_z;
+    // float view_y = PS_IN_ViewRay.y * view_z;
+
+	// return vec3(view_x, view_y, view_z);
+	// Remap depth to [-1.0, 1.0] range. 
+	float depth = ndc_depth * 2.0 - 1.0;
+
+	// Take texture coordinate and remap to [-1.0, 1.0] range. 
+	vec2 screen_pos = PS_IN_TexCoord * 2.0 - 1.0;
+
+	// // Create NDC position.
+	vec4 ndc_pos = vec4(screen_pos, depth, 1.0);
+
+	// Transform back into world position.
+	vec4 world_pos = invViewProj * ndc_pos;
+
+	// Undo projection.
+	world_pos = world_pos / world_pos.w;
+
+	return world_pos.xyz;
+	
+	//return texture(s_GBufferRT3, PS_IN_TexCoord).xyz;
+}
+
+// ------------------------------------------------------------------
+
+float get_depth()
+{
+	return texture(s_GBufferRTDepth, PS_IN_TexCoord).x;
+}
+
+// ------------------------------------------------------------------
+// PBR --------------------------------------------------------------
+// ------------------------------------------------------------------
 
 vec3 FresnelSchlickRoughness(float HdotV, vec3 F0, float roughness)
 {
@@ -240,17 +316,21 @@ void main()
 {
 	const float kAmbient   = 1.0;
 
-	vec4 kAlbedoAlpha = texture(s_Albedo, PS_IN_TexCoord);
-	float kMetalness = texture(s_Metalness, PS_IN_TexCoord).x; 
-	float kRoughness = texture(s_Roughness, PS_IN_TexCoord).x; 
+	// Extract values from G-Buffer
+	vec4 kAlbedoAlpha = get_albedo();
 
 	if (kAlbedoAlpha.w < 0.5)
 		discard;
 
 	vec3 kAlbedo = kAlbedoAlpha.xyz;
+	float kMetalness = get_metalness();
+	float kRoughness = get_roughness();
+	vec3 N = get_normal();
+	float frag_depth = get_depth();
+	vec3 frag_pos = get_position(frag_depth);
+	vec3 view_pos = viewPos.xyz;
 
-	vec3 N = getNormalFromMap();
-	vec3 V = normalize(PS_IN_CamPos - PS_IN_Position); // FragPos -> ViewPos vector
+	vec3 V = normalize(view_pos - frag_pos); // FragPos -> ViewPos vector
 	vec3 R = reflect(-V, N); 
 	vec3 Lo = vec3(0.0);
 
@@ -271,8 +351,7 @@ void main()
 		float NdotL = max(dot(N, L), 0.0);
 
 		// Shadows ------------------------------------------------------------------
-		float frag_depth = (PS_IN_NDCFragPos.z / PS_IN_NDCFragPos.w) * 0.5 + 0.5;
-		float shadow = shadow_occlussion(frag_depth, PS_IN_Normal, L);
+		float shadow = shadow_occlussion(frag_depth, frag_pos, N, L);
 
 		shadow_debug = debug_color(frag_depth);
 
@@ -308,7 +387,7 @@ void main()
 	// For each point light...
 	for (int i = 0; i < pointLightCount; i++)
 	{
-		vec3 L = normalize(pointLights[i].position.xyz - PS_IN_Position); // FragPos -> LightPos vector
+		vec3 L = normalize(pointLights[i].position.xyz - frag_pos); // FragPos -> LightPos vector
 		vec3 H = normalize(V + L);
 		float HdotV = clamp(dot(H, V), 0.0, 1.0);
 		float NdotH = max(dot(N, H), 0.0);
@@ -316,7 +395,7 @@ void main()
 
 		// Radiance -----------------------------------------------------------------
 
-		float distance = length(pointLights[i].position.xyz - PS_IN_Position);
+		float distance = length(pointLights[i].position.xyz - frag_pos);
 		float attenuation = 1.0 / (distance * distance);
 		vec3 Li = pointLights[i].color.xyz * attenuation;
 

@@ -25,6 +25,7 @@ private:
 	dw::Texture* m_gbuffer_rt0; // Albedo.rgb
 	dw::Texture* m_gbuffer_rt1; // Normal.x, Normal.y, Motion.x, Motion.y
 	dw::Texture* m_gbuffer_rt2; // Metalness, Roughness, Emissive Mask, Height
+	dw::Texture* m_gbuffer_rt3; // Position (TEMP).
 	dw::Texture* m_gbuffer_depth;
 	dw::Framebuffer* m_gbuffer_fbo;
 };
