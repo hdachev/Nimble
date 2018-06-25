@@ -40,7 +40,7 @@ void main()
 	PS_IN_Bitangent = normal_mat * VS_IN_Bitangent;
 
 #ifdef HEIGHT_TEXTURE
-	mat3 TBN = mat3(normalize(PS_IN_Tangent), normalize(PS_IN_Bitangent), normalize(PS_IN_Normal));
+	mat3 TBN = transpose(mat3(normalize(PS_IN_Tangent), normalize(PS_IN_Bitangent), normalize(PS_IN_Normal)));
 	PS_IN_TangentFragPos = TBN * PS_IN_Position;
 	PS_IN_TangentViewPos = TBN * viewPos.xyz;
 #endif

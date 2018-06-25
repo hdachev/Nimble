@@ -70,7 +70,7 @@ layout (location = 0) out vec4 PS_OUT_Color;
 void main()
 {
 #ifdef HEIGHT_TEXTURE
-	vec2 tex_coord = parallax_occlusion_tex_coords(PS_IN_TangentViewPos, PS_IN_TangentFragPos, PS_IN_TexCoord, 1.0, s_Displacement); 
+	vec2 tex_coord = parallax_occlusion_tex_coords(normalize(PS_IN_TangentViewPos), normalize(PS_IN_TangentFragPos), PS_IN_TexCoord, 0.1, s_Displacement); 
 #else
 	vec2 tex_coord = PS_IN_TexCoord;
 #endif
