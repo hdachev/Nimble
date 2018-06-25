@@ -108,8 +108,8 @@ void SceneRenderer::render(Scene* scene, dw::Framebuffer* fbo, dw::Program* glob
 
 					if (texture)
 					{
-						texture->bind(m_texture_flags[texture_idx]);
-						current_program->set_uniform(m_texture_uniform_names[texture_idx], m_texture_flags[texture_idx]);
+						if (current_program->set_uniform(m_texture_uniform_names[texture_idx], m_texture_flags[texture_idx]))
+							texture->bind(m_texture_flags[texture_idx]);
 					}
 				}
 			}
