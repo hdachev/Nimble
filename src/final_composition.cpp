@@ -7,11 +7,11 @@
 
 FinalComposition::FinalComposition()
 {
-	std::string vs_path = "shader/quad_vs.glsl";
-	m_composition_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path, nullptr);
+	std::string vs_path = "shader/post_process/quad_vs.glsl";
+	m_composition_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path);
 
-	std::string fs_path = "shader/quad_fs.glsl";
-	m_composition_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, nullptr);
+	std::string fs_path = "shader/post_process/quad_fs.glsl";
+	m_composition_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
 
 	dw::Shader* shaders[] = { m_composition_vs, m_composition_fs };
 

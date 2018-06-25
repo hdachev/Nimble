@@ -35,7 +35,7 @@ public:
 	static void destroy_framebuffer(const std::string& name);
 
 	// Shader caching.
-	static dw::Shader* load_shader(GLuint type, std::string& path, dw::Material* mat);
+	static dw::Shader* load_shader(GLuint type, std::string& path, const std::vector<std::string>& defines = std::vector<std::string>());
 	static dw::Program* load_program(std::string& combined_name, uint32_t count, dw::Shader** shaders);
 
 	// Uniform buffer getters.
@@ -50,6 +50,7 @@ public:
 private:
 	static void create_cube();
 	static void create_quad();
+	static bool read_shader(std::string path, std::string& out, const std::vector<std::string>& defines = std::vector<std::string>());
 
 private:
 	// Resource maps.

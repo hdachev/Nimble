@@ -18,11 +18,11 @@ void DeferredShadingRenderer::initialize(uint16_t width, uint16_t height)
 {
 	on_window_resized(width, height);
 
-	std::string vs_path = "shader/deferred_vs.glsl";
-	m_deferred_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path, nullptr);
+	std::string vs_path = "shader/deferred/deferred_vs.glsl";
+	m_deferred_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path);
 
-	std::string fs_path = "shader/deferred_fs.glsl";
-	m_deferred_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, nullptr);
+	std::string fs_path = "shader/deferred/deferred_fs.glsl";
+	m_deferred_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
 
 	dw::Shader* shaders[] = { m_deferred_vs, m_deferred_fs };
 

@@ -7,11 +7,11 @@
 
 ShadowMapRenderer::ShadowMapRenderer() 
 {
-	std::string vs_path = "shader/csm_vs.glsl";
-	m_csm_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path, nullptr);
+	std::string vs_path = "shader/csm/csm_vs.glsl";
+	m_csm_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path);
 
-	std::string fs_path = "shader/csm_fs.glsl";
-	m_csm_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, nullptr);
+	std::string fs_path = "shader/csm/csm_fs.glsl";
+	m_csm_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
 
 	dw::Shader* shaders[] = { m_csm_vs, m_csm_fs };
 

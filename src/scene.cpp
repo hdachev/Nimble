@@ -85,11 +85,36 @@ Scene* Scene::load(const std::string& file)
 
 		dw::Shader* shaders[2];
 
+		std::vector<std::string> defines;
+
+		if (mat_override)
+		{
+			if (mat_override->texture(TEXTURE_ALBEDO))
+				defines.push_back("ALBEDO_TEXTURE");
+			if (mat_override->texture(TEXTURE_NORMAL))
+				defines.push_back("NORMAL_TEXTURE");
+			if (mat_override->texture(TEXTURE_METALNESS))
+				defines.push_back("METALNESS_TEXTURE");
+			if (mat_override->texture(TEXTURE_ROUGHNESS))
+				defines.push_back("ROUGHNESS_TEXTURE");
+			if (mat_override->texture(TEXTURE_DISPLACEMENT))
+				defines.push_back("HEIGHT_TEXTURE");
+			if (mat_override->texture(TEXTURE_EMISSIVE))
+				defines.push_back("EMISSIVE_TEXTURE");
+		}
+		else
+		{
+			defines.push_back("ALBEDO_TEXTURE");
+			defines.push_back("NORMAL_TEXTURE");
+			defines.push_back("METALNESS_TEXTURE");
+			defines.push_back("ROUGHNESS_TEXTURE");
+		}
+
 		std::string vsFile = shaderJson["vs"];
-		shaders[0] = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vsFile, nullptr);
+		shaders[0] = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vsFile, defines);
 
 		std::string fsFile = shaderJson["fs"];
-		shaders[1] = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fsFile, nullptr);
+		shaders[1] = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fsFile, defines);
 
 		std::string combName = vsFile + fsFile;
 		new_entity->m_program = GlobalGraphicsResources::load_program(combName, 2, &shaders[0]);

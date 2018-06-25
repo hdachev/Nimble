@@ -180,15 +180,23 @@ void GlobalGraphicsResources::destroy_framebuffer(const std::string& name)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-dw::Shader* GlobalGraphicsResources::load_shader(GLuint type, std::string& path, dw::Material* mat)
+dw::Shader* GlobalGraphicsResources::load_shader(GLuint type, std::string& path, const std::vector<std::string>& defines)
 {
 	if (m_shader_cache.find(path) == m_shader_cache.end())
 	{
-		dw::Shader* shader = dw::Shader::create_from_file(type, dw::utility::path_for_resource("assets/" + path));
+		std::string source;
 
-		if (!shader || !shader->compiled())
+		if (!read_shader(dw::utility::path_for_resource("assets/" + path), source, defines))
 		{
-			DW_LOG_ERROR("Shader with name '" + path + "' failed to compile!");
+			DW_LOG_ERROR("Failed to read shader with name '" + path);
+			return false;
+		}
+
+		dw::Shader* shader = new dw::Shader(type, source);
+
+		if (!shader->compiled())
+		{
+			DW_LOG_ERROR("Shader with name '" + path + "' failed to compile:\n" + source);
 			DW_SAFE_DELETE(shader);
 			return nullptr;
 		}
@@ -317,6 +325,77 @@ void GlobalGraphicsResources::create_quad()
 	{
 		DW_LOG_INFO("Failed to create Vertex Buffers/Arrays");
 	}
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+template<typename T>
+bool contains(const std::vector<T>& vec, const T& obj)
+{
+	for (auto& e : vec)
+	{
+		if (e == obj)
+			return true;
+	}
+
+	return false;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+bool GlobalGraphicsResources::read_shader(std::string path, std::string& out, const std::vector<std::string>& defines)
+{
+	std::string og_source;
+
+	if (!dw::utility::read_text(path, og_source))
+		return false;
+
+	if (defines.size() > 0)
+	{
+		for (auto define : defines)
+			out += "#define " + define + "\n";
+
+		out += "\n";
+	}
+
+	std::istringstream stream(og_source);
+	std::string line;
+	std::vector<std::string> included_headers;
+
+	while (std::getline(stream, line))
+	{
+		if (line.find("#include") != std::string::npos)
+		{
+			size_t start = line.find_first_of("<") + 1;
+			size_t end = line.find_last_of(">");
+			std::string include_path = line.substr(start, end - start);
+
+			std::string path_to_shader = "";
+			size_t slash_pos = path.find_last_of("/");
+
+			if (slash_pos != std::string::npos)
+				path_to_shader = path.substr(0, slash_pos + 1);
+
+			std::string include_source;
+
+			if (!read_shader(path_to_shader + include_path, include_source, std::vector<std::string>()))
+			{
+				DW_LOG_ERROR("Included file <" + include_path + "> cannot be opened!");
+				return false;
+			}
+			if (contains(included_headers, include_path))
+				DW_LOG_WARNING("Header <" + include_path + "> has been included twice!");
+			else
+			{
+				included_headers.push_back(include_path);
+				out += include_source + "\n\n";
+			}
+		}
+		else
+			out += line + "\n";
+	}
+
+	return true;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

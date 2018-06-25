@@ -1,36 +1,21 @@
-// ------------------------------------------------------------------
-// UNIFORM BUFFERS --------------------------------------------------
-// ------------------------------------------------------------------
-
-layout (std140) uniform u_PerMaterial //#binding 2
-{ 
-    vec4 albedo_color;
-    vec4 metalness_roughness;
-};
+#include <../common/uniforms.glsl>
+#include <../common/helper.glsl>
 
 // ------------------------------------------------------------------
 // SAMPLERS  --------------------------------------------------------
 // ------------------------------------------------------------------
 
-#define ALBEDO_TEXTURE
-
 #ifdef ALBEDO_TEXTURE
     uniform sampler2D s_Albedo;
 #endif
-
-#define NORMAL_TEXTURE
 
 #ifdef NORMAL_TEXTURE
     uniform sampler2D s_Normal;
 #endif
 
-#define METALNESS_TEXTURE
-
 #ifdef METALNESS_TEXTURE
     uniform sampler2D s_Metalness;
 #endif
-
-#define ROUGHNESS_TEXTURE
 
 #ifdef ROUGHNESS_TEXTURE
     uniform sampler2D s_Roughness;
@@ -73,12 +58,6 @@ layout (location = 3) out vec3 PS_OUT_WorldPosition;
 // FUNCTIONS --------------------------------------------------------
 // ------------------------------------------------------------------
 
-vec2 encode_normal(vec3 n)
-{
-    float f = sqrt(8.0 * n.z + 8.0);
-    return n.xy / f + 0.5;
-}
-
 vec2 tex_coord()
 {
 #ifdef HEIGHT_TEXTURE
@@ -100,16 +79,7 @@ vec4 albedo(vec2 tex_coord)
 vec3 normal(vec2 tex_coord)
 {
 #ifdef NORMAL_TEXTURE
-    // Create TBN matrix.
-    mat3 TBN = mat3(normalize(PS_IN_Tangent), normalize(PS_IN_Bitangent), normalize(PS_IN_Normal));
-
-    // Sample tangent space normal vector from normal map and remap it from [0, 1] to [-1, 1] range.
-    vec3 n = normalize(texture(s_Normal, tex_coord).xyz * 2.0 - 1.0);
-
-    // Multiple vector by the TBN matrix to transform the normal from tangent space to world space.
-    n = normalize(TBN * n);
-
-    return n;
+    return get_normal_from_map(PS_IN_Tangent, PS_IN_Bitangent, PS_IN_Normal, tex_coord, s_Normal);
 #else
     return PS_IN_Normal;
 #endif
@@ -187,3 +157,5 @@ void main()
     // Store world position (TEMP)
     PS_OUT_WorldPosition = PS_IN_WorldPosition;
 }
+
+// ------------------------------------------------------------------

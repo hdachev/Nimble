@@ -23,11 +23,20 @@ void GBufferRenderer::initialize(uint16_t width, uint16_t height)
 {
 	on_window_resized(width, height);
 
-	std::string vs_path = "shader/g_buffer_vs.glsl";
-	m_gbuffer_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path, nullptr);
+	std::string vs_path = "shader/g_buffer/g_buffer_vs.glsl";
 
-	std::string fs_path = "shader/g_buffer_fs.glsl";
-	m_gbuffer_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, nullptr);
+	std::vector<std::string> defines = 
+	{
+		"ALBEDO_TEXTURE",
+		"NORMAL_TEXTURE",
+		"METALNESS_TEXTURE",
+		"ROUGHNESS_TEXTURE"
+	};
+	
+	m_gbuffer_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path, defines);
+
+	std::string fs_path = "shader/g_buffer/g_buffer_fs.glsl";
+	m_gbuffer_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, defines);
 
 	dw::Shader* shaders[] = { m_gbuffer_vs, m_gbuffer_fs };
 
@@ -82,7 +91,6 @@ void GBufferRenderer::on_window_resized(uint16_t width, uint16_t height)
 	m_gbuffer_fbo->attach_multiple_render_targets(4, render_targets);
 	m_gbuffer_fbo->attach_depth_stencil_target(m_gbuffer_depth, 0, 0);
 }
-
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 

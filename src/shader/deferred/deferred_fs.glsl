@@ -1,63 +1,6 @@
-// ------------------------------------------------------------------
-// STRUCTURES -------------------------------------------------------
-// ------------------------------------------------------------------
-
-#define MAX_POINT_LIGHTS 32
-
-struct PointLight
-{
-	vec4 position;
-	vec4 color;
-};
-
-struct DirectionalLight
-{
-	vec4 direction;
-	vec4 color;
-};
-
-// ------------------------------------------------------------------
-// UNIFORM BUFFERS --------------------------------------------------
-// ------------------------------------------------------------------
-
-#define MAX_SHADOW_FRUSTUM 8
-
-struct ShadowFrustum
-{
-	mat4  shadowMatrix;
-	float farPlane;
-};
-
-layout (std140) uniform u_PerFrame
-{ 
-	mat4 		  lastViewProj;
-	mat4 		  viewProj;
-	mat4 		  invViewProj;
-	mat4 		  projMat;
-	mat4 		  viewMat;
-	vec4 		  viewPos;
-	vec4 		  viewDir;
-	int			  numCascades;
-	ShadowFrustum shadowFrustums[MAX_SHADOW_FRUSTUM];
-	float		  tanHalfFov;
-	float		  aspectRatio;
-	float		  nearPlane;
-	float		  farPlane;
-};
-
-layout (std140) uniform u_PerScene
-{
-	PointLight 		 pointLights[MAX_POINT_LIGHTS];
-	DirectionalLight directionalLight;
-	int				 pointLightCount;
-};
-
-// ------------------------------------------------------------------
-// CONSTANTS  -------------------------------------------------------
-// ------------------------------------------------------------------
-
-const float kPI 	   = 3.14159265359;
-const float kMaxLOD    = 6.0;
+#include <../common/uniforms.glsl>
+#include <../common/helper.glsl>
+#include <../pbr/pbr.glsl>
 
 // ------------------------------------------------------------------
 // SAMPLERS  --------------------------------------------------------
@@ -72,6 +15,8 @@ uniform samplerCube s_IrradianceMap;
 uniform samplerCube s_PrefilteredMap;
 uniform sampler2D s_BRDF;
 uniform sampler2D s_GBufferRT3;
+
+#include <../csm/csm.glsl>
 
 // ------------------------------------------------------------------
 // INPUT VARIABLES  -------------------------------------------------
@@ -88,120 +33,6 @@ layout (location = 0) out vec4 PS_OUT_Color;
 
 // ------------------------------------------------------------------
 // HELPER FUNCTIONS -------------------------------------------------
-// ------------------------------------------------------------------
-
-float get_linear_depth(sampler2D depth_sampler)
-{
-    float f = farPlane;
-    float n = nearPlane;
-    float z = (2 * n) / (f + n - texture( depth_sampler, PS_IN_TexCoord ).x * (f - n));
-    return z;
-}
-
-// ------------------------------------------------------------------
-
-vec3 decode_normal(vec2 enc)
-{
-    vec2 fenc = enc * 4.0 - 2.0;
-    float f = dot(fenc, fenc);
-    float g = sqrt(1.0 - f / 4.0);
-    vec3 n;
-    n.xy = fenc * g;
-    n.z = 1 - f / 2.0;
-    return n;
-}
-
-// ------------------------------------------------------------------
-
-float depth_compare(float a, float b, float bias)
-{
-    return a - bias > b ? 1.0 : 0.0;
-}
-
-// ------------------------------------------------------------------
-// CSM --------------------------------------------------------------
-// ------------------------------------------------------------------
-
-float shadow_occlussion(float frag_depth, vec3 frag_pos, vec3 n, vec3 l)
-{
-	int index = 0;
-    float blend = 0.0;
-    
-	// Find shadow cascade.
-	for (int i = 0; i < numCascades - 1; i++)
-	{
-		if (frag_depth > shadowFrustums[i].farPlane)
-			index = i + 1;
-	}
-
-	blend = clamp( (frag_depth - shadowFrustums[index].farPlane * 0.995) * 200.0, 0.0, 1.0);
-    
-    // Apply blend options.
-    //blend *= options.z;
-
-	// Transform frag position into Light-space.
-	vec4 light_space_pos = shadowFrustums[index].shadowMatrix * vec4(frag_pos, 1.0f);
-
-	float current_depth = light_space_pos.z;
-    
-	float bias = max(0.0005 * (1.0 - dot(n, l)), 0.0005);  
-
-	float shadow = 0.0;
-	vec2 texelSize = 1.0 / textureSize(s_ShadowMap, 0).xy;
-	for(int x = -1; x <= 1; ++x)
-	{
-	    for(int y = -1; y <= 1; ++y)
-	    {
-	        float pcfDepth = texture(s_ShadowMap, vec3(light_space_pos.xy + vec2(x, y) * texelSize, float(index))).r; 
-	        shadow += current_depth - bias > pcfDepth ? 1.0 : 0.0;        
-	    }    
-	}
-	shadow /= 9.0;
-	
-	return (1.0 - shadow);
-    // if (options.x == 1.0)
-    // {
-    //     //if (blend > 0.0 && index != num_cascades - 1)
-    //     //{
-    //     //    light_space_pos = texture_matrices[index + 1] * vec4(PS_IN_WorldFragPos, 1.0f);
-    //     //    shadow_map_depth = texture(s_ShadowMap, vec3(light_space_pos.xy, float(index + 1))).r;
-    //     //    current_depth = light_space_pos.z;
-    //     //    float next_shadow = depth_compare(current_depth, shadow_map_depth, bias);
-    //     //    
-    //     //    return (1.0 - blend) * shadow + blend * next_shadow;
-    //     //}
-    //     //else
-	// 		return (1.0 - shadow);
-    // }
-    // else
-    //     return 0.0;
-}
-
-// ------------------------------------------------------------------
-
-vec3 debug_color(float frag_depth)
-{
-	int index = 0;
-
-	// Find shadow cascade.
-	for (int i = 0; i < numCascades - 1; i++)
-	{
-		if (frag_depth > shadowFrustums[index].farPlane)
-			index = i + 1;
-	}
-
-	if (index == 0)
-		return vec3(1.0, 0.0, 0.0);
-	else if (index == 1)
-		return vec3(0.0, 1.0, 0.0);
-	else if (index == 2)
-		return vec3(0.0, 0.0, 1.0);
-	else
-		return vec3(1.0, 1.0, 0.0);
-}
-
-// ------------------------------------------------------------------
-// G-BUFFER EXTRACTION ----------------------------------------------
 // ------------------------------------------------------------------
 
 vec3 get_normal()
@@ -270,52 +101,11 @@ float get_depth()
 }
 
 // ------------------------------------------------------------------
-// PBR --------------------------------------------------------------
-// ------------------------------------------------------------------
-
-vec3 FresnelSchlickRoughness(float HdotV, vec3 F0, float roughness)
-{
-	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - HdotV, 5.0);
-}
-
-float DistributionTrowbridgeReitzGGX(float NdotH, float roughness)
-{
-	// a = Roughness
-	float a = roughness * roughness;
-	float a2 = a * a;
-
-	float numerator = a2;
-	float denominator = ((NdotH * NdotH) * (a2 - 1.0) + 1.0);
-	denominator = kPI * denominator * denominator;
-
-	return numerator / denominator;
-}
-
-float GeometrySchlickGGX(float costTheta, float roughness)
-{
-	float r = (roughness + 1.0);
-	float k = (r*r) / 8.0;
-
-	float numerator = costTheta;
-	float denominator = costTheta * (1.0 - k) + k;
-	return numerator / denominator;
-}
-
-float GeometrySmith(float NdotV, float NdotL, float roughness)
-{
-	float G1 = GeometrySchlickGGX(NdotV, roughness);
-	float G2 = GeometrySchlickGGX(NdotL, roughness);
-	return G1 * G2;
-}
-
-// ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
 // ------------------------------------------------------------------
 
 void main()
 {
-	const float kAmbient   = 1.0;
-
 	// Extract values from G-Buffer
 	vec4 kAlbedoAlpha = get_albedo();
 
@@ -338,7 +128,7 @@ void main()
 	F0 = mix(F0, kAlbedo, kMetalness);
 
 	float NdotV = max(dot(N, V), 0.0);
-	vec3  F = FresnelSchlickRoughness(NdotV, F0, kRoughness);
+	vec3  F = fresnel_schlick_roughness(NdotV, F0, kRoughness);
 
 	vec3 shadow_debug = vec3(0.0);
 
@@ -362,8 +152,8 @@ void main()
 		// --------------------------------------------------------------------------
 
 		// Specular Term ------------------------------------------------------------
-		float D = DistributionTrowbridgeReitzGGX(NdotH, kRoughness);
-		float G = GeometrySmith(NdotV, NdotL, kRoughness);
+		float D = distribution_trowbridge_reitz_ggx(NdotH, kRoughness);
+		float G = geometry_smith(NdotV, NdotL, kRoughness);
 
 		vec3 numerator = D * G * F;
 		float denominator = 4.0 * NdotV * NdotL; 
@@ -402,8 +192,8 @@ void main()
 		// --------------------------------------------------------------------------
 
 		// Specular Term ------------------------------------------------------------
-		float D = DistributionTrowbridgeReitzGGX(NdotH, kRoughness);
-		float G = GeometrySmith(NdotV, NdotL, kRoughness);
+		float D = distribution_trowbridge_reitz_ggx(NdotH, kRoughness);
+		float G = geometry_smith(NdotV, NdotL, kRoughness);
 
 		vec3 numerator = D * G * F;
 		float denominator = 4.0 * NdotV * NdotL; 
