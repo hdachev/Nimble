@@ -30,7 +30,7 @@ public:
 				uint32_t tex_type_count = ALL_TEXTURES, 
 				uint32_t* tex_types = nullptr,
 				MeshRenderCallback render_callback = nullptr);
-    
+
 private:
     int32_t m_texture_flags[6] =
     {

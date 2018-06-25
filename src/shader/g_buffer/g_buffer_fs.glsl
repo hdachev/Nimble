@@ -22,7 +22,7 @@
 #endif
 
 #ifdef HEIGHT_TEXTURE
-    uniform sampler2D s_Height;
+    uniform sampler2D s_Displacement;
 #endif
 
 #ifdef EMISSIVE_TEXTURE
@@ -45,6 +45,11 @@ in vec3 PS_IN_Normal;
     in vec3 PS_IN_Bitangent;
 #endif
 
+#ifdef HEIGHT_TEXTURE
+	in vec3 PS_IN_TangentViewPos;
+	in vec3 PS_IN_TangentFragPos;
+#endif
+
 // ------------------------------------------------------------------
 // OUTPUT VARIABLES  ------------------------------------------------
 // ------------------------------------------------------------------
@@ -61,7 +66,7 @@ layout (location = 3) out vec3 PS_OUT_WorldPosition;
 vec2 tex_coord()
 {
 #ifdef HEIGHT_TEXTURE
-    return vec2();
+    return parallax_occlusion_tex_coords(PS_IN_TangentViewPos, PS_IN_TangentFragPos, PS_IN_TexCoord, 0.1, s_Displacement); 
 #else
     return PS_IN_TexCoord;
 #endif

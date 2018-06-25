@@ -21,7 +21,7 @@
 #endif
 
 #ifdef HEIGHT_TEXTURE
-    uniform sampler2D s_Height;
+    uniform sampler2D s_Displacement;
 #endif
 
 #ifdef EMISSIVE_TEXTURE
@@ -42,8 +42,16 @@ in vec4 PS_IN_NDCFragPos;
 in vec3 PS_IN_CamPos;
 in vec3 PS_IN_Normal;
 in vec2 PS_IN_TexCoord;
-in vec3 PS_IN_Tangent;
-in vec3 PS_IN_Bitangent;
+
+#ifdef NORMAL_TEXTURE
+	in vec3 PS_IN_Tangent;
+	in vec3 PS_IN_Bitangent;
+#endif
+
+#ifdef HEIGHT_TEXTURE
+	in vec3 PS_IN_TangentViewPos;
+	in vec3 PS_IN_TangentFragPos;
+#endif
 
 #include <../csm/csm.glsl>
 #include <../common/helper.glsl>
@@ -61,16 +69,27 @@ layout (location = 0) out vec4 PS_OUT_Color;
 
 void main()
 {
-	vec4 kAlbedoAlpha = texture(s_Albedo, PS_IN_TexCoord);
-	float kMetalness = texture(s_Metalness, PS_IN_TexCoord).x; 
-	float kRoughness = texture(s_Roughness, PS_IN_TexCoord).x; 
+#ifdef HEIGHT_TEXTURE
+	vec2 tex_coord = parallax_occlusion_tex_coords(PS_IN_TangentViewPos, PS_IN_TangentFragPos, PS_IN_TexCoord, 1.0, s_Displacement); 
+#else
+	vec2 tex_coord = PS_IN_TexCoord;
+#endif
+
+	vec4 kAlbedoAlpha = texture(s_Albedo, tex_coord);
+	float kMetalness = texture(s_Metalness, tex_coord).x; 
+	float kRoughness = texture(s_Roughness, tex_coord).x; 
 
 	if (kAlbedoAlpha.w < 0.5)
 		discard;
 
 	vec3 kAlbedo = kAlbedoAlpha.xyz;
 
-	vec3 N = get_normal_from_map(PS_IN_Tangent, PS_IN_Bitangent, PS_IN_Normal, PS_IN_TexCoord, s_Normal);
+#ifdef NORMAL_TEXTURE
+	vec3 N = get_normal_from_map(PS_IN_Tangent, PS_IN_Bitangent, PS_IN_Normal, tex_coord, s_Normal);
+#else
+	vec3 N = PS_IN_Normal;
+#endif
+
 	vec3 V = normalize(PS_IN_CamPos - PS_IN_Position); // FragPos -> ViewPos vector
 	vec3 R = reflect(-V, N); 
 	vec3 Lo = vec3(0.0);

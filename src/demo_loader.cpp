@@ -326,6 +326,17 @@ namespace demo
 				roughness = json["roughness_value"];
 			}
 
+			if (json.find("displacement_map") != json.end())
+			{
+				std::string tex_path = json["displacement_map"];
+				textures[num_textures++] = dw::Material::load_texture(dw::utility::path_for_resource("assets/texture/" + tex_path));
+
+				if (!textures[num_textures - 1])
+				{
+					DW_LOG_ERROR("Failed to load Displacement Map");
+				}
+			}
+
 			return dw::Material::load(path, num_textures, &textures[0], albedo, roughness, metalness);
 		}
 	}
