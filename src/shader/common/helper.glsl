@@ -58,7 +58,7 @@ vec3 get_normal_from_map(vec3 tangent, vec3 bitangent, vec3 normal, vec2 tex_coo
 vec2 parallax_occlusion_tex_coords(vec3 tangent_view_pos, vec3 tangent_frag_pos, vec2 tex_coord, float height_scale, sampler2D displacement_map)
 {
     vec3 view_dir   = normalize(tangent_view_pos - tangent_frag_pos);
-    float height = clamp(texture(displacement_map, tex_coord).r, 0.0, 1.0);
+    float height = texture(displacement_map, tex_coord).r;
     vec2 p = view_dir.xy * (height * height_scale);
     return tex_coord - p;
 }
