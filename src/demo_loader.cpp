@@ -50,7 +50,7 @@ namespace demo
 		uint32_t  index_count;
 		glm::vec3 max_extents;
 		glm::vec3 min_extents;
-		char 	name[50];
+		char 	  name[50];
 	};
 
 

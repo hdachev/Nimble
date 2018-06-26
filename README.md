@@ -10,6 +10,7 @@ A simple and lightweight OpenGL rendering engine built on top of dwSampleFramewo
 ## Dependencies
 * [dwSampleFramework](https://github.com/diharaw/dwSampleFramework) 
 * [json](https://github.com/nlohmann/json) 
+* [nativefiledialog](https://github.com/mlabbe/nativefiledialog)
 
 ## License
 ```

@@ -11,6 +11,7 @@
 #include <debug_draw.h>
 #include <imgui_helpers.h>
 
+#include "external/nfd/nfd.h"
 #include "renderer.h"
 
 #define CAMERA_FAR_PLANE 1000.0f
@@ -23,13 +24,39 @@ protected:
     bool init(int argc, const char* argv[]) override
     {
 		m_renderer = std::make_unique<Renderer>();
-		m_scene = std::unique_ptr<Scene>(Scene::load("scene.json"));
 
-		if (!m_scene)
+		// Attempt to load startup scene.
+		Scene* scene = Scene::load(dw::utility::path_for_resource("/assets/scene/startup.json"));
+
+		// If failed, prompt user to select scene to be loaded.
+		if (!scene)
+		{
+			nfdchar_t* scene_path = nullptr;
+			nfdresult_t result = NFD_OpenDialog("json", nullptr, &scene_path);
+
+			if (result == NFD_OKAY)
+			{
+				scene = Scene::load(scene_path);
+				free(scene_path);
+			}
+			else if (result == NFD_CANCEL)
+				return false;
+			else
+			{
+				std::string error = "Scene file read error: ";
+				error += NFD_GetError();
+				DW_LOG_ERROR(error);
+				return false;
+			}
+		}
+
+		if (!scene)
 		{
 			DW_LOG_ERROR("Failed to load scene!");
 			return false;
 		}
+		else
+			m_scene = std::unique_ptr<Scene>(scene);
 
 		// Create camera.
 		create_camera();

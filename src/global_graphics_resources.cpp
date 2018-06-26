@@ -189,7 +189,7 @@ dw::Shader* GlobalGraphicsResources::load_shader(GLuint type, std::string& path,
 		if (!read_shader(dw::utility::path_for_resource("assets/" + path), source, defines))
 		{
 			DW_LOG_ERROR("Failed to read shader with name '" + path);
-			return false;
+			return nullptr;
 		}
 
 		dw::Shader* shader = new dw::Shader(type, source);

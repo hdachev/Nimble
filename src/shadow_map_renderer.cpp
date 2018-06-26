@@ -14,8 +14,8 @@ ShadowMapRenderer::ShadowMapRenderer()
 	m_csm_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
 
 	dw::Shader* shaders[] = { m_csm_vs, m_csm_fs };
-
-	m_csm_program = GlobalGraphicsResources::load_program(vs_path + fs_path, 2, &shaders[0]);
+    std::string combined_path = vs_path + fs_path;
+	m_csm_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
 
 	if (!m_csm_vs || !m_csm_fs || !m_csm_program)
 	{

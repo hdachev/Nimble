@@ -39,8 +39,8 @@ void GBufferRenderer::initialize(uint16_t width, uint16_t height)
 	m_gbuffer_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, defines);
 
 	dw::Shader* shaders[] = { m_gbuffer_vs, m_gbuffer_fs };
-
-	m_gbuffer_program = GlobalGraphicsResources::load_program(vs_path + fs_path, 2, &shaders[0]);
+    std::string combined_path = vs_path + fs_path;
+	m_gbuffer_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
 
 	if (!m_gbuffer_vs || !m_gbuffer_fs || !m_gbuffer_program)
 	{

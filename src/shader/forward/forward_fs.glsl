@@ -49,8 +49,7 @@ in vec2 PS_IN_TexCoord;
 #endif
 
 #ifdef HEIGHT_TEXTURE
-	in vec3 PS_IN_TangentViewPos;
-	in vec3 PS_IN_TangentFragPos;
+	in vec3 PS_IN_TangentViewDir;
 #endif
 
 #include <../csm/csm.glsl>
@@ -70,7 +69,7 @@ layout (location = 0) out vec4 PS_OUT_Color;
 void main()
 {
 #ifdef HEIGHT_TEXTURE
-	vec2 tex_coord = parallax_occlusion_tex_coords(normalize(PS_IN_TangentViewPos), normalize(PS_IN_TangentFragPos), PS_IN_TexCoord, 0.1, s_Displacement); 
+	vec2 tex_coord = parallax_occlusion(normalize(PS_IN_TangentViewDir), PS_IN_TexCoord, 0.05, s_Displacement);
 #else
 	vec2 tex_coord = PS_IN_TexCoord;
 #endif

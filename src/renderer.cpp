@@ -171,7 +171,7 @@ void Renderer::update_uniforms(dw::Camera* camera)
 	m_per_frame_uniforms.tanHalfFov = glm::tan(glm::radians(camera->m_fov / 2.0f));
 	m_per_frame_uniforms.aspectRatio = float(m_width) / float(m_height);
 	m_per_frame_uniforms.farPlane = camera->m_far;
-	m_per_frame_uniforms.nearPlane = camera->m_near;
+	m_per_frame_uniforms.nearPlane = camera->m_near; 
 	
 	m_per_scene_uniforms.directionalLight.direction = glm::vec4(glm::normalize(m_light_direction), 1.0f);
 
