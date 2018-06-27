@@ -117,16 +117,6 @@ float emissive(vec2 tex_coord)
 #endif
 }
 
-vec2 motion_vector()
-{
-    // Perspective division and remapping to [0, 1] range.
-    vec2 current = (PS_IN_ScreenPosition.xy / PS_IN_ScreenPosition.w) * 0.5 + 0.5;
-    vec2 last = (PS_IN_LastScreenPosition.xy / PS_IN_LastScreenPosition.w) * 0.5 + 0.5;
-
-    vec2 velocity = (current - last);
-    return velocity;//pow(velocity, 3.0);
-}
-
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -146,10 +136,12 @@ void main()
 
     // Store encoded normal vector
     vec3 normal = normal(tex_coord);
-    PS_OUT_NormalMotion.rg = encode_normal(normal);
+    vec2 encoded_normal = encode_normal(normal);
 
     // Store motion vector
-    PS_OUT_NormalMotion.ba = motion_vector();
+    vec2 motion = motion_vector(PS_IN_LastScreenPosition, PS_IN_ScreenPosition);
+
+    PS_OUT_NormalMotion = vec4(encoded_normal.x, encoded_normal.y, motion.x, motion.y);
 
     // Store metalness
     PS_OUT_MetalRoughEmissive.r = metalness(tex_coord);

@@ -10,6 +10,7 @@
 #include "forward_renderer.h"
 #include "g_buffer_renderer.h"
 #include "deferred_shading_renderer.h"
+#include "motion_blur.h"
 #include "final_composition.h"
 #include "uniforms.h"
 #include "csm.h"
@@ -25,14 +26,14 @@ public:
 	void set_scene(Scene* scene);
 	Scene* scene();
 	void debug_gui(double delta);
-	void render();
+	void render(double delta);
 	void set_camera(dw::Camera* camera);
 	void on_window_resized(uint16_t width, uint16_t height);
 
 	inline PerSceneUniforms* per_scene_uniform() { return &m_per_scene_uniforms; }
 
 private:
-	void update_uniforms(dw::Camera* camera);
+	void update_uniforms(dw::Camera* camera, double delta);
 
 private:
 	dw::Camera* m_camera;
@@ -50,6 +51,9 @@ private:
 	DeferredShadingRenderer m_deferred_shading_renderer;
 	FinalComposition m_final_composition;
 	ShadowMapRenderer m_shadow_map_renderer;
+	
+	// Effects
+	MotionBlur m_motion_blur;
 
 	// CSM
 	CSM m_csm_technique;

@@ -41,7 +41,7 @@ void FinalComposition::render(dw::Camera* camera, uint32_t w, uint32_t h)
 	m_composition_program->set_uniform("u_FarPlane", camera->m_far);
 
 	if (m_composition_program->set_uniform("s_Color", 0))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_FORWARD_COLOR)->bind(0);
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_MOTION_BLUR)->bind(0);
 
 	if (m_composition_program->set_uniform("s_Depth", 1))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_FORWARD_DEPTH)->bind(1);
@@ -62,7 +62,7 @@ void FinalComposition::render(dw::Camera* camera, uint32_t w, uint32_t h)
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_DEPTH)->bind(6);
 
 	if (m_composition_program->set_uniform("s_DeferredColor", 7))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_DEFERRED_COLOR)->bind(7);
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_MOTION_BLUR)->bind(7);
 
 	m_post_process_renderer.render(w, h, nullptr);
 }

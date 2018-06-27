@@ -12,7 +12,7 @@ using MeshRenderCallback = std::function<void(dw::Program*)>;
 #define ALL_TEXTURES 999
 
 // Default clear color.
-const float g_default_clear_color[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+const float g_default_clear_color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 // A renderer that takes the meshes in a given scene and renders them into the given framebuffer using the provided settings.
 class SceneRenderer
@@ -20,16 +20,16 @@ class SceneRenderer
 public:
     SceneRenderer();
     ~SceneRenderer();
-    void render(Scene* scene, 
-				dw::Framebuffer* fbo, 
-				dw::Program* global_shader, 
-				uint32_t w, 
-				uint32_t h, 
-				uint32_t clear_flags = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, 
-				float* clear_color = (float*)g_default_clear_color, 
-				uint32_t tex_type_count = ALL_TEXTURES, 
-				uint32_t* tex_types = nullptr,
-				MeshRenderCallback render_callback = nullptr);
+	void render(Scene* scene,
+		dw::Framebuffer* fbo,
+		dw::Program* global_shader,
+		uint32_t w,
+		uint32_t h,
+		uint32_t clear_flags = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
+		float* clear_color = (float*)g_default_clear_color,
+		uint32_t tex_type_count = ALL_TEXTURES,
+		uint32_t* tex_types = nullptr,
+		MeshRenderCallback render_callback = nullptr);
 
 private:
     int32_t m_texture_flags[6] =

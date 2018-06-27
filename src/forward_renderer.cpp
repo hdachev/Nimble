@@ -43,8 +43,8 @@ void ForwardRenderer::on_window_resized(uint16_t width, uint16_t height)
 	m_color_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_FORWARD);
 
 	// Attach render targets to FBO.
-	dw::Texture* render_targets[] = { m_color_buffer };
-	m_color_fbo->attach_multiple_render_targets(1, render_targets);
+	dw::Texture* render_targets[] = { m_color_buffer, m_velocity_buffer };
+	m_color_fbo->attach_multiple_render_targets(2, render_targets);
 	m_color_fbo->attach_depth_stencil_target(m_depth_buffer, 0, 0);
 }
 

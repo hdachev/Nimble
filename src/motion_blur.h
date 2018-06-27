@@ -2,8 +2,6 @@
 
 #include "post_process_renderer.h"
 
-class Scene;
-
 class MotionBlur
 {
 public:
@@ -12,7 +10,7 @@ public:
 	void initialize(uint16_t width, uint16_t height);
 	void shutdown();
 	void on_window_resized(uint16_t width, uint16_t height);
-	void render(Scene* scene, uint32_t w, uint32_t h);
+	void render(uint32_t w, uint32_t h);
 
 private:
 	PostProcessRenderer m_post_process_renderer;

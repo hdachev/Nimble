@@ -22,7 +22,8 @@ layout (std140) uniform u_PerFrame
 	int			  renderer;
 	int			  current_output;
 	int			  motion_blur;
-	int			  motion_blur_samples;
+	int			  max_motion_blur_samples;
+	float		  velocity_scale;
 };
 
 // ------------------------------------------------------------------

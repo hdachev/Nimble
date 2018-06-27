@@ -92,6 +92,9 @@ void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 	m_gbuffer_renderer.initialize(m_width, m_height);
 	m_deferred_shading_renderer.initialize(m_width, m_height);
 
+	// Initialize effects
+	m_motion_blur.initialize(m_width, m_height);
+
 	// Initialize CSM.
 	m_csm_technique.initialize(0.3, 350.0f, 4, 2048, m_camera, m_width, m_height, m_light_direction);
 }
@@ -106,6 +109,7 @@ void Renderer::shutdown()
 	// Shutdown renderers.
 	m_forward_renderer.shutdown();
 	m_gbuffer_renderer.shutdown();
+	m_motion_blur.shutdown();
 	m_deferred_shading_renderer.shutdown();
 
 	// Clean up global resources.
@@ -144,17 +148,19 @@ void Renderer::on_window_resized(uint16_t width, uint16_t height)
 	m_forward_renderer.on_window_resized(width, height);
 	m_gbuffer_renderer.on_window_resized(width, height);
 	m_deferred_shading_renderer.on_window_resized(width, height);
+	m_motion_blur.on_window_resized(width, height);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::update_uniforms(dw::Camera* camera)
+void Renderer::update_uniforms(dw::Camera* camera, double delta)
 {
 	Entity** entities = m_scene->entities();
 	int entity_count = m_scene->entity_count();
 
 	PerFrameUniforms& per_frame = GlobalGraphicsResources::per_frame_uniforms();
 
+	per_frame.lastViewProj = camera->m_prev_view_projection;
 	per_frame.projMat = camera->m_projection;
 	per_frame.viewMat = camera->m_view;
 	per_frame.viewProj = camera->m_view_projection;
@@ -165,7 +171,12 @@ void Renderer::update_uniforms(dw::Camera* camera)
 	per_frame.tanHalfFov = glm::tan(glm::radians(camera->m_fov / 2.0f));
 	per_frame.aspectRatio = float(m_width) / float(m_height);
 	per_frame.farPlane = camera->m_far;
-	per_frame.nearPlane = camera->m_near; 
+	per_frame.nearPlane = camera->m_near;
+	
+	int current_fps = int((1.0f / float(delta)) * 1000.0f);
+	int target_fps = 60;
+
+	per_frame.velocity_scale = float(current_fps) / float(target_fps);
 	
 	for (int i = 0; i < per_frame.numCascades; i++)
 	{
@@ -278,7 +289,7 @@ void Renderer::debug_gui(double delta)
 		if (ImGui::CollapsingHeader("Motion Blur"))
 		{
 			ImGui::Checkbox("Enabled", (bool*)&per_frame.motion_blur);
-			ImGui::SliderInt("Samples", &per_frame.motion_blur_samples, 1, 32);
+			ImGui::SliderInt("Samples", &per_frame.max_motion_blur_samples, 1, 32);
 		}
 	}
 	ImGui::End();
@@ -286,7 +297,7 @@ void Renderer::debug_gui(double delta)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::render()
+void Renderer::render(double delta)
 {
 	// Check if scene has been set.
 	if (!m_scene)
@@ -299,7 +310,7 @@ void Renderer::render()
 	m_csm_technique.update(m_camera, glm::normalize(m_light_direction));
 
 	// Update per-frame and per-entity uniforms.
-	update_uniforms(m_camera);
+	update_uniforms(m_camera, delta);
 
 	// Dispatch shadow map rendering.
 	m_shadow_map_renderer.render(m_scene, &m_csm_technique);
@@ -314,6 +325,9 @@ void Renderer::render()
 		m_gbuffer_renderer.render(m_scene, m_width, m_height);
 		m_deferred_shading_renderer.render(m_scene, m_width, m_height);
 	}
+
+	// Motion blur
+	m_motion_blur.render(m_width, m_height);
 
 	// Render final composition.
 	m_final_composition.render(m_camera, m_width, m_height);
