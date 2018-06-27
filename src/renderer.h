@@ -10,6 +10,7 @@
 #include "forward_renderer.h"
 #include "g_buffer_renderer.h"
 #include "deferred_shading_renderer.h"
+#include "ambient_occlusion.h"
 #include "motion_blur.h"
 #include "final_composition.h"
 #include "uniforms.h"
@@ -53,6 +54,7 @@ private:
 	ShadowMapRenderer m_shadow_map_renderer;
 	
 	// Effects
+	AmbientOcclusion m_ambient_occlusion;
 	MotionBlur m_motion_blur;
 
 	// CSM

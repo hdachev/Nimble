@@ -29,6 +29,7 @@ struct PerFrameUniforms
 	DW_ALIGNED(16) glm::mat4	 lastViewProj;
 	DW_ALIGNED(16) glm::mat4	 viewProj;
 	DW_ALIGNED(16) glm::mat4	 invViewProj;
+	DW_ALIGNED(16) glm::mat4	 invProj;
 	DW_ALIGNED(16) glm::mat4	 projMat;
 	DW_ALIGNED(16) glm::mat4	 viewMat;
 	DW_ALIGNED(16) glm::vec4	 viewPos;
@@ -45,6 +46,12 @@ struct PerFrameUniforms
 	int			 motion_blur;
 	int			 max_motion_blur_samples;
 	float		 velocity_scale;
+	int			 viewport_width;
+	int			 viewport_height;
+	int			 ssao;
+	int			 ssao_num_samples;
+	float		 ssao_radius;
+	float		 ssao_bias;
 };
 
 struct PerEntityUniforms

@@ -9,6 +9,7 @@ layout (std140) uniform u_PerFrame
 	mat4 		  lastViewProj;
 	mat4 		  viewProj;
 	mat4 		  invViewProj;
+	mat4 		  invProj;
 	mat4 		  projMat;
 	mat4 		  viewMat;
 	vec4 		  viewPos;
@@ -24,6 +25,12 @@ layout (std140) uniform u_PerFrame
 	int			  motion_blur;
 	int			  max_motion_blur_samples;
 	float		  velocity_scale;
+	int			  viewport_width;
+	int			  viewport_height;
+	int			  ssao;
+	int			  ssao_num_samples;
+	float		  ssao_radius;
+	float		  ssao_bias;
 };
 
 // ------------------------------------------------------------------

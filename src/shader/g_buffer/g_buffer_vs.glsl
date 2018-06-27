@@ -6,8 +6,6 @@
 // ------------------------------------------------------------------
 
 out vec2 PS_IN_TexCoord;
-out vec3 PS_IN_CamPos;
-out vec3 PS_IN_WorldPosition;
 out vec4 PS_IN_ScreenPosition;
 out vec4 PS_IN_LastScreenPosition;
 out vec3 PS_IN_Normal;
@@ -30,7 +28,6 @@ void main()
 {
 	// Calculate world position
 	vec4 pos = modelMat * vec4(VS_IN_Position, 1.0f);
-	PS_IN_WorldPosition = pos.xyz;
 
 	// Calculate current and previous screen positions
 	PS_IN_ScreenPosition = viewProj * pos;
@@ -50,9 +47,6 @@ void main()
 	PS_IN_TangentViewPos = TBN * viewPos.xyz;
 #endif
 #endif
-
-	// Camera position
-	PS_IN_CamPos = viewPos.xyz;
 
 	// Texture coordinates
 	PS_IN_TexCoord = VS_IN_TexCoord;

@@ -94,6 +94,7 @@ void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 
 	// Initialize effects
 	m_motion_blur.initialize(m_width, m_height);
+	m_ambient_occlusion.initialize(m_width, m_height);
 
 	// Initialize CSM.
 	m_csm_technique.initialize(0.3, 350.0f, 4, 2048, m_camera, m_width, m_height, m_light_direction);
@@ -109,6 +110,7 @@ void Renderer::shutdown()
 	// Shutdown renderers.
 	m_forward_renderer.shutdown();
 	m_gbuffer_renderer.shutdown();
+	m_ambient_occlusion.shutdown();
 	m_motion_blur.shutdown();
 	m_deferred_shading_renderer.shutdown();
 
@@ -149,6 +151,7 @@ void Renderer::on_window_resized(uint16_t width, uint16_t height)
 	m_gbuffer_renderer.on_window_resized(width, height);
 	m_deferred_shading_renderer.on_window_resized(width, height);
 	m_motion_blur.on_window_resized(width, height);
+	m_ambient_occlusion.on_window_resized(width, height);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -165,6 +168,7 @@ void Renderer::update_uniforms(dw::Camera* camera, double delta)
 	per_frame.viewMat = camera->m_view;
 	per_frame.viewProj = camera->m_view_projection;
 	per_frame.invViewProj = glm::inverse(camera->m_view_projection);
+	per_frame.invProj = glm::inverse(camera->m_projection);
 	per_frame.viewDir = glm::vec4(camera->m_forward.x, camera->m_forward.y, camera->m_forward.z, 0.0f);
 	per_frame.viewPos = glm::vec4(camera->m_position.x, camera->m_position.y, camera->m_position.z, 0.0f);
 	per_frame.numCascades = m_csm_technique.frustum_split_count();
@@ -172,6 +176,8 @@ void Renderer::update_uniforms(dw::Camera* camera, double delta)
 	per_frame.aspectRatio = float(m_width) / float(m_height);
 	per_frame.farPlane = camera->m_far;
 	per_frame.nearPlane = camera->m_near;
+	per_frame.viewport_width = m_width;
+	per_frame.viewport_height = m_height;
 	
 	int current_fps = int((1.0f / float(delta)) * 1000.0f);
 	int target_fps = 60;
@@ -286,6 +292,14 @@ void Renderer::debug_gui(double delta)
 			ImGui::SliderFloat("Light Direction Z", &m_light_direction.z, -1.0f, 1.0f);
 		}
 
+		if (ImGui::CollapsingHeader("SSAO"))
+		{
+			ImGui::Checkbox("Enabled", (bool*)&per_frame.ssao);
+			ImGui::SliderInt("Samples", &per_frame.ssao_num_samples, 1, 32);
+			ImGui::SliderFloat("Radius", &per_frame.ssao_radius, 0.0f, 1.0f);
+			ImGui::InputFloat("Bias", &per_frame.ssao_bias, 0.0f, 0.0f);
+		}
+
 		if (ImGui::CollapsingHeader("Motion Blur"))
 		{
 			ImGui::Checkbox("Enabled", (bool*)&per_frame.motion_blur);
@@ -322,7 +336,13 @@ void Renderer::render(double delta)
 		m_forward_renderer.render(m_scene, m_width, m_height);
 	else if (renderer == RENDERER_DEFERRED)
 	{
+		// Render geometry into G-Buffer
 		m_gbuffer_renderer.render(m_scene, m_width, m_height);
+
+		// Render SSAO
+		m_ambient_occlusion.render(m_width, m_height);
+
+		// Use G-Buffer and SSAO to perform deferred shading
 		m_deferred_shading_renderer.render(m_scene, m_width, m_height);
 	}
 

@@ -34,8 +34,6 @@
 // ------------------------------------------------------------------
 
 in vec2 PS_IN_TexCoord;
-in vec3 PS_IN_CamPos;
-in vec3 PS_IN_WorldPosition;
 in vec4 PS_IN_ScreenPosition;
 in vec4 PS_IN_LastScreenPosition;
 in vec3 PS_IN_Normal;
@@ -57,7 +55,6 @@ in vec3 PS_IN_Normal;
 layout (location = 0) out vec4 PS_OUT_Albedo;
 layout (location = 1) out vec4 PS_OUT_NormalMotion;
 layout (location = 2) out vec4 PS_OUT_MetalRoughEmissive;
-layout (location = 3) out vec3 PS_OUT_WorldPosition;
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
@@ -151,9 +148,6 @@ void main()
 
     // Store emissive color
     PS_OUT_MetalRoughEmissive.b = emissive(tex_coord);
-
-    // Store world position (TEMP)
-    PS_OUT_WorldPosition = PS_IN_WorldPosition;
 }
 
 // ------------------------------------------------------------------

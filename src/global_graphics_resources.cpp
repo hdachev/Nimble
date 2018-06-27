@@ -28,6 +28,9 @@ void GlobalGraphicsResources::initialize()
 	m_per_frame_uniforms.renderer = 0;
 	m_per_frame_uniforms.current_output = 0;
 	m_per_frame_uniforms.max_motion_blur_samples = 32;
+	m_per_frame_uniforms.ssao_num_samples = 64;
+	m_per_frame_uniforms.ssao_radius = 0.5f;
+	m_per_frame_uniforms.ssao_bias = 0.025f;
 
 	// Load BRDF look-up-texture.
 	dw::Texture* brdf_lut = demo::load_image("texture/brdfLUT.trm", GL_RG16F, GL_RG, GL_HALF_FLOAT);

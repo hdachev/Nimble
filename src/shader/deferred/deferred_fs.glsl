@@ -14,7 +14,7 @@ uniform sampler2DArray s_ShadowMap;
 uniform samplerCube s_IrradianceMap;
 uniform samplerCube s_PrefilteredMap;
 uniform sampler2D s_BRDF;
-uniform sampler2D s_GBufferRT3;
+uniform sampler2D s_SSAO;
 
 #include <../csm/csm.glsl>
 
