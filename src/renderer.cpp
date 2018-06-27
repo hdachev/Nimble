@@ -35,8 +35,6 @@ void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 {
 	m_width = width;
 	m_height = height;
-	m_current_output = 0;
-	m_current_renderer = 0;
 	set_camera(camera);
 
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -161,25 +159,27 @@ void Renderer::update_uniforms(dw::Camera* camera)
 	Entity** entities = m_scene->entities();
 	int entity_count = m_scene->entity_count();
 
-	m_per_frame_uniforms.projMat = camera->m_projection;
-	m_per_frame_uniforms.viewMat = camera->m_view;
-	m_per_frame_uniforms.viewProj = camera->m_view_projection;
-	m_per_frame_uniforms.invViewProj = glm::inverse(camera->m_view_projection);
-	m_per_frame_uniforms.viewDir = glm::vec4(camera->m_forward.x, camera->m_forward.y, camera->m_forward.z, 0.0f);
-	m_per_frame_uniforms.viewPos = glm::vec4(camera->m_position.x, camera->m_position.y, camera->m_position.z, 0.0f);
-	m_per_frame_uniforms.numCascades = m_csm_technique.frustum_split_count();
-	m_per_frame_uniforms.tanHalfFov = glm::tan(glm::radians(camera->m_fov / 2.0f));
-	m_per_frame_uniforms.aspectRatio = float(m_width) / float(m_height);
-	m_per_frame_uniforms.farPlane = camera->m_far;
-	m_per_frame_uniforms.nearPlane = camera->m_near; 
-	
-	m_per_scene_uniforms.directionalLight.direction = glm::vec4(glm::normalize(m_light_direction), 1.0f);
+	PerFrameUniforms& per_frame = GlobalGraphicsResources::per_frame_uniforms();
 
-	for (int i = 0; i < m_per_frame_uniforms.numCascades; i++)
+	per_frame.projMat = camera->m_projection;
+	per_frame.viewMat = camera->m_view;
+	per_frame.viewProj = camera->m_view_projection;
+	per_frame.invViewProj = glm::inverse(camera->m_view_projection);
+	per_frame.viewDir = glm::vec4(camera->m_forward.x, camera->m_forward.y, camera->m_forward.z, 0.0f);
+	per_frame.viewPos = glm::vec4(camera->m_position.x, camera->m_position.y, camera->m_position.z, 0.0f);
+	per_frame.numCascades = m_csm_technique.frustum_split_count();
+	per_frame.tanHalfFov = glm::tan(glm::radians(camera->m_fov / 2.0f));
+	per_frame.aspectRatio = float(m_width) / float(m_height);
+	per_frame.farPlane = camera->m_far;
+	per_frame.nearPlane = camera->m_near; 
+	
+	for (int i = 0; i < per_frame.numCascades; i++)
 	{
-		m_per_frame_uniforms.shadowFrustums[i].farPlane = m_csm_technique.far_bound(i);
-		m_per_frame_uniforms.shadowFrustums[i].shadowMatrix = m_csm_technique.texture_matrix(i);
+		per_frame.shadowFrustums[i].farPlane = m_csm_technique.far_bound(i);
+		per_frame.shadowFrustums[i].shadowMatrix = m_csm_technique.texture_matrix(i);
 	}
+
+	m_per_scene_uniforms.directionalLight.direction = glm::vec4(glm::normalize(m_light_direction), 1.0f);
 
 	for (int i = 0; i < entity_count; i++)
 	{
@@ -194,7 +194,7 @@ void Renderer::update_uniforms(dw::Camera* camera)
 
 	if (mem)
 	{
-		memcpy(mem, &m_per_frame_uniforms, sizeof(PerFrameUniforms));
+		memcpy(mem, &per_frame, sizeof(PerFrameUniforms));
 		GlobalGraphicsResources::per_frame_ubo()->unmap();
 	}
 
@@ -223,50 +223,69 @@ void Renderer::debug_gui(double delta)
 	{
 		ImGui::Text("Frame Time: %f ms", delta);
 
-		int index = m_current_renderer;
+		PerFrameUniforms& per_frame = GlobalGraphicsResources::per_frame_uniforms();
+
+		int index = per_frame.renderer;
 
 		if (ImGui::BeginCombo("Renderer", g_renderer_names[index]))
 		{
 			for (int i = 0; i < 2; i++)
 			{
 				if (ImGui::Selectable(g_renderer_names[i], index == i))
-					m_current_renderer = i;
+				{
+					per_frame.renderer = i;
+
+					if (per_frame.renderer == RENDERER_FORWARD)
+					{
+						if (per_frame.current_output > SHOW_FORWARD_DEPTH && per_frame.current_output < SHOW_SHADOW_MAPS)
+							per_frame.current_output = SHOW_FORWARD_COLOR;
+					}
+					else if (per_frame.renderer == RENDERER_DEFERRED)
+					{
+						if (per_frame.current_output < SHOW_DEFERRED_COLOR)
+							per_frame.current_output = SHOW_DEFERRED_COLOR;
+					}
+				}
 			}
 			ImGui::EndCombo();
 		}
 
-		ImGui::Text("Current Output:");
+		if (ImGui::CollapsingHeader("Current Output:"))
+		{
+			if (per_frame.renderer == RENDERER_FORWARD)
+			{
+				ImGui::RadioButton("Scene", &per_frame.current_output, SHOW_FORWARD_COLOR);
+				ImGui::RadioButton("Forward Depth (Linear)", &per_frame.current_output, SHOW_FORWARD_DEPTH);
+			}
+			else if (per_frame.renderer == RENDERER_DEFERRED)
+			{
+				ImGui::RadioButton("Scene", &per_frame.current_output, SHOW_DEFERRED_COLOR);
+				ImGui::RadioButton("G-Buffer - Albedo", &per_frame.current_output, SHOW_GBUFFER_ALBEDO);
+				ImGui::RadioButton("G-Buffer - Normals", &per_frame.current_output, SHOW_GBUFFER_NORMALS);
+				ImGui::RadioButton("G-Buffer - Roughness", &per_frame.current_output, SHOW_GBUFFER_ROUGHNESS);
+				ImGui::RadioButton("G-Buffer - Metalness", &per_frame.current_output, SHOW_GBUFFER_METALNESS);
+				ImGui::RadioButton("G-Buffer - Velocity", &per_frame.current_output, SHOW_GBUFFER_VELOCITY);
+				ImGui::RadioButton("G-Buffer - Depth (Linear)", &per_frame.current_output, SHOW_GBUFFER_DEPTH);
+			}
 
-		if (m_current_renderer == RENDERER_FORWARD)
-		{
-			if (m_current_output > SHOW_FORWARD_DEPTH && m_current_output < SHOW_SHADOW_MAPS)
-				m_current_output = SHOW_FORWARD_COLOR;
-				
-			ImGui::RadioButton("Scene", &m_current_output, SHOW_FORWARD_COLOR);
-			ImGui::RadioButton("Forward Depth (Linear)", &m_current_output, SHOW_FORWARD_DEPTH);
-		}
-		else if (m_current_renderer == RENDERER_DEFERRED)
-		{
-			if (m_current_output < SHOW_DEFERRED_COLOR)
-				m_current_output = SHOW_DEFERRED_COLOR;
-
-			ImGui::RadioButton("Scene", &m_current_output, SHOW_DEFERRED_COLOR);
-			ImGui::RadioButton("G-Buffer - Albedo", &m_current_output, SHOW_GBUFFER_ALBEDO);
-			ImGui::RadioButton("G-Buffer - Normals", &m_current_output, SHOW_GBUFFER_NORMALS);
-			ImGui::RadioButton("G-Buffer - Roughness", &m_current_output, SHOW_GBUFFER_ROUGHNESS);
-			ImGui::RadioButton("G-Buffer - Metalness", &m_current_output, SHOW_GBUFFER_METALNESS);
-			ImGui::RadioButton("G-Buffer - Velocity", &m_current_output, SHOW_GBUFFER_VELOCITY);
-			ImGui::RadioButton("G-Buffer - Depth (Linear)", &m_current_output, SHOW_GBUFFER_DEPTH);
-		}
-		
-		for (int i = 0; i < m_csm_technique.m_split_count; i++)
-		{
-			std::string name = "Cascade " + std::to_string(i + 1);
-			ImGui::RadioButton(name.c_str(), &m_current_output, SHOW_SHADOW_MAPS + i);
+			for (int i = 0; i < m_csm_technique.m_split_count; i++)
+			{
+				std::string name = "Cascade " + std::to_string(i + 1);
+				ImGui::RadioButton(name.c_str(), &per_frame.current_output, SHOW_SHADOW_MAPS + i);
+			}
 		}
 
-		ImGui::SliderFloat("Light Direction X", &m_light_direction.x, -1.0f, 1.0f);
-		ImGui::SliderFloat("Light Direction Z", &m_light_direction.z, -1.0f, 1.0f);
+		if (ImGui::CollapsingHeader("Directional Light"))
+		{
+			ImGui::SliderFloat("Light Direction X", &m_light_direction.x, -1.0f, 1.0f);
+			ImGui::SliderFloat("Light Direction Z", &m_light_direction.z, -1.0f, 1.0f);
+		}
+
+		if (ImGui::CollapsingHeader("Motion Blur"))
+		{
+			ImGui::Checkbox("Enabled", (bool*)&per_frame.motion_blur);
+			ImGui::SliderInt("Samples", &per_frame.motion_blur_samples, 1, 32);
+		}
 	}
 	ImGui::End();
 }
@@ -292,16 +311,18 @@ void Renderer::render()
 	m_shadow_map_renderer.render(m_scene, &m_csm_technique);
 
 	// Dispatch scene rendering.
-	if (m_current_renderer == RENDERER_FORWARD)
+	int renderer = GlobalGraphicsResources::per_frame_uniforms().renderer;
+
+	if (renderer == RENDERER_FORWARD)
 		m_forward_renderer.render(m_scene, m_width, m_height);
-	else if (m_current_renderer == RENDERER_DEFERRED)
+	else if (renderer == RENDERER_DEFERRED)
 	{
 		m_gbuffer_renderer.render(m_scene, m_width, m_height);
 		m_deferred_shading_renderer.render(m_scene, m_width, m_height);
 	}
 
 	// Render final composition.
-	m_final_composition.render(m_camera, m_width, m_height, m_current_output);
+	m_final_composition.render(m_camera, m_width, m_height);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

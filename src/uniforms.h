@@ -39,6 +39,11 @@ struct PerFrameUniforms
 	float		 aspectRatio;
 	float		 nearPlane;
 	float		 farPlane;
+	// Renderer settings.
+	int			 renderer;
+	int			 current_output;
+	int			 motion_blur;
+	int			 motion_blur_samples;
 };
 
 struct PerEntityUniforms

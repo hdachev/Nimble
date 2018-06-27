@@ -21,6 +21,8 @@ FinalComposition::FinalComposition()
 	{
 		DW_LOG_INFO("Failed to load Composition pass shaders");
 	}
+
+	m_composition_program->uniform_block_binding("u_PerFrame", 0);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -29,11 +31,12 @@ FinalComposition::~FinalComposition() {}
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void FinalComposition::render(dw::Camera* camera, uint32_t w, uint32_t h, int current_output)
+void FinalComposition::render(dw::Camera* camera, uint32_t w, uint32_t h)
 {
 	m_composition_program->use();
 
-	m_composition_program->set_uniform("u_CurrentOutput", current_output);
+	GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
+
 	m_composition_program->set_uniform("u_NearPlane", camera->m_near);
 	m_composition_program->set_uniform("u_FarPlane", camera->m_far);
 

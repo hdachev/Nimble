@@ -66,7 +66,7 @@ layout (location = 3) out vec3 PS_OUT_WorldPosition;
 vec2 tex_coord()
 {
 #ifdef HEIGHT_TEXTURE
-    return parallax_occlusion_tex_coords(PS_IN_TangentViewPos, PS_IN_TangentFragPos, PS_IN_TexCoord, 0.1, s_Displacement); 
+    return parallax_occlusion_tex_coords(normalize(PS_IN_TangentViewPos - PS_IN_TangentFragPos), PS_IN_TexCoord, 0.05, s_Displacement); 
 #else
     return PS_IN_TexCoord;
 #endif
@@ -120,10 +120,10 @@ float emissive(vec2 tex_coord)
 vec2 motion_vector()
 {
     // Perspective division and remapping to [0, 1] range.
-    vec2 current = (PS_IN_ScreenPosition.xy / PS_IN_ScreenPosition.w);
-    vec2 last = (PS_IN_LastScreenPosition.xy / PS_IN_LastScreenPosition.w);
+    vec2 current = (PS_IN_ScreenPosition.xy / PS_IN_ScreenPosition.w) * 0.5 + 0.5;
+    vec2 last = (PS_IN_LastScreenPosition.xy / PS_IN_LastScreenPosition.w) * 0.5 + 0.5;
 
-    vec2 velocity = (current - last) * 0.5 + 0.5;
+    vec2 velocity = (current - last);
     return velocity;//pow(velocity, 3.0);
 }
 
@@ -141,6 +141,7 @@ void main()
     
     if (albedo_color.a < 0.5)
         discard;
+        
     PS_OUT_Albedo = albedo_color;
 
     // Store encoded normal vector

@@ -19,6 +19,10 @@ layout (std140) uniform u_PerFrame
 	float		  aspectRatio;
 	float		  nearPlane;
 	float		  farPlane;
+	int			  renderer;
+	int			  current_output;
+	int			  motion_blur;
+	int			  motion_blur_samples;
 };
 
 // ------------------------------------------------------------------

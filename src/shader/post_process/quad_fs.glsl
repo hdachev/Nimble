@@ -1,3 +1,5 @@
+#include <../common/uniforms.glsl>
+
 out vec4 FragColor;
 
 in vec2 PS_IN_TexCoord;
@@ -15,7 +17,6 @@ in vec2 PS_IN_TexCoord;
 #define SHOW_GBUFFER_DEPTH 10
 #define SHOW_SHADOW_MAPS 11
 
-uniform int u_CurrentOutput;
 uniform float u_FarPlane;
 uniform float u_NearPlane;
 
@@ -99,26 +100,26 @@ vec4 visualize_gbuffer_depth()
 
 void main()
 {
-	if (u_CurrentOutput == SHOW_FORWARD_COLOR)
+	if (current_output == SHOW_FORWARD_COLOR)
 		FragColor = vec4(texture(s_Color, PS_IN_TexCoord).xyz, 1.0);
-	else if (u_CurrentOutput == SHOW_FORWARD_DEPTH)
+	else if (current_output == SHOW_FORWARD_DEPTH)
 		FragColor = visualize_forward_depth();
-	else if (u_CurrentOutput == SHOW_DEFERRED_COLOR)
+	else if (current_output == SHOW_DEFERRED_COLOR)
 		FragColor = vec4(texture(s_DeferredColor, PS_IN_TexCoord).xyz, 1.0);
-	else if (u_CurrentOutput == SHOW_GBUFFER_ALBEDO)
+	else if (current_output == SHOW_GBUFFER_ALBEDO)
 		FragColor = visualize_gbuffer_albedo();
-	else if (u_CurrentOutput == SHOW_GBUFFER_NORMALS)
+	else if (current_output == SHOW_GBUFFER_NORMALS)
 		FragColor = visualize_gbuffer_normals();
-	else if (u_CurrentOutput == SHOW_GBUFFER_ROUGHNESS)
+	else if (current_output == SHOW_GBUFFER_ROUGHNESS)
 		FragColor = visualize_gbuffer_roughness();
-	else if (u_CurrentOutput == SHOW_GBUFFER_METALNESS)
+	else if (current_output == SHOW_GBUFFER_METALNESS)
 		FragColor = visualize_gbuffer_metalness();
-	else if (u_CurrentOutput == SHOW_GBUFFER_VELOCITY)
+	else if (current_output == SHOW_GBUFFER_VELOCITY)
 		FragColor = visualize_gbuffer_velocity();
-	else if (u_CurrentOutput == SHOW_GBUFFER_DEPTH)
+	else if (current_output == SHOW_GBUFFER_DEPTH)
 		FragColor = visualize_gbuffer_depth();
-	else if (u_CurrentOutput >= SHOW_SHADOW_MAPS)
-		FragColor = vec4(vec3(texture(s_CSMShadowMaps, vec3(PS_IN_TexCoord, float(u_CurrentOutput - SHOW_SHADOW_MAPS))).x), 1.0);
+	else if (current_output >= SHOW_SHADOW_MAPS)
+		FragColor = vec4(vec3(texture(s_CSMShadowMaps, vec3(PS_IN_TexCoord, float(current_output - SHOW_SHADOW_MAPS))).x), 1.0);
 	else 
 		FragColor = vec4(1.0);
 }

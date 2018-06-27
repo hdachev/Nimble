@@ -5,6 +5,8 @@
 #include <string>
 #include <material.h>
 
+#include "uniforms.h"
+
 // Class for associating names with graphics resources and offering a global point-of-access for all render passes.
 class GlobalGraphicsResources
 {
@@ -47,6 +49,9 @@ public:
 	inline static dw::VertexArray* fullscreen_quad_vao() { return m_quad_vao; }
 	inline static dw::VertexArray* cube_vao() { return m_cube_vao; }
 
+	// Uniform getters.
+	inline static PerFrameUniforms& per_frame_uniforms() { return m_per_frame_uniforms; }
+
 private:
 	static void create_cube();
 	static void create_quad();
@@ -71,4 +76,7 @@ private:
 	static dw::UniformBuffer* m_per_frame;
 	static dw::UniformBuffer* m_per_scene;
 	static dw::UniformBuffer* m_per_entity;
+
+	// Per Frame uniforms.
+	static PerFrameUniforms m_per_frame_uniforms;
 };

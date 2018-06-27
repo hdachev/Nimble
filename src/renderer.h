@@ -55,13 +55,10 @@ private:
 	CSM m_csm_technique;
 
 	// Uniform data.
-	PerFrameUniforms m_per_frame_uniforms;
 	PerSceneUniforms m_per_scene_uniforms;
 	PerEntityUniforms m_per_entity_uniforms[1024];
 	PerMaterialUniforms m_per_material_uniforms[1024];
 
 	// Debug options.
-	int m_current_renderer;
-	int m_current_output;
 	glm::vec3 m_light_direction;
 };

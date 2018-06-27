@@ -21,6 +21,10 @@
 #define RENDER_TARGET_GBUFFER_RT3 "GBuffer_RT3"
 #define RENDER_TARGET_GBUFFER_DEPTH "GBuffer_DEPTH"
 
+// Motion Blur
+#define FRAMEBUFFER_MOTION_BLUR "Motion_Blur_FBO"
+#define RENDER_TARGET_MOTION_BLUR "Motion_Blur_RT"
+
 // Composition pass
 #define SHOW_FORWARD_COLOR 0
 #define SHOW_FORWARD_DEPTH 1
