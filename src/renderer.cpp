@@ -11,12 +11,6 @@
 #include "global_graphics_resources.h"
 #include "constants.h"
 
-enum RendererType
-{
-	RENDERER_FORWARD = 0,
-	RENDERER_DEFERRED = 1
-};
-
 static const char* g_renderer_names[] = 
 {
 	"Forward",

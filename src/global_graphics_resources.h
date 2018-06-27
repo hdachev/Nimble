@@ -7,6 +7,12 @@
 
 #include "uniforms.h"
 
+enum RendererType
+{
+	RENDERER_FORWARD = 0,
+	RENDERER_DEFERRED = 1
+};
+
 // Class for associating names with graphics resources and offering a global point-of-access for all render passes.
 class GlobalGraphicsResources
 {

@@ -3,6 +3,7 @@
 // Forward Renderer
 #define FRAMEBUFFER_FORWARD "Forward_FBO"
 #define RENDER_TARGET_FORWARD_COLOR "Forward_Color"
+#define RENDER_TARGET_FORWARD_VELOCITY "Forward_Velocity"
 #define RENDER_TARGET_FORWARD_DEPTH "Forward_Depth"
 
 // PBR

@@ -67,12 +67,25 @@ void MotionBlur::render(Scene* scene, uint32_t w, uint32_t h)
 	GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
 
 	// Bind Textures.
-	if (m_motion_blur_program->set_uniform("s_ColorMap", 0))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_DEFERRED_COLOR)->bind(0);
+	PerFrameUniforms& per_frame = GlobalGraphicsResources::per_frame_uniforms();
 
-	if (m_motion_blur_program->set_uniform("s_VelocityMap", 1))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT1)->bind(1);
+	if (per_frame.renderer == RENDERER_FORWARD)
+	{
+		if (m_motion_blur_program->set_uniform("s_ColorMap", 0))
+			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_FORWARD_COLOR)->bind(0);
 
+		if (m_motion_blur_program->set_uniform("s_VelocityMap", 1))
+			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_FORWARD_VELOCITY)->bind(1);
+	}
+	else if (per_frame.renderer == RENDERER_DEFERRED)
+	{
+		if (m_motion_blur_program->set_uniform("s_ColorMap", 0))
+			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_DEFERRED_COLOR)->bind(0);
+
+		if (m_motion_blur_program->set_uniform("s_VelocityMap", 1))
+			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT1)->bind(1);
+	}
+	
 	m_post_process_renderer.render(w, h, m_motion_blur_fbo);
 }
 

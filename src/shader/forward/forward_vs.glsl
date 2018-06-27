@@ -8,6 +8,8 @@
 out vec3 PS_IN_CamPos;
 out vec3 PS_IN_Position;
 out vec4 PS_IN_NDCFragPos;
+out vec4 PS_IN_ScreenPosition;
+out vec4 PS_IN_LastScreenPosition;
 out vec3 PS_IN_Normal;
 out vec2 PS_IN_TexCoord;
 
@@ -29,6 +31,10 @@ void main()
 {
 	vec4 pos = modelMat * vec4(VS_IN_Position, 1.0f);
 	PS_IN_Position = pos.xyz;
+
+	// Calculate current and previous screen positions
+	PS_IN_ScreenPosition = viewProj * pos;
+	PS_IN_LastScreenPosition = lastMvpMat * vec4(VS_IN_Position, 1.0f);
 
 	pos = projMat * viewMat * vec4(pos.xyz, 1.0f);
 	

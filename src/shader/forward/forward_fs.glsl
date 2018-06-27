@@ -37,9 +37,11 @@ uniform sampler2DArray s_ShadowMap;
 // INPUT VARIABLES  -------------------------------------------------
 // ------------------------------------------------------------------
 
+in vec3 PS_IN_CamPos;
 in vec3 PS_IN_Position;
 in vec4 PS_IN_NDCFragPos;
-in vec3 PS_IN_CamPos;
+in vec4 PS_IN_ScreenPosition;
+in vec4 PS_IN_LastScreenPosition;
 in vec3 PS_IN_Normal;
 in vec2 PS_IN_TexCoord;
 
@@ -62,6 +64,21 @@ in vec2 PS_IN_TexCoord;
 // ------------------------------------------------------------------
 
 layout (location = 0) out vec4 PS_OUT_Color;
+layout (location = 1) out vec2 PS_OUT_Velocity;
+
+// ------------------------------------------------------------------
+// FUNCTIONS --------------------------------------------------------
+// ------------------------------------------------------------------
+
+vec2 motion_vector()
+{
+    // Perspective division and remapping to [0, 1] range.
+    vec2 current = (PS_IN_ScreenPosition.xy / PS_IN_ScreenPosition.w) * 0.5 + 0.5;
+    vec2 last = (PS_IN_LastScreenPosition.xy / PS_IN_LastScreenPosition.w) * 0.5 + 0.5;
+
+    vec2 velocity = (current - last);
+    return velocity;//pow(velocity, 3.0);
+}
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -211,6 +228,7 @@ void main()
     color = pow(color, vec3(1.0/2.2));  
 
     PS_OUT_Color = vec4(color, 1.0);
+	PS_OUT_Velocity = motion_vector();
 }
 
 // ------------------------------------------------------------------

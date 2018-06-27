@@ -17,6 +17,7 @@ public:
 private:
 	// Render targets
 	dw::Texture2D*	 m_color_buffer = nullptr;
+	dw::Texture2D*	 m_velocity_buffer = nullptr;
 	dw::Texture2D*	 m_depth_buffer = nullptr;
 					 
 	// Framebuffers	 
