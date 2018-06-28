@@ -39,6 +39,16 @@ float get_linear_depth(sampler2D depth_sampler, vec2 tex_coord, float far, float
 
 // ------------------------------------------------------------------
 
+// Take exponential depth and convert into linear depth.
+
+float exp_to_linear_depth(float exp_depth, float near, float far)
+{
+    float z = (2 * near) / (far + near - exp_depth * (far - near));
+    return z;
+}
+
+// ------------------------------------------------------------------
+
 vec3 get_normal_from_map(vec3 tangent, vec3 bitangent, vec3 normal, vec2 tex_coord, sampler2D normal_map)
 {
 	// Create TBN matrix.

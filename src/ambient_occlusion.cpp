@@ -21,10 +21,10 @@ void AmbientOcclusion::initialize(uint16_t width, uint16_t height)
 	on_window_resized(width, height);
 
 	{
-		std::string vs_path = "shader/post_procss/ssao/ssao_vs.glsl";
+		std::string vs_path = "shader/post_process/ssao/ssao_vs.glsl";
 		m_ssao_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path);
 
-		std::string fs_path = "shader/post_procss/ssao/ssao_fs.glsl";
+		std::string fs_path = "shader/post_process/ssao/ssao_fs.glsl";
 		m_ssao_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
 
 		dw::Shader* shaders[] = { m_ssao_vs, m_ssao_fs };
@@ -41,10 +41,10 @@ void AmbientOcclusion::initialize(uint16_t width, uint16_t height)
 	}
 
 	{
-		std::string vs_path = "shader/post_procss/ssao/ssao_blur_vs.glsl";
+		std::string vs_path = "shader/post_process/ssao/ssao_blur_vs.glsl";
 		m_ssao_blur_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path);
 
-		std::string fs_path = "shader/post_procss/ssao/ssao_blur_fs.glsl";
+		std::string fs_path = "shader/post_process/ssao/ssao_blur_fs.glsl";
 		m_ssao_blur_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
 
 		dw::Shader* shaders[] = { m_ssao_blur_vs, m_ssao_blur_fs };
@@ -161,7 +161,7 @@ void AmbientOcclusion::render_blur(uint32_t w, uint32_t h)
 
 	GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
 
-	if (m_ssao_program->set_uniform("s_SSAO", 0))
+	if (m_ssao_blur_program->set_uniform("s_SSAO", 0))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO)->bind(0);
 
 	m_post_process_renderer.render(w, h, m_ssao_blur_fbo);

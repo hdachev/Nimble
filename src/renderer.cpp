@@ -279,6 +279,9 @@ void Renderer::debug_gui(double delta)
 				ImGui::RadioButton("G-Buffer - Depth (Linear)", &per_frame.current_output, SHOW_GBUFFER_DEPTH);
 			}
 
+			ImGui::RadioButton("SSAO", &per_frame.current_output, SHOW_SSAO);
+			ImGui::RadioButton("SSAO Blur", &per_frame.current_output, SHOW_SSAO_BLUR);
+
 			for (int i = 0; i < m_csm_technique.m_split_count; i++)
 			{
 				std::string name = "Cascade " + std::to_string(i + 1);
@@ -292,19 +295,22 @@ void Renderer::debug_gui(double delta)
 			ImGui::SliderFloat("Light Direction Z", &m_light_direction.z, -1.0f, 1.0f);
 		}
 
-		if (ImGui::CollapsingHeader("SSAO"))
+		if (ImGui::CollapsingHeader("Post-Process"))
 		{
-			ImGui::Checkbox("Enabled", (bool*)&per_frame.ssao);
-			ImGui::SliderInt("Samples", &per_frame.ssao_num_samples, 1, 32);
-			ImGui::SliderFloat("Radius", &per_frame.ssao_radius, 0.0f, 1.0f);
-			ImGui::InputFloat("Bias", &per_frame.ssao_bias, 0.0f, 0.0f);
+			ImGui::Checkbox("SSAO", (bool*)&per_frame.ssao);
+			ImGui::Checkbox("Motion Blur", (bool*)&per_frame.motion_blur);
 		}
 
-		if (ImGui::CollapsingHeader("Motion Blur"))
+		if (ImGui::CollapsingHeader("Settings"))
 		{
-			ImGui::Checkbox("Enabled", (bool*)&per_frame.motion_blur);
-			ImGui::SliderInt("Samples", &per_frame.max_motion_blur_samples, 1, 32);
+			ImGui::SliderInt("Motion Blur Samples", &per_frame.max_motion_blur_samples, 1, 32);
+			ImGui::SliderInt("SSAO Samples", &per_frame.ssao_num_samples, 1, 64);
+			ImGui::SliderFloat("SSAO Radius", &per_frame.ssao_radius, 0.0f, 20.0f);
+			ImGui::InputFloat("SSAO Bias", &per_frame.ssao_bias, 0.0f, 0.0f);
 		}
+
+		ImGui::Separator();
+		ImGui::Text("Press 'G' to toggle GUI");
 	}
 	ImGui::End();
 }

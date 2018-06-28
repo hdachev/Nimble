@@ -131,6 +131,7 @@ void main()
 	vec3  F = fresnel_schlick_roughness(NdotV, F0, kRoughness);
 
 	vec3 shadow_debug = vec3(0.0);
+	float ao = texture(s_SSAO, PS_IN_TexCoord).r;
 
 	// For each directional light...
 	{
@@ -226,7 +227,7 @@ void main()
 	vec2 brdf = texture(s_BRDF, vec2(max(NdotV, 0.0), kRoughness)).rg;
 	vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 
-	vec3 ambient = (kD * diffuse + specular) * kAmbient;
+	vec3 ambient = (kD * diffuse + specular) * kAmbient * ao;
 	// vec3 ambient = vec3(0.03) * diffuse * kAmbient;
 
 	vec3 color = Lo + ambient;

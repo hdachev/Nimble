@@ -79,7 +79,7 @@ protected:
 		// Update camera.
 		update_camera();
 
-		if (m_moving_entity_1 && m_moving_entity_2)
+		if (m_moving_entity_1 && m_moving_entity_2 && m_move_entities)
 		{
 			float cos_value = (cosf(glfwGetTime() * 10.0f) * 0.5f + 0.5f);
 			m_moving_entity_1->m_position = glm::vec3(cos_value * 20.0f, 0.0f, 0.0f);
@@ -88,7 +88,8 @@ protected:
 
 		m_scene->update();
 
-		m_renderer->debug_gui(delta);
+		if (m_debug_gui)
+			m_renderer->debug_gui(delta);
 
 		m_renderer->render(delta);
     }
@@ -140,6 +141,21 @@ protected:
 			m_sideways_speed = -m_camera_speed;
 		else if (code == GLFW_KEY_D)
 			m_sideways_speed = m_camera_speed;
+
+		if (code == GLFW_KEY_G)
+			m_debug_gui = !m_debug_gui;
+
+		if (code == GLFW_KEY_M)
+		{
+			m_move_entities = !m_move_entities;
+
+			// If entity moving is disabled, reset to initial position.
+			if (!m_move_entities)
+			{
+				m_moving_entity_1->m_position = glm::vec3(0.0f, 0.0f, 0.0f);
+				m_moving_entity_2->m_position = glm::vec3(-20.0f, 0.0f, 0.0f);
+			}
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -227,6 +243,8 @@ private:
 	// Camera controls.
 	bool m_mouse_look = false;
 	bool m_debug_mode = false;
+	bool m_debug_gui = false;
+	bool m_move_entities = false;
 	float m_heading_speed = 0.0f;
 	float m_sideways_speed = 0.0f;
 	float m_camera_sensitivity = 0.05f;

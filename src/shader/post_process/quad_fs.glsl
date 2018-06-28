@@ -16,6 +16,8 @@ in vec2 PS_IN_TexCoord;
 #define SHOW_GBUFFER_DISPLACEMENT 9
 #define SHOW_GBUFFER_DEPTH 10
 #define SHOW_SHADOW_MAPS 11
+#define SHOW_SSAO 20
+#define SHOW_SSAO_BLUR 21
 
 uniform float u_FarPlane;
 uniform float u_NearPlane;
@@ -28,6 +30,8 @@ uniform sampler2D s_GBufferRT1;
 uniform sampler2D s_GBufferRT2;
 uniform sampler2D s_GBufferRTDepth;
 uniform sampler2D s_DeferredColor;
+uniform sampler2D s_SSAO;
+uniform sampler2D s_SSAO_Blur;
 
 float get_linear_depth(sampler2D depth_sampler)
 {
@@ -98,6 +102,16 @@ vec4 visualize_gbuffer_depth()
 	return vec4(vec3(depth), 1.0);
 }
 
+vec4 visualize_ssao()
+{
+	return vec4(vec3(texture(s_SSAO, PS_IN_TexCoord).r), 1.0);
+}
+
+vec4 visualize_ssao_blur()
+{
+	return vec4(vec3(texture(s_SSAO_Blur, PS_IN_TexCoord).r), 1.0);
+}
+
 void main()
 {
 	if (current_output == SHOW_FORWARD_COLOR)
@@ -118,6 +132,10 @@ void main()
 		FragColor = visualize_gbuffer_velocity();
 	else if (current_output == SHOW_GBUFFER_DEPTH)
 		FragColor = visualize_gbuffer_depth();
+	else if (current_output == SHOW_SSAO)
+		FragColor = visualize_ssao();
+	else if (current_output == SHOW_SSAO_BLUR)
+		FragColor = visualize_ssao_blur();
 	else if (current_output >= SHOW_SHADOW_MAPS)
 		FragColor = vec4(vec3(texture(s_CSMShadowMaps, vec3(PS_IN_TexCoord, float(current_output - SHOW_SHADOW_MAPS))).x), 1.0);
 	else 
