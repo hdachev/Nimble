@@ -10,7 +10,7 @@ FinalComposition::FinalComposition()
 	std::string vs_path = "shader/post_process/quad_vs.glsl";
 	m_composition_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path);
 
-	std::string fs_path = "shader/post_process/quad_fs.glsl";
+	std::string fs_path = "shader/post_process/final_composition/final_composition_fs.glsl";
 	m_composition_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
 
 	dw::Shader* shaders[] = { m_composition_vs, m_composition_fs };
@@ -41,7 +41,7 @@ void FinalComposition::render(dw::Camera* camera, uint32_t w, uint32_t h)
 	m_composition_program->set_uniform("u_FarPlane", camera->m_far);
 
 	if (m_composition_program->set_uniform("s_Color", 0))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_MOTION_BLUR)->bind(0);
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_TONE_MAPPING)->bind(0);
 
 	if (m_composition_program->set_uniform("s_Depth", 1))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_FORWARD_DEPTH)->bind(1);

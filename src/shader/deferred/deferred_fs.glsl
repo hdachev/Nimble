@@ -29,7 +29,7 @@ in vec2 PS_IN_ViewRay;
 // OUTPUT VARIABLES  ------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (location = 0) out vec4 PS_OUT_Color;
+layout (location = 0) out vec3 PS_OUT_Color;
 
 // ------------------------------------------------------------------
 // HELPER FUNCTIONS -------------------------------------------------
@@ -233,8 +233,8 @@ void main()
 	vec3 color = Lo + ambient;
 
 	// Gamma Correction
-	color = color / (color + vec3(1.0));
-    color = pow(color, vec3(1.0/2.2));  
+	//color = color / (color + vec3(1.0));
+    //color = pow(color, vec3(1.0/2.2));  
 
-    PS_OUT_Color = vec4(color, 1.0);
+    PS_OUT_Color = color;
 }

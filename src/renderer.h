@@ -12,6 +12,7 @@
 #include "deferred_shading_renderer.h"
 #include "ambient_occlusion.h"
 #include "motion_blur.h"
+#include "tone_mapping.h"
 #include "final_composition.h"
 #include "uniforms.h"
 #include "csm.h"
@@ -56,6 +57,7 @@ private:
 	// Effects
 	AmbientOcclusion m_ambient_occlusion;
 	MotionBlur m_motion_blur;
+	ToneMapping m_tone_mapping;
 
 	// CSM
 	CSM m_csm_technique;

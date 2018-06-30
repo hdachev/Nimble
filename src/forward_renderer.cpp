@@ -31,7 +31,7 @@ void ForwardRenderer::on_window_resized(uint16_t width, uint16_t height)
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_FORWARD_VELOCITY);
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_FORWARD_DEPTH);
 
-	m_color_buffer = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_FORWARD_COLOR, width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	m_color_buffer = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_FORWARD_COLOR, width, height, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 	m_color_buffer->set_min_filter(GL_LINEAR);
 
 	m_velocity_buffer = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_FORWARD_VELOCITY, width, height, GL_RG16F, GL_RG, GL_HALF_FLOAT);

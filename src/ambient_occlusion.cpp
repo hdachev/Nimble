@@ -21,7 +21,7 @@ void AmbientOcclusion::initialize(uint16_t width, uint16_t height)
 	on_window_resized(width, height);
 
 	{
-		std::string vs_path = "shader/post_process/ssao/ssao_vs.glsl";
+		std::string vs_path = "shader/post_process/quad_vs.glsl";
 		m_ssao_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path);
 
 		std::string fs_path = "shader/post_process/ssao/ssao_fs.glsl";
@@ -41,7 +41,7 @@ void AmbientOcclusion::initialize(uint16_t width, uint16_t height)
 	}
 
 	{
-		std::string vs_path = "shader/post_process/ssao/ssao_blur_vs.glsl";
+		std::string vs_path = "shader/post_process/quad_vs.glsl";
 		m_ssao_blur_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path);
 
 		std::string fs_path = "shader/post_process/ssao/ssao_blur_fs.glsl";

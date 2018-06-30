@@ -94,6 +94,7 @@ void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 
 	// Initialize effects
 	m_motion_blur.initialize(m_width, m_height);
+	m_tone_mapping.initialize(m_width, m_height);
 	m_ambient_occlusion.initialize(m_width, m_height);
 
 	// Initialize CSM.
@@ -112,6 +113,7 @@ void Renderer::shutdown()
 	m_gbuffer_renderer.shutdown();
 	m_ambient_occlusion.shutdown();
 	m_motion_blur.shutdown();
+	m_tone_mapping.shutdown();
 	m_deferred_shading_renderer.shutdown();
 
 	// Clean up global resources.
@@ -151,6 +153,7 @@ void Renderer::on_window_resized(uint16_t width, uint16_t height)
 	m_gbuffer_renderer.on_window_resized(width, height);
 	m_deferred_shading_renderer.on_window_resized(width, height);
 	m_motion_blur.on_window_resized(width, height);
+	m_tone_mapping.on_window_resized(width, height);
 	m_ambient_occlusion.on_window_resized(width, height);
 }
 
@@ -299,6 +302,18 @@ void Renderer::debug_gui(double delta)
 		{
 			ImGui::Checkbox("SSAO", (bool*)&per_frame.ssao);
 			ImGui::Checkbox("Motion Blur", (bool*)&per_frame.motion_blur);
+
+			int32_t current_operator = m_tone_mapping.current_operator();
+
+			if (ImGui::BeginCombo("Tone Mapping", g_tone_mapping_operators[current_operator]))
+			{
+				for (int32_t i = 0; i < 5; i++)
+				{
+					if (ImGui::Selectable(g_tone_mapping_operators[i], current_operator == i))
+						m_tone_mapping.set_current_operator(i);
+				}
+				ImGui::EndCombo();
+			}
 		}
 
 		if (ImGui::CollapsingHeader("Settings"))
@@ -354,6 +369,9 @@ void Renderer::render(double delta)
 
 	// Motion blur
 	m_motion_blur.render(m_width, m_height);
+
+	// Tone mapping
+	m_tone_mapping.render(m_width, m_height);
 
 	// Render final composition.
 	m_final_composition.render(m_camera, m_width, m_height);

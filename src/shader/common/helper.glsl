@@ -120,3 +120,20 @@ vec2 motion_vector(vec4 prev_pos, vec4 current_pos)
 }
 
 // ------------------------------------------------------------------
+
+// GLSL version of log10 from HLSL
+float log10(in float n) 
+{
+	const float kLogBase10 = 1.0 / log2( 10.0 );
+	return log2( n ) * kLogBase10;
+}
+
+// ------------------------------------------------------------------
+
+// GLSL version of log10 from HLSL
+vec3 log10(in vec3 n) 
+{
+	return vec3(log10(n.x), log10(n.y), log10(n.z));
+}
+
+// ------------------------------------------------------------------

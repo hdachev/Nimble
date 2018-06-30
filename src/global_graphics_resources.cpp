@@ -24,7 +24,7 @@ PerFrameUniforms   GlobalGraphicsResources::m_per_frame_uniforms;
 
 void GlobalGraphicsResources::initialize()
 {
-	// Set initial renderer and output.
+	// Set initial settings.
 	m_per_frame_uniforms.ssao = 1;
 	m_per_frame_uniforms.motion_blur = 1;
 	m_per_frame_uniforms.renderer = 1;

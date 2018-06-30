@@ -16,10 +16,10 @@ void MotionBlur::initialize(uint16_t width, uint16_t height)
 {
 	on_window_resized(width, height);
 
-	std::string vs_path = "shader/post_process/motion_blur/vs.glsl";
+	std::string vs_path = "shader/post_process/quad_vs.glsl";
 	m_motion_blur_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path);
 
-	std::string fs_path = "shader/post_process/motion_blur/fs.glsl";
+	std::string fs_path = "shader/post_process/motion_blur/motion_blur_fs.glsl";
 	m_motion_blur_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
 
 	dw::Shader* shaders[] = { m_motion_blur_vs, m_motion_blur_fs };
@@ -47,7 +47,7 @@ void MotionBlur::on_window_resized(uint16_t width, uint16_t height)
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_MOTION_BLUR);
 
 	// Create Render targets.
-	m_motion_blur_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_MOTION_BLUR, width, height, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+	m_motion_blur_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_MOTION_BLUR, width, height, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 	m_motion_blur_rt->set_min_filter(GL_LINEAR);
 
 	// Create FBO.

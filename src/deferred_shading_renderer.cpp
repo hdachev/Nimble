@@ -18,7 +18,7 @@ void DeferredShadingRenderer::initialize(uint16_t width, uint16_t height)
 {
 	on_window_resized(width, height);
 
-	std::string vs_path = "shader/deferred/deferred_vs.glsl";
+	std::string vs_path = "shader/post_process/quad_vs.glsl";
 	m_deferred_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path);
 
 	std::string fs_path = "shader/deferred/deferred_fs.glsl";
@@ -50,7 +50,7 @@ void DeferredShadingRenderer::on_window_resized(uint16_t width, uint16_t height)
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_DEFERRED_COLOR);
 
 	// Create Render targets.
-	m_deferred_color = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_DEFERRED_COLOR, width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	m_deferred_color = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_DEFERRED_COLOR, width, height, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 	m_deferred_color->set_min_filter(GL_LINEAR);
 
 	// Create FBO.
