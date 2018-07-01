@@ -1,4 +1,4 @@
-#include <../common/helper.glsl>
+#include <../../common/helper.glsl>
 
 // ------------------------------------------------------------------
 // OUTPUTS ----------------------------------------------------------
@@ -68,14 +68,14 @@ vec3 reinhard_tone_mapping(vec3 color, float exposure)
 
 vec3 haarm_peter_duiker_tone_mapping(vec3 color, float exposure, sampler2D lut)
 {
-	vec3 output = color * exposure;
+	vec3 exp_color = color * exposure;
 
 	vec3 ld = vec3(0.002);
 	float lin_reference = 0.18;
 	float log_reference = 444;
 	float log_gamma = 0.45;
 
-	vec3 log_color = (log10(0.4 * output / lin_reference) / ld * log_gamma + log_reference) / 1023.0;
+	vec3 log_color = (log10(0.4 * exp_color / lin_reference) / ld * log_gamma + log_reference) / 1023.0;
 	log_color = clamp(log_color, 0.0, 1.0);
 
 	float film_lut_width = 256;
@@ -83,9 +83,9 @@ vec3 haarm_peter_duiker_tone_mapping(vec3 color, float exposure, sampler2D lut)
       
 	//  apply response lookup and color grading for target display
 	vec3 ret_color;
-	ret_color.r = texture(lut, vec2(lerp(padding, 1.0 - padding, log_color.r), 0.5)).r;
-	ret_color.g = texture(lut, vec2(lerp(padding, 1.0 - padding, log_color.g), 0.5)).r;
-	ret_color.b = texture(lut, vec2(lerp(padding, 1.0 - padding, log_color.b), 0.5)).r;
+	ret_color.r = texture(lut, vec2(mix(padding, 1.0 - padding, log_color.r), 0.5)).r;
+	ret_color.g = texture(lut, vec2(mix(padding, 1.0 - padding, log_color.g), 0.5)).r;
+	ret_color.b = texture(lut, vec2(mix(padding, 1.0 - padding, log_color.b), 0.5)).r;
 
 	return ret_color;
 }
@@ -94,8 +94,8 @@ vec3 haarm_peter_duiker_tone_mapping(vec3 color, float exposure, sampler2D lut)
 
 vec3 filmic_tone_mapping(vec3 color, float exposure)
 {
-	vec3 output = color * exposure;
-	vec3 x = max(0.0, output - 0.004);
+	vec3 exp_color = color * exposure;
+	vec3 x = max(vec3(0.0), exp_color - vec3(0.004));
    	vec3 ret_color = (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06);
 
 	return ret_color; 
@@ -103,7 +103,7 @@ vec3 filmic_tone_mapping(vec3 color, float exposure)
 
 // ------------------------------------------------------------------
 
-vec3 uncharted_2_tone_mapping(vec3 color)
+vec3 uncharted_2_tone_mapping(vec3 x)
 {
 	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
 }
@@ -113,9 +113,9 @@ vec3 uncharted_2_tone_mapping(vec3 color)
 vec3 uncharted_2_tone_mapping(vec3 color, float exposure, float exposure_bias)
 {
 	vec3 tex_color = color * exposure;
-	vec3 curr = Uncharted2Tonemap(exposure_bias * tex_color);
+	vec3 curr = uncharted_2_tone_mapping(exposure_bias * tex_color);
 
-   	vec3 white_scale = 1.0f/uncharted_2_tone_mapping(W);
+   	vec3 white_scale = 1.0f/uncharted_2_tone_mapping(vec3(W));
    	vec3 ret_color = curr * white_scale;
 
 	return ret_color;
@@ -125,7 +125,7 @@ vec3 uncharted_2_tone_mapping(vec3 color, float exposure, float exposure_bias)
 
 vec3 gamma_correction(vec3 color)
 {
-	return pow(color, 1.0/2.2);
+	return pow(color, vec3(1.0/2.2));
 }
 
 // ------------------------------------------------------------------

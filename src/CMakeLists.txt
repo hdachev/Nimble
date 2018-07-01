@@ -8,6 +8,9 @@ set(NIMBLE_HEADERS ${PROJECT_SOURCE_DIR}/src/demo_loader.h
                    ${PROJECT_SOURCE_DIR}/src/forward_renderer.h
                    ${PROJECT_SOURCE_DIR}/src/g_buffer_renderer.h
                    ${PROJECT_SOURCE_DIR}/src/shadow_map_renderer.h
+                   ${PROJECT_SOURCE_DIR}/src/motion_blur.h
+                   ${PROJECT_SOURCE_DIR}/src/tone_mapping.h
+                   ${PROJECT_SOURCE_DIR}/src/ambient_occlusion.h
                    ${PROJECT_SOURCE_DIR}/src/deferred_shading_renderer.h
                    ${PROJECT_SOURCE_DIR}/src/scene.h
                    ${PROJECT_SOURCE_DIR}/src/constants.h
@@ -29,6 +32,9 @@ set(NIMBLE_SOURCE ${PROJECT_SOURCE_DIR}/src/main.cpp
                   ${PROJECT_SOURCE_DIR}/src/g_buffer_renderer.cpp
                   ${PROJECT_SOURCE_DIR}/src/deferred_shading_renderer.cpp
                   ${PROJECT_SOURCE_DIR}/src/shadow_map_renderer.cpp
+                  ${PROJECT_SOURCE_DIR}/src/motion_blur.cpp
+                  ${PROJECT_SOURCE_DIR}/src/tone_mapping.cpp
+                  ${PROJECT_SOURCE_DIR}/src/ambient_occlusion.cpp
                   ${PROJECT_SOURCE_DIR}/src/scene.cpp
                   ${PROJECT_SOURCE_DIR}/src/csm.cpp
                   ${PROJECT_SOURCE_DIR}/src/final_composition.cpp

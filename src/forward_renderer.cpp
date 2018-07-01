@@ -33,6 +33,7 @@ void ForwardRenderer::on_window_resized(uint16_t width, uint16_t height)
 
 	m_color_buffer = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_FORWARD_COLOR, width, height, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 	m_color_buffer->set_min_filter(GL_LINEAR);
+	m_color_buffer->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
 	m_velocity_buffer = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_FORWARD_VELOCITY, width, height, GL_RG16F, GL_RG, GL_HALF_FLOAT);
 	m_velocity_buffer->set_min_filter(GL_LINEAR);

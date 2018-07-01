@@ -28,7 +28,7 @@ void ToneMapping::initialize(uint16_t width, uint16_t height)
 	std::string fs_path = "shader/post_process/tone_mapping/tone_mapping_fs.glsl";
 	m_tone_mapping_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
 
-	dw::Shader* shaders[] = { m_tone_mapping_vs, m_tone_mapping_vs };
+	dw::Shader* shaders[] = { m_tone_mapping_vs, m_tone_mapping_fs };
 	std::string combined_path = vs_path + fs_path;
 	m_tone_mapping_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
 
@@ -36,8 +36,6 @@ void ToneMapping::initialize(uint16_t width, uint16_t height)
 	{
 		DW_LOG_ERROR("Failed to load Tone Mapping shaders");
 	}
-
-	m_tone_mapping_program->uniform_block_binding("u_PerFrame", 0);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -76,7 +74,7 @@ void ToneMapping::render(uint32_t w, uint32_t h)
 	if (m_tone_mapping_program->set_uniform("s_Color", 0))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_MOTION_BLUR)->bind(0);
 
-	m_post_process_renderer.render(w, h, nullptr);
+	m_post_process_renderer.render(w, h, m_tone_mapped_fbo);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

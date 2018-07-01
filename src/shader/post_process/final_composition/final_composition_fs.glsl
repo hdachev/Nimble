@@ -1,4 +1,4 @@
-#include <../common/uniforms.glsl>
+#include <../../common/uniforms.glsl>
 
 out vec4 FragColor;
 

@@ -28,7 +28,7 @@ void GlobalGraphicsResources::initialize()
 	m_per_frame_uniforms.ssao = 1;
 	m_per_frame_uniforms.motion_blur = 1;
 	m_per_frame_uniforms.renderer = 1;
-	m_per_frame_uniforms.current_output = 0;
+	m_per_frame_uniforms.current_output = SHOW_DEFERRED_COLOR;
 	m_per_frame_uniforms.max_motion_blur_samples = 32;
 	m_per_frame_uniforms.ssao_num_samples = 64;
 	m_per_frame_uniforms.ssao_radius = 10.0f;

@@ -62,7 +62,7 @@ void FinalComposition::render(dw::Camera* camera, uint32_t w, uint32_t h)
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_DEPTH)->bind(6);
 
 	if (m_composition_program->set_uniform("s_DeferredColor", 7))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_MOTION_BLUR)->bind(7);
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_TONE_MAPPING)->bind(7);
 
 	if (m_composition_program->set_uniform("s_SSAO", 8))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO)->bind(8);
