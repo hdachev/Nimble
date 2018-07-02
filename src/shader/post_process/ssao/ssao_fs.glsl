@@ -70,7 +70,7 @@ void main()
         vec3 position = get_view_space_position(PS_IN_TexCoord, frag_depth);
 
         // SSAO Scale
-        vec2 scale = vec2(float(viewport_width) / 4.0, float(viewport_height) / 4.0);
+        vec2 scale = vec2(float(viewport_width / 2.0) / 4.0, float(viewport_height / 2.0) / 4.0);
 
         // Fetch random vector
         vec3 random = normalize(texture(s_Noise, PS_IN_TexCoord * scale).rgb);
@@ -108,7 +108,7 @@ void main()
         }
 
         occlusion = 1.0 - (occlusion / float(ssao_num_samples));
-        FragColor = pow(occlusion, 2.0);
+        FragColor = occlusion;
     }
     else
         FragColor = 1.0;

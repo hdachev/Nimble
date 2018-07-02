@@ -2,6 +2,8 @@
 #include "csm.h"
 #include "global_graphics_resources.h"
 #include "logger.h"
+#include "gpu_profiler.h"
+#include <imgui.h>
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -32,8 +34,17 @@ ShadowMapRenderer::~ShadowMapRenderer() {}
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+void ShadowMapRenderer::profiling_gui()
+{
+	ImGui::Text("CSM: %f ms", GPUProfiler::result("CSM"));
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void ShadowMapRenderer::render(Scene* scene, CSM* csm_technique)
 {
+	GPUProfiler::begin("CSM");
+
 	// Bind states.
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
@@ -49,6 +60,8 @@ void ShadowMapRenderer::render(Scene* scene, CSM* csm_technique)
 		// Draw entire scene into frustum split framebuffer without materials.
 		m_scene_renderer.render(scene, csm_technique->framebuffers()[i], m_csm_program, csm_technique->shadow_map_size(), csm_technique->shadow_map_size(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, (float*)g_default_clear_color, 0, nullptr);
 	}
+
+	GPUProfiler::end("CSM");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

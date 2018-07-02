@@ -2,6 +2,8 @@
 #include "constants.h"
 #include "global_graphics_resources.h"
 #include "logger.h"
+#include "gpu_profiler.h"
+#include <imgui.h>
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -57,6 +59,13 @@ void GBufferRenderer::shutdown() {}
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+void GBufferRenderer::profiling_gui()
+{
+	ImGui::Text("G-Buffer: %f ms", GPUProfiler::result("GBuffer"));
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void GBufferRenderer::on_window_resized(uint16_t width, uint16_t height)
 {
 	// Clear earlier render targets.
@@ -92,6 +101,8 @@ void GBufferRenderer::on_window_resized(uint16_t width, uint16_t height)
 
 void GBufferRenderer::render(Scene* scene, uint32_t w, uint32_t h)
 {
+	GPUProfiler::begin("GBuffer");
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -99,6 +110,8 @@ void GBufferRenderer::render(Scene* scene, uint32_t w, uint32_t h)
 	m_gbuffer_program->use();
 
 	m_scene_renderer.render(scene, m_gbuffer_fbo, m_gbuffer_program, w, h);
+
+	GPUProfiler::end("GBuffer");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

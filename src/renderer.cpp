@@ -10,6 +10,7 @@
 #include "entity.h"
 #include "global_graphics_resources.h"
 #include "constants.h"
+#include "gpu_profiler.h"
 
 static const char* g_renderer_names[] = 
 {
@@ -115,6 +116,9 @@ void Renderer::shutdown()
 	m_motion_blur.shutdown();
 	m_tone_mapping.shutdown();
 	m_deferred_shading_renderer.shutdown();
+
+	// Clean up profiler queries
+	GPUProfiler::shutdown();
 
 	// Clean up global resources.
 	GlobalGraphicsResources::shutdown();
@@ -282,7 +286,7 @@ void Renderer::debug_gui(double delta)
 				ImGui::RadioButton("G-Buffer - Depth (Linear)", &per_frame.current_output, SHOW_GBUFFER_DEPTH);
 			}
 
-			ImGui::RadioButton("SSAO", &per_frame.current_output, SHOW_SSAO);
+			ImGui::RadioButton("SSAO Buffer", &per_frame.current_output, SHOW_SSAO);
 			ImGui::RadioButton("SSAO Blur", &per_frame.current_output, SHOW_SSAO_BLUR);
 
 			for (int i = 0; i < m_csm_technique.m_split_count; i++)
@@ -322,6 +326,22 @@ void Renderer::debug_gui(double delta)
 			ImGui::SliderInt("SSAO Samples", &per_frame.ssao_num_samples, 1, 64);
 			ImGui::SliderFloat("SSAO Radius", &per_frame.ssao_radius, 0.0f, 20.0f);
 			ImGui::InputFloat("SSAO Bias", &per_frame.ssao_bias, 0.0f, 0.0f);
+		}
+
+		if (ImGui::CollapsingHeader("Profiling"))
+		{
+			m_shadow_map_renderer.profiling_gui();
+
+			if (per_frame.renderer == RENDERER_FORWARD)
+				m_forward_renderer.profiling_gui();
+			else if (per_frame.renderer == RENDERER_DEFERRED)
+			{
+				m_gbuffer_renderer.profiling_gui();
+				m_ambient_occlusion.profiling_gui();
+				m_deferred_shading_renderer.profiling_gui();
+			}
+
+			m_motion_blur.profiling_gui();
 		}
 
 		ImGui::Separator();

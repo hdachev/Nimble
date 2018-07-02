@@ -2,6 +2,8 @@
 #include "global_graphics_resources.h"
 #include "logger.h"
 #include "constants.h"
+#include "gpu_profiler.h"
+#include <imgui.h>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <gtx/compatibility.hpp>
 #include <random>
@@ -98,6 +100,14 @@ void AmbientOcclusion::shutdown() {}
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+void AmbientOcclusion::profiling_gui()
+{
+	ImGui::Text("SSAO Buffer: %f ms", GPUProfiler::result("SSAOBuffer"));
+	ImGui::Text("SSAO Blur: %f ms", GPUProfiler::result("SSAOBlur"));
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void AmbientOcclusion::on_window_resized(uint16_t width, uint16_t height)
 {
 	// Clear earlier render targets.
@@ -134,6 +144,8 @@ void AmbientOcclusion::render(uint32_t w, uint32_t h)
 
 void AmbientOcclusion::render_ssao(uint32_t w, uint32_t h)
 {
+	GPUProfiler::begin("SSAOBuffer");
+
 	m_ssao_program->use();
 
 	GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
@@ -151,12 +163,16 @@ void AmbientOcclusion::render_ssao(uint32_t w, uint32_t h)
 		m_noise_texture->bind(2);
 
 	m_post_process_renderer.render(w, h, m_ssao_fbo);
+
+	GPUProfiler::end("SSAOBuffer");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void AmbientOcclusion::render_blur(uint32_t w, uint32_t h)
 {
+	GPUProfiler::begin("SSAOBlur");
+
 	m_ssao_blur_program->use();
 
 	GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
@@ -165,6 +181,8 @@ void AmbientOcclusion::render_blur(uint32_t w, uint32_t h)
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO)->bind(0);
 
 	m_post_process_renderer.render(w, h, m_ssao_blur_fbo);
+
+	GPUProfiler::end("SSAOBlur");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

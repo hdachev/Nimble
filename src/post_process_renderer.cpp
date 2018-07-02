@@ -16,7 +16,6 @@ void PostProcessRenderer::render(uint32_t w, uint32_t h, dw::Framebuffer* fbo)
 	// Set state.
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
-	glCullFace(GL_NONE);
 
 	// Bind framebuffer.
 	if (fbo)

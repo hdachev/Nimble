@@ -3,6 +3,8 @@
 #include "constants.h"
 #include "logger.h"
 #include "scene.h"
+#include "gpu_profiler.h"
+#include <imgui.h>
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -43,6 +45,13 @@ void DeferredShadingRenderer::shutdown() {}
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+void DeferredShadingRenderer::profiling_gui()
+{
+	ImGui::Text("Deferred Shading: %f ms", GPUProfiler::result("Deferred"));
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void DeferredShadingRenderer::on_window_resized(uint16_t width, uint16_t height)
 {
 	// Clear earlier render targets.
@@ -65,6 +74,8 @@ void DeferredShadingRenderer::on_window_resized(uint16_t width, uint16_t height)
 
 void DeferredShadingRenderer::render(Scene* scene, uint32_t w, uint32_t h)
 {
+	GPUProfiler::begin("Deferred");
+
 	m_deferred_program->use();
 
 	// Bind global UBO's.
@@ -103,6 +114,8 @@ void DeferredShadingRenderer::render(Scene* scene, uint32_t w, uint32_t h)
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO_BLUR)->bind(8);
 
 	m_post_process_renderer.render(w, h, m_deferred_fbo);
+
+	GPUProfiler::end("Deferred");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

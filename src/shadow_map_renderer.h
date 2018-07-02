@@ -11,6 +11,7 @@ class ShadowMapRenderer
 public:
 	ShadowMapRenderer();
 	~ShadowMapRenderer();
+	void profiling_gui();
 	void render(Scene* scene, CSM* csm_technique);
 
 private:

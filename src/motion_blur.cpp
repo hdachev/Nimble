@@ -2,6 +2,9 @@
 #include "global_graphics_resources.h"
 #include "logger.h"
 #include "constants.h"
+#include "gpu_profiler.h"
+#include <imgui.h>
+
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 MotionBlur::MotionBlur() {}
@@ -40,6 +43,13 @@ void MotionBlur::shutdown() {}
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+void MotionBlur::profiling_gui()
+{
+	ImGui::Text("Motion Blur: %f ms", GPUProfiler::result("MotionBlur"));
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void MotionBlur::on_window_resized(uint16_t width, uint16_t height)
 {
 	// Clear earlier render targets.
@@ -61,6 +71,8 @@ void MotionBlur::on_window_resized(uint16_t width, uint16_t height)
 
 void MotionBlur::render(uint32_t w, uint32_t h)
 {
+	GPUProfiler::begin("MotionBlur");
+
 	m_motion_blur_program->use();
 
 	// Bind global UBO's.
@@ -87,6 +99,8 @@ void MotionBlur::render(uint32_t w, uint32_t h)
 	}
 	
 	m_post_process_renderer.render(w, h, m_motion_blur_fbo);
+
+	GPUProfiler::end("MotionBlur");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

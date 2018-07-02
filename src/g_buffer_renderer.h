@@ -9,6 +9,7 @@ public:
 	~GBufferRenderer();
 	void initialize(uint16_t width, uint16_t height);
 	void shutdown();
+	void profiling_gui();
 	void on_window_resized(uint16_t width, uint16_t height);
 	void render(Scene* scene, uint32_t w, uint32_t h);
 
@@ -27,4 +28,9 @@ private:
 	dw::Texture* m_gbuffer_rt2; // Metalness, Roughness, Emissive Mask, Height
 	dw::Texture* m_gbuffer_depth;
 	dw::Framebuffer* m_gbuffer_fbo;
+
+	// Queries
+	dw::Query m_queries[3];
+	uint32_t m_query_index = 0;
+	float m_last_result = 0;
 };

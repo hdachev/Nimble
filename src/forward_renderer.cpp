@@ -2,6 +2,8 @@
 #include "scene.h"
 #include "global_graphics_resources.h"
 #include "constants.h"
+#include "gpu_profiler.h"
+#include <imgui.h>
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -21,6 +23,13 @@ void ForwardRenderer::initialize(uint16_t width, uint16_t height)
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void ForwardRenderer::shutdown() {}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void ForwardRenderer::profiling_gui()
+{
+	ImGui::Text("Forward Pass: %f ms", GPUProfiler::result("Forward"));
+}
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -53,11 +62,15 @@ void ForwardRenderer::on_window_resized(uint16_t width, uint16_t height)
 
 void ForwardRenderer::render(Scene* scene, uint32_t w, uint32_t h)
 {
+	GPUProfiler::begin("Forward");
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	
 	m_scene_renderer.render(scene, m_color_fbo, nullptr, w, h);
+
+	GPUProfiler::end("Forward");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
