@@ -107,10 +107,10 @@ void AmbientOcclusion::on_window_resized(uint16_t width, uint16_t height)
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_SSAO_BLUR);
 
 	// Create Render targets.
-	m_ssao_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_SSAO, width, height, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+	m_ssao_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_SSAO, width / 2, height / 2, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
 	m_ssao_rt->set_min_filter(GL_LINEAR);
 
-	m_ssao_blur_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_SSAO_BLUR, width, height, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+	m_ssao_blur_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_SSAO_BLUR, width / 2, height / 2, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
 	m_ssao_blur_rt->set_min_filter(GL_LINEAR);
 
 	// Create FBO.
@@ -126,8 +126,8 @@ void AmbientOcclusion::on_window_resized(uint16_t width, uint16_t height)
 
 void AmbientOcclusion::render(uint32_t w, uint32_t h)
 {
-	render_ssao(w, h);
-	render_blur(w, h);
+	render_ssao(w / 2, h / 2);
+	render_blur(w / 2, h / 2);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
