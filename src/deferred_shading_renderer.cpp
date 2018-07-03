@@ -91,27 +91,30 @@ void DeferredShadingRenderer::render(Scene* scene, uint32_t w, uint32_t h)
 
 	if (m_deferred_program->set_uniform("s_GBufferRT2", 2))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT2)->bind(2);
+    
+    if (m_deferred_program->set_uniform("s_GBufferRT3", 3))
+        GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT3)->bind(3);
 
-	if (m_deferred_program->set_uniform("s_GBufferRTDepth", 3))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_DEPTH)->bind(3);
+	if (m_deferred_program->set_uniform("s_GBufferRTDepth", 4))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_DEPTH)->bind(4);
 
-	if (m_deferred_program->set_uniform("s_ShadowMap", 4))
-		GlobalGraphicsResources::lookup_texture(CSM_SHADOW_MAPS)->bind(4);
+	if (m_deferred_program->set_uniform("s_ShadowMap", 5))
+		GlobalGraphicsResources::lookup_texture(CSM_SHADOW_MAPS)->bind(5);
 
-	if (m_deferred_program->set_uniform("s_IrradianceMap", 5))
-		scene->irradiance_map()->bind(5);
+	if (m_deferred_program->set_uniform("s_IrradianceMap", 6))
+		scene->irradiance_map()->bind(6);
 
-	if (m_deferred_program->set_uniform("s_PrefilteredMap", 6))
-		scene->prefiltered_map()->bind(6);
+	if (m_deferred_program->set_uniform("s_PrefilteredMap", 7))
+		scene->prefiltered_map()->bind(7);
 
-	if (m_deferred_program->set_uniform("s_BRDF",7))
+	if (m_deferred_program->set_uniform("s_BRDF",8))
 	{
 		dw::Texture* brdf_lut = GlobalGraphicsResources::lookup_texture(BRDF_LUT);
-		brdf_lut->bind(7);
+		brdf_lut->bind(8);
 	}
 
-	if (m_deferred_program->set_uniform("s_SSAO", 8))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO_BLUR)->bind(8);
+	if (m_deferred_program->set_uniform("s_SSAO", 9))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO_BLUR)->bind(9);
 
 	m_post_process_renderer.render(w, h, m_deferred_fbo);
 

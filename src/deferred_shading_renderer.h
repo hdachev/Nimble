@@ -17,6 +17,7 @@ public:
 
 private:
 	dw::Texture* m_deferred_color;
+	dw::Texture* m_bright_pass;
 	dw::Framebuffer* m_deferred_fbo;
 
 	dw::Shader* m_deferred_vs;

@@ -28,6 +28,7 @@ uniform sampler2DArray s_CSMShadowMaps;
 uniform sampler2D s_GBufferRT0;
 uniform sampler2D s_GBufferRT1;
 uniform sampler2D s_GBufferRT2;
+uniform sampler2D s_GBufferRT3;
 uniform sampler2D s_GBufferRTDepth;
 uniform sampler2D s_DeferredColor;
 uniform sampler2D s_SSAO;
@@ -65,8 +66,13 @@ vec4 visualize_gbuffer_albedo()
 
 vec4 visualize_gbuffer_normals()
 {
-	vec2 encoded_normal = texture(s_GBufferRT1, PS_IN_TexCoord).xy;
-	vec3 n = decode_normal(encoded_normal);
+	// vec2 encoded_normal = texture(s_GBufferRT1, PS_IN_TexCoord).xy;
+	// vec3 n = decode_normal(encoded_normal);
+	
+	// // Remap to 0 - 1 range.
+	// n = (n + vec3(1.0)) / 2.0;
+
+	vec3 n = normalize(texture(s_GBufferRT2, PS_IN_TexCoord).xyz);
 	
 	// Remap to 0 - 1 range.
 	n = (n + vec3(1.0)) / 2.0;
@@ -76,13 +82,13 @@ vec4 visualize_gbuffer_normals()
 
 vec4 visualize_gbuffer_metalness()
 {
-	float metalness = texture(s_GBufferRT2, PS_IN_TexCoord).x;
+	float metalness = texture(s_GBufferRT3, PS_IN_TexCoord).x;
 	return vec4(vec3(metalness), 1.0);
 } 
 
 vec4 visualize_gbuffer_roughness()
 {
-	float roughness = texture(s_GBufferRT2, PS_IN_TexCoord).y;
+	float roughness = texture(s_GBufferRT3, PS_IN_TexCoord).y;
 	return vec4(vec3(roughness), 1.0);
 }
 

@@ -47,8 +47,9 @@ vec3 get_view_space_position(vec2 tex_coords, float depth)
 
 vec3 get_view_space_normal(vec2 tex_coords, sampler2D g_buffer_normals)
 {
-	vec2 encoded_normal = texture(g_buffer_normals, tex_coords).rg;
-    vec3 n = mat3(viewMat) * decode_normal(encoded_normal);
+	//vec2 encoded_normal = texture(g_buffer_normals, tex_coords).rg;
+    //vec3 n = mat3(viewMat) * decode_normal(encoded_normal);
+    vec3 n = mat3(viewMat) * normalize(texture(g_buffer_normals, tex_coords).rgb);
     return n;
 }
 

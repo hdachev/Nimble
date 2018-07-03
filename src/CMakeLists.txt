@@ -20,6 +20,7 @@ set(NIMBLE_HEADERS ${PROJECT_SOURCE_DIR}/src/demo_loader.h
                    ${PROJECT_SOURCE_DIR}/src/post_process_renderer.h
                    ${PROJECT_SOURCE_DIR}/src/uniforms.h
                    ${PROJECT_SOURCE_DIR}/src/csm.h
+                   ${PROJECT_SOURCE_DIR}/src/gpu_profiler.h
                    ${PROJECT_SOURCE_DIR}/src/external/nfd/nfd.h
                    ${PROJECT_SOURCE_DIR}/src/external/nfd/nfd_common.h
                    ${PROJECT_SOURCE_DIR}/src/external/nfd/common.h)
@@ -37,6 +38,7 @@ set(NIMBLE_SOURCE ${PROJECT_SOURCE_DIR}/src/main.cpp
                   ${PROJECT_SOURCE_DIR}/src/ambient_occlusion.cpp
                   ${PROJECT_SOURCE_DIR}/src/scene.cpp
                   ${PROJECT_SOURCE_DIR}/src/csm.cpp
+                  ${PROJECT_SOURCE_DIR}/src/gpu_profiler.cpp
                   ${PROJECT_SOURCE_DIR}/src/final_composition.cpp
                   ${PROJECT_SOURCE_DIR}/src/global_graphics_resources.cpp
                   ${PROJECT_SOURCE_DIR}/src/post_process_renderer.cpp

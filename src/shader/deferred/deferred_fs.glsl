@@ -9,6 +9,7 @@
 uniform sampler2D s_GBufferRT0;
 uniform sampler2D s_GBufferRT1;
 uniform sampler2D s_GBufferRT2;
+uniform sampler2D s_GBufferRT3;
 uniform sampler2D s_GBufferRTDepth;
 uniform sampler2DArray s_ShadowMap;
 uniform samplerCube s_IrradianceMap;
@@ -37,8 +38,10 @@ layout (location = 0) out vec3 PS_OUT_Color;
 
 vec3 get_normal()
 {
-	vec2 encoded_normal = texture(s_GBufferRT1, PS_IN_TexCoord).rg;
-    return decode_normal(encoded_normal);
+	// vec2 encoded_normal = texture(s_GBufferRT1, PS_IN_TexCoord).rg;
+    // return decode_normal(encoded_normal);
+
+    return normalize(texture(s_GBufferRT2, PS_IN_TexCoord).rgb);
 }
 
 // ------------------------------------------------------------------
@@ -52,14 +55,14 @@ vec4 get_albedo()
 
 float get_metalness()
 {
-    return texture(s_GBufferRT2, PS_IN_TexCoord).x;
+    return texture(s_GBufferRT3, PS_IN_TexCoord).x;
 }
 
 // ------------------------------------------------------------------
 
 float get_roughness()
 {
-    return texture(s_GBufferRT2, PS_IN_TexCoord).y;
+    return texture(s_GBufferRT3, PS_IN_TexCoord).y;
 }
 
 // ------------------------------------------------------------------

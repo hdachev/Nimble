@@ -57,18 +57,21 @@ void FinalComposition::render(dw::Camera* camera, uint32_t w, uint32_t h)
 
 	if (m_composition_program->set_uniform("s_GBufferRT2", 5))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT2)->bind(5);
+    
+    if (m_composition_program->set_uniform("s_GBufferRT3", 6))
+        GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT3)->bind(6);
 
-	if (m_composition_program->set_uniform("s_GBufferRTDepth", 6))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_DEPTH)->bind(6);
+	if (m_composition_program->set_uniform("s_GBufferRTDepth", 7))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_DEPTH)->bind(7);
 
-	if (m_composition_program->set_uniform("s_DeferredColor", 7))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_TONE_MAPPING)->bind(7);
+	if (m_composition_program->set_uniform("s_DeferredColor", 8))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_TONE_MAPPING)->bind(8);
 
-	if (m_composition_program->set_uniform("s_SSAO", 8))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO)->bind(8);
+	if (m_composition_program->set_uniform("s_SSAO", 9))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO)->bind(9);
 
-	if (m_composition_program->set_uniform("s_SSAO_Blur", 9))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO_BLUR)->bind(9);
+	if (m_composition_program->set_uniform("s_SSAO_Blur", 10))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO_BLUR)->bind(10);
 
 	m_post_process_renderer.render(w, h, nullptr);
 }

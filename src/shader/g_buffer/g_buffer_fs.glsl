@@ -53,8 +53,9 @@ in vec3 PS_IN_Normal;
 // ------------------------------------------------------------------
 
 layout (location = 0) out vec4 PS_OUT_Albedo;
-layout (location = 1) out vec4 PS_OUT_NormalMotion;
-layout (location = 2) out vec4 PS_OUT_MetalRoughEmissive;
+layout (location = 1) out vec4 PS_OUT_Motion;
+layout (location = 2) out vec3 PS_OUT_Normal;
+layout (location = 3) out vec4 PS_OUT_MetalRoughEmissive;
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
@@ -132,13 +133,14 @@ void main()
     PS_OUT_Albedo = albedo_color;
 
     // Store encoded normal vector
-    vec3 normal = normal(tex_coord);
-    vec2 encoded_normal = encode_normal(normal);
+    //vec3 normal = normal(tex_coord);
+    //vec2 encoded_normal = encode_normal(normal);
+    PS_OUT_Normal = normal(tex_coord);;
 
     // Store motion vector
     vec2 motion = motion_vector(PS_IN_LastScreenPosition, PS_IN_ScreenPosition);
 
-    PS_OUT_NormalMotion = vec4(encoded_normal.x, encoded_normal.y, motion.x, motion.y);
+    PS_OUT_Motion = vec4(0.0, 0.0, motion.x, motion.y);
 
     // Store metalness
     PS_OUT_MetalRoughEmissive.r = metalness(tex_coord);

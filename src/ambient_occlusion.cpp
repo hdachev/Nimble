@@ -151,10 +151,10 @@ void AmbientOcclusion::render_ssao(uint32_t w, uint32_t h)
 	GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
 	m_kernel_ubo->bind_base(1);
 
-	PerFrameUniforms& per_frame = GlobalGraphicsResources::per_frame_uniforms();
+	//PerFrameUniforms& per_frame = GlobalGraphicsResources::per_frame_uniforms();
 
 	if (m_ssao_program->set_uniform("s_GBufferNormals", 0))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT1)->bind(0);
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT2)->bind(0);
 
 	if (m_ssao_program->set_uniform("s_GBufferRTDepth", 1))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_DEPTH)->bind(1);
