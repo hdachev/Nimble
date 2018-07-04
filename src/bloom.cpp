@@ -206,10 +206,19 @@ void Bloom::separable_blur(dw::Texture* src_rt, dw::Framebuffer* dest_fbo, dw::T
 	if (m_bloom_blur_program->set_uniform("s_Bright", 0))
 		src_rt->bind(0);
 
+    glm::vec2 direction = glm::vec2(1, 0);
+    m_bloom_blur_program->set_uniform("u_Direction", direction);
+    
+    glm::vec2 resolution = glm::vec2(w, h);
+    m_bloom_blur_program->set_uniform("u_Resolution", resolution);
+    
 	m_post_process_renderer.render(w, h, temp_fbo);
 
 	// Vertical blur
 	temp_rt->bind(0);
+    
+    direction = glm::vec2(0, 1);
+    m_bloom_blur_program->set_uniform("u_Direction", direction);
 
 	m_post_process_renderer.render(w, h, dest_fbo);
 }
