@@ -142,6 +142,10 @@ void main()
 
 	// Retrieve metalness and roughness values
 	float metallic = texture(s_MetalRough, PS_IN_TexCoord).r;
+
+	if (metallic < 0.1)
+		discard;
+
 	float roughness = texture(s_MetalRough, PS_IN_TexCoord).g;
 
 	// Albedo from previous frame
