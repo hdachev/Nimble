@@ -10,6 +10,7 @@ layout (std140) uniform u_PerFrame
 	mat4 		  viewProj;
 	mat4 		  invViewProj;
 	mat4 		  invProj;
+	mat4 		  invView;
 	mat4 		  projMat;
 	mat4 		  viewMat;
 	vec4 		  viewPos;

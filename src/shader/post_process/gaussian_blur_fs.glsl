@@ -28,10 +28,10 @@ void main()
 {
 #ifdef GAUSSIAN_BLUR_5x5
 	vec4 result = gaussian_blur_5x5(s_Texture, PS_IN_TexCoord, u_Resolution, u_Direction);
-#elif GAUSSIAN_BLUR_13x13
-	vec4 result = gaussian_blur_13x13(s_Texture, PS_IN_TexCoord, u_Resolution, u_Direction);
-#else
+#elif GAUSSIAN_BLUR_9x9
 	vec4 result = gaussian_blur_9x9(s_Texture, PS_IN_TexCoord, u_Resolution, u_Direction);
+#else
+	vec4 result = gaussian_blur_13x13(s_Texture, PS_IN_TexCoord, u_Resolution, u_Direction);
 #endif
 	PS_OUT_FragColor = result.rgb;
 }

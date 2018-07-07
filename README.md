@@ -1,11 +1,33 @@
 # Nimble
 A simple and lightweight OpenGL rendering engine built on top of dwSampleFramework.
 
+## Features
+* Forward and Deferred rendering paths.
+* Physically Based Shading
+* Image Based Lighting
+* Cascaded Shadow Maps with Percentage Closer Filtering (PCF)
+* Screen Space Ambient Occlusion (SSAO)
+* Per-Object Motion Blur
+* Screen Space Reflections
+* Bloom
+* Variety of Tone-Mapping operators (Reinhard, Uncharted 2, Filmic etc)
+* GPU Profiling
+
 ## Screenshots
 
-![Nimble](data/screenshot_1.jpg)
+![Nimble](data/main1.jpg)
 
-![Nimble](data/screenshot_2.jpg)
+![Nimble](data/main2.jpg)
+
+![Nimble](data/ssr.jpg)
+
+![Nimble](data/mb1.jpg)
+
+![Nimble](data/mb2.jpg)
+
+![Nimble](data/ssao.jpg)
+
+![Nimble](data/deferred.jpg)
 
 ## Dependencies
 * [dwSampleFramework](https://github.com/diharaw/dwSampleFramework) 

@@ -31,29 +31,6 @@ uniform sampler2D s_GBufferRTDepth; // Depth
 uniform sampler2D s_Noise; // SSAO Noise
 
 // ------------------------------------------------------------------
-// HELPER FUNCTIONS -------------------------------------------------
-// ------------------------------------------------------------------
-
-vec3 get_view_space_position(vec2 tex_coords, float depth)
-{
-    vec2 ndc_pos = tex_coords * 2.0 - 1.0;
-    vec4 position = invProj * vec4(ndc_pos.x, ndc_pos.y, depth * 2.0 - 1.0, 1.0);
-    position.xyz /= position.w;
-
-    return position.xyz;
-}
-
-// ------------------------------------------------------------------
-
-vec3 get_view_space_normal(vec2 tex_coords, sampler2D g_buffer_normals)
-{
-	//vec2 encoded_normal = texture(g_buffer_normals, tex_coords).rg;
-    //vec3 n = mat3(viewMat) * decode_normal(encoded_normal);
-    vec3 n = mat3(viewMat) * normalize(texture(g_buffer_normals, tex_coords).rgb);
-    return n;
-}
-
-// ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
 // ------------------------------------------------------------------
 

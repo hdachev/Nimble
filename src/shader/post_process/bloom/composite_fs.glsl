@@ -1,5 +1,3 @@
-#include <../../common/helper.glsl>
-
 // ------------------------------------------------------------------
 // OUTPUTS ----------------------------------------------------------
 // ------------------------------------------------------------------
@@ -42,8 +40,8 @@ void main()
 		// Mix values
 		bloom8 = mix(bloom8, bloom16, 0.5);
 		bloom4 = mix(bloom4, bloom8, 0.5);
-		bloom2 = mix(bloom2, bloom4, 0.5);
-		color = mix(color, bloom2, 0.5 * u_Strength);
+		vec3 bloom = mix(bloom2, bloom4, 0.5);
+		color = color + bloom * u_Strength;
 	}
 
 	PS_OUT_FragColor = color;

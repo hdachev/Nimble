@@ -19,6 +19,7 @@ in vec2 PS_IN_TexCoord;
 #define SHOW_SSAO 20
 #define SHOW_SSAO_BLUR 21
 #define SHOW_BRIGHT_PASS 22
+#define SHOW_SSR 23
 
 uniform float u_FarPlane;
 uniform float u_NearPlane;
@@ -35,6 +36,7 @@ uniform sampler2D s_DeferredColor;
 uniform sampler2D s_SSAO;
 uniform sampler2D s_SSAO_Blur;
 uniform sampler2D s_BrightPass;
+uniform sampler2D s_SSR;
 
 float get_linear_depth(sampler2D depth_sampler)
 {
@@ -125,6 +127,11 @@ vec4 visualize_bright_pass()
 	return vec4(texture(s_BrightPass, PS_IN_TexCoord).rgb, 1.0);
 }
 
+vec4 visualize_ssr()
+{
+	return vec4(texture(s_SSR, PS_IN_TexCoord).rgb, 1.0);
+}
+
 void main()
 {
 	if (current_output == SHOW_FORWARD_COLOR)
@@ -151,6 +158,8 @@ void main()
 		FragColor = visualize_ssao_blur();
 	else if (current_output == SHOW_BRIGHT_PASS)
 		FragColor = visualize_bright_pass();
+	else if (current_output == SHOW_SSR)
+		FragColor = visualize_ssr();
 	else if (current_output >= SHOW_SHADOW_MAPS)
 		FragColor = vec4(vec3(texture(s_CSMShadowMaps, vec3(PS_IN_TexCoord, float(current_output - SHOW_SHADOW_MAPS))).x), 1.0);
 	else 

@@ -13,6 +13,7 @@
 #include "ambient_occlusion.h"
 #include "motion_blur.h"
 #include "bloom.h"
+#include "screen_space_reflections.h"
 #include "tone_mapping.h"
 #include "final_composition.h"
 #include "uniforms.h"
@@ -58,6 +59,7 @@ private:
 	// Effects
 	AmbientOcclusion m_ambient_occlusion;
 	MotionBlur m_motion_blur;
+	ScreenSpaceReflections m_ssr;
 	Bloom	   m_bloom;
 	ToneMapping m_tone_mapping;
 

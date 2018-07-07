@@ -116,6 +116,9 @@ void DeferredShadingRenderer::render(Scene* scene, uint32_t w, uint32_t h)
 	if (m_deferred_program->set_uniform("s_SSAO", 9))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO_BLUR)->bind(9);
 
+	if (m_deferred_program->set_uniform("s_SSR", 10))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSR)->bind(10);
+
 	m_post_process_renderer.render(w, h, m_deferred_fbo);
 
 	GPUProfiler::end("Deferred");

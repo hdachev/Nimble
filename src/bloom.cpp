@@ -2,6 +2,9 @@
 #include "global_graphics_resources.h"
 #include "constants.h"
 #include "logger.h"
+#include "gpu_profiler.h"
+
+#include <imgui.h>
 
 #define RT_SCALE_2 0
 #define RT_SCALE_4 1
@@ -101,7 +104,10 @@ void Bloom::shutdown()
 
 void Bloom::profiling_gui()
 {
-
+	ImGui::Text("Bloom - Bright Pass: %f ms", GPUProfiler::result("Bloom - Bright Pass"));
+	ImGui::Text("Bloom - Downsample: %f ms", GPUProfiler::result("Bloom - Downsample"));
+	ImGui::Text("Bloom - Blur: %f ms", GPUProfiler::result("Bloom - Blur"));
+	ImGui::Text("Bloom - Composite: %f ms", GPUProfiler::result("Bloom - Composite"));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -180,6 +186,8 @@ void Bloom::render(uint32_t w, uint32_t h)
 
 void Bloom::bright_pass(uint32_t w, uint32_t h)
 {
+	GPUProfiler::begin("Bloom - Bright Pass");
+
 	m_bright_pass_program->use();
 
 	if (m_bright_pass_program->set_uniform("s_Color", 0))
@@ -188,12 +196,16 @@ void Bloom::bright_pass(uint32_t w, uint32_t h)
 	m_bright_pass_program->set_uniform("u_Threshold", m_threshold);
 
 	m_post_process_renderer.render(w, h, m_bright_pass_fbo);
+
+	GPUProfiler::end("Bloom - Bright Pass");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void Bloom::downsample(uint32_t w, uint32_t h)
 {
+	GPUProfiler::begin("Bloom - Downsample");
+
 	m_bloom_downsample_program->use();
 
 	// Progressively blur bright pass into blur textures.
@@ -212,12 +224,16 @@ void Bloom::downsample(uint32_t w, uint32_t h)
 
 		m_post_process_renderer.render(w / scale, h / scale, m_bloom_fbo[i][0]);
 	}
+
+	GPUProfiler::end("Bloom - Downsample");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void Bloom::blur(uint32_t w, uint32_t h)
 {
+	GPUProfiler::begin("Bloom - Blur");
+
 	// Bloom each downsampled target
 	for (uint32_t i = 0; i < 4; i++)
 	{
@@ -227,12 +243,16 @@ void Bloom::blur(uint32_t w, uint32_t h)
 		// vertically blurred back into the original Render target.
 		separable_blur(m_bloom_rt[i][0], m_bloom_fbo[i][0], m_bloom_rt[i][1], m_bloom_fbo[i][1], w / scale, h / scale);
 	}
+
+	GPUProfiler::end("Bloom - Blur");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void Bloom::composite(uint32_t w, uint32_t h)
 {
+	GPUProfiler::begin("Bloom - Composite");
+
 	m_bloom_composite_program->use();
 
 	m_bloom_composite_program->set_uniform("u_Strength", m_enabled ? m_strength : 0.0f);
@@ -252,8 +272,9 @@ void Bloom::composite(uint32_t w, uint32_t h)
 	if (m_bloom_composite_program->set_uniform("s_Bloom16", 4))
 		m_bloom_rt[RT_SCALE_16][0]->bind(4);
 
-	//m_post_process_renderer.render(w / 2, h / 2, m_bloom_fbo[RT_SCALE_2][1]);
 	m_post_process_renderer.render(w, h, m_composite_fbo);
+
+	GPUProfiler::end("Bloom - Composite");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

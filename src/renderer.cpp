@@ -95,6 +95,7 @@ void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 
 	// Initialize effects
 	m_motion_blur.initialize(m_width, m_height);
+	m_ssr.initialize(m_width, m_height);
 	m_bloom.initialize(m_width, m_height);
 	m_tone_mapping.initialize(m_width, m_height);
 	m_ambient_occlusion.initialize(m_width, m_height);
@@ -115,6 +116,7 @@ void Renderer::shutdown()
 	m_gbuffer_renderer.shutdown();
 	m_ambient_occlusion.shutdown();
 	m_motion_blur.shutdown();
+	m_ssr.shutdown();
 	m_bloom.shutdown();
 	m_tone_mapping.shutdown();
 	m_deferred_shading_renderer.shutdown();
@@ -159,6 +161,7 @@ void Renderer::on_window_resized(uint16_t width, uint16_t height)
 	m_gbuffer_renderer.on_window_resized(width, height);
 	m_deferred_shading_renderer.on_window_resized(width, height);
 	m_motion_blur.on_window_resized(width, height);
+	m_ssr.on_window_resized(width, height);
 	m_bloom.on_window_resized(width, height);
 	m_tone_mapping.on_window_resized(width, height);
 	m_ambient_occlusion.on_window_resized(width, height);
@@ -179,6 +182,7 @@ void Renderer::update_uniforms(dw::Camera* camera, double delta)
 	per_frame.viewProj = camera->m_view_projection;
 	per_frame.invViewProj = glm::inverse(camera->m_view_projection);
 	per_frame.invProj = glm::inverse(camera->m_projection);
+	per_frame.invView = glm::inverse(camera->m_view);
 	per_frame.viewDir = glm::vec4(camera->m_forward.x, camera->m_forward.y, camera->m_forward.z, 0.0f);
 	per_frame.viewPos = glm::vec4(camera->m_position.x, camera->m_position.y, camera->m_position.z, 0.0f);
 	per_frame.numCascades = m_csm_technique.frustum_split_count();
@@ -287,6 +291,7 @@ void Renderer::debug_gui(double delta)
 				ImGui::RadioButton("G-Buffer - Metalness", &per_frame.current_output, SHOW_GBUFFER_METALNESS);
 				ImGui::RadioButton("G-Buffer - Velocity", &per_frame.current_output, SHOW_GBUFFER_VELOCITY);
 				ImGui::RadioButton("G-Buffer - Depth (Linear)", &per_frame.current_output, SHOW_GBUFFER_DEPTH);
+				ImGui::RadioButton("SSR", &per_frame.current_output, SHOW_SSR);
 			}
 
 			ImGui::RadioButton("SSAO Buffer", &per_frame.current_output, SHOW_SSAO);
@@ -318,6 +323,14 @@ void Renderer::debug_gui(double delta)
 				m_bloom.enable();
 			else
 				m_bloom.disable();
+
+			bool ssr = m_ssr.is_enabled();
+			ImGui::Checkbox("SSR", &ssr);
+
+			if (ssr)
+				m_ssr.enable();
+			else
+				m_ssr.disable();
 
 			int32_t current_operator = m_tone_mapping.current_operator();
 
@@ -361,7 +374,9 @@ void Renderer::debug_gui(double delta)
 				m_deferred_shading_renderer.profiling_gui();
 			}
 
+			m_ssr.profiling_gui();
 			m_motion_blur.profiling_gui();
+			m_bloom.profiling_gui();
 		}
 
 		ImGui::Separator();
@@ -405,6 +420,9 @@ void Renderer::render(double delta)
 
 		// Use G-Buffer and SSAO to perform deferred shading
 		m_deferred_shading_renderer.render(m_scene, m_width, m_height);
+
+		// Compute Screen Space Reflections
+		m_ssr.render(m_width, m_height);
 	}
 
 	// Motion blur

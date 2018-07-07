@@ -30,6 +30,7 @@ struct PerFrameUniforms
 	DW_ALIGNED(16) glm::mat4	 viewProj;
 	DW_ALIGNED(16) glm::mat4	 invViewProj;
 	DW_ALIGNED(16) glm::mat4	 invProj;
+	DW_ALIGNED(16) glm::mat4	 invView;
 	DW_ALIGNED(16) glm::mat4	 projMat;
 	DW_ALIGNED(16) glm::mat4	 viewMat;
 	DW_ALIGNED(16) glm::vec4	 viewPos;

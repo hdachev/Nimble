@@ -1,3 +1,4 @@
+#include <../../common/uniforms.glsl>
 #include <../../common/helper.glsl>
 
 // ------------------------------------------------------------------
