@@ -59,6 +59,7 @@ void MotionBlur::on_window_resized(uint16_t width, uint16_t height)
 	// Create Render targets.
 	m_motion_blur_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_MOTION_BLUR, width, height, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 	m_motion_blur_rt->set_min_filter(GL_LINEAR);
+	m_motion_blur_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
 	// Create FBO.
 	m_motion_blur_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_MOTION_BLUR);

@@ -95,6 +95,7 @@ void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 
 	// Initialize effects
 	m_motion_blur.initialize(m_width, m_height);
+	m_bloom.initialize(m_width, m_height);
 	m_tone_mapping.initialize(m_width, m_height);
 	m_ambient_occlusion.initialize(m_width, m_height);
 
@@ -114,6 +115,7 @@ void Renderer::shutdown()
 	m_gbuffer_renderer.shutdown();
 	m_ambient_occlusion.shutdown();
 	m_motion_blur.shutdown();
+	m_bloom.shutdown();
 	m_tone_mapping.shutdown();
 	m_deferred_shading_renderer.shutdown();
 
@@ -157,6 +159,7 @@ void Renderer::on_window_resized(uint16_t width, uint16_t height)
 	m_gbuffer_renderer.on_window_resized(width, height);
 	m_deferred_shading_renderer.on_window_resized(width, height);
 	m_motion_blur.on_window_resized(width, height);
+	m_bloom.on_window_resized(width, height);
 	m_tone_mapping.on_window_resized(width, height);
 	m_ambient_occlusion.on_window_resized(width, height);
 }
@@ -288,6 +291,7 @@ void Renderer::debug_gui(double delta)
 
 			ImGui::RadioButton("SSAO Buffer", &per_frame.current_output, SHOW_SSAO);
 			ImGui::RadioButton("SSAO Blur", &per_frame.current_output, SHOW_SSAO_BLUR);
+			ImGui::RadioButton("Bright Pass", &per_frame.current_output, SHOW_BRIGHT_PASS);
 
 			for (int i = 0; i < m_csm_technique.m_split_count; i++)
 			{
@@ -306,6 +310,14 @@ void Renderer::debug_gui(double delta)
 		{
 			ImGui::Checkbox("SSAO", (bool*)&per_frame.ssao);
 			ImGui::Checkbox("Motion Blur", (bool*)&per_frame.motion_blur);
+
+			bool bloom = m_bloom.is_enabled();
+			ImGui::Checkbox("Bloom", &bloom);
+
+			if (bloom)
+				m_bloom.enable();
+			else
+				m_bloom.disable();
 
 			int32_t current_operator = m_tone_mapping.current_operator();
 
@@ -326,6 +338,14 @@ void Renderer::debug_gui(double delta)
 			ImGui::SliderInt("SSAO Samples", &per_frame.ssao_num_samples, 1, 64);
 			ImGui::SliderFloat("SSAO Radius", &per_frame.ssao_radius, 0.0f, 20.0f);
 			ImGui::InputFloat("SSAO Bias", &per_frame.ssao_bias, 0.0f, 0.0f);
+
+			float threshold = m_bloom.threshold();
+			ImGui::SliderFloat("Bloom Threshold", &threshold, 0.0f, 2.0f);
+			m_bloom.set_threshold(threshold);
+
+			float strength = m_bloom.strength();
+			ImGui::SliderFloat("Bloom Strength", &strength, 0.0f, 1.0f);
+			m_bloom.set_strength(strength);
 		}
 
 		if (ImGui::CollapsingHeader("Profiling"))
@@ -389,6 +409,9 @@ void Renderer::render(double delta)
 
 	// Motion blur
 	m_motion_blur.render(m_width, m_height);
+
+	// Bloom
+	m_bloom.render(m_width, m_height);
 
 	// Tone mapping
 	m_tone_mapping.render(m_width, m_height);

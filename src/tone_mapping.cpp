@@ -72,7 +72,7 @@ void ToneMapping::render(uint32_t w, uint32_t h)
 	m_tone_mapping_program->set_uniform("s_ExposureBias", m_uc2_exposure_bias);
 
 	if (m_tone_mapping_program->set_uniform("s_Color", 0))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_MOTION_BLUR)->bind(0);
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_BLOOM_COMPOSITE)->bind(0);
 
 	m_post_process_renderer.render(w, h, m_tone_mapped_fbo);
 }
