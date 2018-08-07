@@ -1,3 +1,5 @@
+[![License: MIT](https://img.shields.io/packagist/l/doctrine/orm.svg)](https://opensource.org/licenses/MIT)
+
 # Nimble
 A simple and lightweight OpenGL rendering engine built on top of dwSampleFramework.
 
