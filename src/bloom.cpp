@@ -112,7 +112,7 @@ void Bloom::on_window_resized(uint16_t width, uint16_t height)
 	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_BLOOM_COMPOSITE);
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_BLOOM_COMPOSITE);
 
-	m_composite_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_BLOOM_COMPOSITE, width, height, GL_RGB32F, GL_RGB, GL_HALF_FLOAT);
+	m_composite_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_BLOOM_COMPOSITE, width, height, GL_RGB32F, GL_RGB, GL_FLOAT);
 	m_composite_rt->set_min_filter(GL_LINEAR);
 	m_composite_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 

@@ -19,6 +19,7 @@
 #include "uniforms.h"
 #include "csm.h"
 #include "shadow_map_renderer.h"
+#include "taa.h"
 
 class Renderer
 {
@@ -62,6 +63,7 @@ private:
 	ScreenSpaceReflections m_ssr;
 	Bloom	   m_bloom;
 	ToneMapping m_tone_mapping;
+	TAA			m_taa;
 
 	// CSM
 	CSM m_csm_technique;

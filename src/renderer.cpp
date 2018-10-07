@@ -99,6 +99,7 @@ void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 	m_bloom.initialize(m_width, m_height);
 	m_tone_mapping.initialize(m_width, m_height);
 	m_ambient_occlusion.initialize(m_width, m_height);
+	m_taa.initialize(m_width, m_height);
 
 	// Initialize CSM.
 	m_csm_technique.initialize(0.3, 350.0f, 4, 2048, m_camera, m_width, m_height, m_light_direction);
@@ -119,6 +120,7 @@ void Renderer::shutdown()
 	m_ssr.shutdown();
 	m_bloom.shutdown();
 	m_tone_mapping.shutdown();
+	m_taa.shutdown();
 	m_deferred_shading_renderer.shutdown();
 
 	// Clean up profiler queries
@@ -165,6 +167,7 @@ void Renderer::on_window_resized(uint16_t width, uint16_t height)
 	m_bloom.on_window_resized(width, height);
 	m_tone_mapping.on_window_resized(width, height);
 	m_ambient_occlusion.on_window_resized(width, height);
+	m_taa.on_window_resized(width, height);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -332,6 +335,14 @@ void Renderer::debug_gui(double delta)
 			else
 				m_ssr.disable();
 
+			bool taa = m_taa.is_enabled();
+			ImGui::Checkbox("TAA", &taa);
+
+			if (taa)
+				m_taa.enable();
+			else
+				m_taa.disable();
+
 			int32_t current_operator = m_tone_mapping.current_operator();
 
 			if (ImGui::BeginCombo("Tone Mapping", g_tone_mapping_operators[current_operator]))
@@ -377,6 +388,7 @@ void Renderer::debug_gui(double delta)
 			m_ssr.profiling_gui();
 			m_motion_blur.profiling_gui();
 			m_bloom.profiling_gui();
+			m_taa.profiling_gui();
 		}
 
 		ImGui::Separator();
@@ -424,6 +436,9 @@ void Renderer::render(double delta)
 		// Compute Screen Space Reflections
 		m_ssr.render(m_width, m_height);
 	}
+
+	// TAA
+	m_taa.render(m_width, m_height);
 
 	// Motion blur
 	m_motion_blur.render(m_width, m_height);

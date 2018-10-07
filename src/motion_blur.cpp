@@ -57,7 +57,7 @@ void MotionBlur::on_window_resized(uint16_t width, uint16_t height)
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_MOTION_BLUR);
 
 	// Create Render targets.
-	m_motion_blur_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_MOTION_BLUR, width, height, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+	m_motion_blur_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_MOTION_BLUR, width, height, GL_RGB32F, GL_RGB, GL_FLOAT);
 	m_motion_blur_rt->set_min_filter(GL_LINEAR);
 	m_motion_blur_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
@@ -79,21 +79,24 @@ void MotionBlur::render(uint32_t w, uint32_t h)
 	// Bind global UBO's.
 	GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
 
+	if (m_motion_blur_program->set_uniform("s_ColorMap", 0))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_TAA)->bind(0);
+
 	// Bind Textures.
 	PerFrameUniforms& per_frame = GlobalGraphicsResources::per_frame_uniforms();
 
 	if (per_frame.renderer == RENDERER_FORWARD)
 	{
-		if (m_motion_blur_program->set_uniform("s_ColorMap", 0))
-			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_FORWARD_COLOR)->bind(0);
+		//if (m_motion_blur_program->set_uniform("s_ColorMap", 0))
+		//	GlobalGraphicsResources::lookup_texture(RENDER_TARGET_FORWARD_COLOR)->bind(0);
 
 		if (m_motion_blur_program->set_uniform("s_VelocityMap", 1))
 			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_FORWARD_VELOCITY)->bind(1);
 	}
 	else if (per_frame.renderer == RENDERER_DEFERRED)
 	{
-		if (m_motion_blur_program->set_uniform("s_ColorMap", 0))
-			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_DEFERRED_COLOR)->bind(0);
+		//if (m_motion_blur_program->set_uniform("s_ColorMap", 0))
+		//	GlobalGraphicsResources::lookup_texture(RENDER_TARGET_DEFERRED_COLOR)->bind(0);
 
 		if (m_motion_blur_program->set_uniform("s_VelocityMap", 1))
 			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT1)->bind(1);

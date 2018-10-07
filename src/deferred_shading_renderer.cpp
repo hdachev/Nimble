@@ -59,7 +59,7 @@ void DeferredShadingRenderer::on_window_resized(uint16_t width, uint16_t height)
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_DEFERRED_COLOR);
 
 	// Create Render targets.
-	m_deferred_color = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_DEFERRED_COLOR, width, height, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+	m_deferred_color = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_DEFERRED_COLOR, width, height, GL_RGB32F, GL_RGB, GL_FLOAT);
 	m_deferred_color->set_min_filter(GL_LINEAR);
 	m_deferred_color->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
