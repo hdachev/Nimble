@@ -6,6 +6,7 @@
 #include <utility.h>
 #include <fstream>
 #include <imgui.h>
+#include <gtc/matrix_transform.hpp>
 
 #include "entity.h"
 #include "global_graphics_resources.h"
@@ -195,7 +196,7 @@ void Renderer::update_uniforms(dw::Camera* camera, double delta)
 	per_frame.nearPlane = camera->m_near;
 	per_frame.viewport_width = m_width;
 	per_frame.viewport_height = m_height;
-	
+
 	int current_fps = int((1.0f / float(delta)) * 1000.0f);
 	int target_fps = 60;
 

@@ -119,6 +119,9 @@ protected:
 
 	void window_resized(int width, int height) override
 	{
+		m_main_camera->m_width = m_width;
+		m_main_camera->m_height = m_height;
+
 		// Override window resized method to update camera projection.
 		m_main_camera->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
 		m_debug_camera->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE * 2.0f, float(m_width) / float(m_height));
@@ -199,6 +202,10 @@ private:
 	{
 		m_main_camera = std::make_unique<dw::Camera>(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height), glm::vec3(0.0f, 5.0f, 20.0f), glm::vec3(0.0f, 0.0, -1.0f));
 		m_debug_camera = std::make_unique<dw::Camera>(60.0f, 0.1f, CAMERA_FAR_PLANE * 2.0f, float(m_width) / float(m_height), glm::vec3(0.0f, 5.0f, 20.0f), glm::vec3(0.0f, 0.0, -1.0f));
+
+		m_main_camera->m_width = m_width;
+		m_main_camera->m_height = m_height;
+		m_main_camera->m_half_pixel_jitter = true;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
