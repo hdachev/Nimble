@@ -168,3 +168,10 @@ vec3 get_view_space_normal(vec2 tex_coords, sampler2D g_buffer_normals)
 }
 
 // ------------------------------------------------------------------
+
+float luminance(vec3 color)
+{
+    return dot(vec3(0.2125, 0.7154, 0.0721), color);
+}
+
+// ------------------------------------------------------------------

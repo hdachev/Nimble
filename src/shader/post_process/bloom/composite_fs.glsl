@@ -15,11 +15,8 @@ in vec2 PS_IN_TexCoord;
 // ------------------------------------------------------------------
 
 uniform sampler2D s_Color;
-uniform sampler2D s_Bloom2;
-uniform sampler2D s_Bloom4;
-uniform sampler2D s_Bloom8;
-uniform sampler2D s_Bloom16;
-uniform float	  u_Strength;
+uniform sampler2D s_Bloom;
+uniform float u_Strength;
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -32,16 +29,8 @@ void main()
 	if (u_Strength > 0)
 	{
 		// Fetch samples from bloom textures
-		vec3 bloom2 = texture(s_Bloom2, PS_IN_TexCoord).rgb;
-		vec3 bloom4 = texture(s_Bloom4, PS_IN_TexCoord).rgb;
-		vec3 bloom8 = texture(s_Bloom8, PS_IN_TexCoord).rgb;
-		vec3 bloom16 = texture(s_Bloom16, PS_IN_TexCoord).rgb;
-
-		// Mix values
-		bloom8 = mix(bloom8, bloom16, 0.5);
-		bloom4 = mix(bloom4, bloom8, 0.5);
-		vec3 bloom = mix(bloom2, bloom4, 0.5);
-		color = color + bloom * u_Strength;
+		vec3 bloom = texture(s_Bloom, PS_IN_TexCoord).rgb;
+		color += bloom;
 	}
 
 	PS_OUT_FragColor = color;

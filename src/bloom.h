@@ -2,6 +2,8 @@
 
 #include "post_process_renderer.h"
 
+#define BLOOM_TEX_CHAIN_SIZE 5
+
 class Bloom
 {
 public:
@@ -26,21 +28,18 @@ public:
 private:
 	void bright_pass(uint32_t w, uint32_t h);
 	void downsample(uint32_t w, uint32_t h);
-	void blur(uint32_t w, uint32_t h);
+	void upsample(uint32_t w, uint32_t h);
 	void composite(uint32_t w, uint32_t h);
-	void separable_blur(dw::Texture* src_rt, dw::Framebuffer* dest_fbo, dw::Texture* temp_rt, dw::Framebuffer* temp_fbo, uint32_t w, uint32_t h);
 
 private:
 	float m_threshold;
 	float m_strength;
 	bool m_enabled;
 
-	dw::Texture* m_bright_pass_rt;
-	dw::Framebuffer* m_bright_pass_fbo;
 	dw::Texture* m_composite_rt;
 	dw::Framebuffer* m_composite_fbo;
-	dw::Texture* m_bloom_rt[4][2]; 
-	dw::Framebuffer* m_bloom_fbo[4][2]; 
+	dw::Texture* m_bloom_rt[BLOOM_TEX_CHAIN_SIZE]; 
+	dw::Framebuffer* m_bloom_fbo[BLOOM_TEX_CHAIN_SIZE]; 
 
 	dw::Shader*  m_quad_vs;
 
@@ -52,9 +51,9 @@ private:
 	dw::Shader*  m_bloom_downsample_fs;
 	dw::Program* m_bloom_downsample_program;
 
-	// Blur shader
-	dw::Shader*  m_bloom_blur_fs;
-	dw::Program* m_bloom_blur_program;
+	// Upsample shader
+	dw::Shader*  m_bloom_upsample_fs;
+	dw::Program* m_bloom_upsample_program;
 
 	// Composite shader
 	dw::Shader*  m_bloom_composite_fs;

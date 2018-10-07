@@ -11,7 +11,7 @@ PostProcessRenderer::~PostProcessRenderer() {}
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void PostProcessRenderer::render(uint32_t w, uint32_t h, dw::Framebuffer* fbo)
+void PostProcessRenderer::render(uint32_t w, uint32_t h, dw::Framebuffer* fbo, GLbitfield clear)
 {
 	// Set state.
 	glDisable(GL_DEPTH_TEST);
@@ -25,9 +25,13 @@ void PostProcessRenderer::render(uint32_t w, uint32_t h, dw::Framebuffer* fbo)
 
 	// Set and clear viewport.
 	glViewport(0, 0, w, h);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
 
+	if (clear != 0)
+	{
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(clear);
+	}
+	
 	// Bind VAO.
 	GlobalGraphicsResources::fullscreen_quad_vao()->bind();
 

@@ -6,11 +6,6 @@
 
 #include <imgui.h>
 
-#define RT_SCALE_2 0
-#define RT_SCALE_4 1
-#define RT_SCALE_8 2
-#define RT_SCALE_16 3
-
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 Bloom::Bloom()
@@ -51,7 +46,7 @@ void Bloom::initialize(uint16_t width, uint16_t height)
 	}
 
 	{
-		std::string fs_path = "shader/post_process/downsample_fs.glsl";
+		std::string fs_path = "shader/post_process/bloom/downsample_fs.glsl";
 		m_bloom_downsample_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
 
 		dw::Shader* shaders[] = { m_quad_vs, m_bloom_downsample_fs };
@@ -65,16 +60,16 @@ void Bloom::initialize(uint16_t width, uint16_t height)
 	}
 
 	{
-		std::string fs_path = "shader/post_process/gaussian_blur_fs.glsl";
-		m_bloom_blur_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
+		std::string fs_path = "shader/post_process/bloom/upsample_fs.glsl";
+		m_bloom_upsample_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
 
-		dw::Shader* shaders[] = { m_quad_vs, m_bloom_blur_fs };
+		dw::Shader* shaders[] = { m_quad_vs, m_bloom_upsample_fs };
 		std::string combined_path = vs_path + fs_path;
-		m_bloom_blur_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+		m_bloom_upsample_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
 
-		if (!m_quad_vs || !m_bloom_blur_fs || !m_bloom_blur_program)
+		if (!m_quad_vs || !m_bloom_upsample_fs || !m_bloom_upsample_program)
 		{
-			DW_LOG_ERROR("Failed to load Bloom blur pass shaders");
+			DW_LOG_ERROR("Failed to load Bloom Upsample pass shaders");
 		}
 	}
 
@@ -106,7 +101,7 @@ void Bloom::profiling_gui()
 {
 	ImGui::Text("Bloom - Bright Pass: %f ms", GPUProfiler::result("Bloom - Bright Pass"));
 	ImGui::Text("Bloom - Downsample: %f ms", GPUProfiler::result("Bloom - Downsample"));
-	ImGui::Text("Bloom - Blur: %f ms", GPUProfiler::result("Bloom - Blur"));
+	ImGui::Text("Bloom - Upsample: %f ms", GPUProfiler::result("Bloom - Upsample"));
 	ImGui::Text("Bloom - Composite: %f ms", GPUProfiler::result("Bloom - Composite"));
 }
 
@@ -114,20 +109,10 @@ void Bloom::profiling_gui()
 
 void Bloom::on_window_resized(uint16_t width, uint16_t height)
 {
-	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_BRIGHT_PASS);
-	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_BRIGHT_PASS);
-
-	m_bright_pass_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_BRIGHT_PASS, width, height, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
-	m_bright_pass_rt->set_min_filter(GL_LINEAR);
-	m_bright_pass_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-
-	m_bright_pass_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_BRIGHT_PASS);
-	m_bright_pass_fbo->attach_render_target(0, m_bright_pass_rt, 0, 0);
-
 	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_BLOOM_COMPOSITE);
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_BLOOM_COMPOSITE);
 
-	m_composite_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_BLOOM_COMPOSITE, width, height, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+	m_composite_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_BLOOM_COMPOSITE, width, height, GL_RGB32F, GL_RGB, GL_HALF_FLOAT);
 	m_composite_rt->set_min_filter(GL_LINEAR);
 	m_composite_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
@@ -135,36 +120,33 @@ void Bloom::on_window_resized(uint16_t width, uint16_t height)
 	m_composite_fbo->attach_render_target(0, m_composite_rt, 0, 0);
 
 	// Clear earlier render targets.
-	for (uint32_t i = 0; i < 4; i++)
+	for (uint32_t i = 0; i < BLOOM_TEX_CHAIN_SIZE; i++)
 	{
-		for (uint32_t j = 0; j < 2; j++)
-		{
-			uint32_t scale = pow(2, i + 1);
+		uint32_t scale = pow(2, i);
 
-			std::string fbo_name = "BLOOM";
-			fbo_name += std::to_string(scale);
-			fbo_name += "_FBO_";
-			fbo_name += std::to_string(j + 1);
+		std::string fbo_name = "BLOOM";
+		fbo_name += std::to_string(scale);
+		fbo_name += "_FBO_";
+		fbo_name += std::to_string(i + 1);
 
-			std::string rt_name = "BLOOM";
-			rt_name += std::to_string(scale);
-			rt_name += "_RT_";
-			rt_name += std::to_string(j + 1);
+		std::string rt_name = "BLOOM";
+		rt_name += std::to_string(scale);
+		rt_name += "_RT_";
+		rt_name += std::to_string(i + 1);
 
-			GlobalGraphicsResources::destroy_framebuffer(fbo_name);
-			GlobalGraphicsResources::destroy_texture(rt_name);
+		GlobalGraphicsResources::destroy_framebuffer(fbo_name);
+		GlobalGraphicsResources::destroy_texture(rt_name);
 
-			// Create render target.
-			m_bloom_rt[i][j] = GlobalGraphicsResources::create_texture_2d(rt_name, width / scale, height / scale, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
-			m_bloom_rt[i][j]->set_min_filter(GL_LINEAR);
-			m_bloom_rt[i][j]->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+		// Create render target.
+		m_bloom_rt[i] = GlobalGraphicsResources::create_texture_2d(rt_name, width / scale, height / scale, GL_RGB32F, GL_RGB, GL_FLOAT);
+		m_bloom_rt[i]->set_min_filter(GL_LINEAR);
+		m_bloom_rt[i]->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
-			// Create FBO.
-			m_bloom_fbo[i][j] = GlobalGraphicsResources::create_framebuffer(fbo_name);
+		// Create FBO.
+		m_bloom_fbo[i] = GlobalGraphicsResources::create_framebuffer(fbo_name);
 
-			// Attach render target to FBO.
-			m_bloom_fbo[i][j]->attach_render_target(0, m_bloom_rt[i][j], 0, 0);
-		}
+		// Attach render target to FBO.
+		m_bloom_fbo[i]->attach_render_target(0, m_bloom_rt[i], 0, 0);
 	}
 }
 
@@ -176,7 +158,7 @@ void Bloom::render(uint32_t w, uint32_t h)
 	{
 		bright_pass(w, h);
 		downsample(w, h);
-		blur(w, h);
+		upsample(w, h);
 	}
 	
 	composite(w, h);
@@ -195,7 +177,7 @@ void Bloom::bright_pass(uint32_t w, uint32_t h)
 
 	m_bright_pass_program->set_uniform("u_Threshold", m_threshold);
 
-	m_post_process_renderer.render(w, h, m_bright_pass_fbo);
+	m_post_process_renderer.render(w, h, m_bloom_fbo[0]);
 
 	GPUProfiler::end("Bloom - Bright Pass");
 }
@@ -209,20 +191,17 @@ void Bloom::downsample(uint32_t w, uint32_t h)
 	m_bloom_downsample_program->use();
 
 	// Progressively blur bright pass into blur textures.
-	for (uint32_t i = 0; i < 4; i++)
+	for (uint32_t i = 0; i < (BLOOM_TEX_CHAIN_SIZE - 1); i++)
 	{
-		uint32_t scale = pow(2, i + 1);
+		float scale = pow(2, i + 1);
+
+		glm::vec2 pixel_size = glm::vec2(1.0f / (float(w) / scale), 1.0f / (float(h) / scale));
+		m_bloom_downsample_program->set_uniform("u_PixelSize", pixel_size);
 
 		if (m_bloom_downsample_program->set_uniform("s_Texture", 0))
-		{
-			// If this is the initial downsample, use the bright pass texture.
-			if (i == 0)
-				m_bright_pass_rt->bind(0);
-			else // Else you the output of the previous pass
-				m_bloom_rt[i - 1][0]->bind(0);
-		}
+			m_bloom_rt[i]->bind(0);
 
-		m_post_process_renderer.render(w / scale, h / scale, m_bloom_fbo[i][0]);
+		m_post_process_renderer.render(w / scale, h / scale, m_bloom_fbo[i + 1]);
 	}
 
 	GPUProfiler::end("Bloom - Downsample");
@@ -230,21 +209,37 @@ void Bloom::downsample(uint32_t w, uint32_t h)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Bloom::blur(uint32_t w, uint32_t h)
+// TODO: Prevent clearing when upsampling and use additive blending.
+void Bloom::upsample(uint32_t w, uint32_t h)
 {
-	GPUProfiler::begin("Bloom - Blur");
+	GPUProfiler::begin("Bloom - Upsample");
 
-	// Bloom each downsampled target
-	for (uint32_t i = 0; i < 4; i++)
+	m_bloom_upsample_program->use();
+
+	m_bloom_upsample_program->set_uniform("u_Strength", m_enabled ? m_strength : 0.0f);
+
+	//glEnable(GL_BLEND);
+
+	//glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+	//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+
+	// Upsample each downsampled target
+	for (uint32_t i = 0; i < (BLOOM_TEX_CHAIN_SIZE - 1); i++)
 	{
-		uint32_t scale = pow(2, i + 1);
+		float scale = pow(2, BLOOM_TEX_CHAIN_SIZE - i - 2);
 
-		// Each downsampled target is horizontally blurred into the second Render target from the same scale and 
-		// vertically blurred back into the original Render target.
-		separable_blur(m_bloom_rt[i][0], m_bloom_fbo[i][0], m_bloom_rt[i][1], m_bloom_fbo[i][1], w / scale, h / scale);
+		glm::vec2 pixel_size = glm::vec2(1.0f / (float(w) / scale), 1.0f / (float(h) / scale));
+		m_bloom_upsample_program->set_uniform("u_PixelSize", pixel_size);
+		
+		if (m_bloom_upsample_program->set_uniform("s_Texture", 0))
+			m_bloom_rt[BLOOM_TEX_CHAIN_SIZE - i - 1]->bind(0);
+
+		m_post_process_renderer.render(w / scale, h / scale, m_bloom_fbo[BLOOM_TEX_CHAIN_SIZE - i - 2]);
 	}
 
-	GPUProfiler::end("Bloom - Blur");
+	//glDisable(GL_BLEND);
+
+	GPUProfiler::end("Bloom - Upsample");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -260,48 +255,12 @@ void Bloom::composite(uint32_t w, uint32_t h)
 	if (m_bloom_composite_program->set_uniform("s_Color", 0))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_MOTION_BLUR)->bind(0);
 
-	if (m_bloom_composite_program->set_uniform("s_Bloom2", 1))
-		m_bloom_rt[RT_SCALE_2][0]->bind(1);
-
-	if (m_bloom_composite_program->set_uniform("s_Bloom4", 2))
-		m_bloom_rt[RT_SCALE_4][0]->bind(2);
-
-	if (m_bloom_composite_program->set_uniform("s_Bloom8", 3))
-		m_bloom_rt[RT_SCALE_8][0]->bind(3);
-
-	if (m_bloom_composite_program->set_uniform("s_Bloom16", 4))
-		m_bloom_rt[RT_SCALE_16][0]->bind(4);
-
+	if (m_bloom_composite_program->set_uniform("s_Bloom", 1))
+		m_bloom_rt[0]->bind(1);
+	
 	m_post_process_renderer.render(w, h, m_composite_fbo);
 
 	GPUProfiler::end("Bloom - Composite");
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void Bloom::separable_blur(dw::Texture* src_rt, dw::Framebuffer* dest_fbo, dw::Texture* temp_rt, dw::Framebuffer* temp_fbo, uint32_t w, uint32_t h)
-{
-	m_bloom_blur_program->use();
-
-	// Horizontal blur
-	if (m_bloom_blur_program->set_uniform("s_Texture", 0))
-		src_rt->bind(0);
-
-    glm::vec2 direction = glm::vec2(1, 0);
-    m_bloom_blur_program->set_uniform("u_Direction", direction);
-    
-    glm::vec2 resolution = glm::vec2(w, h);
-    m_bloom_blur_program->set_uniform("u_Resolution", resolution);
-    
-	m_post_process_renderer.render(w, h, temp_fbo);
-
-	// Vertical blur
-	temp_rt->bind(0);
-    
-    direction = glm::vec2(0, 1);
-    m_bloom_blur_program->set_uniform("u_Direction", direction);
-
-	m_post_process_renderer.render(w, h, dest_fbo);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

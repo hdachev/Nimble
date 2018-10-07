@@ -1,6 +1,3 @@
-#include <../../common/uniforms.glsl>
-#include <../../common/helper.glsl>
-
 // ------------------------------------------------------------------
 // OUTPUTS ----------------------------------------------------------
 // ------------------------------------------------------------------
@@ -17,8 +14,9 @@ in vec2 PS_IN_TexCoord;
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-uniform float u_Threshold;
-uniform sampler2D s_Color;
+uniform sampler2D s_Texture;
+uniform vec2 u_PixelSize;
+uniform float u_Strength;
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -26,12 +24,25 @@ uniform sampler2D s_Color;
 
 void main()
 {
-	vec3 color = texture2D(s_Color, PS_IN_TexCoord).rgb;
-	float luma = luminance(color);
-	luma = max(0.0, luma - u_Threshold);
-	color *= sign(luma);
+	vec2 half_pixel = u_PixelSize;
+    vec2 uv = PS_IN_TexCoord;
 	
-	PS_OUT_FragColor = color;
+	vec4 sum = vec4(0.0, 0.0, 0.0, 0.0);
+	
+	sum += (2.0 / 16.0) * texture(s_Texture, uv + vec2(-half_pixel.x , 0.0));
+    sum += (2.0 / 16.0) * texture(s_Texture, uv + vec2(0.0, half_pixel.y));
+    sum += (2.0 / 16.0) * texture(s_Texture, uv + vec2(half_pixel.x , 0.0));
+    sum += (2.0 / 16.0) * texture(s_Texture, uv + vec2(0.0, -half_pixel.y));
+    
+	sum += (1.0 / 16.0) * texture(s_Texture, uv + vec2(-half_pixel.x, -half_pixel.y));
+	sum += (1.0 / 16.0) * texture(s_Texture, uv + vec2(-half_pixel.x, half_pixel.y));
+    sum += (1.0 / 16.0) * texture(s_Texture, uv + vec2(half_pixel.x, -half_pixel.y));
+    sum += (1.0 / 16.0) * texture(s_Texture, uv + vec2(half_pixel.x, half_pixel.y));
+
+    sum += (4.0 / 16.0) * texture(s_Texture, uv);
+
+
+	PS_OUT_FragColor = u_Strength * sum.rgb;
 }
 
 // ------------------------------------------------------------------

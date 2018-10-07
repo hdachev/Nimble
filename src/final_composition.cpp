@@ -74,7 +74,7 @@ void FinalComposition::render(dw::Camera* camera, uint32_t w, uint32_t h)
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO_BLUR)->bind(10);
 
 	if (m_composition_program->set_uniform("s_BrightPass", 11))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_BRIGHT_PASS)->bind(11);
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO)->bind(11);
 
 	if (m_composition_program->set_uniform("s_SSR", 12))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSR)->bind(12);
