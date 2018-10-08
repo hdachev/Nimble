@@ -58,10 +58,6 @@ protected:
 		else
 			m_scene = std::unique_ptr<Scene>(scene);
 
-		// Lookup moving entity.
-		m_moving_entity_1 = m_scene->lookup("Ball_Rusted");
-		m_moving_entity_2 = m_scene->lookup("Ball_Gold");
-
 		// Create camera.
 		create_camera();
 
@@ -78,13 +74,6 @@ protected:
     {
 		// Update camera.
 		update_camera();
-
-		if (m_moving_entity_1 && m_moving_entity_2 && m_move_entities)
-		{
-			float cos_value = (cosf(glfwGetTime() * 10.0f) * 0.5f + 0.5f);
-			m_moving_entity_1->m_position = glm::vec3(cos_value * 20.0f, 0.0f, 0.0f);
-			m_moving_entity_2->m_position = glm::vec3(-20.0f, cos_value * 20.0f, 0.0f);
-		}
 
 		m_scene->update();
 
@@ -147,18 +136,6 @@ protected:
 
 		if (code == GLFW_KEY_G)
 			m_debug_gui = !m_debug_gui;
-
-		if (code == GLFW_KEY_M)
-		{
-			m_move_entities = !m_move_entities;
-
-			// If entity moving is disabled, reset to initial position.
-			if (!m_move_entities)
-			{
-				m_moving_entity_1->m_position = glm::vec3(0.0f, 0.0f, 0.0f);
-				m_moving_entity_2->m_position = glm::vec3(-20.0f, 0.0f, 0.0f);
-			}
-		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -259,10 +236,6 @@ private:
 
 	std::unique_ptr<Renderer> m_renderer;
 	std::unique_ptr<Scene> m_scene;
-
-	// Motion blur entity.
-	Entity* m_moving_entity_1;
-	Entity* m_moving_entity_2;
 };
 
 DW_DECLARE_MAIN(Nimble)

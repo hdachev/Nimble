@@ -35,6 +35,7 @@ struct PerFrameUniforms
 	DW_ALIGNED(16) glm::mat4	 viewMat;
 	DW_ALIGNED(16) glm::vec4	 viewPos;
 	DW_ALIGNED(16) glm::vec4	 viewDir;
+	DW_ALIGNED(16) glm::vec4	 current_prev_jitter;
 	DW_ALIGNED(16) int			 numCascades;
 	DW_ALIGNED(16) ShadowFrustum shadowFrustums[MAX_SHADOW_FRUSTUM];
 	float		 tanHalfFov;

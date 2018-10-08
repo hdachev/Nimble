@@ -15,6 +15,7 @@ layout (std140) uniform u_PerFrame
 	mat4 		  viewMat;
 	vec4 		  viewPos;
 	vec4 		  viewDir;
+	vec4		  current_prev_jitter;
 	int			  numCascades;
 	ShadowFrustum shadowFrustums[MAX_SHADOW_FRUSTUM];
 	float		  tanHalfFov;

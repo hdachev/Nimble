@@ -113,9 +113,13 @@ vec2 motion_vector(vec4 prev_pos, vec4 current_pos)
 {
     // Perspective division and remapping to [0, 1] range.
     vec2 current = (current_pos.xy / current_pos.w) * 0.5 + 0.5;
-    vec2 last = (prev_pos.xy / prev_pos.w) * 0.5 + 0.5;
+    vec2 prev = (prev_pos.xy / prev_pos.w) * 0.5 + 0.5;
 
-    vec2 velocity = (current - last);
+    // Remove jitter
+    current -= current_prev_jitter.xy;
+    prev -= current_prev_jitter.zw;
+
+    vec2 velocity = (current - prev);
     return velocity;//vec2(pow(velocity.x, 3.0), pow(velocity.y, 3.0));
 }
 

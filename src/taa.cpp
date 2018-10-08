@@ -43,6 +43,20 @@ void TAA::initialize(uint16_t width, uint16_t height)
 			DW_LOG_ERROR("Failed to load TAA shaders");
 		}
 	}
+
+	{
+		std::string fs_path = "shader/post_process/taa/taa_hist_fs.glsl";
+		m_taa_hist_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
+
+		dw::Shader* shaders[] = { m_quad_vs, m_taa_hist_fs };
+		std::string combined_path = vs_path + fs_path;
+		m_taa_hist_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+
+		if (!m_quad_vs || !m_taa_hist_fs || !m_taa_hist_program)
+		{
+			DW_LOG_ERROR("Failed to load TAA History shaders");
+		}
+	}
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -66,18 +80,31 @@ void TAA::on_window_resized(uint16_t width, uint16_t height)
 	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_TAA);
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_TAA);
 
+	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_TAA_HIST);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_TAA_HIST);
+
 	m_taa_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_TAA, width, height, GL_RGB32F, GL_RGB, GL_FLOAT);
 	m_taa_rt->set_min_filter(GL_LINEAR);
 	m_taa_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
 	m_taa_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_TAA);
 	m_taa_fbo->attach_render_target(0, m_taa_rt, 0, 0);
+
+	m_taa_hist_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_TAA_HIST, width, height, GL_RGB32F, GL_RGB, GL_FLOAT);
+	m_taa_hist_rt->set_min_filter(GL_LINEAR);
+	m_taa_hist_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	m_taa_hist_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_TAA_HIST);
+	m_taa_hist_fbo->attach_render_target(0, m_taa_hist_rt, 0, 0);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void TAA::render(uint32_t w, uint32_t h)
 {
+	if (!m_enabled)
+		m_first = 1;
+
 	GPUProfiler::begin("TAA");
 
 	m_taa_program->use();
@@ -89,17 +116,20 @@ void TAA::render(uint32_t w, uint32_t h)
 		if (m_taa_program->set_uniform("s_Color", 0))
 			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_FORWARD_COLOR)->bind(0);
 
-		if (m_taa_program->set_uniform("s_Velocity", 1))
-			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_FORWARD_VELOCITY)->bind(1);
+		if (m_taa_program->set_uniform("s_Velocity", 2))
+			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_FORWARD_VELOCITY)->bind(2);
 	}
 	else if (per_frame.renderer == RENDERER_DEFERRED)
 	{
 		if (m_taa_program->set_uniform("s_Color", 0))
 			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_DEFERRED_COLOR)->bind(0);
 
-		if (m_taa_program->set_uniform("s_Velocity", 1))
-			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT1)->bind(1);
+		if (m_taa_program->set_uniform("s_Velocity", 2))
+			GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_RT1)->bind(2);
 	}
+
+	if (m_taa_program->set_uniform("s_History", 1))
+		m_taa_hist_rt->bind(1);
 
 	m_taa_program->set_uniform("u_FirstFrame", m_first);
 
@@ -108,10 +138,18 @@ void TAA::render(uint32_t w, uint32_t h)
 
 	m_post_process_renderer.render(w, h, m_taa_fbo);
 
+	// Copy TAA result into History buffer
+	m_taa_hist_program->use();
+
+	if (m_taa_program->set_uniform("s_Color", 0))
+		m_taa_rt->bind(0);
+
+	m_post_process_renderer.render(w, h, m_taa_hist_fbo);
+
 	GPUProfiler::end("TAA");
 
-	//if (m_first == 1)
-	//	m_first = 0;
+	if (m_first == 1)
+		m_first = 0;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

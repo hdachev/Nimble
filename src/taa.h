@@ -24,11 +24,17 @@ private:
 	dw::Texture* m_taa_rt;
 	dw::Framebuffer* m_taa_fbo;
 
+	dw::Texture* m_taa_hist_rt;
+	dw::Framebuffer* m_taa_hist_fbo;
+
 	dw::Shader*  m_quad_vs;
 
 	// TAA shader
 	dw::Shader*  m_taa_fs;
 	dw::Program* m_taa_program;
+
+	dw::Shader*  m_taa_hist_fs;
+	dw::Program* m_taa_hist_program;
 
 	PostProcessRenderer m_post_process_renderer;
 };

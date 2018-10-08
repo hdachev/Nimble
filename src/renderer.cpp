@@ -189,6 +189,7 @@ void Renderer::update_uniforms(dw::Camera* camera, double delta)
 	per_frame.invView = glm::inverse(camera->m_view);
 	per_frame.viewDir = glm::vec4(camera->m_forward.x, camera->m_forward.y, camera->m_forward.z, 0.0f);
 	per_frame.viewPos = glm::vec4(camera->m_position.x, camera->m_position.y, camera->m_position.z, 0.0f);
+	per_frame.current_prev_jitter = glm::vec4(camera->m_current_jitter, camera->m_prev_jitter);
 	per_frame.numCascades = m_csm_technique.frustum_split_count();
 	per_frame.tanHalfFov = glm::tan(glm::radians(camera->m_fov / 2.0f));
 	per_frame.aspectRatio = float(m_width) / float(m_height);

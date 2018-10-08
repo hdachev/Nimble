@@ -15,7 +15,7 @@ in vec2 PS_IN_TexCoord;
 // ------------------------------------------------------------------
 
 uniform sampler2D s_Color;
-uniform sampler2D s_ColorPrevious;
+uniform sampler2D s_History;
 uniform sampler2D s_Velocity;
 uniform vec2 u_PixelSize;
 uniform int u_FirstFrame;
@@ -57,10 +57,10 @@ void main()
         }
            
         vec2 vel = texture(s_Velocity, PS_IN_TexCoord).xy;
-        vec2 histUv = PS_IN_TexCoord + vel.xy;
+        vec2 histUv = PS_IN_TexCoord - vel.xy;
         
         // sample from history buffer, with neighbourhood clamping.  
-        vec3 histSample = clamp(texture(s_ColorPrevious, histUv).xyz, nmin, nmax);
+        vec3 histSample = clamp(texture(s_History, histUv).xyz, nmin, nmax);
         
         // blend factor
         float blend = 0.05;
