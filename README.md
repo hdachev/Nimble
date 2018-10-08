@@ -9,6 +9,7 @@ A simple and lightweight OpenGL rendering engine built on top of dwSampleFramewo
 * Image Based Lighting
 * Cascaded Shadow Maps with Percentage Closer Filtering (PCF)
 * Screen Space Ambient Occlusion (SSAO)
+* Temporal Anti-Aliasing (TAA)
 * Per-Object Motion Blur
 * Screen Space Reflections
 * Bloom
