@@ -71,7 +71,7 @@ void main()
         vec2 histUv = PS_IN_TexCoord - velocity.xy;
         
         // sample from history buffer, with neighbourhood clamping.  
-        vec3 histSample = clamp(texture(s_History, PS_IN_TexCoord).xyz, nmin, nmax);
+        vec3 histSample = clamp(texture(s_History, histUv).xyz, nmin, nmax);
         
         // blend factor
         float blend = 0.05;
@@ -83,7 +83,7 @@ void main()
         
         vec3 curSample = neighbourhood[4];
         // finally, blend current and clamped history sample.
-        c = mix(histSample, curSample, vec3(blend)  );
+        c = mix(histSample, curSample, vec3(blend));
     }  
 
 	PS_OUT_FragColor = c;
