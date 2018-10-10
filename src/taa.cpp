@@ -109,6 +109,9 @@ void TAA::render(uint32_t w, uint32_t h)
 
 	m_taa_program->use();
 
+	// Bind global UBO's.
+	GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
+
 	PerFrameUniforms& per_frame = GlobalGraphicsResources::per_frame_uniforms();
 
 	if (per_frame.renderer == RENDERER_FORWARD)

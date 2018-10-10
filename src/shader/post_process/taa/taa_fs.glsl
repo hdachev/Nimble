@@ -1,3 +1,5 @@
+#include <../../common/uniforms.glsl>
+
 // ------------------------------------------------------------------
 // OUTPUTS ----------------------------------------------------------
 // ------------------------------------------------------------------
@@ -56,11 +58,20 @@ void main()
             nmax = max(nmax, neighbourhood[i]);
         }
            
-        vec2 vel = texture(s_Velocity, PS_IN_TexCoord).xy;
-        vec2 histUv = PS_IN_TexCoord - vel.xy;
+        vec2 velocity = vec2(0.0);
+
+		if (renderer == 0)
+			velocity = texture(s_Velocity, PS_IN_TexCoord).rg;
+		else if (renderer == 1)
+		 	velocity = texture(s_Velocity, PS_IN_TexCoord).ba;
+
+        // Remap to [-1, 1] range
+		velocity = velocity * 2.0 - 1.0;
+
+        vec2 histUv = PS_IN_TexCoord - velocity.xy;
         
         // sample from history buffer, with neighbourhood clamping.  
-        vec3 histSample = clamp(texture(s_History, histUv).xyz, nmin, nmax);
+        vec3 histSample = clamp(texture(s_History, PS_IN_TexCoord).xyz, nmin, nmax);
         
         // blend factor
         float blend = 0.05;
