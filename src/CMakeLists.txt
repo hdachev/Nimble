@@ -23,6 +23,7 @@ set(NIMBLE_HEADERS ${PROJECT_SOURCE_DIR}/src/demo_loader.h
                    ${PROJECT_SOURCE_DIR}/src/gpu_profiler.h
                    ${PROJECT_SOURCE_DIR}/src/bloom.h
                    ${PROJECT_SOURCE_DIR}/src/taa.h
+                   ${PROJECT_SOURCE_DIR}/src/depth_of_field.h
                    ${PROJECT_SOURCE_DIR}/src/external/nfd/nfd.h
                    ${PROJECT_SOURCE_DIR}/src/external/nfd/nfd_common.h
                    ${PROJECT_SOURCE_DIR}/src/external/nfd/common.h)
@@ -43,6 +44,7 @@ set(NIMBLE_SOURCE ${PROJECT_SOURCE_DIR}/src/main.cpp
                   ${PROJECT_SOURCE_DIR}/src/gpu_profiler.cpp
                   ${PROJECT_SOURCE_DIR}/src/bloom.cpp
                   ${PROJECT_SOURCE_DIR}/src/taa.cpp
+                  ${PROJECT_SOURCE_DIR}/src/depth_of_field.cpp
                   ${PROJECT_SOURCE_DIR}/src/final_composition.cpp
                   ${PROJECT_SOURCE_DIR}/src/global_graphics_resources.cpp
                   ${PROJECT_SOURCE_DIR}/src/post_process_renderer.cpp
