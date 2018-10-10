@@ -66,7 +66,7 @@ void main()
 		 	velocity = texture(s_Velocity, PS_IN_TexCoord).ba;
 
         // Remap to [-1, 1] range
-		velocity = velocity * 2.0 - 1.0;
+		//velocity = velocity * 2.0 - 1.0;
 
         vec2 histUv = PS_IN_TexCoord - velocity.xy;
         

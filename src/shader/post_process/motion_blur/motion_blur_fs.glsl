@@ -22,7 +22,7 @@ void main()
 		 	velocity = texture(s_VelocityMap, PS_IN_TexCoord).ba;
 
 		// Remap to [-1, 1] range
-		velocity = velocity * 2.0 - 1.0;
+		//velocity = velocity * 2.0 - 1.0;
 			 
 		velocity *= velocity_scale;
 
