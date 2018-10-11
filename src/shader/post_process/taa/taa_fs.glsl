@@ -65,9 +65,6 @@ void main()
 		else if (renderer == 1)
 		 	velocity = texture(s_Velocity, PS_IN_TexCoord).ba;
 
-        // Remap to [-1, 1] range
-		//velocity = velocity * 2.0 - 1.0;
-
         vec2 histUv = PS_IN_TexCoord - velocity.xy;
         
         // sample from history buffer, with neighbourhood clamping.  

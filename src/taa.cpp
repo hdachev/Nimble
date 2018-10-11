@@ -144,7 +144,7 @@ void TAA::render(uint32_t w, uint32_t h)
 	// Copy TAA result into History buffer
 	m_taa_hist_program->use();
 
-	if (m_taa_program->set_uniform("s_Color", 0))
+	if (m_taa_hist_program->set_uniform("s_Color", 0))
 		m_taa_rt->bind(0);
 
 	m_post_process_renderer.render(w, h, m_taa_hist_fbo);
