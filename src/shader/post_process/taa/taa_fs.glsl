@@ -26,28 +26,42 @@ uniform int u_FirstFrame;
 // MAIN -------------------------------------------------------------
 // ------------------------------------------------------------------
 
+#define HDR_CORRECTION
+
+vec3 tonemap(vec3 x)
+{
+	return x / (x + 1);
+}
+vec3 inverseTonemap(vec3 x)
+{
+	return x / (1 - x);
+}
+
+
 void main()
 {
 	vec3 c;
     
+    vec2 uv = PS_IN_TexCoord - current_prev_jitter.xy;
+
     if(u_FirstFrame == 1) 
 	{
         // first frame, no blending at all.
-        c.xyz = texture(s_Color, PS_IN_TexCoord).xyz;
+        c.xyz = texture(s_Color, uv).xyz;
     } 
 	else 
 	{  
         vec3 neighbourhood[9];
         
-        neighbourhood[0] = texture(s_Color, PS_IN_TexCoord + vec2(-1, -1) * u_PixelSize ).xyz;
-        neighbourhood[1] = texture(s_Color, PS_IN_TexCoord + vec2(+0, -1) * u_PixelSize ).xyz;
-        neighbourhood[2] = texture(s_Color, PS_IN_TexCoord + vec2(+1, -1) * u_PixelSize ).xyz;
-        neighbourhood[3] = texture(s_Color, PS_IN_TexCoord + vec2(-1, +0) * u_PixelSize ).xyz;
-        neighbourhood[4] = texture(s_Color, PS_IN_TexCoord + vec2(+0, +0) * u_PixelSize ).xyz;
-        neighbourhood[5] = texture(s_Color, PS_IN_TexCoord + vec2(+1, +0) * u_PixelSize ).xyz;
-        neighbourhood[6] = texture(s_Color, PS_IN_TexCoord + vec2(-1, +1) * u_PixelSize ).xyz;
-        neighbourhood[7] = texture(s_Color, PS_IN_TexCoord + vec2(+0, +1) * u_PixelSize ).xyz;
-        neighbourhood[8] = texture(s_Color, PS_IN_TexCoord + vec2(+1, +1) * u_PixelSize ).xyz;
+        neighbourhood[0] = texture(s_Color, uv + vec2(-1, -1) * u_PixelSize ).xyz;
+        neighbourhood[1] = texture(s_Color, uv + vec2(+0, -1) * u_PixelSize ).xyz;
+        neighbourhood[2] = texture(s_Color, uv + vec2(+1, -1) * u_PixelSize ).xyz;
+        neighbourhood[3] = texture(s_Color, uv + vec2(-1, +0) * u_PixelSize ).xyz;
+        neighbourhood[4] = texture(s_Color, uv + vec2(+0, +0) * u_PixelSize ).xyz;
+        neighbourhood[5] = texture(s_Color, uv + vec2(+1, +0) * u_PixelSize ).xyz;
+        neighbourhood[6] = texture(s_Color, uv + vec2(-1, +1) * u_PixelSize ).xyz;
+        neighbourhood[7] = texture(s_Color, uv + vec2(+0, +1) * u_PixelSize ).xyz;
+        neighbourhood[8] = texture(s_Color, uv + vec2(+1, +1) * u_PixelSize ).xyz;
         
         vec3 nmin = neighbourhood[0];
         vec3 nmax = neighbourhood[0]; 
@@ -61,9 +75,9 @@ void main()
         vec2 velocity = vec2(0.0);
 
 		if (renderer == 0)
-			velocity = texture(s_Velocity, PS_IN_TexCoord).rg;
+			velocity = texture(s_Velocity, uv).rg;
 		else if (renderer == 1)
-		 	velocity = texture(s_Velocity, PS_IN_TexCoord).ba;
+		 	velocity = texture(s_Velocity, uv).ba;
 
         vec2 histUv = PS_IN_TexCoord - velocity.xy;
         
@@ -79,8 +93,19 @@ void main()
         blend = any(bvec2(any(a), any(b))) ? 1.0 : blend;
         
         vec3 curSample = neighbourhood[4];
+
+#ifdef HDR_CORRECTION
+        curSample = tonemap(curSample);
+        histSample = tonemap(histSample);
+#endif
+
         // finally, blend current and clamped history sample.
         c = mix(histSample, curSample, vec3(blend));
+
+#ifdef HDR_CORRECTION
+        c = inverseTonemap(c);
+#endif
+
     }  
 
 	PS_OUT_FragColor = c;
