@@ -57,6 +57,8 @@ void TAA::initialize(uint16_t width, uint16_t height)
 			DW_LOG_ERROR("Failed to load TAA History shaders");
 		}
 	}
+
+	m_taa_program->uniform_block_binding("u_PerFrame", 0);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

@@ -77,7 +77,7 @@ vec3 near_field(vec2 tex_coord)
 		result += texture(s_Color4, tex_coord + offset).xyz;
 	}
 
-	return result / 49.0f;
+	return result / 49.0;
 }
 
 // ----------------------------------------------------------------------
@@ -111,15 +111,15 @@ void main()
 	float coc_far = texture(s_CoC4, PS_IN_TexCoord).y;
 	vec3 color = texture(s_Color4, PS_IN_TexCoord).xyz;
 
-	if (coc_near_blurred > 0.0f)
+	if (coc_near_blurred > 0.0)
 		PS_OUT_NearDoF4 = near_field(PS_IN_TexCoord);
 	else
 		PS_OUT_NearDoF4 = color;
 
-	if (coc_far > 0.0f)
+	if (coc_far > 0.0)
 		PS_OUT_FarDoF4 = far_field(PS_IN_TexCoord);
 	else
-		PS_OUT_FarDoF4 = 0.0f;
+		PS_OUT_FarDoF4 = 0.0;
 }
 
 // ----------------------------------------------------------------------

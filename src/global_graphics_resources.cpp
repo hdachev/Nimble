@@ -191,9 +191,19 @@ void GlobalGraphicsResources::destroy_framebuffer(const std::string& name)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-dw::Shader* GlobalGraphicsResources::load_shader(GLuint type, std::string& path, const std::vector<std::string>& defines)
+dw::Shader* GlobalGraphicsResources::load_shader(GLuint type, std::string& path, const std::vector<std::string> defines)
 {
-	if (m_shader_cache.find(path) == m_shader_cache.end())
+	std::string name_with_defines = "";
+
+	for (auto define : defines)
+	{
+		name_with_defines += define;
+		name_with_defines += "|";
+	}
+
+	name_with_defines += path;
+
+	if (m_shader_cache.find(name_with_defines) == m_shader_cache.end())
 	{
 		std::string source;
 
@@ -212,11 +222,11 @@ dw::Shader* GlobalGraphicsResources::load_shader(GLuint type, std::string& path,
 			return nullptr;
 		}
 
-		m_shader_cache[path] = shader;
+		m_shader_cache[name_with_defines] = shader;
 		return shader;
 	}
 	else
-		return m_shader_cache[path];
+		return m_shader_cache[name_with_defines];
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -354,7 +364,7 @@ bool contains(const std::vector<T>& vec, const T& obj)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool GlobalGraphicsResources::read_shader(std::string path, std::string& out, const std::vector<std::string>& defines)
+bool GlobalGraphicsResources::read_shader(std::string path, std::string& out, const std::vector<std::string> defines)
 {
 	std::string og_source;
 

@@ -1,266 +1,525 @@
-//#include "bloom.h"
-//#include "global_graphics_resources.h"
-//#include "constants.h"
-//#include "logger.h"
-//#include "gpu_profiler.h"
-//
-//#include <imgui.h>
-//
-//// -----------------------------------------------------------------------------------------------------------------------------------
-//
-//Bloom::Bloom()
-//{
-//	m_enabled = true;
-//	m_threshold = 1.0f;
-//	m_strength = 1.0f;
-//}
-//
-//// -----------------------------------------------------------------------------------------------------------------------------------
-//
-//Bloom::~Bloom()
-//{
-//
-//}
-//
-//// -----------------------------------------------------------------------------------------------------------------------------------
-//
-//void Bloom::initialize(uint16_t width, uint16_t height)
-//{
-//	on_window_resized(width, height);
-//
-//	std::string vs_path = "shader/post_process/quad_vs.glsl";
-//	m_quad_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path);
-//
-//	{
-//		std::string fs_path = "shader/post_process/bloom/bright_pass_fs.glsl";
-//		m_bright_pass_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
-//
-//		dw::Shader* shaders[] = { m_quad_vs, m_bright_pass_fs };
-//		std::string combined_path = vs_path + fs_path;
-//		m_bright_pass_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
-//
-//		if (!m_quad_vs || !m_bright_pass_fs || !m_bright_pass_program)
-//		{
-//			DW_LOG_ERROR("Failed to load Bloom bright pass shaders");
-//		}
-//	}
-//
-//	{
-//		std::string fs_path = "shader/post_process/bloom/downsample_fs.glsl";
-//		m_bloom_downsample_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
-//
-//		dw::Shader* shaders[] = { m_quad_vs, m_bloom_downsample_fs };
-//		std::string combined_path = vs_path + fs_path;
-//		m_bloom_downsample_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
-//
-//		if (!m_quad_vs || !m_bloom_downsample_fs || !m_bloom_downsample_program)
-//		{
-//			DW_LOG_ERROR("Failed to load Bloom downsample pass shaders");
-//		}
-//	}
-//
-//	{
-//		std::string fs_path = "shader/post_process/bloom/upsample_fs.glsl";
-//		m_bloom_upsample_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
-//
-//		dw::Shader* shaders[] = { m_quad_vs, m_bloom_upsample_fs };
-//		std::string combined_path = vs_path + fs_path;
-//		m_bloom_upsample_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
-//
-//		if (!m_quad_vs || !m_bloom_upsample_fs || !m_bloom_upsample_program)
-//		{
-//			DW_LOG_ERROR("Failed to load Bloom Upsample pass shaders");
-//		}
-//	}
-//
-//	{
-//		std::string fs_path = "shader/post_process/bloom/composite_fs.glsl";
-//		m_bloom_composite_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
-//
-//		dw::Shader* shaders[] = { m_quad_vs, m_bloom_composite_fs };
-//		std::string combined_path = vs_path + fs_path;
-//		m_bloom_composite_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
-//
-//		if (!m_quad_vs || !m_bloom_composite_fs || !m_bloom_composite_program)
-//		{
-//			DW_LOG_ERROR("Failed to load Bloom blur pass shaders");
-//		}
-//	}
-//}
-//
-//// -----------------------------------------------------------------------------------------------------------------------------------
-//
-//void Bloom::shutdown()
-//{
-//
-//}
-//
-//// -----------------------------------------------------------------------------------------------------------------------------------
-//
-//void Bloom::profiling_gui()
-//{
-//	ImGui::Text("Bloom - Bright Pass: %f ms", GPUProfiler::result("Bloom - Bright Pass"));
-//	ImGui::Text("Bloom - Downsample: %f ms", GPUProfiler::result("Bloom - Downsample"));
-//	ImGui::Text("Bloom - Upsample: %f ms", GPUProfiler::result("Bloom - Upsample"));
-//	ImGui::Text("Bloom - Composite: %f ms", GPUProfiler::result("Bloom - Composite"));
-//}
-//
-//// -----------------------------------------------------------------------------------------------------------------------------------
-//
-//void Bloom::on_window_resized(uint16_t width, uint16_t height)
-//{
-//	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_BLOOM_COMPOSITE);
-//	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_BLOOM_COMPOSITE);
-//
-//	m_composite_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_BLOOM_COMPOSITE, width, height, GL_RGB32F, GL_RGB, GL_FLOAT);
-//	m_composite_rt->set_min_filter(GL_LINEAR);
-//	m_composite_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-//
-//	m_composite_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_BLOOM_COMPOSITE);
-//	m_composite_fbo->attach_render_target(0, m_composite_rt, 0, 0);
-//
-//	// Clear earlier render targets.
-//	for (uint32_t i = 0; i < BLOOM_TEX_CHAIN_SIZE; i++)
-//	{
-//		uint32_t scale = pow(2, i);
-//
-//		std::string fbo_name = "BLOOM";
-//		fbo_name += std::to_string(scale);
-//		fbo_name += "_FBO_";
-//		fbo_name += std::to_string(i + 1);
-//
-//		std::string rt_name = "BLOOM";
-//		rt_name += std::to_string(scale);
-//		rt_name += "_RT_";
-//		rt_name += std::to_string(i + 1);
-//
-//		GlobalGraphicsResources::destroy_framebuffer(fbo_name);
-//		GlobalGraphicsResources::destroy_texture(rt_name);
-//
-//		// Create render target.
-//		m_bloom_rt[i] = GlobalGraphicsResources::create_texture_2d(rt_name, width / scale, height / scale, GL_RGB32F, GL_RGB, GL_FLOAT);
-//		m_bloom_rt[i]->set_min_filter(GL_LINEAR);
-//		m_bloom_rt[i]->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-//
-//		// Create FBO.
-//		m_bloom_fbo[i] = GlobalGraphicsResources::create_framebuffer(fbo_name);
-//
-//		// Attach render target to FBO.
-//		m_bloom_fbo[i]->attach_render_target(0, m_bloom_rt[i], 0, 0);
-//	}
-//}
-//
-//// -----------------------------------------------------------------------------------------------------------------------------------
-//
-//void Bloom::render(uint32_t w, uint32_t h)
-//{
-//	if (m_enabled || m_strength > 0)
-//	{
-//		bright_pass(w, h);
-//		downsample(w, h);
-//		upsample(w, h);
-//	}
-//	
-//	composite(w, h);
-//}
-//
-//// -----------------------------------------------------------------------------------------------------------------------------------
-//
-//void Bloom::bright_pass(uint32_t w, uint32_t h)
-//{
-//	GPUProfiler::begin("Bloom - Bright Pass");
-//
-//	m_bright_pass_program->use();
-//
-//	if (m_bright_pass_program->set_uniform("s_Color", 0))
-//		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_MOTION_BLUR)->bind(0);
-//
-//	m_bright_pass_program->set_uniform("u_Threshold", m_threshold);
-//
-//	m_post_process_renderer.render(w, h, m_bloom_fbo[0]);
-//
-//	GPUProfiler::end("Bloom - Bright Pass");
-//}
-//
-//// -----------------------------------------------------------------------------------------------------------------------------------
-//
-//void Bloom::downsample(uint32_t w, uint32_t h)
-//{
-//	GPUProfiler::begin("Bloom - Downsample");
-//
-//	m_bloom_downsample_program->use();
-//
-//	// Progressively blur bright pass into blur textures.
-//	for (uint32_t i = 0; i < (BLOOM_TEX_CHAIN_SIZE - 1); i++)
-//	{
-//		float scale = pow(2, i + 1);
-//
-//		glm::vec2 pixel_size = glm::vec2(1.0f / (float(w) / scale), 1.0f / (float(h) / scale));
-//		m_bloom_downsample_program->set_uniform("u_PixelSize", pixel_size);
-//
-//		if (m_bloom_downsample_program->set_uniform("s_Texture", 0))
-//			m_bloom_rt[i]->bind(0);
-//
-//		m_post_process_renderer.render(w / scale, h / scale, m_bloom_fbo[i + 1]);
-//	}
-//
-//	GPUProfiler::end("Bloom - Downsample");
-//}
-//
-//// -----------------------------------------------------------------------------------------------------------------------------------
-//
-//// TODO: Prevent clearing when upsampling and use additive blending.
-//void Bloom::upsample(uint32_t w, uint32_t h)
-//{
-//	GPUProfiler::begin("Bloom - Upsample");
-//
-//	m_bloom_upsample_program->use();
-//
-//	m_bloom_upsample_program->set_uniform("u_Strength", m_enabled ? m_strength : 0.0f);
-//
-//	//glEnable(GL_BLEND);
-//
-//	//glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
-//	//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
-//
-//	// Upsample each downsampled target
-//	for (uint32_t i = 0; i < (BLOOM_TEX_CHAIN_SIZE - 1); i++)
-//	{
-//		float scale = pow(2, BLOOM_TEX_CHAIN_SIZE - i - 2);
-//
-//		glm::vec2 pixel_size = glm::vec2(1.0f / (float(w) / scale), 1.0f / (float(h) / scale));
-//		m_bloom_upsample_program->set_uniform("u_PixelSize", pixel_size);
-//		
-//		if (m_bloom_upsample_program->set_uniform("s_Texture", 0))
-//			m_bloom_rt[BLOOM_TEX_CHAIN_SIZE - i - 1]->bind(0);
-//
-//		m_post_process_renderer.render(w / scale, h / scale, m_bloom_fbo[BLOOM_TEX_CHAIN_SIZE - i - 2]);
-//	}
-//
-//	//glDisable(GL_BLEND);
-//
-//	GPUProfiler::end("Bloom - Upsample");
-//}
-//
-//// -----------------------------------------------------------------------------------------------------------------------------------
-//
-//void Bloom::composite(uint32_t w, uint32_t h)
-//{
-//	GPUProfiler::begin("Bloom - Composite");
-//
-//	m_bloom_composite_program->use();
-//
-//	m_bloom_composite_program->set_uniform("u_Strength", m_enabled ? m_strength : 0.0f);
-//
-//	if (m_bloom_composite_program->set_uniform("s_Color", 0))
-//		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_MOTION_BLUR)->bind(0);
-//
-//	if (m_bloom_composite_program->set_uniform("s_Bloom", 1))
-//		m_bloom_rt[0]->bind(1);
-//	
-//	m_post_process_renderer.render(w, h, m_composite_fbo);
-//
-//	GPUProfiler::end("Bloom - Composite");
-//}
-//
-//// -----------------------------------------------------------------------------------------------------------------------------------
+#include "depth_of_field.h"
+#include "global_graphics_resources.h"
+#include "constants.h"
+#include "logger.h"
+#include "gpu_profiler.h"
+
+#include <imgui.h>
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+DepthOfField::DepthOfField()
+{
+
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+DepthOfField::~DepthOfField()
+{
+
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void DepthOfField::initialize(uint16_t width, uint16_t height)
+{
+	on_window_resized(width, height);
+
+	std::string vs_path = "shader/post_process/quad_vs.glsl";
+	m_quad_vs = GlobalGraphicsResources::load_shader(GL_VERTEX_SHADER, vs_path);
+
+	{
+		std::string fs_path = "shader/post_process/depth_of_field/coc_fs.glsl";
+		m_coc_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
+
+		dw::Shader* shaders[] = { m_quad_vs, m_coc_fs };
+		std::string combined_path = vs_path + fs_path;
+		m_coc_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+
+		if (!m_quad_vs || !m_coc_fs || !m_coc_program)
+		{
+			DW_LOG_ERROR("Failed to load DOF CoC shaders");
+		}
+
+		m_coc_program->uniform_block_binding("u_PerFrame", 0);
+	}
+
+	{
+		std::string fs_path = "shader/post_process/depth_of_field/composite_fs.glsl";
+		m_composite_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
+
+		dw::Shader* shaders[] = { m_quad_vs, m_composite_fs };
+		std::string combined_path = vs_path + fs_path;
+		m_composite_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+
+		if (!m_quad_vs || !m_composite_fs || !m_composite_program)
+		{
+			DW_LOG_ERROR("Failed to load DOF Composite shaders");
+		}
+	}
+
+	{
+		std::string fs_path = "shader/post_process/depth_of_field/computation_fs.glsl";
+		m_computation_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
+
+		dw::Shader* shaders[] = { m_quad_vs, m_computation_fs };
+		std::string combined_path = vs_path + fs_path;
+		m_computation_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+
+		if (!m_quad_vs || !m_computation_fs || !m_computation_program)
+		{
+			DW_LOG_ERROR("Failed to load DOF Computation shaders");
+		}
+	}
+
+	{
+		std::string fs_path = "shader/post_process/depth_of_field/downsample_fs.glsl";
+		m_downsample_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
+
+		dw::Shader* shaders[] = { m_quad_vs, m_downsample_fs };
+		std::string combined_path = vs_path + fs_path;
+		m_downsample_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+
+		if (!m_quad_vs || !m_downsample_fs || !m_downsample_program)
+		{
+			DW_LOG_ERROR("Failed to load DOF Downsample shaders");
+		}
+	}
+
+	{
+		std::string fs_path = "shader/post_process/depth_of_field/fill_fs.glsl";
+		m_fill_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path);
+
+		dw::Shader* shaders[] = { m_quad_vs, m_fill_fs };
+		std::string combined_path = vs_path + fs_path;
+		m_fill_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+
+		if (!m_quad_vs || !m_fill_fs || !m_fill_program)
+		{
+			DW_LOG_ERROR("Failed to load DOF Fill shaders");
+		}
+	}
+
+	{
+		std::string fs_path = "shader/post_process/filters_fs.glsl";
+		
+		// Near CoC Max X
+		{
+			m_near_coc_max_x4_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, { "HORIZONTAL", "MAX13", "CHANNELS_COUNT_1" });
+
+			dw::Shader* shaders[] = { m_quad_vs, m_near_coc_max_x4_fs };
+			std::string combined_path = vs_path + fs_path;
+			m_near_coc_max_x_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+
+			if (!m_quad_vs || !m_near_coc_max_x4_fs || !m_near_coc_max_x_program)
+			{
+				DW_LOG_ERROR("Failed to load Near CoC Max X shaders");
+			}
+		}
+
+		// Near CoC Max
+		{
+			m_near_coc_max4_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, { "VERTICAL", "MAX13", "CHANNELS_COUNT_1" });
+
+			dw::Shader* shaders[] = { m_quad_vs, m_near_coc_max4_fs };
+			std::string combined_path = vs_path + fs_path;
+			m_near_coc_max_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+
+			if (!m_quad_vs || !m_near_coc_max4_fs || !m_near_coc_max_program)
+			{
+				DW_LOG_ERROR("Failed to load Near CoC Max shaders");
+			}
+		}
+
+		// Near CoC Blur X
+		{
+			m_near_coc_blur_x4_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, { "HORIZONTAL", "BLUR13", "CHANNELS_COUNT_1" });
+
+			dw::Shader* shaders[] = { m_quad_vs, m_near_coc_blur_x4_fs };
+			std::string combined_path = vs_path + fs_path;
+			m_near_coc_max_x_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+
+			if (!m_quad_vs || !m_near_coc_blur_x4_fs || !m_near_coc_max_x_program)
+			{
+				DW_LOG_ERROR("Failed to load Near CoC Blur X shaders");
+			}
+		}
+
+		// Near CoC Blur
+		{
+			m_near_coc_blur4_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, { "VERTICAL", "BLUR13", "CHANNELS_COUNT_1" });
+
+			dw::Shader* shaders[] = { m_quad_vs, m_near_coc_blur4_fs };
+			std::string combined_path = vs_path + fs_path;
+			m_near_coc_blur_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+
+			if (!m_quad_vs || !m_near_coc_blur4_fs || !m_near_coc_blur_program)
+			{
+				DW_LOG_ERROR("Failed to load Near CoC Blur shaders");
+			}
+		}
+	}
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void DepthOfField::shutdown()
+{
+
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void DepthOfField::profiling_gui()
+{
+	ImGui::Text("DOF - CoC: %f ms", GPUProfiler::result("DOF - CoC"));
+	ImGui::Text("DOF - Downsample: %f ms", GPUProfiler::result("DOF - Downsample"));
+	ImGui::Text("DOF - Near Max: %f ms", GPUProfiler::result("DOF - Near CoC Max"));
+	ImGui::Text("DOF - Near Blur: %f ms", GPUProfiler::result("DOF - Near CoC Blur"));
+	ImGui::Text("DOF - Computation: %f ms", GPUProfiler::result("DOF - Computation"));
+	ImGui::Text("DOF - Fill: %f ms", GPUProfiler::result("DOF - Fill"));
+	ImGui::Text("DOF - Composite: %f ms", GPUProfiler::result("DOF - Composite"));
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void DepthOfField::on_window_resized(uint16_t width, uint16_t height)
+{
+	// CoC
+	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_DOF_COC);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_DOF_COC);
+
+	m_coc_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_DOF_COC, width, height, GL_RG8, GL_RG, GL_UNSIGNED_BYTE);
+	m_coc_rt->set_min_filter(GL_NEAREST);
+	m_coc_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	m_coc_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_DOF_COC);
+	m_coc_fbo->attach_render_target(0, m_coc_rt, 0, 0);
+
+	// Downsample
+	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_DOF_DOWNSAMPLE);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_DOF_COLOR4);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_DOF_COC4);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_DOF_MUL_COC_FAR4);
+
+	m_color4_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_DOF_COLOR4, width / 2, height / 2, GL_RGB32F, GL_RGB, GL_FLOAT);
+	m_color4_rt->set_min_filter(GL_LINEAR);
+	m_color4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	m_mul_coc_far4_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_DOF_MUL_COC_FAR4, width / 2, height / 2, GL_RGB32F, GL_RGB, GL_FLOAT);
+	m_mul_coc_far4_rt->set_min_filter(GL_LINEAR);
+	m_mul_coc_far4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	m_coc4_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_DOF_COC4, width / 2, height / 2, GL_RG8, GL_RG, GL_UNSIGNED_BYTE);
+	m_coc4_rt->set_min_filter(GL_NEAREST);
+	m_coc4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	m_downsample_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_DOF_COC);
+	m_downsample_fbo->attach_render_target(0, m_color4_rt, 0, 0);
+	m_downsample_fbo->attach_render_target(1, m_mul_coc_far4_rt, 0, 0);
+	m_downsample_fbo->attach_render_target(2, m_coc4_rt, 0, 0);
+
+	// Near CoC Max X
+	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_DOF_NEAR_COC_MAX_X4);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_NEAR_COC_MAX_X4);
+
+	m_near_coc_max_x4_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_NEAR_COC_MAX_X4, width / 2, height / 2, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+	m_near_coc_max_x4_rt->set_min_filter(GL_NEAREST);
+	m_near_coc_max_x4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	m_near_coc_max_x_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_DOF_NEAR_COC_MAX_X4);
+	m_near_coc_max_x_fbo->attach_render_target(0, m_near_coc_max_x4_rt, 0, 0);
+
+	// Near CoC Max
+	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_DOF_NEAR_COC_MAX4);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_NEAR_COC_MAX4);
+
+	m_near_coc_max4_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_NEAR_COC_MAX4, width / 2, height / 2, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+	m_near_coc_max4_rt->set_min_filter(GL_NEAREST);
+	m_near_coc_max4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	m_near_coc_max_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_DOF_NEAR_COC_MAX4);
+	m_near_coc_max_fbo->attach_render_target(0, m_near_coc_max4_rt, 0, 0);
+
+	// Near CoC Blur X
+	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_NEAR_COC_BLUR_X4);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_NEAR_COC_BLUR_X4);
+
+	m_near_coc_blur_x4_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_NEAR_COC_BLUR_X4, width / 2, height / 2, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+	m_near_coc_blur_x4_rt->set_min_filter(GL_NEAREST);
+	m_near_coc_blur_x4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+			   
+	m_near_coc_blur_x_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_NEAR_COC_BLUR_X4);
+	m_near_coc_blur_x_fbo->attach_render_target(0, m_near_coc_blur_x4_rt, 0, 0);
+
+	// Near CoC Blur
+	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_NEAR_COC_BLUR4);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_NEAR_COC_BLUR4);
+
+	m_near_coc_blur4_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_NEAR_COC_BLUR4, width / 2, height / 2, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+	m_near_coc_blur4_rt->set_min_filter(GL_NEAREST);
+	m_near_coc_blur4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+			   
+	m_near_coc_blur_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_NEAR_COC_BLUR4);
+	m_near_coc_blur_fbo->attach_render_target(0, m_near_coc_max4_rt, 0, 0);
+
+	// Computation
+	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_DOF4);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_NEAR_DOF4);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_FAR_DOF4);
+
+	m_near_dof4_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_NEAR_DOF4, width / 2, height / 2, GL_RGB32F, GL_RGB, GL_FLOAT);
+	m_near_dof4_rt->set_min_filter(GL_LINEAR);
+	m_near_dof4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	m_far_dof4_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_FAR_DOF4, width / 2, height / 2, GL_RGB32F, GL_RGB, GL_FLOAT);
+	m_far_dof4_rt->set_min_filter(GL_LINEAR);
+	m_far_dof4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	m_computation_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_DOF4);
+	m_computation_fbo->attach_render_target(0, m_near_dof4_rt, 0, 0);
+	m_computation_fbo->attach_render_target(1, m_far_dof4_rt, 0, 0);
+
+	// Fill
+	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_DOF_FILL4);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_NEAR_FILL_DOF4);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_FAR_FILL_DOF4);
+
+	m_near_fill_dof4_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_NEAR_FILL_DOF4, width / 2, height / 2, GL_RGB32F, GL_RGB, GL_FLOAT);
+	m_near_fill_dof4_rt->set_min_filter(GL_LINEAR);
+	m_near_fill_dof4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	m_far_fill_dof4_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_FAR_FILL_DOF4, width / 2, height / 2, GL_RGB32F, GL_RGB, GL_FLOAT);
+	m_far_fill_dof4_rt->set_min_filter(GL_LINEAR);
+	m_far_fill_dof4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	m_computation_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_DOF_FILL4);
+	m_computation_fbo->attach_render_target(0, m_near_fill_dof4_rt, 0, 0);
+	m_computation_fbo->attach_render_target(1, m_far_fill_dof4_rt, 0, 0);
+
+	// Composite
+	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_DOF_COMPOSITE);
+	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_DOF_COMPOSITE);
+
+	m_composite_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_DOF_COMPOSITE, width, height, GL_RGB32F, GL_RGB, GL_FLOAT);
+	m_composite_rt->set_min_filter(GL_LINEAR);
+	m_composite_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	m_composite_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_DOF_COMPOSITE);
+	m_composite_fbo->attach_render_target(0, m_composite_rt, 0, 0);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void DepthOfField::render(uint32_t w, uint32_t h)
+{
+	coc_generation(w, h);
+	downsample(w, h);
+	near_coc_max(w, h);
+	near_coc_blur(w, h );
+	dof_computation(w, h);
+	fill(w, h);
+	composite(w, h);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void DepthOfField::coc_generation(uint32_t w, uint32_t h)
+{
+	GPUProfiler::begin("DOF - CoC");
+
+	m_coc_program->use();
+
+	// Bind global UBO's.
+	GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
+
+	glm::vec2 pixel_size = glm::vec2(1.0f / float(w), 1.0f / float(h));
+	m_coc_program->set_uniform("u_PixelSize", pixel_size);
+
+	if (m_coc_program->set_uniform("s_Depth", 1))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_DEPTH)->bind(0);
+
+	m_post_process_renderer.render(w, h, m_coc_fbo);
+
+	GPUProfiler::end("DOF - CoC");
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void DepthOfField::downsample(uint32_t w, uint32_t h)
+{
+	GPUProfiler::begin("DOF - Downsample");
+
+	m_downsample_program->use();
+
+	// Bind global UBO's.
+	GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
+
+	glm::vec2 pixel_size = glm::vec2(1.0f / float(w), 1.0f / float(h));
+	m_downsample_program->set_uniform("u_PixelSize", pixel_size);
+
+	PerFrameUniforms& per_frame = GlobalGraphicsResources::per_frame_uniforms();
+
+	if (m_downsample_program->set_uniform("s_Color", 0))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_TAA)->bind(0);
+
+	if (m_downsample_program->set_uniform("s_CoC", 1))
+		m_coc_rt->bind(1);
+
+	m_post_process_renderer.render(w, h, m_downsample_fbo);
+
+	GPUProfiler::end("DOF - Downsample");
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void DepthOfField::near_coc_max(uint32_t w, uint32_t h)
+{
+	GPUProfiler::begin("DOF - Near CoC Max");
+
+	// Horizontal
+	m_near_coc_max_x_program->use();
+
+	glm::vec2 pixel_size = glm::vec2(1.0f / float(w/2), 1.0f / float(h/2));
+	m_near_coc_max_x_program->set_uniform("u_PixelSize", pixel_size);
+
+	if (m_near_coc_max_x_program->set_uniform("s_Texture", 0))
+		m_coc4_rt->bind(0);
+
+	m_post_process_renderer.render(w / 2, h / 2, m_near_coc_max_x_fbo);
+
+	// Vertical
+	m_near_coc_max_program->use();
+
+	m_near_coc_max_program->set_uniform("u_PixelSize", pixel_size);
+
+	if (m_near_coc_max_program->set_uniform("s_Texture", 0))
+		m_near_coc_max_x4_rt->bind(0);
+
+	m_post_process_renderer.render(w / 2, h / 2, m_near_coc_max_fbo);
+
+	GPUProfiler::end("DOF - Near CoC Max");
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void DepthOfField::near_coc_blur(uint32_t w, uint32_t h)
+{
+	GPUProfiler::begin("DOF - Near CoC Blur");
+
+	// Horizontal
+	m_near_coc_blur_x_program->use();
+
+	glm::vec2 pixel_size = glm::vec2(1.0f / float(w/2), 1.0f / float(h/2));
+	m_near_coc_blur_x_program->set_uniform("u_PixelSize", pixel_size);
+
+	if (m_near_coc_blur_x_program->set_uniform("s_Texture", 0))
+		m_near_coc_max4_rt->bind(0);
+
+	m_post_process_renderer.render(w / 2, h / 2, m_near_coc_blur_x_fbo);
+
+	// Vertical
+	m_near_coc_blur_program->use();
+
+	m_near_coc_blur_program->set_uniform("u_PixelSize", pixel_size);
+
+	if (m_near_coc_blur_program->set_uniform("s_Texture", 0))
+		m_near_coc_blur_x4_rt->bind(0);
+
+	m_post_process_renderer.render(w / 2, h / 2, m_near_coc_blur_fbo);
+
+	GPUProfiler::end("DOF - Near CoC Blur");
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void DepthOfField::dof_computation(uint32_t w, uint32_t h)
+{
+	GPUProfiler::begin("DOF - Computation");
+
+	m_computation_program->use();
+
+	glm::vec2 pixel_size = glm::vec2(1.0f / float(w/2), 1.0f / float(h/2));
+	m_computation_program->set_uniform("u_PixelSize", pixel_size);
+
+	if (m_computation_program->set_uniform("s_CoC4", 0))
+		m_coc4_rt->bind(0);
+	
+	if (m_computation_program->set_uniform("s_NearBlurCoC4", 1))
+		m_near_coc_blur4_rt->bind(1);
+
+	if (m_computation_program->set_uniform("s_Color4", 2))
+		m_color4_rt->bind(2);
+
+	if (m_computation_program->set_uniform("s_ColorFarCoC4", 3))
+		m_mul_coc_far4_rt->bind(3);
+
+	m_post_process_renderer.render(w / 2, h / 2, m_computation_fbo);
+
+	GPUProfiler::end("DOF - Computation");
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void DepthOfField::fill(uint32_t w, uint32_t h)
+{
+	GPUProfiler::begin("DOF - Fill");
+
+	m_fill_program->use();
+
+	glm::vec2 pixel_size = glm::vec2(1.0f / float(w / 2), 1.0f / float(h / 2));
+	m_fill_program->set_uniform("u_PixelSize", pixel_size);
+
+	if (m_fill_program->set_uniform("s_CoC4", 0))
+		m_coc4_rt->bind(0);
+
+	if (m_fill_program->set_uniform("s_NearBlurCoC4", 1))
+		m_near_coc_blur4_rt->bind(1);
+
+	if (m_fill_program->set_uniform("s_NearDoF4", 2))
+		m_near_dof4_rt->bind(2);
+
+	if (m_fill_program->set_uniform("s_FarDoF4", 3))
+		m_far_dof4_rt->bind(3);
+
+	m_post_process_renderer.render(w / 2, h / 2, m_fill_fbo);
+
+	GPUProfiler::end("DOF - Fill");
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void DepthOfField::composite(uint32_t w, uint32_t h)
+{
+	GPUProfiler::begin("DOF - Composite");
+
+	m_composite_program->use();
+
+	glm::vec2 pixel_size = glm::vec2(1.0f / float(w / 2), 1.0f / float(h / 2));
+	m_composite_program->set_uniform("u_PixelSize", pixel_size);
+
+	if (m_composite_program->set_uniform("s_Color", 0))
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_TAA)->bind(0);
+
+	if (m_composite_program->set_uniform("s_CoC", 1))
+		m_coc_rt->bind(1);
+
+	if (m_composite_program->set_uniform("s_CoC4", 2))
+		m_coc4_rt->bind(2);
+
+	if (m_composite_program->set_uniform("s_CoCBlur4", 3))
+		m_near_coc_blur4_rt->bind(3);
+
+	if (m_composite_program->set_uniform("s_NearDoF4", 4))
+		m_near_fill_dof4_rt->bind(4);
+
+	if (m_composite_program->set_uniform("s_FarDoF4", 5))
+		m_far_fill_dof4_rt->bind(5);
+
+	m_post_process_renderer.render(w, h, m_composite_fbo);
+
+	GPUProfiler::end("DOF - Composite");
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------

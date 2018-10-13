@@ -2,9 +2,15 @@ out vec4 PS_OUT_FragColor;
 
 in vec2 PS_IN_TexCoord;
 
+#ifndef COPY
 uniform vec2 u_PixelSize;
+
+#ifndef MIN13 || MAX13 || BLUR13
 uniform int u_From;
 uniform int u_To;
+#endif
+
+#endif
 
 uniform sampler2D s_Texture;
 
@@ -15,29 +21,29 @@ uniform sampler2D s_Texture;
 void main()
 {
 #ifdef COPY
-	return texture(s_Texture, PS_IN_TexCoord);
+	PS_OUT_FragColor = texture(s_Texture, PS_IN_TexCoord);
 #endif
 	
-#if CHANNELS_COUNT == 1
+#ifdef CHANNELS_COUNT_1
 	#define CHANNELS x
-	float result = 0.0f;
-#elif CHANNELS_COUNT == 2
+	float result = 0.0;
+#elif CHANNELS_COUNT_2
 	#define CHANNELS xy
-	vec2 result = 0.0f;
-#elif CHANNELS_COUNT == 3
+	vec2 result = 0.0;
+#elif CHANNELS_COUNT_3
 	#define CHANNELS xyy
-	vec3 result = 0.0f;
-#elif CHANNELS_COUNT == 4
+	vec3 result = 0.0;
+#elif CHANNELS_COUNT_4
 	#define CHANNELS xyzw
-	vec4 result = 0.0f;
+	vec4 result = 0.0;
 #endif
 	
-	vec2 direction = 0.0f;
+	vec2 direction = 0.0;
 #ifdef HORIZONTAL
-	direction = vec2(1.0f, 0.0f);
+	direction = vec2(1.0, 0.0);
 #endif
 #ifdef VERTICAL
-	direction = vec2(0.0f, 1.0f);
+	direction = vec2(0.0, 1.0);
 #endif
 
 #ifdef MIN
@@ -65,21 +71,21 @@ void main()
 #ifdef BLUR
 	for (int i = from; i <= to; i++)
 		result += texture(s_Texture, PS_IN_TexCoord + i * direction * u_PixelSize).CHANNELS;
-	result /= (to - from + 1.0f);
+	result /= (to - from + 1.0);
 #endif
 #ifdef BLUR13
 	for (int i = -6; i <= 6; i++)
 		result += texture(s_Texture, PS_IN_TexCoord + i * direction * u_PixelSize).CHANNELS;
-	result /= 13.0f;
+	result /= 13.0;
 #endif
 
-#if CHANNELS_COUNT == 1
+#ifdef CHANNELS_COUNT_1
 	PS_OUT_FragColor = result.xxxx;
-#elif CHANNELS_COUNT == 2
-	PS_OUT_FragColor = vec4(result.xy, 0.0f, 0.0f);
-#elif CHANNELS_COUNT == 3
-	PS_OUT_FragColor = vec4(result.xyz, 0.0f);
-#elif CHANNELS_COUNT == 4
+#elif CHANNELS_COUNT_2
+	PS_OUT_FragColor = vec4(result.xy, 0.0, 0.0);
+#elif CHANNELS_COUNT_3
+	PS_OUT_FragColor = vec4(result.xyz, 0.0);
+#elif CHANNELS_COUNT_4
 	PS_OUT_FragColor = result.xyzw;
 #endif
 }
