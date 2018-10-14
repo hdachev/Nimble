@@ -22,12 +22,17 @@ private:
 	void fill(uint32_t w, uint32_t h);
 	void composite(uint32_t w, uint32_t h);
 
+public:
+	float m_near_begin = 0.0f;
+	float m_near_end = 0.0f;
+	float m_far_begin = 1.0f;
+	float m_far_end = 1.0f;
+	float m_blend = 1.0f;
+	float m_kernel_size = 1.0f;
+
 private:
 	// Properties
-	float m_near_begin;
-	float m_near_end;
-	float m_far_begin;
-	float m_far_end;
+	glm::vec2 m_kernel_scale;
 
 	// CoC Pass
 	dw::Texture* m_coc_rt;

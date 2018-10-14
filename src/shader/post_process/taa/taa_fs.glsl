@@ -20,7 +20,7 @@ uniform sampler2D s_Color;
 uniform sampler2D s_History;
 uniform sampler2D s_Velocity;
 uniform vec2 u_PixelSize;
-uniform int u_FirstFrame;
+uniform int u_Enabled;
 
 #define HDR_COLOR_BUFFER
 #define UNJITTER_TEX_COORDS
@@ -144,7 +144,11 @@ vec3 inverse_tonemap_reinhard_simple(vec3 color)
 
 void main()
 {
-	vec3 resolved;
+	if (u_Enabled == 0)
+		PS_OUT_FragColor = texture(s_Color, PS_IN_TexCoord).xyz;
+	else
+	{
+			vec3 resolved;
     
 #ifdef UNJITTER_TEX_COORDS
     vec2 uv = PS_IN_TexCoord - current_prev_jitter.xy;
@@ -225,6 +229,7 @@ void main()
 #endif
 
 	PS_OUT_FragColor = resolve_color(vec4(resolved, 1.0)).xyz;
+	}
 }
 
 // ------------------------------------------------------------------

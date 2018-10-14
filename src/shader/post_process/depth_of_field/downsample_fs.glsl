@@ -1,5 +1,3 @@
-#include <../common/helper.glsl>
-
 layout (location = 0) out vec3 PS_OUT_Color;
 layout (location = 1) out vec3 PS_OUT_MulCoCFar;
 layout (location = 2) out vec2 PS_OUT_CoC;
@@ -34,7 +32,7 @@ void main()
 
 	float weight_00 = 1000.0;
 	vec3 color_mul_coc_far = weight_00 * texture(s_Color, tex_coord_00).xyz;
-	float weights_sum = weight00;
+	float weights_sum = weight_00;
 	
 	float weight_10 = 1.0 / (abs(coc_far_00 - coc_far_10) + 0.001);
 	color_mul_coc_far += weight_10 * texture(s_Color, tex_coord_10).xyz;

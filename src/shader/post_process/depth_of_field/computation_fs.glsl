@@ -89,12 +89,12 @@ vec3 far_field(vec2 tex_coord)
 	
 	for (int i = 0; i < 48; i++)
 	{
-		vec2 offset = kernelScale * offsets[i] * pixelSize;
+		vec2 offset = u_KernelSize * offsets[i] * u_PixelSize;
 		
 		float coc_sample = texture(s_Color4, tex_coord + offset).y;
-		vec3 sample = texture(s_ColorFarCoC4, tex_coord + offset).xyz;
+		vec3 color_sample = texture(s_ColorFarCoC4, tex_coord + offset).xyz;
 		
-		result += sample; // the texture is pre-multiplied so don't need to multiply here by weight
+		result += color_sample; // the texture is pre-multiplied so don't need to multiply here by weight
 		weights_sum += coc_sample;
 	}
 
@@ -119,7 +119,7 @@ void main()
 	if (coc_far > 0.0)
 		PS_OUT_FarDoF4 = far_field(PS_IN_TexCoord);
 	else
-		PS_OUT_FarDoF4 = 0.0;
+		PS_OUT_FarDoF4 = vec3(0.0);
 }
 
 // ----------------------------------------------------------------------

@@ -5,9 +5,13 @@ in vec2 PS_IN_TexCoord;
 #ifndef COPY
 uniform vec2 u_PixelSize;
 
-#ifndef MIN13 || MAX13 || BLUR13
+#ifndef MIN13
+#ifndef MAX13
+#ifndef BLUR13
 uniform int u_From;
 uniform int u_To;
+#endif
+#endif
 #endif
 
 #endif
@@ -29,16 +33,16 @@ void main()
 	float result = 0.0;
 #elif CHANNELS_COUNT_2
 	#define CHANNELS xy
-	vec2 result = 0.0;
+	vec2 result = vec2(0.0);
 #elif CHANNELS_COUNT_3
 	#define CHANNELS xyy
-	vec3 result = 0.0;
+	vec3 result = vec3(0.0);
 #elif CHANNELS_COUNT_4
 	#define CHANNELS xyzw
-	vec4 result = 0.0;
+	vec4 result = vec4(0.0);
 #endif
 	
-	vec2 direction = 0.0;
+	vec2 direction = vec2(0.0);
 #ifdef HORIZONTAL
 	direction = vec2(1.0, 0.0);
 #endif

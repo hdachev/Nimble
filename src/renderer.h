@@ -20,6 +20,7 @@
 #include "csm.h"
 #include "shadow_map_renderer.h"
 #include "taa.h"
+#include "depth_of_field.h"
 
 class Renderer
 {
@@ -64,6 +65,7 @@ private:
 	Bloom	   m_bloom;
 	ToneMapping m_tone_mapping;
 	TAA			m_taa;
+	DepthOfField m_depth_of_field;
 
 	// CSM
 	CSM m_csm_technique;

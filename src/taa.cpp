@@ -104,9 +104,6 @@ void TAA::on_window_resized(uint16_t width, uint16_t height)
 
 void TAA::render(uint32_t w, uint32_t h)
 {
-	if (!m_enabled)
-		m_first = 1;
-
 	GPUProfiler::begin("TAA");
 
 	m_taa_program->use();
@@ -136,7 +133,7 @@ void TAA::render(uint32_t w, uint32_t h)
 	if (m_taa_program->set_uniform("s_History", 1))
 		m_taa_hist_rt->bind(1);
 
-	m_taa_program->set_uniform("u_FirstFrame", m_first);
+	m_taa_program->set_uniform("u_Enabled", int(m_enabled));
 
 	glm::vec2 pixel_size = glm::vec2(1.0f / float(w), 1.0f / float(h));
 	m_taa_program->set_uniform("u_PixelSize", pixel_size);
@@ -152,9 +149,6 @@ void TAA::render(uint32_t w, uint32_t h)
 	m_post_process_renderer.render(w, h, m_taa_hist_fbo);
 
 	GPUProfiler::end("TAA");
-
-	if (m_first == 1)
-		m_first = 0;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

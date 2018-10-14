@@ -1,4 +1,5 @@
-#include <../common/helper.glsl>
+#include <../../common/uniforms.glsl>
+#include <../../common/helper.glsl>
 
 out vec2 PS_OUT_FragColor;
 
@@ -23,9 +24,9 @@ void main()
 	// Calculate Near CoC
 	float nearCOC = 0.0;
 
-	if (depth < nearEnd)
-		nearCOC = 1.0 / (nearBegin - nearEnd) * depth + -nearEnd / (nearBegin - nearEnd);
-	else if (depth < nearBegin)
+	if (depth < u_NearEnd)
+		nearCOC = 1.0 / (u_NearBegin - u_NearEnd) * depth + -u_NearEnd / (u_NearBegin - u_NearEnd);
+	else if (depth < u_NearBegin)
 		nearCOC = 1.0;
 
 	nearCOC = clamp(nearCOC, 0.0, 1.0);
@@ -33,10 +34,10 @@ void main()
 	// Calculate Far CoC
 	float farCOC = 1.0;
 
-	if (depth < farBegin)
+	if (depth < u_FarBegin)
 		farCOC = 0.0;
-	else if (depth < farEnd)
-		farCOC = 1.0 / (farEnd - farBegin) * depth + -farBegin / (farEnd - farBegin);
+	else if (depth < u_FarEnd)
+		farCOC = 1.0 / (u_FarEnd - u_FarBegin) * depth + -u_FarBegin / (u_FarEnd - u_FarBegin);
 
 	farCOC = clamp(farCOC, 0.0, 1.0);
  

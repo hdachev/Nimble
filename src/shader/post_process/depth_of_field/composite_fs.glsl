@@ -43,7 +43,7 @@ void main()
 		float c = (1.0 - fractional.x) * fractional.y;
 		float d = fractional.x * fractional.y;
 
-		vec3 dof_far = 0.0;
+		vec3 dof_far = vec3(0.0);
 		float weights_sum = 0.0;
 
 		float weight_00 = a / (cocs_far_diffs.x + 0.001);
@@ -64,7 +64,7 @@ void main()
 
 		dof_far /= weights_sum;
 
-		result = lerp(result, dof_far, blend * coc_far);
+		result = mix(result, dof_far, u_Blend * coc_far);
 	}
 
 	// Near Field
@@ -72,7 +72,7 @@ void main()
 		float coc_near = texture(s_CoCBlur4, PS_IN_TexCoord).x;
 		vec3 dof_near = texture(s_NearDoF4, PS_IN_TexCoord).xyz;
 
-		result = lerp(result, dof_near, blend * coc_near);
+		result = mix(result, dof_near, u_Blend * coc_near);
 	}
 
 	PS_OUT_FragColor = result;

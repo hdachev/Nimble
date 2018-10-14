@@ -101,6 +101,7 @@ void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 	m_tone_mapping.initialize(m_width, m_height);
 	m_ambient_occlusion.initialize(m_width, m_height);
 	m_taa.initialize(m_width, m_height);
+	m_depth_of_field.initialize(m_width, m_height);
 
 	// Initialize CSM.
 	m_csm_technique.initialize(0.3, 350.0f, 4, 2048, m_camera, m_width, m_height, m_light_direction);
@@ -122,6 +123,7 @@ void Renderer::shutdown()
 	m_bloom.shutdown();
 	m_tone_mapping.shutdown();
 	m_taa.shutdown();
+	m_depth_of_field.shutdown();
 	m_deferred_shading_renderer.shutdown();
 
 	// Clean up profiler queries
@@ -169,6 +171,7 @@ void Renderer::on_window_resized(uint16_t width, uint16_t height)
 	m_tone_mapping.on_window_resized(width, height);
 	m_ambient_occlusion.on_window_resized(width, height);
 	m_taa.on_window_resized(width, height);
+	m_depth_of_field.on_window_resized(width, height);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -316,6 +319,14 @@ void Renderer::debug_gui(double delta)
 			ImGui::SliderFloat("Light Direction Z", &m_light_direction.z, -1.0f, 1.0f);
 		}
 
+		if (ImGui::CollapsingHeader("Camera"))
+		{
+			ImGui::SliderFloat("Near Field Begin", &m_depth_of_field.m_near_begin, 0.0f, 1.0f);
+			ImGui::SliderFloat("Near Field End", &m_depth_of_field.m_near_end, 0.0f, 1.0f);
+			ImGui::SliderFloat("Far Field Begin", &m_depth_of_field.m_far_begin, 0.0f, 1.0f);
+			ImGui::SliderFloat("Far Field End", &m_depth_of_field.m_far_end, 0.0f, 1.0f);
+		}
+
 		if (ImGui::CollapsingHeader("Post-Process"))
 		{
 			ImGui::Checkbox("SSAO", (bool*)&per_frame.ssao);
@@ -341,9 +352,15 @@ void Renderer::debug_gui(double delta)
 			ImGui::Checkbox("TAA", &taa);
 
 			if (taa)
+			{
+				m_camera->m_half_pixel_jitter = true;
 				m_taa.enable();
+			}
 			else
+			{
+				m_camera->m_half_pixel_jitter = false;
 				m_taa.disable();
+			}
 
 			int32_t current_operator = m_tone_mapping.current_operator();
 

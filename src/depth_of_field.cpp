@@ -212,10 +212,10 @@ void DepthOfField::on_window_resized(uint16_t width, uint16_t height)
 	m_mul_coc_far4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
 	m_coc4_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_DOF_COC4, width / 2, height / 2, GL_RG8, GL_RG, GL_UNSIGNED_BYTE);
-	m_coc4_rt->set_min_filter(GL_NEAREST);
+	m_coc4_rt->set_min_filter(GL_LINEAR);
 	m_coc4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
-	m_downsample_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_DOF_COC);
+	m_downsample_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_DOF_DOWNSAMPLE);
 	m_downsample_fbo->attach_render_target(0, m_color4_rt, 0, 0);
 	m_downsample_fbo->attach_render_target(1, m_mul_coc_far4_rt, 0, 0);
 	m_downsample_fbo->attach_render_target(2, m_coc4_rt, 0, 0);
@@ -336,6 +336,10 @@ void DepthOfField::coc_generation(uint32_t w, uint32_t h)
 
 	glm::vec2 pixel_size = glm::vec2(1.0f / float(w), 1.0f / float(h));
 	m_coc_program->set_uniform("u_PixelSize", pixel_size);
+	m_coc_program->set_uniform("u_NearBegin", m_near_begin);
+	m_coc_program->set_uniform("u_NearEnd", m_near_end);
+	m_coc_program->set_uniform("u_FarBegin", m_far_begin);
+	m_coc_program->set_uniform("u_FarEnd", m_far_end);
 
 	if (m_coc_program->set_uniform("s_Depth", 1))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_DEPTH)->bind(0);
@@ -367,7 +371,7 @@ void DepthOfField::downsample(uint32_t w, uint32_t h)
 	if (m_downsample_program->set_uniform("s_CoC", 1))
 		m_coc_rt->bind(1);
 
-	m_post_process_renderer.render(w, h, m_downsample_fbo);
+	m_post_process_renderer.render(w / 2, h / 2, m_downsample_fbo);
 
 	GPUProfiler::end("DOF - Downsample");
 }
@@ -442,6 +446,7 @@ void DepthOfField::dof_computation(uint32_t w, uint32_t h)
 
 	glm::vec2 pixel_size = glm::vec2(1.0f / float(w/2), 1.0f / float(h/2));
 	m_computation_program->set_uniform("u_PixelSize", pixel_size);
+	m_computation_program->set_uniform("u_KernelSize", m_kernel_size);
 
 	if (m_computation_program->set_uniform("s_CoC4", 0))
 		m_coc4_rt->bind(0);
@@ -498,6 +503,7 @@ void DepthOfField::composite(uint32_t w, uint32_t h)
 
 	glm::vec2 pixel_size = glm::vec2(1.0f / float(w / 2), 1.0f / float(h / 2));
 	m_composite_program->set_uniform("u_PixelSize", pixel_size);
+	m_composite_program->set_uniform("u_Blend", m_blend);
 
 	if (m_composite_program->set_uniform("s_Color", 0))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_TAA)->bind(0);
