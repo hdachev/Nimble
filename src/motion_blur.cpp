@@ -80,7 +80,7 @@ void MotionBlur::render(uint32_t w, uint32_t h)
 	GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
 
 	if (m_motion_blur_program->set_uniform("s_ColorMap", 0))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_TAA)->bind(0);
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_DOF_COMPOSITE)->bind(0);
 
 	// Bind Textures.
 	PerFrameUniforms& per_frame = GlobalGraphicsResources::per_frame_uniforms();

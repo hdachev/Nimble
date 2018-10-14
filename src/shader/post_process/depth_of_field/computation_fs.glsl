@@ -91,7 +91,7 @@ vec3 far_field(vec2 tex_coord)
 	{
 		vec2 offset = u_KernelSize * offsets[i] * u_PixelSize;
 		
-		float coc_sample = texture(s_Color4, tex_coord + offset).y;
+		float coc_sample = texture(s_CoC4, tex_coord + offset).y;
 		vec3 color_sample = texture(s_ColorFarCoC4, tex_coord + offset).xyz;
 		
 		result += color_sample; // the texture is pre-multiplied so don't need to multiply here by weight
