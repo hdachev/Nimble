@@ -19,7 +19,7 @@ uniform sampler2D s_Depth;
 void main()
 {
 	float depth_ndc = texture(s_Depth, PS_IN_TexCoord).x;
-	float depth = get_view_space_depth(PS_IN_TexCoord, depth_ndc);
+	float depth = -get_view_space_depth(PS_IN_TexCoord, depth_ndc);
 	
 	// Calculate Near CoC
 	float nearCOC = 0.0;

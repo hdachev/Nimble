@@ -58,6 +58,8 @@ public:
 	// Uniform getters.
 	inline static PerFrameUniforms& per_frame_uniforms() { return m_per_frame_uniforms; }
 
+	static std::string combined_program_name(const std::string& vs, const std::string& fs, std::vector<std::string> defines);
+
 private:
 	static void create_cube();
 	static void create_quad();

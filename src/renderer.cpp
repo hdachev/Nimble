@@ -321,10 +321,10 @@ void Renderer::debug_gui(double delta)
 
 		if (ImGui::CollapsingHeader("Camera"))
 		{
-			ImGui::SliderFloat("Near Field Begin", &m_depth_of_field.m_near_begin, 0.0f, 1.0f);
-			ImGui::SliderFloat("Near Field End", &m_depth_of_field.m_near_end, 0.0f, 1.0f);
-			ImGui::SliderFloat("Far Field Begin", &m_depth_of_field.m_far_begin, 0.0f, 1.0f);
-			ImGui::SliderFloat("Far Field End", &m_depth_of_field.m_far_end, 0.0f, 1.0f);
+			ImGui::SliderFloat("Near Field Begin", &m_depth_of_field.m_near_begin, m_camera->m_near, m_camera->m_far);
+			ImGui::SliderFloat("Near Field End", &m_depth_of_field.m_near_end, m_camera->m_near, m_camera->m_far);
+			ImGui::SliderFloat("Far Field Begin", &m_depth_of_field.m_far_begin, m_camera->m_near, m_camera->m_far);
+			ImGui::SliderFloat("Far Field End", &m_depth_of_field.m_far_end, m_camera->m_near, m_camera->m_far);
 		}
 
 		if (ImGui::CollapsingHeader("Post-Process"))
@@ -458,6 +458,9 @@ void Renderer::render(double delta)
 
 	// TAA
 	m_taa.render(m_width, m_height);
+
+	// Depth of Field
+	m_depth_of_field.render(m_width, m_height);
 
 	// Motion blur
 	m_motion_blur.render(m_width, m_height);

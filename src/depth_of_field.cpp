@@ -109,8 +109,8 @@ void DepthOfField::initialize(uint16_t width, uint16_t height)
 			m_near_coc_max_x4_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, { "HORIZONTAL", "MAX13", "CHANNELS_COUNT_1" });
 
 			dw::Shader* shaders[] = { m_quad_vs, m_near_coc_max_x4_fs };
-			std::string combined_path = vs_path + fs_path;
-			m_near_coc_max_x_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+			std::string combined_name = GlobalGraphicsResources::combined_program_name(vs_path, fs_path, { "HORIZONTAL", "MAX13", "CHANNELS_COUNT_1" });
+			m_near_coc_max_x_program = GlobalGraphicsResources::load_program(combined_name, 2, &shaders[0]);
 
 			if (!m_quad_vs || !m_near_coc_max_x4_fs || !m_near_coc_max_x_program)
 			{
@@ -123,8 +123,8 @@ void DepthOfField::initialize(uint16_t width, uint16_t height)
 			m_near_coc_max4_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, { "VERTICAL", "MAX13", "CHANNELS_COUNT_1" });
 
 			dw::Shader* shaders[] = { m_quad_vs, m_near_coc_max4_fs };
-			std::string combined_path = vs_path + fs_path;
-			m_near_coc_max_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+			std::string combined_name = GlobalGraphicsResources::combined_program_name(vs_path, fs_path, { "VERTICAL", "MAX13", "CHANNELS_COUNT_1" });
+			m_near_coc_max_program = GlobalGraphicsResources::load_program(combined_name, 2, &shaders[0]);
 
 			if (!m_quad_vs || !m_near_coc_max4_fs || !m_near_coc_max_program)
 			{
@@ -137,10 +137,10 @@ void DepthOfField::initialize(uint16_t width, uint16_t height)
 			m_near_coc_blur_x4_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, { "HORIZONTAL", "BLUR13", "CHANNELS_COUNT_1" });
 
 			dw::Shader* shaders[] = { m_quad_vs, m_near_coc_blur_x4_fs };
-			std::string combined_path = vs_path + fs_path;
-			m_near_coc_max_x_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+			std::string combined_name = GlobalGraphicsResources::combined_program_name(vs_path, fs_path, { "HORIZONTAL", "BLUR13", "CHANNELS_COUNT_1" });
+			m_near_coc_blur_x_program = GlobalGraphicsResources::load_program(combined_name, 2, &shaders[0]);
 
-			if (!m_quad_vs || !m_near_coc_blur_x4_fs || !m_near_coc_max_x_program)
+			if (!m_quad_vs || !m_near_coc_blur_x4_fs || !m_near_coc_blur_x_program)
 			{
 				DW_LOG_ERROR("Failed to load Near CoC Blur X shaders");
 			}
@@ -151,8 +151,8 @@ void DepthOfField::initialize(uint16_t width, uint16_t height)
 			m_near_coc_blur4_fs = GlobalGraphicsResources::load_shader(GL_FRAGMENT_SHADER, fs_path, { "VERTICAL", "BLUR13", "CHANNELS_COUNT_1" });
 
 			dw::Shader* shaders[] = { m_quad_vs, m_near_coc_blur4_fs };
-			std::string combined_path = vs_path + fs_path;
-			m_near_coc_blur_program = GlobalGraphicsResources::load_program(combined_path, 2, &shaders[0]);
+			std::string combined_name = GlobalGraphicsResources::combined_program_name(vs_path, fs_path, { "VERTICAL", "BLUR13", "CHANNELS_COUNT_1" });
+			m_near_coc_blur_program = GlobalGraphicsResources::load_program(combined_name, 2, &shaders[0]);
 
 			if (!m_quad_vs || !m_near_coc_blur4_fs || !m_near_coc_blur_program)
 			{
@@ -215,10 +215,9 @@ void DepthOfField::on_window_resized(uint16_t width, uint16_t height)
 	m_coc4_rt->set_min_filter(GL_LINEAR);
 	m_coc4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
+	dw::Texture* ds_render_targets[] = { m_color4_rt, m_mul_coc_far4_rt, m_coc4_rt };
 	m_downsample_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_DOF_DOWNSAMPLE);
-	m_downsample_fbo->attach_render_target(0, m_color4_rt, 0, 0);
-	m_downsample_fbo->attach_render_target(1, m_mul_coc_far4_rt, 0, 0);
-	m_downsample_fbo->attach_render_target(2, m_coc4_rt, 0, 0);
+	m_downsample_fbo->attach_multiple_render_targets(3, ds_render_targets);
 
 	// Near CoC Max X
 	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_DOF_NEAR_COC_MAX_X4);
@@ -262,7 +261,7 @@ void DepthOfField::on_window_resized(uint16_t width, uint16_t height)
 	m_near_coc_blur4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 			   
 	m_near_coc_blur_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_NEAR_COC_BLUR4);
-	m_near_coc_blur_fbo->attach_render_target(0, m_near_coc_max4_rt, 0, 0);
+	m_near_coc_blur_fbo->attach_render_target(0, m_near_coc_blur4_rt, 0, 0);
 
 	// Computation
 	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_DOF4);
@@ -277,9 +276,9 @@ void DepthOfField::on_window_resized(uint16_t width, uint16_t height)
 	m_far_dof4_rt->set_min_filter(GL_LINEAR);
 	m_far_dof4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
+	dw::Texture* comp_render_targets[] = { m_near_dof4_rt, m_far_dof4_rt };
 	m_computation_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_DOF4);
-	m_computation_fbo->attach_render_target(0, m_near_dof4_rt, 0, 0);
-	m_computation_fbo->attach_render_target(1, m_far_dof4_rt, 0, 0);
+	m_computation_fbo->attach_multiple_render_targets(2, comp_render_targets);
 
 	// Fill
 	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_DOF_FILL4);
@@ -294,9 +293,9 @@ void DepthOfField::on_window_resized(uint16_t width, uint16_t height)
 	m_far_fill_dof4_rt->set_min_filter(GL_LINEAR);
 	m_far_fill_dof4_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
-	m_computation_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_DOF_FILL4);
-	m_computation_fbo->attach_render_target(0, m_near_fill_dof4_rt, 0, 0);
-	m_computation_fbo->attach_render_target(1, m_far_fill_dof4_rt, 0, 0);
+	dw::Texture* fill_render_targets[] = { m_near_fill_dof4_rt, m_far_fill_dof4_rt };
+	m_fill_fbo = GlobalGraphicsResources::create_framebuffer(FRAMEBUFFER_DOF_FILL4);
+	m_fill_fbo->attach_multiple_render_targets(2, fill_render_targets);
 
 	// Composite
 	GlobalGraphicsResources::destroy_framebuffer(FRAMEBUFFER_DOF_COMPOSITE);
@@ -317,7 +316,7 @@ void DepthOfField::render(uint32_t w, uint32_t h)
 	coc_generation(w, h);
 	downsample(w, h);
 	near_coc_max(w, h);
-	near_coc_blur(w, h );
+	near_coc_blur(w, h);
 	dof_computation(w, h);
 	fill(w, h);
 	composite(w, h);
@@ -341,7 +340,7 @@ void DepthOfField::coc_generation(uint32_t w, uint32_t h)
 	m_coc_program->set_uniform("u_FarBegin", m_far_begin);
 	m_coc_program->set_uniform("u_FarEnd", m_far_end);
 
-	if (m_coc_program->set_uniform("s_Depth", 1))
+	if (m_coc_program->set_uniform("s_Depth", 0))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_DEPTH)->bind(0);
 
 	m_post_process_renderer.render(w, h, m_coc_fbo);

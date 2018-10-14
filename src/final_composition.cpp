@@ -68,7 +68,7 @@ void FinalComposition::render(dw::Camera* camera, uint32_t w, uint32_t h)
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_TONE_MAPPING)->bind(8);
 
 	if (m_composition_program->set_uniform("s_SSAO", 9))
-		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO)->bind(9);
+		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_DOF_COC)->bind(9);
 
 	if (m_composition_program->set_uniform("s_SSAO_Blur", 10))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_SSAO_BLUR)->bind(10);

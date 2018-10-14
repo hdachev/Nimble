@@ -253,6 +253,24 @@ dw::Program* GlobalGraphicsResources::load_program(std::string& combined_name, u
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+std::string GlobalGraphicsResources::combined_program_name(const std::string& vs, const std::string& fs, std::vector<std::string> defines)
+{
+	std::string name_with_defines = "";
+
+	for (auto define : defines)
+	{
+		name_with_defines += define;
+		name_with_defines += "|";
+	}
+
+	name_with_defines += vs;
+	name_with_defines += fs;
+
+	return name_with_defines;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void GlobalGraphicsResources::create_cube()
 {
 	float cube_vertices[] =
