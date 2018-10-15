@@ -88,7 +88,7 @@ void HiZBuffer::on_window_resized(uint16_t width, uint16_t height)
 	m_hiz_rt->set_min_filter(GL_LINEAR);
 	m_hiz_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
-	for (int i = 0; i < count; i++)
+	for (int i = 0; i <= count; i++)
 	{
 		dw::Framebuffer* fbo = new dw::Framebuffer();
 		fbo->attach_depth_stencil_target(m_hiz_rt, 0, i);
@@ -115,7 +115,7 @@ void HiZBuffer::copy_depth(uint32_t w, uint32_t h)
 	if (m_copy_program->set_uniform("s_Texture", 0))
 		GlobalGraphicsResources::lookup_texture(RENDER_TARGET_GBUFFER_DEPTH)->bind(0);
 
-	m_post_process_renderer.render(w, h, m_fbos[0]);
+	m_post_process_renderer.render(w, h, m_fbos[0], GL_DEPTH_BUFFER_BIT);
 
 	GPUProfiler::end("HiZ - Copy");
 }
@@ -128,12 +128,12 @@ void HiZBuffer::downsample(uint32_t w, uint32_t h)
 
 	for (uint32_t i = 1; i < m_fbos.size(); i++)
 	{
-		float scale = pow(2, i + 1);
+		float scale = pow(2, i);
 
 		if (m_hiz_program->set_uniform("s_Texture", 0))
 			m_hiz_rt->bind(0);
 
-		m_post_process_renderer.render(w / scale, h / scale, m_fbos[i]);
+		m_post_process_renderer.render(w / scale, h / scale, m_fbos[i], GL_DEPTH_BUFFER_BIT);
 	}
 
 	GPUProfiler::end("HiZ - Downsample");

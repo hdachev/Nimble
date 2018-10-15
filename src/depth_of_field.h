@@ -25,8 +25,8 @@ private:
 public:
 	float m_near_begin = 0.0f;
 	float m_near_end = 0.0f;
-	float m_far_begin = 1.0f;
-	float m_far_end = 1.0f;
+	float m_far_begin = 200.0f;
+	float m_far_end = 250.0f;
 	float m_blend = 1.0f;
 	float m_kernel_size = 1.0f;
 

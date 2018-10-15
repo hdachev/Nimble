@@ -14,7 +14,11 @@ PostProcessRenderer::~PostProcessRenderer() {}
 void PostProcessRenderer::render(uint32_t w, uint32_t h, dw::Framebuffer* fbo, GLbitfield clear)
 {
 	// Set state.
-	glDisable(GL_DEPTH_TEST);
+	if (clear & GL_DEPTH_BUFFER_BIT)
+		glEnable(GL_DEPTH_TEST);
+	else
+		glDisable(GL_DEPTH_TEST);
+	
 	glDisable(GL_CULL_FACE);
 
 	// Bind framebuffer.
