@@ -21,6 +21,7 @@
 #include "shadow_map_renderer.h"
 #include "taa.h"
 #include "depth_of_field.h"
+#include "hi_z_buffer.h"
 
 class Renderer
 {
@@ -66,6 +67,7 @@ private:
 	ToneMapping m_tone_mapping;
 	TAA			m_taa;
 	DepthOfField m_depth_of_field;
+	HiZBuffer	 m_hi_z_buffer;
 
 	// CSM
 	CSM m_csm_technique;

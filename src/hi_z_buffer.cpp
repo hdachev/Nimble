@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "logger.h"
 #include "gpu_profiler.h"
+#include <imgui.h>
 
 HiZBuffer::HiZBuffer()
 {
@@ -58,7 +59,8 @@ void HiZBuffer::shutdown()
 
 void HiZBuffer::profiling_gui()
 {
-
+	ImGui::Text("HiZ - Copy: %f ms", GPUProfiler::result("HiZ - Copy"));
+	ImGui::Text("HiZ - Downsample: %f ms", GPUProfiler::result("HiZ - Downsample"));
 }
 
 void HiZBuffer::on_window_resized(uint16_t width, uint16_t height)
@@ -76,10 +78,13 @@ void HiZBuffer::on_window_resized(uint16_t width, uint16_t height)
 
 	for (auto fbo : m_fbos)
 		delete fbo;
+
+	m_fbos.clear();
 	
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_HiZ);
 
 	m_hiz_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_HiZ, width, height, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, 1, count);
+	m_hiz_rt->generate_mipmaps();
 	m_hiz_rt->set_min_filter(GL_LINEAR);
 	m_hiz_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 

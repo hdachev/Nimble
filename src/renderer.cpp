@@ -102,6 +102,7 @@ void Renderer::initialize(uint16_t width, uint16_t height, dw::Camera* camera)
 	m_ambient_occlusion.initialize(m_width, m_height);
 	m_taa.initialize(m_width, m_height);
 	m_depth_of_field.initialize(m_width, m_height);
+	m_hi_z_buffer.initialize(m_width, m_height);
 
 	// Initialize CSM.
 	m_csm_technique.initialize(0.3, 350.0f, 4, 2048, m_camera, m_width, m_height, m_light_direction);
@@ -124,6 +125,7 @@ void Renderer::shutdown()
 	m_tone_mapping.shutdown();
 	m_taa.shutdown();
 	m_depth_of_field.shutdown();
+	m_hi_z_buffer.shutdown();
 	m_deferred_shading_renderer.shutdown();
 
 	// Clean up profiler queries
@@ -172,6 +174,7 @@ void Renderer::on_window_resized(uint16_t width, uint16_t height)
 	m_ambient_occlusion.on_window_resized(width, height);
 	m_taa.on_window_resized(width, height);
 	m_depth_of_field.on_window_resized(width, height);
+	m_hi_z_buffer.on_window_resized(width, height);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -404,7 +407,9 @@ void Renderer::debug_gui(double delta)
 				m_deferred_shading_renderer.profiling_gui();
 			}
 
+			m_hi_z_buffer.profiling_gui();
 			m_ssr.profiling_gui();
+			m_depth_of_field.profiling_gui();
 			m_motion_blur.profiling_gui();
 			m_bloom.profiling_gui();
 			m_taa.profiling_gui();
@@ -445,6 +450,9 @@ void Renderer::render(double delta)
 	{
 		// Render geometry into G-Buffer
 		m_gbuffer_renderer.render(m_scene, m_width, m_height);
+
+		// Generate Hi-Z Buffer
+		m_hi_z_buffer.render(m_width, m_height);
 
 		// Render SSAO
 		m_ambient_occlusion.render(m_width, m_height);

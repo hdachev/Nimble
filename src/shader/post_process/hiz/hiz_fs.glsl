@@ -16,7 +16,7 @@ uniform sampler2D s_Texture;
 
 void main()
 {
-	vec4 depth = texelGather(s_Texture, PS_IN_TexCoord, 0);
+	vec4 depth = textureGather(s_Texture, PS_IN_TexCoord, 0);
 #ifdef MAX
 	gl_FragDepth = max(max(depth.x, depth.y), max(depth.z, depth.w));
 #else
