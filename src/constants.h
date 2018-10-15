@@ -14,6 +14,9 @@
 // CSM
 #define CSM_SHADOW_MAPS "CSMShadowMaps"
 
+// Hi-Z
+#define RENDER_TARGET_HiZ "HIZ_RT"
+
 // Deferred Renderer
 #define FRAMEBUFFER_DEFERRED "Deferred_FBO"
 #define RENDER_TARGET_DEFERRED_COLOR "Deferred_Color"
