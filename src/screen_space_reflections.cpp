@@ -9,7 +9,7 @@
 
 ScreenSpaceReflections::ScreenSpaceReflections()
 {
-	m_enabled = false;
+	m_enabled = true;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ void ScreenSpaceReflections::on_window_resized(uint16_t width, uint16_t height)
 	GlobalGraphicsResources::destroy_texture(RENDER_TARGET_SSR);
 
 	// Create Render targets.
-	m_ssr_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_SSR, width, height, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+	m_ssr_rt = GlobalGraphicsResources::create_texture_2d(RENDER_TARGET_SSR, width, height, GL_RGB32F, GL_RGB, GL_HALF_FLOAT);
 	m_ssr_rt->set_min_filter(GL_LINEAR);
 	m_ssr_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 

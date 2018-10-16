@@ -133,8 +133,14 @@ void HiZBuffer::downsample(uint32_t w, uint32_t h)
 		if (m_hiz_program->set_uniform("s_Texture", 0))
 			m_hiz_rt->bind(0);
 
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, i - 1);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, i - 1);
+
 		m_post_process_renderer.render(w / scale, h / scale, m_fbos[i], GL_DEPTH_BUFFER_BIT);
 	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1000);
 
 	GPUProfiler::end("HiZ - Downsample");
 }

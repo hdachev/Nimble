@@ -16,7 +16,6 @@ uniform samplerCube s_IrradianceMap;
 uniform samplerCube s_PrefilteredMap;
 uniform sampler2D s_BRDF;
 uniform sampler2D s_SSAO;
-uniform sampler2D s_SSR;
 
 #include <../csm/csm.glsl>
 
@@ -227,13 +226,7 @@ void main()
 	vec3 diffuse = irradiance * kAlbedo;
 
 	// Sample prefilter map and BRDF LUT
-	vec3 ssr = texture(s_SSR, PS_IN_TexCoord).rgb;
-	vec3 prefilteredColor = vec3(0.0);
-
-	if (ssr.x > 0.0 || ssr.y > 0.0 || ssr.z > 0.0)
-		prefilteredColor = ssr;
-	else
-		prefilteredColor = textureLod(s_PrefilteredMap, R, kRoughness * kMaxLOD).rgb;
+	vec3 prefilteredColor = textureLod(s_PrefilteredMap, R, kRoughness * kMaxLOD).rgb;
 
 	vec2 brdf = texture(s_BRDF, vec2(max(NdotV, 0.0), kRoughness)).rg;
 	vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
