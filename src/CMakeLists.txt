@@ -65,6 +65,7 @@ else()
 endif()
 
 target_link_libraries(Nimble dwSampleFramework)
+target_link_libraries(Nimble AssetCoreRuntime)
 
 if (APPLE)
     add_custom_command(TARGET Nimble POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/src/shader $<TARGET_FILE_DIR:Nimble>/Nimble.app/Contents/Resources/assets/shader)
