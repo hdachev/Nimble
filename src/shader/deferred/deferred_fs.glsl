@@ -131,7 +131,7 @@ void main()
 	F0 = mix(F0, kAlbedo, kMetalness);
 
 	float NdotV = max(dot(N, V), 0.0);
-	vec3  F = fresnel_schlick_roughness(NdotV, F0, kRoughness);
+	vec3  F = clamp(fresnel_schlick_roughness(NdotV, F0, kRoughness), 0.0, 1.0);
 
 	vec3 shadow_debug = vec3(0.0);
 	float ao = texture(s_SSAO, PS_IN_TexCoord).r;
