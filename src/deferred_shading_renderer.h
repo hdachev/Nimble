@@ -2,27 +2,30 @@
 
 #include "post_process_renderer.h"
 
-class Scene;
-
-class DeferredShadingRenderer
+namespace nimble
 {
-public:
-	DeferredShadingRenderer();
-	~DeferredShadingRenderer();
-	void initialize(uint16_t width, uint16_t height);
-	void shutdown();
-	void profiling_gui();
-	void on_window_resized(uint16_t width, uint16_t height);
-	void render(Scene* scene, uint32_t w, uint32_t h);
+	class Scene;
 
-private:
-	dw::Texture* m_deferred_color;
-	dw::Texture* m_bright_pass;
-	dw::Framebuffer* m_deferred_fbo;
+	class DeferredShadingRenderer
+	{
+	public:
+		DeferredShadingRenderer();
+		~DeferredShadingRenderer();
+		void initialize(uint16_t width, uint16_t height);
+		void shutdown();
+		void profiling_gui();
+		void on_window_resized(uint16_t width, uint16_t height);
+		void render(Scene* scene, uint32_t w, uint32_t h);
 
-	dw::Shader* m_deferred_vs;
-	dw::Shader* m_deferred_fs;
-	dw::Program* m_deferred_program;
+	private:
+		Texture* m_deferred_color;
+		Texture* m_bright_pass;
+		Framebuffer* m_deferred_fbo;
 
-	PostProcessRenderer m_post_process_renderer;
-};
+		Shader* m_deferred_vs;
+		Shader* m_deferred_fs;
+		Program* m_deferred_program;
+
+		PostProcessRenderer m_post_process_renderer;
+	};
+}

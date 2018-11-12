@@ -7,84 +7,87 @@
 
 #include "uniforms.h"
 
-enum RendererType
+namespace nimble
 {
-	RENDERER_FORWARD = 0,
-	RENDERER_DEFERRED = 1
-};
+	enum RendererType
+	{
+		RENDERER_FORWARD = 0,
+		RENDERER_DEFERRED = 1
+	};
 
-// Class for associating names with graphics resources and offering a global point-of-access for all render passes.
-class GlobalGraphicsResources
-{
-public:
-	// Create initial resources such as the BRDF lookup table and global UBO's.
-	static void initialize();
+	// Class for associating names with graphics resources and offering a global point-of-access for all render passes.
+	class GlobalGraphicsResources
+	{
+	public:
+		// Create initial resources such as the BRDF lookup table and global UBO's.
+		static void initialize();
 
-	// Cleanup all allocated resources.
-	static void shutdown();
+		// Cleanup all allocated resources.
+		static void shutdown();
 
-	// Lookup a previously created texture by name.
-	static dw::Texture* lookup_texture(const std::string& name);
+		// Lookup a previously created texture by name.
+		static Texture* lookup_texture(const std::string& name);
 
-	// Texture create methods. Returns nullptr if a texture with the same name already exists,
-	static dw::Texture2D* create_texture_2d(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-	static dw::TextureCube* create_texture_cube(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum internal_format, GLenum format, GLenum type, uint32_t array_size = 1, uint32_t mip_levels = 1);
+		// Texture create methods. Returns nullptr if a texture with the same name already exists,
+		static Texture2D* create_texture_2d(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+		static TextureCube* create_texture_cube(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum internal_format, GLenum format, GLenum type, uint32_t array_size = 1, uint32_t mip_levels = 1);
 
-	// Texture destroy method.
-	static void destroy_texture(const std::string& name);
+		// Texture destroy method.
+		static void destroy_texture(const std::string& name);
 
-	// Lookup a previously created framebuffer by name.
-	static dw::Framebuffer* lookup_framebuffer(const std::string& name);
+		// Lookup a previously created framebuffer by name.
+		static Framebuffer* lookup_framebuffer(const std::string& name);
 
-	// Framebuffer create method. Returns nullptr if a framebuffer with the same name already exists,
-	static dw::Framebuffer* create_framebuffer(const std::string& name);
+		// Framebuffer create method. Returns nullptr if a framebuffer with the same name already exists,
+		static Framebuffer* create_framebuffer(const std::string& name);
 
-	// Framebuffer destroy method.
-	static void destroy_framebuffer(const std::string& name);
+		// Framebuffer destroy method.
+		static void destroy_framebuffer(const std::string& name);
 
-	// Shader caching.
-	static dw::Shader* load_shader(GLuint type, std::string& path, const std::vector<std::string> defines = std::vector<std::string>());
-	static dw::Program* load_program(std::string& combined_name, uint32_t count, dw::Shader** shaders);
+		// Shader caching.
+		static Shader* load_shader(GLuint type, std::string& path, const std::vector<std::string> defines = std::vector<std::string>());
+		static Program* load_program(std::string& combined_name, uint32_t count, Shader** shaders);
 
-	// Uniform buffer getters.
-	inline static dw::UniformBuffer* per_frame_ubo() { return m_per_frame; }
-	inline static dw::UniformBuffer* per_scene_ubo() { return m_per_scene; }
-	inline static dw::UniformBuffer* per_entity_ubo() { return m_per_entity; }
+		// Uniform buffer getters.
+		inline static UniformBuffer* per_frame_ubo() { return m_per_frame; }
+		inline static UniformBuffer* per_scene_ubo() { return m_per_scene; }
+		inline static UniformBuffer* per_entity_ubo() { return m_per_entity; }
 
-	// Common geometry getters.
-	inline static dw::VertexArray* fullscreen_quad_vao() { return m_quad_vao; }
-	inline static dw::VertexArray* cube_vao() { return m_cube_vao; }
+		// Common geometry getters.
+		inline static VertexArray* fullscreen_quad_vao() { return m_quad_vao; }
+		inline static VertexArray* cube_vao() { return m_cube_vao; }
 
-	// Uniform getters.
-	inline static PerFrameUniforms& per_frame_uniforms() { return m_per_frame_uniforms; }
+		// Uniform getters.
+		inline static PerFrameUniforms& per_frame_uniforms() { return m_per_frame_uniforms; }
 
-	static std::string combined_program_name(const std::string& vs, const std::string& fs, std::vector<std::string> defines);
+		static std::string combined_program_name(const std::string& vs, const std::string& fs, std::vector<std::string> defines);
 
-private:
-	static void create_cube();
-	static void create_quad();
-	static bool read_shader(std::string path, std::string& out, const std::vector<std::string> defines = std::vector<std::string>());
+	private:
+		static void create_cube();
+		static void create_quad();
+		static bool read_shader(std::string path, std::string& out, const std::vector<std::string> defines = std::vector<std::string>());
 
-private:
-	// Resource maps.
-	static std::unordered_map<std::string, dw::Texture*> m_texture_map;
-	static std::unordered_map<std::string, dw::Framebuffer*> m_framebuffer_map;
+	private:
+		// Resource maps.
+		static std::unordered_map<std::string, Texture*> m_texture_map;
+		static std::unordered_map<std::string, Framebuffer*> m_framebuffer_map;
 
-	// Shader and Program cache.
-	static std::unordered_map<std::string, dw::Program*> m_program_cache;
-	static std::unordered_map<std::string, dw::Shader*> m_shader_cache;
+		// Shader and Program cache.
+		static std::unordered_map<std::string, Program*> m_program_cache;
+		static std::unordered_map<std::string, Shader*> m_shader_cache;
 
-	// Common geometry.
-	static dw::VertexArray*   m_quad_vao;
-	static dw::VertexBuffer*  m_quad_vbo;
-	static dw::VertexArray*   m_cube_vao;
-	static dw::VertexBuffer*  m_cube_vbo;
+		// Common geometry.
+		static VertexArray*   m_quad_vao;
+		static VertexBuffer*  m_quad_vbo;
+		static VertexArray*   m_cube_vao;
+		static VertexBuffer*  m_cube_vbo;
 
-	// Uniform buffers.
-	static dw::UniformBuffer* m_per_frame;
-	static dw::UniformBuffer* m_per_scene;
-	static dw::UniformBuffer* m_per_entity;
+		// Uniform buffers.
+		static UniformBuffer* m_per_frame;
+		static UniformBuffer* m_per_scene;
+		static UniformBuffer* m_per_entity;
 
-	// Per Frame uniforms.
-	static PerFrameUniforms m_per_frame_uniforms;
-};
+		// Per Frame uniforms.
+		static PerFrameUniforms m_per_frame_uniforms;
+	};
+}

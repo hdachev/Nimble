@@ -11,12 +11,12 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-set(JSON_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/external/json/single_include/nlohmann")
-set(ASSET_CORE_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/external/AssetCore/include")
-
-add_subdirectory(external/dwSampleFramework)
 add_subdirectory(external/AssetCore)
+add_subdirectory(external/glfw)
 
-include_directories("${DW_SAMPLE_FRAMEWORK_INCLUDES}" "${JSON_INCLUDE_DIR}" "${ASSET_CORE_INCLUDE_DIR}")
+set(GLFW_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/glfw/include")
+
+include_directories("${ASSET_CORE_INCLUDES}"
+					"${GLFW_INCLUDE_DIRS}")
 
 add_subdirectory(src)
