@@ -9,9 +9,6 @@ namespace nimble
 	class Scene
 	{
 	public:
-		// Creates a scene from a description stored in a JSON file.
-		static Scene* load(const std::string& file);
-
 		Scene();
 		~Scene();
 
@@ -26,9 +23,6 @@ namespace nimble
 
 		// Destroy an entity by passing in a pointer. Won't destroy the associated resources for now.
 		void destroy_entity(Entity* entity);
-
-		// TODO: Save scene description to JSON.
-		void save(std::string path);
 
 		// Inline getters.
 		inline uint32_t entity_count() { return m_entities.size(); }

@@ -31,6 +31,8 @@
 *.out
 *.app
 
+external/
+external/*
 external/dwSampleFramwork
 external/json
 bin/

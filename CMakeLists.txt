@@ -15,8 +15,10 @@ add_subdirectory(external/AssetCore)
 add_subdirectory(external/glfw)
 
 set(GLFW_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/glfw/include")
+set(IMGUI_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/external/imgui")
 
 include_directories("${ASSET_CORE_INCLUDES}"
-					"${GLFW_INCLUDE_DIRS}")
+					"${GLFW_INCLUDE_DIRS}"
+					"${IMGUI_INCLUDE_DIRS}")
 
 add_subdirectory(src)

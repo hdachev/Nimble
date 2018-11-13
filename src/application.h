@@ -39,7 +39,6 @@ namespace nimble
 		std::string title = "Nimble";
 	};
 
-
     class Application
     {
     public:
