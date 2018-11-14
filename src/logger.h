@@ -3,10 +3,10 @@
 #include <string>
 
 // Macros for quick access. File and line are added through the respective macros.
-#define NIMBLE_LOG_INFO(x) dw::logger::log(x, std::string(__FILE__), __LINE__, dw::logger::LEVEL_INFO)
-#define NIMBLE_LOG_WARNING(x) dw::logger::log(x, std::string(__FILE__), __LINE__, dw::logger::LEVEL_WARNING)
-#define NIMBLE_LOG_ERROR(x) dw::logger::log(x, std::string(__FILE__), __LINE__, dw::logger::LEVEL_ERR)
-#define NIMBLE_LOG_FATAL(x) dw::logger::log(x, std::string(__FILE__), __LINE__, dw::logger::LEVEL_FATAL)
+#define NIMBLE_LOG_INFO(x) nimble::logger::log(x, std::string(__FILE__), __LINE__, nimble::logger::LEVEL_INFO)
+#define NIMBLE_LOG_WARNING(x) nimble::logger::log(x, std::string(__FILE__), __LINE__, nimble::logger::LEVEL_WARNING)
+#define NIMBLE_LOG_ERROR(x) nimble::logger::log(x, std::string(__FILE__), __LINE__, nimble::logger::LEVEL_ERR)
+#define NIMBLE_LOG_FATAL(x) nimble::logger::log(x, std::string(__FILE__), __LINE__, nimble::logger::LEVEL_FATAL)
 
 namespace nimble
 {
