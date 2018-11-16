@@ -15,7 +15,7 @@ namespace nimble
 		ResourceManager();
 		~ResourceManager();
 
-		Texture* load_texture(const std::string& path);
+		Texture* load_texture(const std::string& path, const bool& srgb = false);
 		Material* load_material(const std::string& path);
 		Mesh* load_mesh(const std::string& path);
 

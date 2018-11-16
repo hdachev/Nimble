@@ -96,9 +96,10 @@ namespace nimble
     class Texture2D : public Texture
     {
     public:
-        Texture2D(uint32_t w, uint32_t h, uint32_t array_size, int32_t mip_levels, uint32_t num_samples, GLenum internal_format, GLenum format, GLenum type);
+        Texture2D(uint32_t w, uint32_t h, uint32_t array_size, int32_t mip_levels, uint32_t num_samples, GLenum internal_format, GLenum format, GLenum type, bool compressed = false);
         ~Texture2D();
 		void set_data(int array_index, int mip_level, void* data);
+		void set_compressed_data(int array_index, int mip_level, size_t size, void* data);
         uint32_t width();
         uint32_t height();
 		uint32_t mip_levels();

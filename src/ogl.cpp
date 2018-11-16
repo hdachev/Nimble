@@ -244,7 +244,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Texture2D::Texture2D(uint32_t w, uint32_t h, uint32_t array_size, int32_t mip_levels, uint32_t num_samples, GLenum internal_format, GLenum format, GLenum type) : Texture()
+	Texture2D::Texture2D(uint32_t w, uint32_t h, uint32_t array_size, int32_t mip_levels, uint32_t num_samples, GLenum internal_format, GLenum format, GLenum type, bool compressed) : Texture()
 	{
 		m_array_size = array_size;
 		m_internal_format = internal_format;
@@ -280,31 +280,34 @@ namespace nimble
 			else
 				m_target = GL_TEXTURE_2D_ARRAY;
 
-			int width = m_width;
-			int height = m_height;
-
-			GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
-
-			if (m_num_samples > 1)
+			if (!compressed)
 			{
-				if (m_mip_levels > 1)
-					NIMBLE_LOG_WARNING("OPENGL: Multisampled textures cannot have mipmaps. Setting mip levels to 1...");
+				int width = m_width;
+				int height = m_height;
 
-				m_mip_levels = 1;
-				GL_CHECK_ERROR(glTexImage3DMultisample(m_target, m_num_samples, m_internal_format, width, height, m_array_size, true));
-			}
-			else
-			{
-				for (int i = 0; i < m_mip_levels; i++)
+				GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
+
+				if (m_num_samples > 1)
 				{
-					GL_CHECK_ERROR(glTexImage3D(m_target, i, m_internal_format, width, height, m_array_size, 0, m_format, m_type, NULL));
+					if (m_mip_levels > 1)
+						NIMBLE_LOG_WARNING("OPENGL: Multisampled textures cannot have mipmaps. Setting mip levels to 1...");
 
-					width = std::max(1, (width / 2));
-					height = std::max(1, (height / 2));
+					m_mip_levels = 1;
+					GL_CHECK_ERROR(glTexImage3DMultisample(m_target, m_num_samples, m_internal_format, width, height, m_array_size, true));
 				}
-			}
+				else
+				{
+					for (int i = 0; i < m_mip_levels; i++)
+					{
+						GL_CHECK_ERROR(glTexImage3D(m_target, i, m_internal_format, width, height, m_array_size, 0, m_format, m_type, NULL));
 
-			GL_CHECK_ERROR(glBindTexture(m_target, 0));
+						width = std::max(1, (width / 2));
+						height = std::max(1, (height / 2));
+					}
+				}
+
+				GL_CHECK_ERROR(glBindTexture(m_target, 0));
+			}
 		}
 		else
 		{
@@ -313,31 +316,34 @@ namespace nimble
 			else
 				m_target = GL_TEXTURE_2D;
 
-			int width = m_width;
-			int height = m_height;
-
-			GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
-
-			if (m_num_samples > 1)
+			if (!compressed)
 			{
-				if (m_mip_levels > 1)
-					NIMBLE_LOG_WARNING("OPENGL: Multisampled textures cannot have mipmaps. Setting mip levels to 1...");
+				int width = m_width;
+				int height = m_height;
 
-				m_mip_levels = 1;
-				GL_CHECK_ERROR(glTexImage2DMultisample(m_target, m_num_samples, m_internal_format, width, height, true));
+				GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
+
+				if (m_num_samples > 1)
+				{
+					if (m_mip_levels > 1)
+						NIMBLE_LOG_WARNING("OPENGL: Multisampled textures cannot have mipmaps. Setting mip levels to 1...");
+
+					m_mip_levels = 1;
+					GL_CHECK_ERROR(glTexImage2DMultisample(m_target, m_num_samples, m_internal_format, width, height, true));
+				}
+				else
+				{
+					for (int i = 0; i < m_mip_levels; i++)
+					{
+						GL_CHECK_ERROR(glTexImage2D(m_target, i, m_internal_format, width, height, 0, m_format, m_type, NULL));
+
+						width = std::max(1, (width / 2));
+						height = std::max(1, (height / 2));
+					}
+				}
+
+				GL_CHECK_ERROR(glBindTexture(m_target, 0));
 			}
-			else
-			{
-                for (int i = 0; i < m_mip_levels; i++)
-                {
-                    GL_CHECK_ERROR(glTexImage2D(m_target, i, m_internal_format, width, height, 0, m_format, m_type, NULL));
-
-                    width = std::max(1, (width / 2));
-                    height = std::max(1, (height / 2));
-                }
-			}
-
-			GL_CHECK_ERROR(glBindTexture(m_target, 0));
 		}
         
         // Default sampling options.
@@ -378,6 +384,40 @@ namespace nimble
 			else
 			{
 				GL_CHECK_ERROR(glTexImage2D(m_target, mip_level, m_internal_format, width, height, 0, m_format, m_type, data));
+			}
+
+			GL_CHECK_ERROR(glBindTexture(m_target, 0));
+		}
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Texture2D::set_compressed_data(int array_index, int mip_level, size_t size, void* data)
+	{
+		if (m_num_samples > 1)
+		{
+			NIMBLE_LOG_ERROR("OPENGL: Multisampled texture data can only be assigned through Shaders or FBOs");
+		}
+		else
+		{
+			int width = m_width;
+			int height = m_height;
+
+			for (int i = 0; i < mip_level; i++)
+			{
+				width = std::max(1, width / 2);
+				height = std::max(1, (height / 2));
+			}
+
+			GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
+
+			if (m_array_size > 1)
+			{
+				GL_CHECK_ERROR(glCompressedTexImage3D(m_target, mip_level, m_internal_format, width, height, array_index, 0, size, data));
+			}
+			else
+			{
+				GL_CHECK_ERROR(glCompressedTexImage2D(m_target, mip_level, m_internal_format, width, height, 0, size, data));
 			}
 
 			GL_CHECK_ERROR(glBindTexture(m_target, 0));
