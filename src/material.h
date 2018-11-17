@@ -78,7 +78,9 @@ namespace nimble
 		TEXTURE_TYPE_NORMAL,
 		TEXTURE_TYPE_METAL_SPEC,
 		TEXTURE_TYPE_ROUGH_SMOOTH,
-		TEXTURE_TYPE_DISPLACEMENT
+		TEXTURE_TYPE_DISPLACEMENT,
+		TEXTURE_TYPE_EMISSIVE,
+		TEXTURE_TYPE_CUSTOM
 	};
 
 	class Material
@@ -100,8 +102,12 @@ namespace nimble
 		inline void set_uniform_emissive(const glm::vec3& emissive) { m_uniforms.emissive = glm::vec4(emissive, 0.0f); }
 		inline void set_uniform_metallic(const float& metallic) { m_uniforms.metal_rough.x = metallic; }
 		inline void set_uniform_roughness(const float& roughness) { m_uniforms.metal_rough.y = roughness; }
-		inline void set_vertex_shader_func(const std::string& src) { m_vertex_shader_func = src; m_has_vertex_shader_func = true; }
-		inline void set_fragment_shader_func(const std::string& src) { m_fragment_shader_func = src; m_has_fragment_shader_func = true; }
+		inline void set_blend_mode(const BlendMode& blend) { m_blend_mode = blend; }
+		inline void set_displacement_type(const DisplacementType& displacement) { m_displacement_type = displacement; }
+		inline void set_shading_model(const ShadingModel& shading) { m_shading_model = shading; }
+		inline void set_lighting_model(const LightingModel& lighting) { m_lighting_model = lighting; }
+		inline void set_vertex_shader_func(const std::string& src) { if (src.size() > 0) { m_vertex_shader_func = src; m_has_vertex_shader_func = true; } }
+		inline void set_fragment_shader_func(const std::string& src) { if (src.size() > 0) { m_fragment_shader_func = src; m_has_fragment_shader_func = true; } }
 		inline void set_custom_texture_count(const uint32_t& count) { m_custom_texture_count = count; }
 		inline void set_custom_texture(const uint32_t& index, Texture* texture) { if (index < m_custom_texture_count){ m_custom_textures[index] = texture; }}
 		inline void set_surface_texture(TextureType type, Texture* texture) { m_surface_textures[type] = texture; }
@@ -120,6 +126,10 @@ namespace nimble
 		inline float uniform_metallic() { return m_uniforms.metal_rough.x; }
 		inline float uniform_roughness() { return m_uniforms.metal_rough.y; }
 		inline MaterialUniforms uniforms() { return m_uniforms; }
+		inline BlendMode blend_mode() { return m_blend_mode; }
+		inline DisplacementType displacement_type() { return m_displacement_type; }
+		inline ShadingModel shading_model() { return m_shading_model; }
+		inline LightingModel lighting_model() { return m_lighting_model; }
 		inline uint32_t custom_texture_count() { return m_custom_texture_count; }
 		inline Texture* custom_texture(const uint32_t& index) { return m_custom_textures[index]; }
 		inline Texture* surface_texture(const uint32_t& index) { return m_surface_textures[index]; }
