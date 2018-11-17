@@ -563,7 +563,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	TextureCube::TextureCube(uint32_t w, uint32_t h, uint32_t array_size, int32_t mip_levels, GLenum internal_format, GLenum format, GLenum type)
+	TextureCube::TextureCube(uint32_t w, uint32_t h, uint32_t array_size, int32_t mip_levels, GLenum internal_format, GLenum format, GLenum type, bool compressed)
 	{
 		m_array_size = array_size;
 		m_internal_format = internal_format;
@@ -664,6 +664,33 @@ namespace nimble
 		{
 			GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
 			GL_CHECK_ERROR(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face_index, mip_level, m_internal_format, width, height, 0, m_format, m_type, data));
+			GL_CHECK_ERROR(glBindTexture(m_target, 0));
+		}
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void TextureCube::set_compressed_data(int face_index, int layer_index, int mip_level, size_t size, void* data)
+	{
+		int width = m_width;
+		int height = m_height;
+
+		for (int i = 0; i < mip_level; i++)
+		{
+			width = std::max(1, (width / 2));
+			height = std::max(1, (height / 2));
+		}
+
+		if (m_array_size > 1)
+		{
+			GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
+			GL_CHECK_ERROR(glCompressedTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, mip_level, 0, 0, layer_index * 6 + face_index, width, height, m_format, size, m_type, data));
+			GL_CHECK_ERROR(glBindTexture(m_target, 0));
+		}
+		else
+		{
+			GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
+			GL_CHECK_ERROR(glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face_index, mip_level, m_internal_format, width, height, size, m_type, data));
 			GL_CHECK_ERROR(glBindTexture(m_target, 0));
 		}
 	}
