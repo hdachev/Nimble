@@ -2,6 +2,7 @@
 
 #include "material.h"
 #include <common/mesh.h>
+#include <memory>
 
 namespace nimble
 {
@@ -17,7 +18,7 @@ namespace nimble
 			const glm::vec3& max_extents,
 			const glm::vec3& min_extents,
 			const std::vector<ast::SubMesh>& submeshes,
-			const std::vector<Material*>& materials,
+			const std::vector<std::shared_ptr<Material>>& materials,
 			VertexBuffer* vertex_buffer,
 			IndexBuffer* index_buffer,
 			VertexArray* vertex_array);
@@ -32,7 +33,7 @@ namespace nimble
 		glm::vec3                   m_max_extents;
 		glm::vec3                   m_min_extents;
 		std::vector<ast::SubMesh>   m_submeshes;
-		std::vector<Material*>      m_materials;
+		std::vector<std::shared_ptr<Material>>      m_materials;
 		VertexBuffer*			    m_vertex_buffer;
 		IndexBuffer*				m_index_buffer;
 		VertexArray*				m_vertex_array;

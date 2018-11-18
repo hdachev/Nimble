@@ -3,6 +3,7 @@
 #include <string>
 #include <stdint.h>
 #include <glm.hpp>
+#include <memory>
 #include "macros.h"
 #include "murmur_hash.h"
 
@@ -109,8 +110,8 @@ namespace nimble
 		inline void set_vertex_shader_func(const std::string& src) { if (src.size() > 0) { m_vertex_shader_func = src; m_has_vertex_shader_func = true; } }
 		inline void set_fragment_shader_func(const std::string& src) { if (src.size() > 0) { m_fragment_shader_func = src; m_has_fragment_shader_func = true; } }
 		inline void set_custom_texture_count(const uint32_t& count) { m_custom_texture_count = count; }
-		inline void set_custom_texture(const uint32_t& index, Texture* texture) { if (index < m_custom_texture_count){ m_custom_textures[index] = texture; }}
-		inline void set_surface_texture(TextureType type, Texture* texture) { m_surface_textures[type] = texture; }
+		inline void set_custom_texture(const uint32_t& index, std::shared_ptr<Texture> texture) { if (index < m_custom_texture_count){ m_custom_textures[index] = texture; }}
+		inline void set_surface_texture(TextureType type, std::shared_ptr<Texture> texture) { m_surface_textures[type] = texture; }
 
 		// Property getters
 		inline std::string name() { return m_name; }
@@ -131,8 +132,8 @@ namespace nimble
 		inline ShadingModel shading_model() { return m_shading_model; }
 		inline LightingModel lighting_model() { return m_lighting_model; }
 		inline uint32_t custom_texture_count() { return m_custom_texture_count; }
-		inline Texture* custom_texture(const uint32_t& index) { return m_custom_textures[index]; }
-		inline Texture* surface_texture(const uint32_t& index) { return m_surface_textures[index]; }
+		inline std::shared_ptr<Texture>& custom_texture(const uint32_t& index) { return m_custom_textures[index]; }
+		inline std::shared_ptr<Texture>& surface_texture(const uint32_t& index) { return m_surface_textures[index]; }
 
 	private:
 		std::string		 m_name = "";
@@ -149,8 +150,8 @@ namespace nimble
 		DisplacementType m_displacement_type = DISPLACEMENT_NONE;
 		ShadingModel	 m_shading_model = SHADING_MODEL_STANDARD;
 		LightingModel	 m_lighting_model = LIGHTING_MODEL_LIT;
-		Texture* 		 m_custom_textures[MAX_MATERIAL_TEXTURES];
-		Texture*		 m_surface_textures[MAX_MATERIAL_TEXTURES];
+		std::shared_ptr<Texture> m_custom_textures[MAX_MATERIAL_TEXTURES];
+		std::shared_ptr<Texture> m_surface_textures[MAX_MATERIAL_TEXTURES];
 		MaterialUniforms m_uniforms;
 	};
 }

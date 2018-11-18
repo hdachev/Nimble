@@ -9,7 +9,7 @@ namespace nimble
 		const glm::vec3& max_extents,
 		const glm::vec3& min_extents,
 		const std::vector<ast::SubMesh>& submeshes,
-		const std::vector<Material*>& materials,
+		const std::vector<std::shared_ptr<Material>>& materials,
 		VertexBuffer* vertex_buffer,
 		IndexBuffer* index_buffer,
 		VertexArray* vertex_array) : m_name(name),

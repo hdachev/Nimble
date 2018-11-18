@@ -72,10 +72,10 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Texture* ResourceManager::load_texture(const std::string& path, const bool& srgb, const bool& cubemap)
+	std::shared_ptr<Texture> ResourceManager::load_texture(const std::string& path, const bool& srgb, const bool& cubemap)
 	{
-		if (m_texture_cache.find(path) != m_texture_cache.end())
-			return m_texture_cache[path];
+		if (m_texture_cache.find(path) != m_texture_cache.end() && m_texture_cache[path].lock())
+			return m_texture_cache[path].lock();
 		else
 		{
 			ast::Image image;
@@ -99,7 +99,7 @@ namespace nimble
 
 					if (image.compression == ast::COMPRESSION_NONE)
 					{
-						TextureCube* texture = new TextureCube(image.data[0][0].width,
+						std::shared_ptr<TextureCube> texture = std::make_shared<TextureCube>(image.data[0][0].width,
 							image.data[0][0].height,
 							image.array_slices,
 							image.mip_slices,
@@ -125,7 +125,7 @@ namespace nimble
 							return nullptr;
 						}
 
-						TextureCube* texture = new TextureCube(image.data[0][0].width,
+						std::shared_ptr<TextureCube> texture = std::make_shared<TextureCube>(image.data[0][0].width,
 							image.data[0][0].height,
 							1,
 							image.mip_slices,
@@ -149,7 +149,7 @@ namespace nimble
 				{
 					if (image.compression == ast::COMPRESSION_NONE)
 					{
-						Texture2D* texture = new Texture2D(image.data[0][0].width,
+						std::shared_ptr<Texture2D> texture = std::make_shared<Texture2D>(image.data[0][0].width,
 							image.data[0][0].height,
 							image.array_slices,
 							image.mip_slices,
@@ -170,7 +170,7 @@ namespace nimble
 					}
 					else
 					{
-						Texture2D* texture = new Texture2D(image.data[0][0].width,
+						std::shared_ptr<Texture2D> texture = std::make_shared<Texture2D>(image.data[0][0].width,
 							image.data[0][0].height,
 							image.array_slices,
 							image.mip_slices,
@@ -202,17 +202,17 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Material* ResourceManager::load_material(const std::string& path)
+	std::shared_ptr<Material> ResourceManager::load_material(const std::string& path)
 	{
-		if (m_material_cache.find(path) != m_material_cache.end())
-			return m_material_cache[path];
+		if (m_material_cache.find(path) != m_material_cache.end() && m_material_cache[path].lock())
+			return m_material_cache[path].lock();
 		else
 		{
 			ast::Material ast_material;
 
 			if (ast::load_material(path, ast_material))
 			{
-				Material* material = new Material();
+				std::shared_ptr<Material> material = std::make_shared<Material>();
 
 				material->set_name(ast_material.name);
 				material->set_metallic_workflow(ast_material.metallic_workflow);
@@ -252,10 +252,10 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Mesh* ResourceManager::load_mesh(const std::string& path)
+	std::shared_ptr<Mesh> ResourceManager::load_mesh(const std::string& path)
 	{
-		if (m_mesh_cache.find(path) != m_mesh_cache.end())
-			return m_mesh_cache[path];
+		if (m_mesh_cache.find(path) != m_mesh_cache.end() && m_mesh_cache[path].lock())
+			return m_mesh_cache[path].lock();
 		else
 		{
 			ast::Mesh ast_mesh;
@@ -293,13 +293,13 @@ namespace nimble
 				if (!vao)
 					NIMBLE_LOG_ERROR("Failed to create Vertex Array");
 
-				std::vector<Material*> materials;
+				std::vector<std::shared_ptr<Material>> materials;
 				materials.resize(ast_mesh.materials.size());
 
 				for (uint32_t i = 0; i < ast_mesh.materials.size(); i++)
 					materials[i] = load_material(ast_mesh.material_paths[i]);
 
-				Mesh* mesh = new Mesh(ast_mesh.name, ast_mesh.max_extents, ast_mesh.min_extents, ast_mesh.submeshes, materials, vbo, ibo, vao);
+				std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(ast_mesh.name, ast_mesh.max_extents, ast_mesh.min_extents, ast_mesh.submeshes, materials, vbo, ibo, vao);
 
 				m_mesh_cache[path] = mesh;
 
@@ -315,23 +315,23 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void ResourceManager::unload_texture(Texture* texture)
+	std::shared_ptr<Scene> ResourceManager::load_scene(const std::string& path)
 	{
+		if (m_scene_cache.find(path) != m_scene_cache.end() && m_scene_cache[path].lock())
+			return m_scene_cache[path].lock();
+		else
+		{
+			ast::Scene ast_scene;
 
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void ResourceManager::unload_material(Material* material)
-	{
-
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void ResourceManager::unload_mesh(Mesh* mesh)
-	{
-
+			if (ast::load_scene(path, ast_scene))
+			{
+			}
+			else
+			{
+				NIMBLE_LOG_ERROR("Failed to load Scene: " + path);
+				return nullptr;
+			}
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
