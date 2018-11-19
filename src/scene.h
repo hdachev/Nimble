@@ -6,10 +6,27 @@
 
 namespace nimble
 {
+	struct ReflectionProbe
+	{
+		std::shared_ptr<Texture> texture;
+		glm::vec3 extents;
+		glm::vec3 position;
+	};
+
+	struct GIProbe
+	{
+		std::shared_ptr<Texture> texture;
+		glm::vec3 position;
+	};
+
 	class Scene
 	{
 	public:
-		Scene();
+		Scene(const std::string& name);
+		Scene(const std::string& name,
+			  const std::vector<Entity*>& entities, 
+			  const std::vector<ReflectionProbe>& reflection_probes, 
+			  const std::vector<GIProbe>& gi_probes);
 		~Scene();
 
 		// Updates entity transforms.
@@ -28,17 +45,19 @@ namespace nimble
 		inline uint32_t entity_count() { return m_entities.size(); }
 		inline Entity** entities() { return m_entities.data(); }
 		inline const char* name() { return m_name.c_str(); }
-		inline TextureCube* env_map() { return m_env_map; }
-		inline TextureCube* irradiance_map() { return m_irradiance_map; }
-		inline TextureCube* prefiltered_map() { return m_prefiltered_map; }
+		inline std::shared_ptr<TextureCube>& env_map() { return m_env_map; }
+		inline std::shared_ptr<TextureCube>& irradiance_map() { return m_irradiance_map; }
+		inline std::shared_ptr<TextureCube>& prefiltered_map() { return m_prefiltered_map; }
 		
 
 	private:
 		// PBR cubemaps common to the entire scene.
-		TextureCube*     m_env_map;
-		TextureCube*	 m_irradiance_map;
-		TextureCube*     m_prefiltered_map;
-		std::string			 m_name;
-		std::vector<Entity*> m_entities;
+		std::string					 m_name;
+		std::shared_ptr<TextureCube> m_env_map;
+		std::shared_ptr<TextureCube> m_irradiance_map;
+		std::shared_ptr<TextureCube> m_prefiltered_map;
+		std::vector<Entity*>		 m_entities;
+		std::vector<ReflectionProbe> m_reflection_probes;
+		std::vector<GIProbe>		 m_gi_probes;
 	};
 }

@@ -11,24 +11,29 @@ namespace nimble
 {
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Scene::Scene() {}
+	Scene::Scene(const std::string& name) : m_name(name)
+	{
+
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	Scene::Scene(const std::string& name,
+				 const std::vector<Entity*>& entities,
+				 const std::vector<ReflectionProbe>& reflection_probes,
+				 const std::vector<GIProbe>& gi_probes) : m_name(name), m_entities(entities), m_reflection_probes(reflection_probes), m_gi_probes(gi_probes)
+	{
+
+	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	Scene::~Scene()
 	{
-		NIMBLE_SAFE_DELETE(m_env_map);
-		NIMBLE_SAFE_DELETE(m_irradiance_map);
-		NIMBLE_SAFE_DELETE(m_prefiltered_map);
-
 		Entity** entities = m_entities.data();
 
 		for (int i = 0; i < m_entities.size(); i++)
-		{
-			if (entities[i]->m_override_mat)
-				Material::unload(entities[i]->m_override_mat);
-			Mesh::unload(entities[i]->m_mesh);
-		}
+			destroy_entity(m_entities[i]);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
