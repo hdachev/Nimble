@@ -358,9 +358,9 @@ namespace nimble
 				}
 
 				// Load environment
-				scene->set_environment_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.environment_map)));
-				scene->set_irradiance_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.diffuse_irradiance)));
-				scene->set_prefiltered_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.specular_irradiance)));
+				scene->set_environment_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.environment_map, false, true)));
+				scene->set_irradiance_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.diffuse_irradiance, false, true)));
+				scene->set_prefiltered_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.specular_irradiance, false, true)));
 
 				// @TODO: Load reflection probes
 
