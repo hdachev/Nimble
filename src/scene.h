@@ -9,6 +9,9 @@ namespace nimble
 {
 	struct ReflectionProbe
 	{
+		using ID = uint32_t;
+
+		ID						 id;
 		std::shared_ptr<Texture> texture;
 		glm::vec3 extents;
 		glm::vec3 position;
@@ -16,6 +19,9 @@ namespace nimble
 
 	struct GIProbe
 	{
+		using ID = uint32_t;
+
+		ID						 id;
 		std::shared_ptr<Texture> texture;
 		glm::vec3 position;
 	};
@@ -28,6 +34,8 @@ namespace nimble
 
 		// Updates entity transforms.
 		void update();
+		void update_reflection_probes();
+		void update_gi_probes();
 
 		// Entity manipulation methods.
 		Entity::ID create_entity(const std::string& name);
@@ -38,6 +46,14 @@ namespace nimble
 		void destroy_entity(const Entity::ID& id);
 		void destroy_entity(const std::string& name);
 
+		// Probe manipulation methods.
+		ReflectionProbe::ID create_reflection_probe(const glm::vec3& position, const glm::vec3& extents);
+		GIProbe::ID create_gi_probe(const glm::vec3& position);
+		ReflectionProbe& lookup_reflection_probe(const ReflectionProbe::ID& id);
+		GIProbe& lookup_gi_probe(const GIProbe::ID& id);
+		void destroy_reflection_probe(const ReflectionProbe::ID& id);
+		void destroy_gi_probe(const GIProbe::ID& id);
+
 		// Inline setters.
 		inline void set_name(const std::string& name) { m_name = name; }
 		inline void set_environment_map(const std::shared_ptr<TextureCube>& texture) { m_env_map = texture; }
@@ -47,12 +63,15 @@ namespace nimble
 		// Inline getters.
 		inline uint32_t entity_count() { return m_entities.size(); }
 		inline Entity* entities() { return &m_entities._objects[0]; }
+		inline uint32_t reflection_probe_count() { return m_reflection_probes.size(); }
+		inline ReflectionProbe* reflection_probes() { return &m_reflection_probes._objects[0]; }
+		inline uint32_t gi_probe_count() { return m_gi_probes.size(); }
+		inline GIProbe* gi_probes() { return &m_gi_probes._objects[0]; }
 		inline std::string name() const { return m_name; }
 		inline std::shared_ptr<TextureCube>& env_map() { return m_env_map; }
 		inline std::shared_ptr<TextureCube>& irradiance_map() { return m_irradiance_map; }
 		inline std::shared_ptr<TextureCube>& prefiltered_map() { return m_prefiltered_map; }
 		
-
 	private:
 		std::string						  m_name;
 		PackedArray<ReflectionProbe, 128> m_reflection_probes;
