@@ -18,58 +18,81 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Scene::Scene(const std::string& name,
-				 const std::vector<Entity*>& entities,
-				 const std::vector<ReflectionProbe>& reflection_probes,
-				 const std::vector<GIProbe>& gi_probes) : m_name(name), m_entities(entities), m_reflection_probes(reflection_probes), m_gi_probes(gi_probes)
-	{
-
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
 	Scene::~Scene()
 	{
-		Entity** entities = m_entities.data();
 
-		for (int i = 0; i < m_entities.size(); i++)
-			destroy_entity(m_entities[i]);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Entity* Scene::create_entity()
+	Entity::ID Scene::create_entity(const std::string& name)
 	{
-		Entity* e = new Entity();
-		e->id = m_entities.size();
-		m_entities.push_back(e);
+		Entity::ID id = m_entities.add();
 
-		return e;
+		Entity& e = m_entities.lookup(id);
+
+		e.m_id = id;
+		e.m_name = name;
+
+		return id;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Entity* Scene::lookup(const std::string& name)
+	Entity::ID Scene::lookup_entity_id(const std::string& name)
 	{
-		for (int i = 0; i < m_entities.size(); i++)
+		for (uint32_t i = 0; i < m_entities.size(); i++)
 		{
-			Entity* e = m_entities[i];
-
-			if (e->m_name == name)
-				return e;
+			if (m_entities._objects[i].m_name == name)
+				return m_entities._objects[i].m_id;
 		}
 
-		return nullptr;
+		return USHRT_MAX;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void Scene::destroy_entity(Entity* entity)
+	Entity& Scene::lookup_entity(const std::string& name)
 	{
-		if (entity)
+		Entity::ID id = lookup_entity_id(name);
+		return m_entities.lookup(id);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	Entity& Scene::lookup_entity(const Entity::ID& id)
+	{
+		return m_entities.lookup(id);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Scene::update_entity(Entity e)
+	{
+		Entity& old_entity = lookup_entity(e.m_id);
+		old_entity = e;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Scene::destroy_entity(const Entity::ID& id)
+	{
+		if (m_entities.has(id))
+			m_entities.remove(id);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Scene::destroy_entity(const std::string& name)
+	{
+		Entity::ID id = lookup_entity_id(name);
+
+		if (id != USHRT_MAX && m_entities.has(id))
 		{
-			m_entities.erase(m_entities.begin() + entity->id);
-			NIMBLE_SAFE_DELETE(entity);
+			Entity& e = lookup_entity(id);
+			e.~Entity();
+
+			m_entities.remove(id);
 		}
 	}
 
@@ -79,18 +102,18 @@ namespace nimble
 	{
 		for (int i = 0; i < m_entities.size(); i++)
 		{
-			Entity* e = m_entities[i];
+			Entity& e = m_entities._objects[i];
 
-			glm::mat4 H = glm::rotate(glm::mat4(1.0f), glm::radians(e->m_rotation.x), glm::vec3(0.0f, 1.0f, 0.0f));
-			glm::mat4 P = glm::rotate(glm::mat4(1.0f), glm::radians(e->m_rotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
-			glm::mat4 B = glm::rotate(glm::mat4(1.0f), glm::radians(e->m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+			glm::mat4 H = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.x), glm::vec3(0.0f, 1.0f, 0.0f));
+			glm::mat4 P = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
+			glm::mat4 B = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
 			glm::mat4 R = H * P * B;
-			glm::mat4 S = glm::scale(glm::mat4(1.0f), e->m_scale);
-			glm::mat4 T = glm::translate(glm::mat4(1.0f), e->m_position);
+			glm::mat4 S = glm::scale(glm::mat4(1.0f), e.m_scale);
+			glm::mat4 T = glm::translate(glm::mat4(1.0f), e.m_position);
 
-			e->m_prev_transform = e->m_transform;
-			e->m_transform = T * R * S;
+			e.m_prev_transform = e.m_transform;
+			e.m_transform = T * R * S;
 		}
 	}
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entity.h"
+#include "packed_array.h"
 #include <vector>
 #include <string>
 
@@ -23,41 +24,43 @@ namespace nimble
 	{
 	public:
 		Scene(const std::string& name);
-		Scene(const std::string& name,
-			  const std::vector<Entity*>& entities, 
-			  const std::vector<ReflectionProbe>& reflection_probes, 
-			  const std::vector<GIProbe>& gi_probes);
 		~Scene();
 
 		// Updates entity transforms.
 		void update();
 
-		// Create a new uninitialized entity.
-		Entity* create_entity();
+		// Entity manipulation methods.
+		Entity::ID create_entity(const std::string& name);
+		Entity::ID lookup_entity_id(const std::string& name);
+		Entity& lookup_entity(const std::string& name);
+		Entity& lookup_entity(const Entity::ID& id);
+		void update_entity(Entity e);
+		void destroy_entity(const Entity::ID& id);
+		void destroy_entity(const std::string& name);
 
-		// Find a created entity by name.
-		Entity* lookup(const std::string& name);
-
-		// Destroy an entity by passing in a pointer. Won't destroy the associated resources for now.
-		void destroy_entity(Entity* entity);
+		// Inline setters.
+		inline void set_name(const std::string& name) { m_name = name; }
+		inline void set_environment_map(const std::shared_ptr<TextureCube>& texture) { m_env_map = texture; }
+		inline void set_irradiance_map(const std::shared_ptr<TextureCube>& texture) { m_irradiance_map = texture; }
+		inline void set_prefiltered_map(const std::shared_ptr<TextureCube>& texture) { m_prefiltered_map = texture; }
 
 		// Inline getters.
 		inline uint32_t entity_count() { return m_entities.size(); }
-		inline Entity** entities() { return m_entities.data(); }
-		inline const char* name() { return m_name.c_str(); }
+		inline Entity* entities() { return &m_entities._objects[0]; }
+		inline std::string name() const { return m_name; }
 		inline std::shared_ptr<TextureCube>& env_map() { return m_env_map; }
 		inline std::shared_ptr<TextureCube>& irradiance_map() { return m_irradiance_map; }
 		inline std::shared_ptr<TextureCube>& prefiltered_map() { return m_prefiltered_map; }
 		
 
 	private:
+		std::string						  m_name;
+		PackedArray<ReflectionProbe, 128> m_reflection_probes;
+		PackedArray<GIProbe, 128>		  m_gi_probes;
+		PackedArray<Entity, 1024>		  m_entities;
 		// PBR cubemaps common to the entire scene.
-		std::string					 m_name;
-		std::shared_ptr<TextureCube> m_env_map;
-		std::shared_ptr<TextureCube> m_irradiance_map;
-		std::shared_ptr<TextureCube> m_prefiltered_map;
-		std::vector<Entity*>		 m_entities;
-		std::vector<ReflectionProbe> m_reflection_probes;
-		std::vector<GIProbe>		 m_gi_probes;
+		std::shared_ptr<TextureCube>	  m_env_map;
+		std::shared_ptr<TextureCube>	  m_irradiance_map;
+		std::shared_ptr<TextureCube>	  m_prefiltered_map;
 	};
 }

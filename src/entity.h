@@ -9,7 +9,9 @@ namespace nimble
 {
 	struct Entity
 	{
-		uint32_t				  id;
+		using ID = uint32_t;
+
+		ID						  m_id;
 		std::string				  m_name;
 		glm::vec3				  m_position;
 		glm::vec3				  m_rotation;
@@ -19,5 +21,10 @@ namespace nimble
 		Program*				  m_program;
 		std::shared_ptr<Material> m_override_mat;
 		std::shared_ptr<Mesh>	  m_mesh;
+		uint64_t				  m_visibility;
+
+#ifdef ENABLE_SUBMESH_CULLING
+		std::vector<uint64_t>	  m_submesh_visibility;
+#endif
 	};
 }
