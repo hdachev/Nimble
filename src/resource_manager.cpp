@@ -3,7 +3,9 @@
 #include "ogl.h"
 #include "material.h"
 #include "mesh.h"
+#include "scene.h"
 #include <runtime/loader.h>
+#include <gtc/matrix_transform.hpp>
 
 namespace nimble
 {
@@ -325,6 +327,48 @@ namespace nimble
 
 			if (ast::load_scene(path, ast_scene))
 			{
+				std::shared_ptr<Scene> scene = std::make_shared<Scene>(ast_scene.name);
+
+				// Create entities
+				for (const auto& entity : ast_scene.entities)
+				{
+					Entity::ID id = scene->create_entity(entity.name);
+
+					Entity& e = scene->lookup_entity(id);
+
+					e.set_position(entity.position);
+					e.set_rotation(entity.rotation);
+					e.set_scale(entity.scale);
+					
+					e.m_mesh = load_mesh(entity.mesh);
+					
+					if (entity.material_override.size() > 0)
+						e.m_override_mat = load_material(entity.material_override);
+
+					glm::mat4 H = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.x), glm::vec3(0.0f, 1.0f, 0.0f));
+					glm::mat4 P = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
+					glm::mat4 B = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+					glm::mat4 R = H * P * B;
+					glm::mat4 S = glm::scale(glm::mat4(1.0f), e.m_scale);
+					glm::mat4 T = glm::translate(glm::mat4(1.0f), e.m_position);
+
+					e.m_prev_transform = e.m_transform;
+					e.m_transform = T * R * S;
+				}
+
+				// Load environment
+				scene->set_environment_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.environment_map)));
+				scene->set_irradiance_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.diffuse_irradiance)));
+				scene->set_prefiltered_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.specular_irradiance)));
+
+				// @TODO: Load reflection probes
+
+				// @TODO: Load GI probes
+
+				m_scene_cache[path] = scene;
+
+				return scene;
 			}
 			else
 			{

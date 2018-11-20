@@ -11,8 +11,7 @@ namespace nimble
 	{
 		using ID = uint32_t;
 
-		ID						 id;
-		std::shared_ptr<Texture> texture;
+		ID		  id;
 		glm::vec3 extents;
 		glm::vec3 position;
 	};
@@ -21,8 +20,7 @@ namespace nimble
 	{
 		using ID = uint32_t;
 
-		ID						 id;
-		std::shared_ptr<Texture> texture;
+		ID		  id;
 		glm::vec3 position;
 	};
 
@@ -71,6 +69,8 @@ namespace nimble
 		inline std::shared_ptr<TextureCube>& env_map() { return m_env_map; }
 		inline std::shared_ptr<TextureCube>& irradiance_map() { return m_irradiance_map; }
 		inline std::shared_ptr<TextureCube>& prefiltered_map() { return m_prefiltered_map; }
+		inline std::shared_ptr<TextureCube>& reflection_probe_cubemap() { return m_reflection_probe_cubemap; }
+		inline std::shared_ptr<TextureCube>& gi_probe_cubemap() { return m_gi_probe_cubemap; }
 		
 	private:
 		std::string						  m_name;
@@ -81,5 +81,8 @@ namespace nimble
 		std::shared_ptr<TextureCube>	  m_env_map;
 		std::shared_ptr<TextureCube>	  m_irradiance_map;
 		std::shared_ptr<TextureCube>	  m_prefiltered_map;
+		// Probe cubemap arrays
+		std::shared_ptr<TextureCube>	  m_reflection_probe_cubemap;
+		std::shared_ptr<TextureCube>	  m_gi_probe_cubemap;
 	};
 }
