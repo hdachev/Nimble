@@ -104,6 +104,143 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	std::shared_ptr<RenderTarget> GlobalGraphicsResources::request_render_target(const uint32_t& graph_id, const uint32_t& node_id, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
+	{
+		std::shared_ptr<RenderTarget> rt = std::make_shared<RenderTarget>();
+
+		rt->graph_id = graph_id;
+		rt->node_id = node_id;
+		rt->last_dependent_node_id = node_id;
+		rt->expired = true;
+		rt->scaled = false;
+		rt->w = w;
+		rt->h = h;
+		rt->scale_w = 0.0f;
+		rt->scale_h = 0.0f;
+		rt->internal_format = internal_format;
+		rt->format = format;
+		rt->type = type;
+		rt->num_samples = num_samples;
+		rt->array_size = array_size;
+		rt->mip_levels = mip_levels;
+
+		m_render_target_pool.push_back(rt);
+
+		return rt;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	std::shared_ptr<RenderTarget> GlobalGraphicsResources::request_scaled_render_target(const uint32_t& graph_id, const uint32_t& node_id, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
+	{
+		std::shared_ptr<RenderTarget> rt = std::make_shared<RenderTarget>();
+
+		rt->graph_id = graph_id;
+		rt->node_id = node_id;
+		rt->last_dependent_node_id = node_id;
+		rt->expired = true;
+		rt->scaled = true;
+		rt->w = 0;
+		rt->h = 0;
+		rt->scale_w = w;
+		rt->scale_h = h;
+		rt->internal_format = internal_format;
+		rt->format = format;
+		rt->type = type;
+		rt->num_samples = num_samples;
+		rt->array_size = array_size;
+		rt->mip_levels = mip_levels;
+
+		m_render_target_pool.push_back(rt);
+
+		return rt;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void GlobalGraphicsResources::initialize_render_targets()
+	{
+		for (auto& rt : m_render_target_pool)
+		{
+			std::shared_ptr<RenderTarget> rt_ptr = rt.lock();
+
+			if (rt_ptr)
+			{
+				rt_ptr->expired = true;
+				rt_ptr->texture.reset();
+			}
+		}
+
+		for (uint32_t i = 0; i < m_render_target_pool.size(); i++)
+		{
+			auto& current = m_render_target_pool[i].lock();
+
+			// Try to find existing Render Target Texture
+			for (uint32_t j = 0; j < m_render_target_pool.size(); j++)
+			{
+				if (m_render_target_pool[j].expired() || i == j)
+					continue;
+				else
+				{
+					const auto& current_inner = m_render_target_pool[j].lock();
+
+					if (current->scaled == current_inner->scaled &&
+						current->w == current_inner->w &&
+						current->h == current_inner->h &&
+						current->scale_w == current_inner->scale_w &&
+						current->scale_h == current_inner->scale_h &&
+						current->node_id != current_inner->node_id &&
+						!current_inner->expired)
+					{
+						if ((current->graph_id != current_inner->graph_id) || (current->graph_id == current_inner->graph_id && current->node_id > current_inner->last_dependent_node_id))
+						{
+							// Make sure the texture isn't re-used already
+							bool reused = false;
+
+							for (uint32_t k = 0; k < m_render_target_pool.size(); k++)
+							{
+								if (k == i || k == j)
+									continue;
+
+								const auto& rt = m_render_target_pool[k].lock();
+
+								if (rt && rt->texture->id() == current_inner->texture->id() && 
+									((rt->node_id > current->node_id && 
+									  rt->node_id < current->last_dependent_node_id) || 
+									 (rt->last_dependent_node_id > current->node_id && 
+									  rt->last_dependent_node_id < current->last_dependent_node_id) || 
+									  rt->node_id == current->node_id || 
+									  rt->node_id == current->last_dependent_node_id ||
+									  rt->last_dependent_node_id == current->node_id ||
+									  rt->last_dependent_node_id == current->last_dependent_node_id))
+								{
+									reused = true;
+									break;
+								}
+							}
+
+							if (!reused)
+							{
+								current->texture = current_inner->texture;
+								current->expired = false;
+
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			// Else, create new texture
+			if (current->expired)
+			{
+				current->expired = false;
+			}
+		}
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	Texture2D* GlobalGraphicsResources::create_texture_2d(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
 	{
 		if (m_texture_map.find(name) == m_texture_map.end())

@@ -5,6 +5,7 @@
 #include "ogl.h"
 #include "material.h"
 #include "uniforms.h"
+#include "render_target.h"
 
 namespace nimble
 {
@@ -27,21 +28,13 @@ namespace nimble
 		// Lookup a previously created texture by name.
 		static std::shared_ptr<Texture> lookup_texture(const std::string& name);
 
-		// Texture create methods. Returns nullptr if a texture with the same name already exists,
-		static std::shared_ptr<Texture2D> create_texture_2d(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-		static std::shared_ptr<TextureCube> create_texture_cube(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum internal_format, GLenum format, GLenum type, uint32_t array_size = 1, uint32_t mip_levels = 1);
+		// Render Target creation methods. Actual texture is created during initialize_render_targets().
+		static std::shared_ptr<RenderTarget> request_render_target(const uint32_t& graph_id, const uint32_t& node_id, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
 
-		// Texture destroy method.
-		static void destroy_texture(const std::string& name);
+		// Scaled variant. Uses a normalized float value to represent the w/h ratio to the w/h of the window.
+		static std::shared_ptr<RenderTarget> request_scaled_render_target(const uint32_t& graph_id, const uint32_t& node_id, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
 
-		// Lookup a previously created framebuffer by name.
-		static std::shared_ptr<Framebuffer> lookup_framebuffer(const std::string& name);
-
-		// Framebuffer create method. Returns nullptr if a framebuffer with the same name already exists,
-		static std::shared_ptr<Framebuffer> create_framebuffer(const std::string& name);
-
-		// Framebuffer destroy method.
-		static void destroy_framebuffer(const std::string& name);
+		static void initialize_render_targets();
 
 		// Shader caching.
 		static Program* load_program(std::string& combined_name, uint32_t count, Shader** shaders);
@@ -67,12 +60,10 @@ namespace nimble
 
 	private:
 		// Resource maps.
-		static std::unordered_map<std::string, Texture*> m_texture_map;
-		static std::unordered_map<std::string, Framebuffer*> m_framebuffer_map;
+		static std::vector<std::weak_ptr<RenderTarget>> m_render_target_pool;
 
 		// Shader and Program cache.
 		static std::unordered_map<std::string, Program*> m_program_cache;
-		static std::unordered_map<std::string, Shader*> m_shader_cache;
 
 		// Common geometry.
 		static VertexArray*   m_quad_vao;
