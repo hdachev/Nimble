@@ -188,6 +188,7 @@ namespace nimble
         ~Shader();
         GLenum type();
 		bool compiled();
+		GLuint id();
         
     private:
 		bool m_compiled;

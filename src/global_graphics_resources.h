@@ -1,10 +1,9 @@
 #pragma once
 
 #include <unordered_map>
-#include <ogl.h>
 #include <string>
-#include <material.h>
-
+#include "ogl.h"
+#include "material.h"
 #include "uniforms.h"
 
 namespace nimble
@@ -26,26 +25,25 @@ namespace nimble
 		static void shutdown();
 
 		// Lookup a previously created texture by name.
-		static Texture* lookup_texture(const std::string& name);
+		static std::shared_ptr<Texture> lookup_texture(const std::string& name);
 
 		// Texture create methods. Returns nullptr if a texture with the same name already exists,
-		static Texture2D* create_texture_2d(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-		static TextureCube* create_texture_cube(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum internal_format, GLenum format, GLenum type, uint32_t array_size = 1, uint32_t mip_levels = 1);
+		static std::shared_ptr<Texture2D> create_texture_2d(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+		static std::shared_ptr<TextureCube> create_texture_cube(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum internal_format, GLenum format, GLenum type, uint32_t array_size = 1, uint32_t mip_levels = 1);
 
 		// Texture destroy method.
 		static void destroy_texture(const std::string& name);
 
 		// Lookup a previously created framebuffer by name.
-		static Framebuffer* lookup_framebuffer(const std::string& name);
+		static std::shared_ptr<Framebuffer> lookup_framebuffer(const std::string& name);
 
 		// Framebuffer create method. Returns nullptr if a framebuffer with the same name already exists,
-		static Framebuffer* create_framebuffer(const std::string& name);
+		static std::shared_ptr<Framebuffer> create_framebuffer(const std::string& name);
 
 		// Framebuffer destroy method.
 		static void destroy_framebuffer(const std::string& name);
 
 		// Shader caching.
-		static Shader* load_shader(GLuint type, std::string& path, const std::vector<std::string> defines = std::vector<std::string>());
 		static Program* load_program(std::string& combined_name, uint32_t count, Shader** shaders);
 
 		// Uniform buffer getters.
