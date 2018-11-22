@@ -176,6 +176,8 @@ namespace nimble
 			auto& current = m_render_target_pool[i].lock();
 
 			// Try to find existing Render Target Texture
+
+#if defined(REUSED_RENDER_TARGETS)
 			for (uint32_t j = 0; j < m_render_target_pool.size(); j++)
 			{
 				if (m_render_target_pool[j].expired() || i == j)
@@ -183,10 +185,14 @@ namespace nimble
 				else
 				{
 					const auto& current_inner = m_render_target_pool[j].lock();
-
+					
 					if (current->scaled == current_inner->scaled &&
 						current->w == current_inner->w &&
 						current->h == current_inner->h &&
+						current->target == current_inner->target &&
+						current->internal_format == current_inner->internal_format &&
+						current->format == current_inner->format &&
+						current->type == current_inner->type &&
 						current->scale_w == current_inner->scale_w &&
 						current->scale_h == current_inner->scale_h &&
 						current->node_id != current_inner->node_id &&
@@ -230,100 +236,18 @@ namespace nimble
 					}
 				}
 			}
+#endif
 
 			// Else, create new texture
 			if (current->expired)
 			{
+				if (current->target == GL_TEXTURE_2D)
+					current->texture = std::make_shared<Texture2D>(current->w, current->h, current->array_size, current->mip_levels, current->num_samples, current->internal_format, current->format, current->type);
+				else if (current->target == GL_TEXTURE_CUBE_MAP)
+					current->texture = std::make_shared<TextureCube>(current->w, current->h, current->array_size, current->mip_levels, current->internal_format, current->format, current->type);
+
 				current->expired = false;
 			}
-		}
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	Texture2D* GlobalGraphicsResources::create_texture_2d(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
-	{
-		if (m_texture_map.find(name) == m_texture_map.end())
-		{
-			Texture2D* texture = new Texture2D(w, h, array_size, mip_levels, num_samples, internal_format, format, type);
-			m_texture_map[name] = texture;
-
-			return texture;
-		}
-		else
-		{
-			NIMBLE_LOG_ERROR("A texture with the requested name (" + name + ") already exists. Returning nullptr...");
-			return nullptr;
-		}
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	TextureCube* GlobalGraphicsResources::create_texture_cube(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum internal_format, GLenum format, GLenum type, uint32_t array_size, uint32_t mip_levels)
-	{
-		if (m_texture_map.find(name) == m_texture_map.end())
-		{
-			TextureCube* texture = new TextureCube(w, h, array_size, mip_levels, internal_format, format, type);
-			m_texture_map[name] = texture;
-
-			return texture;
-		}
-		else
-		{
-			NIMBLE_LOG_ERROR("A texture with the requested name (" + name + ") already exists. Returning nullptr...");
-			return nullptr;
-		}
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void GlobalGraphicsResources::destroy_texture(const std::string& name)
-	{
-		if (m_texture_map.find(name) != m_texture_map.end())
-		{
-			Texture* texture = m_texture_map[name];
-			NIMBLE_SAFE_DELETE(texture);
-			m_texture_map.erase(name);
-		}
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	Framebuffer* GlobalGraphicsResources::lookup_framebuffer(const std::string& name)
-	{
-		if (m_framebuffer_map.find(name) == m_framebuffer_map.end())
-			return nullptr;
-		else
-			return m_framebuffer_map[name];
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	Framebuffer* GlobalGraphicsResources::create_framebuffer(const std::string& name)
-	{
-		if (m_framebuffer_map.find(name) == m_framebuffer_map.end())
-		{
-			Framebuffer* fbo = new Framebuffer();
-			m_framebuffer_map[name] = fbo;
-
-			return fbo;
-		}
-		else
-		{
-			NIMBLE_LOG_ERROR("A framebuffer with the requested name (" + name + ") already exists. Returning nullptr...");
-			return nullptr;
-		}
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void GlobalGraphicsResources::destroy_framebuffer(const std::string& name)
-	{
-		if (m_framebuffer_map.find(name) != m_framebuffer_map.end())
-		{
-			Framebuffer* fbo = m_framebuffer_map[name];
-			NIMBLE_SAFE_DELETE(fbo);
-			m_framebuffer_map.erase(name);
 		}
 	}
 
