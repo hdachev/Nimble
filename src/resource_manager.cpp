@@ -422,33 +422,6 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::shared_ptr<Program> ResourceManager::load_program(const std::shared_ptr<Shader>& vs, const std::shared_ptr<Shader>& fs)
-	{
-		std::string id = std::to_string(vs->id()) + "-";
-		id += std::to_string(fs->id());
-
-		if (m_program_cache.find(id) != m_program_cache.end() && m_program_cache[id].lock())
-			return m_program_cache[id].lock();
-		else
-		{
-			Shader* shaders[] = { vs.get(), fs.get() };
-
-			std::shared_ptr<Program> program = std::make_shared<Program>(2, shaders);
-
-			if (!program)
-			{
-				NIMBLE_LOG_ERROR("Program failed to link!");
-				return nullptr;
-			}
-
-			m_program_cache[id] = program;
-
-			return program;
-		}
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
 	template<typename T>
 	bool contains(const std::vector<T>& vec, const T& obj)
 	{

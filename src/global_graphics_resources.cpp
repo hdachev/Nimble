@@ -8,10 +8,8 @@
 
 namespace nimble
 {
-	std::unordered_map<std::string, Texture*> GlobalGraphicsResources::m_texture_map;
-	std::unordered_map<std::string, Framebuffer*> GlobalGraphicsResources::m_framebuffer_map;
-	std::unordered_map<std::string, Program*> GlobalGraphicsResources::m_program_cache;
-	std::unordered_map<std::string, Shader*> GlobalGraphicsResources::m_shader_cache;
+	std::vector<std::weak_ptr<RenderTarget>> GlobalGraphicsResources::m_render_target_pool;
+	std::unordered_map<std::string, std::weak_ptr<Program>> GlobalGraphicsResources::m_program_cache;
 	VertexArray*   GlobalGraphicsResources::m_quad_vao = nullptr;
 	VertexBuffer*  GlobalGraphicsResources::m_quad_vbo = nullptr;
 	VertexArray*   GlobalGraphicsResources::m_cube_vao = nullptr;
@@ -67,39 +65,13 @@ namespace nimble
 		NIMBLE_SAFE_DELETE(m_per_scene);
 		NIMBLE_SAFE_DELETE(m_per_entity);
 
-		// Delete framebuffers.
-		for (auto itr : m_framebuffer_map)
-		{
-			NIMBLE_SAFE_DELETE(itr.second);
-		}
-
-		// Delete textures.
-		for (auto itr : m_texture_map)
-		{
-			NIMBLE_SAFE_DELETE(itr.second);
-		}
+		// Delete render targets.
+		for (auto itr : m_render_target_pool)
+			itr.reset();
 
 		// Delete programs.
 		for (auto itr : m_program_cache)
-		{
-			NIMBLE_SAFE_DELETE(itr.second);
-		}
-
-		// Delete shaders.
-		for (auto itr : m_shader_cache)
-		{
-			NIMBLE_SAFE_DELETE(itr.second);
-		}
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	Texture* GlobalGraphicsResources::lookup_texture(const std::string& name)
-	{
-		if (m_texture_map.find(name) == m_texture_map.end())
-			return nullptr;
-		else
-			return m_texture_map[name];
+			itr.second.reset();
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -253,82 +225,61 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Shader* GlobalGraphicsResources::load_shader(GLuint type, std::string& path, const std::vector<std::string> defines)
+	std::shared_ptr<Program> GlobalGraphicsResources::load_program(const std::shared_ptr<Shader>& vs, const std::shared_ptr<Shader>& fs)
 	{
-		std::string name_with_defines = "";
+		std::string id = std::to_string(vs->id()) + "-";
+		id += std::to_string(fs->id());
 
-		for (auto define : defines)
-		{
-			name_with_defines += define;
-			name_with_defines += "|";
-		}
-
-		name_with_defines += path;
-
-		if (m_shader_cache.find(name_with_defines) == m_shader_cache.end())
-		{
-			std::string source;
-
-			if (!read_shader(utility::path_for_resource("assets/" + path), source, defines))
-			{
-				NIMBLE_LOG_ERROR("Failed to read shader with name '" + path);
-				return nullptr;
-			}
-
-			Shader* shader = new Shader(type, source);
-
-			if (!shader->compiled())
-			{
-				NIMBLE_LOG_ERROR("Shader with name '" + path + "' failed to compile:\n" + source);
-				NIMBLE_SAFE_DELETE(shader);
-				return nullptr;
-			}
-
-			m_shader_cache[name_with_defines] = shader;
-			return shader;
-		}
+		if (m_program_cache.find(id) != m_program_cache.end() && m_program_cache[id].lock())
+			return m_program_cache[id].lock();
 		else
-			return m_shader_cache[name_with_defines];
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	Program* GlobalGraphicsResources::load_program(std::string& combined_name, uint32_t count, Shader** shaders)
-	{
-		if (m_program_cache.find(combined_name) == m_program_cache.end())
 		{
-			Program* program = new Program(count, shaders);
+			Shader* shaders[] = { vs.get(), fs.get() };
+
+			std::shared_ptr<Program> program = std::make_shared<Program>(2, shaders);
 
 			if (!program)
 			{
-				NIMBLE_LOG_ERROR("Program with combined name '" + combined_name + "' failed to link!");
+				NIMBLE_LOG_ERROR("Program failed to link!");
 				return nullptr;
 			}
 
-			m_program_cache[combined_name] = program;
+			m_program_cache[id] = program;
 
 			return program;
 		}
-		else
-			return m_program_cache[combined_name];
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::string GlobalGraphicsResources::combined_program_name(const std::string& vs, const std::string& fs, std::vector<std::string> defines)
+	std::shared_ptr<Program> GlobalGraphicsResources::load_program(const std::vector<std::shared_ptr<Shader>>& shaders)
 	{
-		std::string name_with_defines = "";
+		std::vector<Shader*> shaders_raw;
+		std::string id = "";
 
-		for (auto define : defines)
+		for (const auto& shader : shaders)
 		{
-			name_with_defines += define;
-			name_with_defines += "|";
+			shaders_raw.push_back(shader.get());
+			id += std::to_string(shader->id());
+			id += "-";
 		}
 
-		name_with_defines += vs;
-		name_with_defines += fs;
+		if (m_program_cache.find(id) != m_program_cache.end() && m_program_cache[id].lock())
+			return m_program_cache[id].lock();
+		else
+		{
+			std::shared_ptr<Program> program = std::make_shared<Program>(shaders_raw.size(), shaders_raw.data());
 
-		return name_with_defines;
+			if (!program)
+			{
+				NIMBLE_LOG_ERROR("Program failed to link!");
+				return nullptr;
+			}
+
+			m_program_cache[id] = program;
+
+			return program;
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

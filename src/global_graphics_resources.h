@@ -25,9 +25,6 @@ namespace nimble
 		// Cleanup all allocated resources.
 		static void shutdown();
 
-		// Lookup a previously created texture by name.
-		static std::shared_ptr<Texture> lookup_texture(const std::string& name);
-
 		// Render Target creation methods. Actual texture is created during initialize_render_targets().
 		static std::shared_ptr<RenderTarget> request_render_target(const uint32_t& graph_id, const uint32_t& node_id, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
 
@@ -37,7 +34,8 @@ namespace nimble
 		static void initialize_render_targets();
 
 		// Shader caching.
-		static Program* load_program(std::string& combined_name, uint32_t count, Shader** shaders);
+		static std::shared_ptr<Program> load_program(const std::shared_ptr<Shader>& vs, const std::shared_ptr<Shader>& fs);
+		static std::shared_ptr<Program> load_program(const std::vector<std::shared_ptr<Shader>>& shaders);
 
 		// Uniform buffer getters.
 		inline static UniformBuffer* per_frame_ubo() { return m_per_frame; }
@@ -51,8 +49,6 @@ namespace nimble
 		// Uniform getters.
 		inline static PerFrameUniforms& per_frame_uniforms() { return m_per_frame_uniforms; }
 
-		static std::string combined_program_name(const std::string& vs, const std::string& fs, std::vector<std::string> defines);
-
 	private:
 		static void create_cube();
 		static void create_quad();
@@ -63,7 +59,7 @@ namespace nimble
 		static std::vector<std::weak_ptr<RenderTarget>> m_render_target_pool;
 
 		// Shader and Program cache.
-		static std::unordered_map<std::string, Program*> m_program_cache;
+		static std::unordered_map<std::string, std::weak_ptr<Program>> m_program_cache;
 
 		// Common geometry.
 		static VertexArray*   m_quad_vao;
