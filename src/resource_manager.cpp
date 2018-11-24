@@ -75,7 +75,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::shared_ptr<Texture> ResourceManager::load_texture(const std::string& path, const bool& srgb, const bool& cubemap)
+	std::shared_ptr<Texture> ResourceManager::load_texture(const std::string& path, const bool& absolute, const bool& srgb, const bool& cubemap)
 	{
 		if (m_texture_cache.find(path) != m_texture_cache.end() && m_texture_cache[path].lock())
 			return m_texture_cache[path].lock();
@@ -83,7 +83,7 @@ namespace nimble
 		{
 			ast::Image image;
 
-			if (ast::load_image(path, image))
+			if (ast::load_image(absolute ? path : utility::path_for_resource("assets/" + path), image))
 			{
 				uint32_t type = 0;
 
@@ -205,7 +205,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::shared_ptr<Material> ResourceManager::load_material(const std::string& path)
+	std::shared_ptr<Material> ResourceManager::load_material(const std::string& path, const bool& absolute)
 	{
 		if (m_material_cache.find(path) != m_material_cache.end() && m_material_cache[path].lock())
 			return m_material_cache[path].lock();
@@ -213,7 +213,7 @@ namespace nimble
 		{
 			ast::Material ast_material;
 
-			if (ast::load_material(path, ast_material))
+			if (ast::load_material(absolute ? path : utility::path_for_resource("assets/" + path), ast_material))
 			{
 				std::shared_ptr<Material> material = std::make_shared<Material>();
 
@@ -234,12 +234,14 @@ namespace nimble
 					if (texture_desc.type == ast::TEXTURE_CUSTOM)
 						custom_texture_count++;
 					else
-						material->set_surface_texture(kTextureTypeTable[texture_desc.type], load_texture(texture_desc.path, texture_desc.srgb));
+						material->set_surface_texture(kTextureTypeTable[texture_desc.type], load_texture(texture_desc.path, true, texture_desc.srgb));
 				}
+
+				material->set_custom_texture_count(custom_texture_count);
 
 				// Iterate a second time to add the custom textures
 				for (uint32_t i = 0; i < ast_material.textures.size(); i++)
-					material->set_custom_texture(i, load_texture(ast_material.textures[i].path, ast_material.textures[i].srgb));
+					material->set_custom_texture(i, load_texture(ast_material.textures[i].path, true, ast_material.textures[i].srgb));
 
 				m_material_cache[path] = material;
 
@@ -263,7 +265,7 @@ namespace nimble
 		{
 			ast::Mesh ast_mesh;
 
-			if (ast::load_mesh(path, ast_mesh))
+			if (ast::load_mesh(utility::path_for_resource("assets/" + path), ast_mesh))
 			{
 				VertexArray* vao = nullptr;
 				VertexBuffer* vbo = nullptr;
@@ -326,7 +328,7 @@ namespace nimble
 		{
 			ast::Scene ast_scene;
 
-			if (ast::load_scene(path, ast_scene))
+			if (ast::load_scene(utility::path_for_resource("assets/" + path), ast_scene))
 			{
 				std::shared_ptr<Scene> scene = std::make_shared<Scene>(ast_scene.name);
 
@@ -381,7 +383,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::shared_ptr<Shader> ResourceManager::load_shader(const std::string& path, std::vector<std::string> defines)
+	std::shared_ptr<Shader> ResourceManager::load_shader(const std::string& path, const uint32_t& type, std::vector<std::string> defines)
 	{
 		std::string define_str = "";
 
@@ -406,7 +408,7 @@ namespace nimble
 			}
 			else
 			{
-				std::shared_ptr<Shader> shader = std::make_shared<Shader>(type, source);
+				std::shared_ptr<Shader> shader = std::make_shared<Shader>((GLenum)type, source);
 
 				if (!shader->compiled())
 				{

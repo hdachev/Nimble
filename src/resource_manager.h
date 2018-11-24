@@ -19,11 +19,11 @@ namespace nimble
 		ResourceManager();
 		~ResourceManager();
 
-		std::shared_ptr<Texture> load_texture(const std::string& path, const bool& srgb = false, const bool& cubemap = false);
-		std::shared_ptr<Material> load_material(const std::string& path);
+		std::shared_ptr<Texture> load_texture(const std::string& path, const bool& absolute = false, const bool& srgb = false, const bool& cubemap = false);
+		std::shared_ptr<Material> load_material(const std::string& path, const bool& absolute = false);
 		std::shared_ptr<Mesh> load_mesh(const std::string& path);
 		std::shared_ptr<Scene> load_scene(const std::string& path);
-		std::shared_ptr<Shader> load_shader(const std::string& path, std::vector<std::string> defines = std::vector<std::string>());
+		std::shared_ptr<Shader> load_shader(const std::string& path, const uint32_t& type, std::vector<std::string> defines = std::vector<std::string>());
 		
 	private:
 		bool read_shader(const std::string& path, std::string& out, const std::vector<std::string>& defines);

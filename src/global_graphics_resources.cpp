@@ -10,14 +10,14 @@ namespace nimble
 {
 	std::vector<std::weak_ptr<RenderTarget>> GlobalGraphicsResources::m_render_target_pool;
 	std::unordered_map<std::string, std::weak_ptr<Program>> GlobalGraphicsResources::m_program_cache;
-	VertexArray*   GlobalGraphicsResources::m_quad_vao = nullptr;
-	VertexBuffer*  GlobalGraphicsResources::m_quad_vbo = nullptr;
-	VertexArray*   GlobalGraphicsResources::m_cube_vao = nullptr;
-	VertexBuffer*  GlobalGraphicsResources::m_cube_vbo = nullptr;
-	UniformBuffer* GlobalGraphicsResources::m_per_frame = nullptr;
-	UniformBuffer* GlobalGraphicsResources::m_per_scene = nullptr;
-	UniformBuffer* GlobalGraphicsResources::m_per_entity = nullptr;
-	PerFrameUniforms   GlobalGraphicsResources::m_per_frame_uniforms;
+	std::shared_ptr<VertexArray>   GlobalGraphicsResources::m_quad_vao = nullptr;
+	std::shared_ptr<VertexBuffer>  GlobalGraphicsResources::m_quad_vbo = nullptr;
+	std::shared_ptr<VertexArray>   GlobalGraphicsResources::m_cube_vao = nullptr;
+	std::shared_ptr<VertexBuffer>  GlobalGraphicsResources::m_cube_vbo = nullptr;
+	std::shared_ptr<UniformBuffer> GlobalGraphicsResources::m_per_frame = nullptr;
+	std::shared_ptr<UniformBuffer> GlobalGraphicsResources::m_per_scene = nullptr;
+	std::shared_ptr<UniformBuffer> GlobalGraphicsResources::m_per_entity = nullptr;
+	PerFrameUniforms			   GlobalGraphicsResources::m_per_frame_uniforms;
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -33,17 +33,10 @@ namespace nimble
 		m_per_frame_uniforms.ssao_radius = 10.0f;
 		m_per_frame_uniforms.ssao_bias = 0.025f;
 
-		// Load BRDF look-up-texture.
-		Texture* brdf_lut = demo::load_image("texture/brdfLUT.trm", GL_RG16F, GL_RG, GL_HALF_FLOAT);
-		brdf_lut->set_min_filter(GL_LINEAR);
-		brdf_lut->set_mag_filter(GL_LINEAR);
-
-		m_texture_map[BRDF_LUT] = brdf_lut;
-
 		// Create uniform buffers.
-		m_per_frame = new UniformBuffer(GL_DYNAMIC_DRAW, sizeof(PerFrameUniforms));
-		m_per_scene = new UniformBuffer(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
-		m_per_entity = new UniformBuffer(GL_DYNAMIC_DRAW, 1024 * sizeof(PerEntityUniforms));
+		m_per_frame = std::make_shared<UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerFrameUniforms));
+		m_per_scene = std::make_shared<UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
+		m_per_entity = std::make_shared<UniformBuffer>(GL_DYNAMIC_DRAW, 1024 * sizeof(PerEntityUniforms));
 
 		// Create common geometry VBO's and VAO's.
 		create_quad();
@@ -55,15 +48,15 @@ namespace nimble
 	void GlobalGraphicsResources::shutdown()
 	{
 		// Delete common geometry VBO's and VAO's.
-		NIMBLE_SAFE_DELETE(m_quad_vao);
-		NIMBLE_SAFE_DELETE(m_quad_vbo);
-		NIMBLE_SAFE_DELETE(m_cube_vao);
-		NIMBLE_SAFE_DELETE(m_cube_vbo);
+		m_quad_vao.reset();
+		m_quad_vbo.reset();
+		m_cube_vao.reset();
+		m_cube_vbo.reset();
 
 		// Delete uniform buffers.
-		NIMBLE_SAFE_DELETE(m_per_frame);
-		NIMBLE_SAFE_DELETE(m_per_scene);
-		NIMBLE_SAFE_DELETE(m_per_entity);
+		m_per_frame.reset();
+		m_per_scene.reset();
+		m_per_entity.reset();
 
 		// Delete render targets.
 		for (auto itr : m_render_target_pool)
@@ -130,7 +123,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void GlobalGraphicsResources::initialize_render_targets()
+	void GlobalGraphicsResources::initialize_render_targets(const uint32_t& window_w, const uint32_t& window_h)
 	{
 		for (auto& rt : m_render_target_pool)
 		{
@@ -147,9 +140,8 @@ namespace nimble
 		{
 			auto& current = m_render_target_pool[i].lock();
 
-			// Try to find existing Render Target Texture
-
-#if defined(REUSED_RENDER_TARGETS)
+#if defined(REUSE_RENDER_TARGETS)
+			// Try to find existing Render Target Textures.
 			for (uint32_t j = 0; j < m_render_target_pool.size(); j++)
 			{
 				if (m_render_target_pool[j].expired() || i == j)
@@ -172,7 +164,7 @@ namespace nimble
 					{
 						if ((current->graph_id != current_inner->graph_id) || (current->graph_id == current_inner->graph_id && current->node_id > current_inner->last_dependent_node_id))
 						{
-							// Make sure the texture isn't re-used already
+							// If reused, make sure the depedencies don't overlap.
 							bool reused = false;
 
 							for (uint32_t k = 0; k < m_render_target_pool.size(); k++)
@@ -210,9 +202,15 @@ namespace nimble
 			}
 #endif
 
-			// Else, create new texture
+			// Else, create new texture.
 			if (current->expired)
 			{
+				if (current->scaled)
+				{
+					current->w = uint32_t(current->scale_w * float(window_w));
+					current->h = uint32_t(current->scale_h * float(window_h));
+				}
+
 				if (current->target == GL_TEXTURE_2D)
 					current->texture = std::make_shared<Texture2D>(current->w, current->h, current->array_size, current->mip_levels, current->num_samples, current->internal_format, current->format, current->type);
 				else if (current->target == GL_TEXTURE_CUBE_MAP)
@@ -225,7 +223,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::shared_ptr<Program> GlobalGraphicsResources::load_program(const std::shared_ptr<Shader>& vs, const std::shared_ptr<Shader>& fs)
+	std::shared_ptr<Program> GlobalGraphicsResources::create_program(const std::shared_ptr<Shader>& vs, const std::shared_ptr<Shader>& fs)
 	{
 		std::string id = std::to_string(vs->id()) + "-";
 		id += std::to_string(fs->id());
@@ -252,7 +250,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::shared_ptr<Program> GlobalGraphicsResources::load_program(const std::vector<std::shared_ptr<Shader>>& shaders)
+	std::shared_ptr<Program> GlobalGraphicsResources::create_program(const std::vector<std::shared_ptr<Shader>>& shaders)
 	{
 		std::vector<Shader*> shaders_raw;
 		std::string id = "";
@@ -332,7 +330,7 @@ namespace nimble
 			-1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
 		};
 
-		m_cube_vbo = new VertexBuffer(GL_STATIC_DRAW, sizeof(cube_vertices), (void*)cube_vertices);
+		m_cube_vbo = std::make_shared<VertexBuffer>(GL_STATIC_DRAW, sizeof(cube_vertices), (void*)cube_vertices);
 
 		VertexAttrib attribs[] =
 		{
@@ -341,7 +339,7 @@ namespace nimble
 			{ 2,GL_FLOAT, false, sizeof(float) * 6 }
 		};
 
-		m_cube_vao = new VertexArray(m_cube_vbo, nullptr, sizeof(float) * 8, 3, attribs);
+		m_cube_vao = std::make_shared<VertexArray>(m_cube_vbo.get(), nullptr, sizeof(float) * 8, 3, attribs);
 
 		if (!m_cube_vbo || !m_cube_vao)
 		{
@@ -363,7 +361,7 @@ namespace nimble
 			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f
 		};
 
-		m_quad_vbo = new VertexBuffer(GL_STATIC_DRAW, sizeof(vertices), (void*)vertices);
+		m_quad_vbo = std::make_shared<VertexBuffer>(GL_STATIC_DRAW, sizeof(vertices), (void*)vertices);
 
 		VertexAttrib quad_attribs[] =
 		{
@@ -371,83 +369,12 @@ namespace nimble
 			{ 2, GL_FLOAT, false, sizeof(float) * 3 }
 		};
 
-		m_quad_vao = new VertexArray(m_quad_vbo, nullptr, sizeof(float) * 5, 2, quad_attribs);
+		m_quad_vao = std::make_shared<VertexArray>(m_quad_vbo.get(), nullptr, sizeof(float) * 5, 2, quad_attribs);
 
 		if (!m_quad_vbo || !m_quad_vao)
 		{
 			NIMBLE_LOG_INFO("Failed to create Vertex Buffers/Arrays");
 		}
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	template<typename T>
-	bool contains(const std::vector<T>& vec, const T& obj)
-	{
-		for (auto& e : vec)
-		{
-			if (e == obj)
-				return true;
-		}
-
-		return false;
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	bool GlobalGraphicsResources::read_shader(std::string path, std::string& out, const std::vector<std::string> defines)
-	{
-		std::string og_source;
-
-		if (!utility::read_text(path, og_source))
-			return false;
-
-		if (defines.size() > 0)
-		{
-			for (auto define : defines)
-				out += "#define " + define + "\n";
-
-			out += "\n";
-		}
-
-		std::istringstream stream(og_source);
-		std::string line;
-		std::vector<std::string> included_headers;
-
-		while (std::getline(stream, line))
-		{
-			if (line.find("#include") != std::string::npos)
-			{
-				size_t start = line.find_first_of("<") + 1;
-				size_t end = line.find_last_of(">");
-				std::string include_path = line.substr(start, end - start);
-
-				std::string path_to_shader = "";
-				size_t slash_pos = path.find_last_of("/");
-
-				if (slash_pos != std::string::npos)
-					path_to_shader = path.substr(0, slash_pos + 1);
-
-				std::string include_source;
-
-				if (!read_shader(path_to_shader + include_path, include_source, std::vector<std::string>()))
-				{
-					NIMBLE_LOG_ERROR("Included file <" + include_path + "> cannot be opened!");
-					return false;
-				}
-				if (contains(included_headers, include_path))
-					NIMBLE_LOG_WARNING("Header <" + include_path + "> has been included twice!");
-				else
-				{
-					included_headers.push_back(include_path);
-					out += include_source + "\n\n";
-				}
-			}
-			else
-				out += line + "\n";
-		}
-
-		return true;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

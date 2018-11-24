@@ -31,20 +31,21 @@ namespace nimble
 		// Scaled variant. Uses a normalized float value to represent the w/h ratio to the w/h of the window.
 		static std::shared_ptr<RenderTarget> request_scaled_render_target(const uint32_t& graph_id, const uint32_t& node_id, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
 
-		static void initialize_render_targets();
+		// Actually creates the texture associated with the render target. Used during initialization and window resizes.
+		static void initialize_render_targets(const uint32_t& window_w, const uint32_t& window_h);
 
-		// Shader caching.
-		static std::shared_ptr<Program> load_program(const std::shared_ptr<Shader>& vs, const std::shared_ptr<Shader>& fs);
-		static std::shared_ptr<Program> load_program(const std::vector<std::shared_ptr<Shader>>& shaders);
+		// Shader program caching.
+		static std::shared_ptr<Program> create_program(const std::shared_ptr<Shader>& vs, const std::shared_ptr<Shader>& fs);
+		static std::shared_ptr<Program> create_program(const std::vector<std::shared_ptr<Shader>>& shaders);
 
 		// Uniform buffer getters.
-		inline static UniformBuffer* per_frame_ubo() { return m_per_frame; }
-		inline static UniformBuffer* per_scene_ubo() { return m_per_scene; }
-		inline static UniformBuffer* per_entity_ubo() { return m_per_entity; }
+		inline static std::shared_ptr<UniformBuffer> per_frame_ubo() { return m_per_frame; }
+		inline static std::shared_ptr<UniformBuffer> per_scene_ubo() { return m_per_scene; }
+		inline static std::shared_ptr<UniformBuffer> per_entity_ubo() { return m_per_entity; }
 
 		// Common geometry getters.
-		inline static VertexArray* fullscreen_quad_vao() { return m_quad_vao; }
-		inline static VertexArray* cube_vao() { return m_cube_vao; }
+		inline static std::shared_ptr<VertexArray> fullscreen_quad_vao() { return m_quad_vao; }
+		inline static std::shared_ptr<VertexArray> cube_vao() { return m_cube_vao; }
 
 		// Uniform getters.
 		inline static PerFrameUniforms& per_frame_uniforms() { return m_per_frame_uniforms; }
@@ -52,7 +53,6 @@ namespace nimble
 	private:
 		static void create_cube();
 		static void create_quad();
-		static bool read_shader(std::string path, std::string& out, const std::vector<std::string> defines = std::vector<std::string>());
 
 	private:
 		// Resource maps.
@@ -62,15 +62,15 @@ namespace nimble
 		static std::unordered_map<std::string, std::weak_ptr<Program>> m_program_cache;
 
 		// Common geometry.
-		static VertexArray*   m_quad_vao;
-		static VertexBuffer*  m_quad_vbo;
-		static VertexArray*   m_cube_vao;
-		static VertexBuffer*  m_cube_vbo;
+		static std::shared_ptr<VertexArray>   m_quad_vao;
+		static std::shared_ptr<VertexBuffer>  m_quad_vbo;
+		static std::shared_ptr<VertexArray>   m_cube_vao;
+		static std::shared_ptr<VertexBuffer>  m_cube_vbo;
 
 		// Uniform buffers.
-		static UniformBuffer* m_per_frame;
-		static UniformBuffer* m_per_scene;
-		static UniformBuffer* m_per_entity;
+		static std::shared_ptr<UniformBuffer> m_per_frame;
+		static std::shared_ptr<UniformBuffer> m_per_scene;
+		static std::shared_ptr<UniformBuffer> m_per_entity;
 
 		// Per Frame uniforms.
 		static PerFrameUniforms m_per_frame_uniforms;
