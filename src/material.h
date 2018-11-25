@@ -114,6 +114,7 @@ namespace nimble
 		inline void set_surface_texture(TextureType type, std::shared_ptr<Texture> texture) { m_surface_textures[type] = texture; }
 
 		// Property getters
+		inline uint32_t id() { return m_id; }
 		inline std::string name() { return m_name; }
 		inline uint64_t hash() { return m_hash; }
 		inline bool has_vertex_shader_func() { return m_has_vertex_shader_func; }
@@ -136,6 +137,7 @@ namespace nimble
 		inline std::shared_ptr<Texture>& surface_texture(const uint32_t& index) { return m_surface_textures[index]; }
 
 	private:
+		uint32_t		 m_id;
 		std::string		 m_name = "";
 		std::string		 m_vertex_shader_func = "";
 		std::string		 m_fragment_shader_func = "";

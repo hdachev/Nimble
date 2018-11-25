@@ -3,9 +3,11 @@
 
 namespace nimble
 {
+	static uint32_t g_last_material_id = 0;
+
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Material::Material()
+	Material::Material() : m_id(g_last_material_id++)
 	{
 		for (uint32_t i = 0; i < MAX_MATERIAL_TEXTURES; i++)
 			m_custom_textures[i] = nullptr;
