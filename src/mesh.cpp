@@ -10,9 +10,9 @@ namespace nimble
 		const glm::vec3& min_extents,
 		const std::vector<ast::SubMesh>& submeshes,
 		const std::vector<std::shared_ptr<Material>>& materials,
-		VertexBuffer* vertex_buffer,
-		IndexBuffer* index_buffer,
-		VertexArray* vertex_array) : m_name(name),
+		std::shared_ptr<VertexBuffer> vertex_buffer,
+		std::shared_ptr<IndexBuffer> index_buffer,
+		std::shared_ptr<VertexArray> vertex_array) : m_name(name),
 									 m_max_extents(max_extents),
 									 m_min_extents(min_extents),
 									 m_submeshes(submeshes),
@@ -28,9 +28,9 @@ namespace nimble
 
 	Mesh::~Mesh()
 	{
-		NIMBLE_SAFE_DELETE(m_vertex_array);
-		NIMBLE_SAFE_DELETE(m_index_buffer);
-		NIMBLE_SAFE_DELETE(m_vertex_buffer);
+		m_vertex_array.reset();
+		m_index_buffer.reset();
+		m_vertex_buffer.reset();
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

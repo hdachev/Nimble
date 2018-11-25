@@ -4,12 +4,7 @@
 
 namespace nimble
 {
-	class GeneralShaderCache
-	{
-
-	};
-
-	class GeometryShaderCache
+	class ShaderCache
 	{
 
 	};

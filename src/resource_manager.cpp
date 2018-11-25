@@ -267,17 +267,17 @@ namespace nimble
 
 			if (ast::load_mesh(utility::path_for_resource("assets/" + path), ast_mesh))
 			{
-				VertexArray* vao = nullptr;
-				VertexBuffer* vbo = nullptr;
-				IndexBuffer* ibo = nullptr;
+				std::shared_ptr<VertexArray> vao = nullptr;
+				std::shared_ptr<VertexBuffer> vbo = nullptr;
+				std::shared_ptr<IndexBuffer> ibo = nullptr;
 
-				vbo = new VertexBuffer(GL_STATIC_DRAW, sizeof(ast::Vertex) * ast_mesh.vertices.size(), (void*)&ast_mesh.vertices[0]);
+				vbo = std::make_shared<VertexBuffer>(GL_STATIC_DRAW, sizeof(ast::Vertex) * ast_mesh.vertices.size(), (void*)&ast_mesh.vertices[0]);
 
 				if (!vbo)
 					NIMBLE_LOG_ERROR("Failed to create Vertex Buffer");
 
 				// Create index buffer.
-				ibo = new IndexBuffer(GL_STATIC_DRAW, sizeof(uint32_t) * ast_mesh.indices.size(), (void*)ast_mesh.indices[0]);
+				ibo = std::make_shared<IndexBuffer>(GL_STATIC_DRAW, sizeof(uint32_t) * ast_mesh.indices.size(), (void*)ast_mesh.indices[0]);
 
 				if (!ibo)
 					NIMBLE_LOG_ERROR("Failed to create Index Buffer");
@@ -293,7 +293,7 @@ namespace nimble
 				};
 
 				// Create vertex array.
-				vao = new VertexArray(vbo, ibo, sizeof(ast::Vertex), 5, attribs);
+				vao = std::make_shared<VertexArray>(vbo, ibo, sizeof(ast::Vertex), 5, attribs);
 
 				if (!vao)
 					NIMBLE_LOG_ERROR("Failed to create Vertex Array");
