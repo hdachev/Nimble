@@ -11,7 +11,7 @@ namespace nimble
 
 	enum RenderNodeType
 	{
-		RENDER_NODE_GEOMETRY = 0,
+		RENDER_NODE_SCENE = 0,
 		RENDER_NODE_FULLSCREEN = 1,
 		RENDER_NODE_COMPUTE = 2
 	};
@@ -64,30 +64,46 @@ namespace nimble
 		std::unordered_map<std::string, Buffer*> m_buffer_dependecies;
 	};
 
-	class GeometryRenderNode : public RenderNode
+	class SceneRenderNode : public RenderNode
 	{
 	public:
-		GeometryRenderNode(RenderGraph* graph);
-		~GeometryRenderNode();
+		SceneRenderNode(RenderGraph* graph);
+		~SceneRenderNode();
 
 		void execute() override;
 	};
 
-	class FullscreenRenderNode : public RenderNode
+	class MultiPassRenderNode : public RenderNode
 	{
 	public:
-		FullscreenRenderNode(RenderGraph* graph);
-		~FullscreenRenderNode();
+		MultiPassRenderNode(RenderNodeType type, RenderGraph* graph);
+		~MultiPassRenderNode();
 
 		void execute() override;
-		void attach_sub_pass(const std::string& node_name, std::function<void(void)> function);
-		void timing_sub_pass(const uint32_t& index, float& cpu_time, float& gpu_time);
+		void timing_sub_pass(const uint32_t& index, std::string& name, float& cpu_time, float& gpu_time);
 
 		// Inline getters
 		inline uint32_t sub_pass_count() { return m_sub_passes.size(); }
 
+	protected:
+		void attach_sub_pass(const std::string& node_name, std::function<void(void)> function);
+
 	private:
 		std::vector<std::pair<std::string, std::function<void(void)>>> m_sub_passes;
 		std::vector<std::pair<float, float>> m_sub_pass_timings;
+	};
+
+	class FullscreenRenderNode : public MultiPassRenderNode
+	{
+	public:
+		FullscreenRenderNode(RenderGraph* graph);
+		~FullscreenRenderNode();
+	};
+
+	class ComputeRenderNode : public MultiPassRenderNode
+	{
+	public:
+		ComputeRenderNode(RenderGraph* graph);
+		~ComputeRenderNode();
 	};
 }

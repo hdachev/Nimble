@@ -103,42 +103,42 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	GeometryRenderNode::GeometryRenderNode(RenderGraph* graph) : RenderNode(RENDER_NODE_GEOMETRY, graph)
+	SceneRenderNode::SceneRenderNode(RenderGraph* graph) : RenderNode(RENDER_NODE_SCENE, graph)
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	GeometryRenderNode::~GeometryRenderNode()
+	SceneRenderNode::~SceneRenderNode()
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void GeometryRenderNode::execute()
+	void SceneRenderNode::execute()
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	FullscreenRenderNode::FullscreenRenderNode(RenderGraph* graph) : RenderNode(RENDER_NODE_FULLSCREEN, graph)
+	MultiPassRenderNode::MultiPassRenderNode(RenderNodeType type, RenderGraph* graph) : RenderNode(type, graph)
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	FullscreenRenderNode::~FullscreenRenderNode()
+	MultiPassRenderNode::~MultiPassRenderNode()
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void FullscreenRenderNode::execute()
+	void MultiPassRenderNode::execute()
 	{
 		float cpu_time, gpu_time;
 
@@ -186,7 +186,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void FullscreenRenderNode::attach_sub_pass(const std::string& node_name, std::function<void(void)> function)
+	void MultiPassRenderNode::attach_sub_pass(const std::string& node_name, std::function<void(void)> function)
 	{
 		std::string formatted_name = name();
 		formatted_name += "_";
@@ -198,13 +198,42 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void FullscreenRenderNode::timing_sub_pass(const uint32_t& index, float& cpu_time, float& gpu_time)
+	void MultiPassRenderNode::timing_sub_pass(const uint32_t& index, std::string& name, float& cpu_time, float& gpu_time)
 	{
 		if (index < sub_pass_count())
 		{
+			name = m_sub_passes[index].first;
 			cpu_time = m_sub_pass_timings[index].first;
 			gpu_time = m_sub_pass_timings[index].second;
 		}
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	FullscreenRenderNode::FullscreenRenderNode(RenderGraph* graph) : MultiPassRenderNode(RENDER_NODE_FULLSCREEN, graph)
+	{
+
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	FullscreenRenderNode::~FullscreenRenderNode()
+	{
+
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	ComputeRenderNode::ComputeRenderNode(RenderGraph* graph) : MultiPassRenderNode(RENDER_NODE_COMPUTE, graph)
+	{
+
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	ComputeRenderNode::~ComputeRenderNode()
+	{
+
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

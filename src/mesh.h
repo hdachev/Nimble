@@ -11,6 +11,12 @@ namespace nimble
 	class VertexArray;
 	class Program;
 
+	enum MeshType
+	{
+		MESH_TYPE_STATIC = 0,
+		MESH_TYPE_SKELETAL
+	};
+
 	class Mesh
 	{
 	public:
@@ -28,7 +34,11 @@ namespace nimble
 		ast::SubMesh& submesh(const uint32_t& index);
 		uint32_t submesh_count();
 
+		// Inline getters
+		inline MeshType type() { return m_type; }
+
 	private:
+		MeshType					m_type = MESH_TYPE_STATIC;
 		std::string                 m_name;
 		glm::vec3                   m_max_extents;
 		glm::vec3                   m_min_extents;
