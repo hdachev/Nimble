@@ -34,5 +34,7 @@ namespace nimble
 		std::unordered_map<std::string, std::weak_ptr<Mesh>>	 m_mesh_cache;
 		std::unordered_map<std::string, std::weak_ptr<Scene>>	 m_scene_cache;
 		std::unordered_map<std::string, std::weak_ptr<Shader>>	 m_shader_cache;
+		std::unordered_map<std::string, uint32_t>				 m_vertex_func_id_map;
+		std::unordered_map<std::string, uint32_t>				 m_fragment_func_id_map;
 	};
 }

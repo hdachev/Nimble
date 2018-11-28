@@ -18,7 +18,14 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Program* ShaderLibrary::lookup_program(const MeshType& type, const std::shared_ptr<Material>& material)
+	Program* ShaderLibrary::lookup_program(const ProgramKey& key)
+	{
+
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	Program* ShaderLibrary::create_program(const MeshType& type, const std::shared_ptr<Material>& material)
 	{
 
 	}

@@ -5,6 +5,7 @@
 #include <glm.hpp>
 #include <memory>
 #include "macros.h"
+#include "shader_key.h"
 #include "murmur_hash.h"
 
 namespace nimble
@@ -112,6 +113,9 @@ namespace nimble
 		inline void set_custom_texture_count(const uint32_t& count) { m_custom_texture_count = count; }
 		inline void set_custom_texture(const uint32_t& index, std::shared_ptr<Texture> texture) { if (index < m_custom_texture_count){ m_custom_textures[index] = texture; }}
 		inline void set_surface_texture(TextureType type, std::shared_ptr<Texture> texture) { m_surface_textures[type] = texture; }
+		inline void set_program_key(const ProgramKey& key) { m_program_key = key; }
+		inline void set_vs_key(const VertexShaderKey& key) { m_vs_key = key; }
+		inline void set_fs_key(const FragmentShaderKey& key) { m_fs_key = key; }
 
 		// Property getters
 		inline uint32_t id() { return m_id; }
@@ -135,6 +139,9 @@ namespace nimble
 		inline uint32_t custom_texture_count() { return m_custom_texture_count; }
 		inline std::shared_ptr<Texture>& custom_texture(const uint32_t& index) { return m_custom_textures[index]; }
 		inline std::shared_ptr<Texture>& surface_texture(const uint32_t& index) { return m_surface_textures[index]; }
+		inline ProgramKey program_key() { return m_program_key; }
+		inline VertexShaderKey vs_key() { return m_vs_key; }
+		inline FragmentShaderKey fs_key() { return m_fs_key; }
 
 	private:
 		uint32_t		 m_id;
@@ -155,5 +162,8 @@ namespace nimble
 		std::shared_ptr<Texture> m_custom_textures[MAX_MATERIAL_TEXTURES];
 		std::shared_ptr<Texture> m_surface_textures[MAX_MATERIAL_TEXTURES];
 		MaterialUniforms m_uniforms;
+		ProgramKey		 m_program_key;
+		VertexShaderKey  m_vs_key;
+		FragmentShaderKey m_fs_key;
 	};
 }

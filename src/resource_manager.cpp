@@ -5,12 +5,16 @@
 #include "mesh.h"
 #include "scene.h"
 #include "utility.h"
+#include "shader_key.h"
 #include <runtime/loader.h>
 #include <gtc/matrix_transform.hpp>
 
 namespace nimble
 {
 	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	static uint32_t g_vertex_func_id_counter = 0;
+	static uint32_t g_fragment_func_id_counter = 0;
 
 	static const GLenum kInternalFormatTable[][4] =
 	{
@@ -220,12 +224,13 @@ namespace nimble
 				material->set_name(ast_material.name);
 				material->set_metallic_workflow(ast_material.metallic_workflow);
 				material->set_double_sided(ast_material.double_sided);
-				material->set_vertex_shader_func(ast_material.vertex_shader_func);
-				material->set_fragment_shader_func(ast_material.fragment_shader_func);
+				material->set_vertex_shader_func(ast_material.vertex_shader_func_src);
+				material->set_fragment_shader_func(ast_material.fragment_shader_func_src);
 				material->set_blend_mode((BlendMode)ast_material.blend_mode);
 				material->set_displacement_type((DisplacementType)ast_material.displacement_type);
 				material->set_shading_model((ShadingModel)ast_material.shading_model);
 				material->set_lighting_model((LightingModel)ast_material.lighting_model);
+
 
 				uint32_t custom_texture_count = 0;
 
@@ -242,6 +247,63 @@ namespace nimble
 				// Iterate a second time to add the custom textures
 				for (uint32_t i = 0; i < ast_material.textures.size(); i++)
 					material->set_custom_texture(i, load_texture(ast_material.textures[i].path, true, ast_material.textures[i].srgb));
+
+				// Build shader and program keys
+				VertexShaderKey vs_key;
+				FragmentShaderKey fs_key;
+
+				vs_key.set_normal_texture(material->surface_texture(TEXTURE_TYPE_NORMAL) ? 1 : 0);
+				fs_key.set_normal_texture(material->surface_texture(TEXTURE_TYPE_NORMAL) ? 1 : 0);
+
+				uint32_t vertex_func_id = 1023;
+
+				if (ast_material.vertex_shader_func_id.size() > 0)
+				{
+					if (m_vertex_func_id_map.find(ast_material.vertex_shader_func_id) != m_vertex_func_id_map.end())
+						vertex_func_id = m_vertex_func_id_map[ast_material.vertex_shader_func_id];
+					else
+					{
+						uint32_t id = g_vertex_func_id_counter++;
+						m_vertex_func_id_map[ast_material.vertex_shader_func_id] = id;
+
+						vertex_func_id = id;
+					}
+				}
+
+				vs_key.set_vertex_func_id(vertex_func_id);
+				
+				uint32_t fragment_func_id = 1023;
+
+				if (ast_material.fragment_shader_func_id.size() > 0)
+				{
+					if (m_fragment_func_id_map.find(ast_material.fragment_shader_func_id) != m_fragment_func_id_map.end())
+						fragment_func_id = m_fragment_func_id_map[ast_material.fragment_shader_func_id];
+					else
+					{
+						uint32_t id = g_fragment_func_id_counter++;
+						m_fragment_func_id_map[ast_material.fragment_shader_func_id] = id;
+
+						fragment_func_id = id;
+					}
+				}
+
+				fs_key.set_fragment_func_id(fragment_func_id);
+				fs_key.set_displacement_type((uint32_t)ast_material.displacement_type);
+				fs_key.set_alpha_cutout(ast_material.blend_mode == ast::BLEND_MODE_MASKED ? 1 : 0);
+				fs_key.set_lighting_model((uint32_t)ast_material.lighting_model);
+				fs_key.set_shading_model((uint32_t)ast_material.shading_model);
+				fs_key.set_albedo_texture(material->surface_texture(TEXTURE_TYPE_ALBEDO) ? 1 : 0);
+				fs_key.set_roughness_texture(material->surface_texture(TEXTURE_TYPE_ROUGH_SMOOTH) ? 1 : 0);
+				fs_key.set_metallic_texture(material->surface_texture(TEXTURE_TYPE_METAL_SPEC) ? 1 : 0);
+				fs_key.set_emissive_texture(material->surface_texture(TEXTURE_TYPE_EMISSIVE) ? 1 : 0);
+				fs_key.set_metallic_workflow(ast_material.metallic_workflow);
+				fs_key.set_custom_texture_count(custom_texture_count);
+
+				ProgramKey program_key = ProgramKey(vs_key, fs_key);
+
+				material->set_vs_key(vs_key);
+				material->set_fs_key(fs_key);
+				material->set_program_key(program_key);
 
 				m_material_cache[path] = material;
 
