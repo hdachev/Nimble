@@ -58,33 +58,33 @@ namespace nimble
 		{
 			if (g_exe_path == "")
 			{
-                char path[1024];
-                uint32_t size = sizeof(path);
-                if (_NSGetExecutablePath(path, &size) == 0)
-                {
-                    g_exe_path = path;
-                    
-                    // Substring three times to get back to root path.
-                    for (int i = 0; i < 3; i++)
-                    {
-                        std::size_t found = g_exe_path.find_last_of("/");
-                        g_exe_path = g_exe_path.substr(0,found);
-                    }
-                }
+				char path[1024];
+				uint32_t size = sizeof(path);
+				if (_NSGetExecutablePath(path, &size) == 0)
+				{
+					g_exe_path = path;
+
+					// Substring three times to get back to root path.
+					for (int i = 0; i < 3; i++)
+					{
+						std::size_t found = g_exe_path.find_last_of("/");
+						g_exe_path = g_exe_path.substr(0, found);
+					}
+				}
 			}
 
 			return g_exe_path;
 		}
 #else
-        std::string executable_path()
-        {
-            if (g_exe_path == "")
-            {
-                
-            }
-            
-            return g_exe_path;
-        }
+		std::string executable_path()
+		{
+			if (g_exe_path == "")
+			{
+
+			}
+
+			return g_exe_path;
+		}
 #endif
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -133,6 +133,12 @@ namespace nimble
 		std::string file_name_from_path(std::string filepath)
 		{
 			std::size_t slash = filepath.find_last_of("/");
+
+			if (slash == std::string::npos)
+				slash = 0;
+			else
+				slash++;
+
 			std::size_t dot = filepath.find_last_of(".");
 			std::string filename = filepath.substr(slash, dot - slash);
 
@@ -200,7 +206,7 @@ namespace nimble
 			std::string out = file_name_from_path(path);
 			std::transform(out.begin(), out.end(), out.begin(), ::toupper);
 
-			return out;
+			return out + "_H";
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -249,9 +255,9 @@ namespace nimble
 						out += header_guard;
 						out += "\n#define ";
 						out += header_guard;
-						out += "\n";
+						out += "\n\n";
 						out += include_source + "\n\n";
-						out += "#endif";
+						out += "#endif\n\n";
 					}
 				}
 				else
