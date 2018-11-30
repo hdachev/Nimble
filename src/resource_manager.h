@@ -26,9 +26,6 @@ namespace nimble
 		std::shared_ptr<Shader> load_shader(const std::string& path, const uint32_t& type, std::vector<std::string> defines = std::vector<std::string>());
 		
 	private:
-		bool read_shader(const std::string& path, std::string& out, const std::vector<std::string>& defines);
-
-	private:
 		std::unordered_map<std::string, std::weak_ptr<Texture>>  m_texture_cache;
 		std::unordered_map<std::string, std::weak_ptr<Material>> m_material_cache;
 		std::unordered_map<std::string, std::weak_ptr<Mesh>>	 m_mesh_cache;

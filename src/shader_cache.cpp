@@ -7,6 +7,14 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	void ShaderCache::shutdown()
+	{
+		for (auto& pair : m_library_cache)
+			pair.second.reset();
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	std::shared_ptr<ShaderLibrary> ShaderCache::load_library(const std::string& vs, const std::string& fs)
 	{
 		std::string id = "vs:";

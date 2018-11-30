@@ -20,7 +20,9 @@ namespace nimble
 		Program* create_program(const MeshType& type, const std::shared_ptr<Material>& material);
 
 	private:
-		StaticHashMap<uint64_t, std::shared_ptr<Program>, MAX_PROGRAM_CACHE_SIZE> m_program_cache;
+		StaticHashMap<uint64_t, Program*, MAX_PROGRAM_CACHE_SIZE> m_program_cache;
+		std::unordered_map<uint64_t, Shader*> m_vs_cache;
+		std::unordered_map<uint64_t, Shader*> m_fs_cache;
 		std::string m_vs_template;
 		std::string m_fs_template;
 	};
