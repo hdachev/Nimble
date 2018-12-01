@@ -54,7 +54,20 @@ namespace nimble
 
 	ShaderLibrary::~ShaderLibrary()
 	{
+		for (uint32_t i = 0; i < m_program_cache.size(); i++)
+		{
+			NIMBLE_SAFE_DELETE(m_program_cache.m_value[i]);
+		}
 
+		for (auto pair : m_vs_cache)
+		{
+			NIMBLE_SAFE_DELETE(pair.second);
+		}
+
+		for (auto pair : m_fs_cache)
+		{
+			NIMBLE_SAFE_DELETE(pair.second);
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
