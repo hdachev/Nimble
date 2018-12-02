@@ -3,7 +3,7 @@
 #include <glm.hpp>
 #include <memory>
 #include "camera.h"
-#include "ogl.h"
+#include "render_target.h"
 
 namespace nimble
 {
@@ -21,7 +21,7 @@ namespace nimble
 
 	struct CSM
 	{
-		Texture2D* m_shadow_maps = nullptr;
+		RenderTarget m_shadow_maps;
 		Framebuffer* m_shadow_fbos[MAX_FRUSTUM_SPLITS];
 		float m_lambda;
 		float m_near_offset;
@@ -54,7 +54,7 @@ namespace nimble
 		// Used for transforming fragments into light space.
 		inline glm::mat4 texture_matrix(int i) { return m_texture_matrices[i]; }
 		inline float far_bound(int i) { return m_far_bounds[i]; }
-		inline Texture2D* shadow_map() { return m_shadow_maps; }
+		inline RenderTarget* shadow_map() { return &m_shadow_maps; }
 		inline Framebuffer** framebuffers() { return &m_shadow_fbos[0]; }
 		inline uint32_t frustum_split_count() { return m_split_count; }
 		inline uint32_t near_offset() { return m_near_offset; }

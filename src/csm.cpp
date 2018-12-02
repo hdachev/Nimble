@@ -8,7 +8,7 @@ namespace nimble
 {
 	CSM::CSM()
 	{
-		m_shadow_maps = nullptr;
+		m_shadow_maps.texture = nullptr;
 
 		for (int i = 0; i < 8; i++)
 		{
@@ -28,8 +28,8 @@ namespace nimble
 		m_split_count = split_count;
 		m_shadow_map_size = shadow_map_size;
 		
-		if (m_shadow_maps)
-			GlobalGraphicsResources::destroy_texture(CSM_SHADOW_MAPS);
+		if (m_shadow_maps.texture)
+			m_shadow_maps.texture.reset();
 
 		for (int i = 0; i < 8; i++)
 		{
@@ -40,10 +40,10 @@ namespace nimble
 			}
 		}
 
-		m_shadow_maps = GlobalGraphicsResources::create_texture_2d(CSM_SHADOW_MAPS, m_shadow_map_size, m_shadow_map_size, GL_DEPTH_STENCIL, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 1, m_split_count);
-		m_shadow_maps->set_min_filter(GL_NEAREST);
-		m_shadow_maps->set_mag_filter(GL_NEAREST);
-		m_shadow_maps->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+		m_shadow_maps.texture = std::make_shared<Texture2D>(m_shadow_map_size, m_shadow_map_size, m_split_count, 1, GL_DEPTH_STENCIL, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+		m_shadow_maps.texture->set_min_filter(GL_NEAREST);
+		m_shadow_maps.texture->set_mag_filter(GL_NEAREST);
+		m_shadow_maps.texture->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 		
 		for (int i = 0; i < m_split_count; i++)
 		{
