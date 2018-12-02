@@ -15,6 +15,7 @@ namespace nimble
 		glm::vec3 m_color;
 		float m_intensity;
 		CSM m_csm;
+		bool m_casts_shadow;
 	};
 
 	struct PointLight
@@ -26,6 +27,7 @@ namespace nimble
 		glm::vec3 m_color;
 		float m_intensity;
 		std::shared_ptr<RenderTarget> m_render_target;
+		bool m_casts_shadow;
 	};
 
 	struct SpotLight
@@ -38,5 +40,6 @@ namespace nimble
 		glm::vec3 m_color;
 		float m_intensity;
 		std::shared_ptr<RenderTarget> m_render_target;
+		bool m_casts_shadow;
 	};
 } // namespace nimble
