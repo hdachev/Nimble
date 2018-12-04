@@ -26,7 +26,6 @@ namespace nimble
 		glm::vec3 m_position;
 		glm::vec3 m_color;
 		float m_intensity;
-		std::shared_ptr<RenderTarget> m_render_target;
 		bool m_casts_shadow;
 	};
 
@@ -39,7 +38,6 @@ namespace nimble
 		glm::vec3 m_position;
 		glm::vec3 m_color;
 		float m_intensity;
-		std::shared_ptr<RenderTarget> m_render_target;
 		bool m_casts_shadow;
 	};
 } // namespace nimble
