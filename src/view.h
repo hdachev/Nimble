@@ -9,9 +9,6 @@ namespace nimble
 
 	struct View
 	{
-		using ID = uint32_t;
-
-		ID m_id;
 		bool m_enabled;
 		bool m_culling;
 		glm::vec3 m_direction;
