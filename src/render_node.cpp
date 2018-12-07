@@ -1,6 +1,7 @@
 #include "render_node.h"
 #include "render_graph.h"
 #include "profiler.h"
+#include "view.h"
 
 namespace nimble
 {
@@ -117,7 +118,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void SceneRenderNode::execute()
+	void SceneRenderNode::execute(View* view)
 	{
 
 	}
@@ -138,7 +139,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void MultiPassRenderNode::execute()
+	void MultiPassRenderNode::execute(View* view)
 	{
 		float cpu_time, gpu_time;
 

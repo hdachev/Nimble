@@ -7,6 +7,7 @@
 
 namespace nimble
 {
+	struct View;
 	class RenderGraph;
 
 	enum RenderNodeType
@@ -40,7 +41,7 @@ namespace nimble
 
 		// Virtual methods
 		virtual void passthrough();
-		virtual void execute() = 0;
+		virtual void execute(View* view) = 0;
 		virtual bool initialize() = 0;
 		virtual void shutdown() = 0;
 		virtual std::string name() = 0;
@@ -70,7 +71,7 @@ namespace nimble
 		SceneRenderNode(RenderGraph* graph);
 		~SceneRenderNode();
 
-		void execute() override;
+		void execute(View* view) override;
 	};
 
 	class MultiPassRenderNode : public RenderNode
@@ -79,7 +80,7 @@ namespace nimble
 		MultiPassRenderNode(RenderNodeType type, RenderGraph* graph);
 		~MultiPassRenderNode();
 
-		void execute() override;
+		void execute(View* view) override;
 		void timing_sub_pass(const uint32_t& index, std::string& name, float& cpu_time, float& gpu_time);
 
 		// Inline getters
