@@ -25,21 +25,38 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void Material::bind(Program* program)
+	void Material::bind(Program* program, int32_t& unit)
 	{
-		int32_t unit = 0;
-
 		// Bind surface textures
-		for (uint32_t i = 0; i < MAX_MATERIAL_TEXTURES; i++)
-		{
-			if (m_surface_textures[i])
-			{
-				if (program->set_uniform(kSurfaceTextureNames[i], unit))
-					m_surface_textures[i]->bind(unit++);
-			}
-		}
+		bind_surface_textures(program, unit);
 
 		// Bind custom textures
+		bind_custom_textures(program, unit);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Material::bind_surface_texture(TextureType type, Program* program, int32_t& unit)
+	{
+		if (m_surface_textures[type])
+		{
+			if (program->set_uniform(kSurfaceTextureNames[type], unit))
+				m_surface_textures[type]->bind(unit++);
+		}
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Material::bind_surface_textures(Program* program, int32_t& unit)
+	{
+		for (uint32_t i = 0; i < MAX_MATERIAL_TEXTURES; i++)
+			bind_surface_texture(static_cast<TextureType>(i), program, unit);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Material::bind_custom_textures(Program* program, int32_t& unit)
+	{
 		for (uint32_t i = 0; i < m_custom_texture_count; i++)
 		{
 			if (m_custom_textures[i])

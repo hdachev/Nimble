@@ -46,27 +46,27 @@ namespace nimble
 		glm::vec4 metal_rough;
 	};
 
-	enum ShadingModel
+	enum ShadingModel : uint32_t
 	{
 		SHADING_MODEL_STANDARD = 0,
 		SHADING_MODEL_CLOTH,
 		SHADING_MODEL_SUBSURFACE
 	};
 
-	enum LightingModel
+	enum LightingModel : uint32_t
 	{
 		LIGHTING_MODEL_LIT = 0,
 		LIGHTING_MODEL_UNLIT
 	};
 
-	enum DisplacementType
+	enum DisplacementType : uint32_t
 	{
 		DISPLACEMENT_NONE = 0,
 		DISPLACEMENT_PARALLAX_OCCLUSION,
 		DISPLACEMENT_TESSELLATION
 	};
 
-	enum BlendMode
+	enum BlendMode : uint32_t
 	{
 		BLEND_MODE_OPAQUE = 0,
 		BLEND_MODE_ADDITIVE,
@@ -74,7 +74,7 @@ namespace nimble
 		BLEND_MODE_TRANSLUCENT
 	};
 
-	enum TextureType
+	enum TextureType : uint32_t
 	{
 		TEXTURE_TYPE_ALBEDO,
 		TEXTURE_TYPE_NORMAL,
@@ -94,7 +94,10 @@ namespace nimble
 		~Material();
 
 		// Bind textures and material constants to pipeline.
-		void bind(Program* program);
+		void bind(Program* program, int32_t& unit);
+		void bind_surface_texture(TextureType type, Program* program, int32_t& unit);
+		void bind_surface_textures(Program* program, int32_t& unit);
+		void bind_custom_textures(Program* program, int32_t& unit);
 
 		// Property setters.
 		inline void set_name(const std::string& name) { m_name = name; m_hash = NIMBLE_HASH(m_name.c_str()); }

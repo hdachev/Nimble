@@ -7,7 +7,10 @@
 
 namespace nimble
 {
+#define BIT_FLAG(x) (1 << x)
+
 	struct View;
+	struct FramebufferGroup;
 	class RenderGraph;
 
 	enum RenderNodeType
@@ -16,6 +19,35 @@ namespace nimble
 		RENDER_NODE_FULLSCREEN = 1,
 		RENDER_NODE_COMPUTE = 2
 	};
+
+	enum RenderNodeFlags
+	{
+		NODE_USAGE_PER_OBJECT_UBO = BIT_FLAG(0),
+		NODE_USAGE_PER_VIEW_UBO = BIT_FLAG(1),
+		NODE_USAGE_STATIC_MESH = BIT_FLAG(2),
+		NODE_USAGE_SKELETAL_MESH = BIT_FLAG(3),
+		NODE_USAGE_MATERIAL_ALBEDO = BIT_FLAG(4),
+		NODE_USAGE_MATERIAL_NORMAL = BIT_FLAG(5),
+		NODE_USAGE_MATERIAL_METAL_SPEC = BIT_FLAG(6),
+		NODE_USAGE_MATERIAL_ROUGH_SMOOTH = BIT_FLAG(7),
+		NODE_USAGE_MATERIAL_EMISSIVE = BIT_FLAG(8),
+		NODE_USAGE_ALL_MATERIALS = NODE_USAGE_MATERIAL_ALBEDO | NODE_USAGE_MATERIAL_NORMAL | NODE_USAGE_MATERIAL_METAL_SPEC | NODE_USAGE_MATERIAL_ROUGH_SMOOTH | NODE_USAGE_MATERIAL_EMISSIVE
+	};
+
+	struct SceneRenderDesc
+	{
+		FramebufferGroup* fbg;
+		uint32_t target_slice;
+		uint32_t x;
+		uint32_t y;
+		uint32_t w;
+		uint32_t h;
+		GLenum clear_flags = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
+		uint32_t num_clear_colors = 0;
+		float clear_colors[8][4];
+		double clear_depth = 1;
+	};
+
 
 	class RenderNode
 	{
@@ -72,6 +104,9 @@ namespace nimble
 		~SceneRenderNode();
 
 		void execute(View* view) override;
+
+	protected:
+		void render_scene();
 	};
 
 	class MultiPassRenderNode : public RenderNode
