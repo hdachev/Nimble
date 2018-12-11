@@ -1,6 +1,7 @@
 #include "shader_library.h"
 #include "utility.h"
 #include "logger.h"
+#include "render_node.h"
 
 namespace nimble
 {
@@ -20,11 +21,10 @@ namespace nimble
 	{
 		"#define TEXTURE_ALBEDO",
 		"#define TEXTURE_NORMAL",
-		"#define TEXTURE_METALLIC",
-		"#define TEXTURE_ROUGHNESS",
-		"#define TEXTURE_SPECULAR",
-		"#define TEXTURE_SMOOTHNESS",
-		"#define TEXTURE_DISPLACEMENT"
+		"#define TEXTURE_METAL_SPEC",
+		"#define TEXTURE_ROUGH_SMOOTH",
+		"#define TEXTURE_DISPLACEMENT",
+		"#define TEXTURE_EMISSIVE"
 	};
 
 	static const std::string kCustomTextureLUT[] =
@@ -37,6 +37,16 @@ namespace nimble
 		"#define TEXTURE_CUSTOM_6",
 		"#define TEXTURE_CUSTOM_7",
 		"#define TEXTURE_CUSTOM_8"
+	};
+
+	static const RenderNodeFlags kRenderNodeFlags[] =
+	{
+		NODE_USAGE_MATERIAL_ALBEDO,
+		NODE_USAGE_MATERIAL_NORMAL,
+		NODE_USAGE_MATERIAL_METAL_SPEC,
+		NODE_USAGE_MATERIAL_ROUGH_SMOOTH,
+		NODE_USAGE_MATERIAL_DISPLACEMENT,
+		NODE_USAGE_MATERIAL_EMISSIVE
 	};
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -104,8 +114,19 @@ namespace nimble
 
 		// COMMON
 
+		if (flags & NODE_USAGE_PER_OBJECT_UBO)
+		{
+			vs_defines.push_back("#define PER_OBJECT_UBO");
+			fs_defines.push_back("#define PER_OBJECT_UBO");
+		}
+		if (flags & NODE_USAGE_PER_VIEW_UBO)
+		{
+			vs_defines.push_back("#define PER_VIEW_UBO");
+			fs_defines.push_back("#define PER_VIEW_UBO");
+		}
+
 		// Normal Texture
-		if (material->surface_texture(TEXTURE_TYPE_NORMAL))
+		if (material->surface_texture(TEXTURE_TYPE_NORMAL) && (flags & NODE_USAGE_MATERIAL_NORMAL))
 		{
 			vs_defines.push_back(kSurfaceTextureLUT[TEXTURE_TYPE_NORMAL]);
 			fs_defines.push_back(kSurfaceTextureLUT[TEXTURE_TYPE_NORMAL]);
@@ -153,9 +174,19 @@ namespace nimble
 		{
 			std::string source;
 
+			if (!material->is_metallic_workflow())
+				fs_defines.push_back("#define SPECULAR_WORKFLOW");
+
 			// Displacement
-			if (material->surface_texture(TEXTURE_TYPE_DISPLACEMENT))
+			if (material->surface_texture(TEXTURE_TYPE_DISPLACEMENT) && (flags & NODE_USAGE_MATERIAL_DISPLACEMENT))
 				fs_defines.push_back(kDisplacementTypeLUT[type]);
+
+			// Surface textures
+			for (uint32_t i = 0; i < 7; i++)
+			{
+				if (material->surface_texture(i) && (flags & kRenderNodeFlags[i]))
+					fs_defines.push_back(kSurfaceTextureLUT[i]);
+			}
 
 			// Custom Textures
 			for (uint32_t i = 0; i < material->custom_texture_count(); i++)
