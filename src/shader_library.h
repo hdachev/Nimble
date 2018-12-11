@@ -17,7 +17,7 @@ namespace nimble
 		~ShaderLibrary();
 
 		Program* lookup_program(const ProgramKey& key);
-		Program* create_program(const MeshType& type, const std::shared_ptr<Material>& material);
+		Program* create_program(const MeshType& type, const uint32_t& flags, const std::shared_ptr<Material>& material);
 
 	private:
 		StaticHashMap<uint64_t, Program*, MAX_PROGRAM_CACHE_SIZE> m_program_cache;

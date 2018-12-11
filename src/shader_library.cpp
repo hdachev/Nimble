@@ -84,7 +84,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Program* ShaderLibrary::create_program(const MeshType& type, const std::shared_ptr<Material>& material)
+	Program* ShaderLibrary::create_program(const MeshType& type, const uint32_t& flags, const std::shared_ptr<Material>& material)
 	{
 		std::string vs_template = m_vs_template;
 		std::string fs_template = m_fs_template;
