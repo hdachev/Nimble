@@ -19,7 +19,8 @@ namespace nimble
 		glm::mat4 m_inv_projection_mat;
 		glm::mat4 m_inv_vp_mat;
 		glm::vec4 m_jitter;
-		uint32_t m_render_target_slice;
+		uint32_t m_render_target_array_slice;
+		uint32_t m_render_target_cubemap_slice;
 		RenderTarget* m_render_target;
 	};
 } // namespace nimble
