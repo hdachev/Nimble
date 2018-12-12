@@ -174,6 +174,9 @@ namespace nimble
 		{
 			std::string source;
 
+			if (material->blend_mode() == BLEND_MODE_MASKED)
+				fs_defines.push_back("#define BLEND_MODE_MASKED");
+
 			if (!material->is_metallic_workflow())
 				fs_defines.push_back("#define SPECULAR_WORKFLOW");
 
