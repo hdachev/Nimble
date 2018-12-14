@@ -1,13 +1,10 @@
 #pragma once
 
 #include <stdint.h>
+#include "macros.h"
 
 namespace nimble
 {
-#define BIT_MASK(n) ((1 << n) - 1)
-#define WRITE_BIT_RANGE_64(value, dst, offset, num_bits) (dst |= (static_cast<uint64_t>(value & BIT_MASK(num_bits)) << offset))
-#define READ_BIT_RANGE_64(src, offset, num_bits) ((src >> offset) & BIT_MASK(num_bits))
-
 	struct VertexShaderKey
 	{
 		uint64_t key = 0;

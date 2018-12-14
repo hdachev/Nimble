@@ -7,8 +7,6 @@
 
 namespace nimble
 {
-#define BIT_FLAG(x) (1 << x)
-
 	struct View;
 	struct FramebufferGroup;
 	class RenderGraph;
