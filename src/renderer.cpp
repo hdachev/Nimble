@@ -9,6 +9,7 @@
 #include "global_graphics_resources.h"
 #include "constants.h"
 #include "profiler.h"
+#include "render_graph.h"
 
 #include <gtc/matrix_transform.hpp>
 #include <fstream>
@@ -33,7 +34,6 @@ namespace nimble
 
 		render_all_views();
 
-		m_num_allocated_views = 0;
 		m_num_active_views = 0;
 	}
 
@@ -46,20 +46,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	View* Renderer::allocate_view()
-	{
-		if (m_num_allocated_views == MAX_VIEWS)
-		{
-			NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
-			return nullptr;
-		}
-
-		return &m_view_pool[m_num_allocated_views++];
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void Renderer::queue_view(View* view)
+	void Renderer::queue_view(View view)
 	{
 		if (m_num_active_views == MAX_VIEWS)
 			NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
@@ -69,7 +56,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void Renderer::push_directional_light_views(View* dependent_view)
+	void Renderer::push_directional_light_views(View& dependent_view)
 	{
 
 	}
@@ -106,14 +93,46 @@ namespace nimble
 
 	void Renderer::queue_default_views()
 	{
+		if (m_scene)
+		{
+			// Allocate view for scene camera
+			Camera* camera = m_scene->camera();
+			View scene_view;
 
+			scene_view.m_enabled = true;
+			scene_view.m_culling = true;
+			scene_view.m_direction = camera->m_forward;
+			scene_view.m_position = camera->m_position;
+			scene_view.m_view_mat = camera->m_view;
+			scene_view.m_projection_mat = camera->m_projection;
+			scene_view.m_vp_mat = camera->m_view_projection;
+			scene_view.m_prev_vp_mat = camera->m_prev_view_projection;
+			scene_view.m_inv_view_mat = glm::inverse(camera->m_view);
+			scene_view.m_inv_projection_mat = glm::inverse(camera->m_projection);
+			scene_view.m_inv_vp_mat = glm::inverse(camera->m_view_projection);
+			scene_view.m_jitter = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
+			scene_view.m_render_target_array_slice = 0;
+			scene_view.m_render_target_cubemap_slice = 0;
+			scene_view.m_render_target = nullptr;
+
+			// @TODO: Create shadow views for scene views
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	void Renderer::render_all_views()
 	{
+		for (uint32_t i = 0; i < m_num_active_views; i++)
+		{
+			View& view = m_active_views[i];
+			view.m_id = i;
 
+			if (view.m_graph)
+				view.m_graph->execute(view);
+			else
+				NIMBLE_LOG_ERROR("Render Graph not assigned for View!");
+		}
 	}
 	
 	// -----------------------------------------------------------------------------------------------------------------------------------

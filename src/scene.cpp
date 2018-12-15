@@ -159,16 +159,19 @@ namespace nimble
 		{
 			Entity& e = m_entities._objects[i];
 
-			glm::mat4 H = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.x), glm::vec3(0.0f, 1.0f, 0.0f));
-			glm::mat4 P = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
-			glm::mat4 B = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+			if (e.m_dirty)
+			{
+				glm::mat4 H = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.x), glm::vec3(0.0f, 1.0f, 0.0f));
+				glm::mat4 P = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::mat4 B = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
-			glm::mat4 R = H * P * B;
-			glm::mat4 S = glm::scale(glm::mat4(1.0f), e.m_scale);
-			glm::mat4 T = glm::translate(glm::mat4(1.0f), e.m_position);
+				glm::mat4 R = H * P * B;
+				glm::mat4 S = glm::scale(glm::mat4(1.0f), e.m_scale);
+				glm::mat4 T = glm::translate(glm::mat4(1.0f), e.m_position);
 
-			e.m_prev_transform = e.m_transform;
-			e.m_transform = T * R * S;
+				e.m_prev_transform = e.m_transform;
+				e.m_transform = T * R * S;
+			}
 		}
 	}
 

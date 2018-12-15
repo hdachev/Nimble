@@ -1,11 +1,10 @@
 #pragma once
 
 #include "render_node.h"
+#include "view.h"
 
 namespace nimble
 {
-	struct View;
-
 	class RenderGraph
 	{
 	public:
@@ -15,7 +14,7 @@ namespace nimble
 		bool initialize();
 		void shutdown();
 		void clear();
-		void execute(View* view);
+		void execute(const View& view);
 		uint32_t id();
 		bool attach_and_initialize_node(std::shared_ptr<RenderNode> node);
 		std::shared_ptr<RenderNode> node_by_name(const std::string& name);

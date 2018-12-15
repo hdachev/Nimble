@@ -1,5 +1,4 @@
 #include "render_graph.h"
-#include "view.h"
 
 namespace nimble
 {
@@ -45,7 +44,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void RenderGraph::execute(View* view)
+	void RenderGraph::execute(const View& view)
 	{
 		for (auto& node : m_nodes)
 			node->execute(view);

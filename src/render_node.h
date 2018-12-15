@@ -4,6 +4,7 @@
 
 #include "render_target.h"
 #include "global_graphics_resources.h"
+#include "view.h"
 
 namespace nimble
 {
@@ -71,7 +72,7 @@ namespace nimble
 
 		// Virtual methods
 		virtual void passthrough();
-		virtual void execute(View* view) = 0;
+		virtual void execute(const View& view) = 0;
 		virtual bool initialize() = 0;
 		virtual void shutdown() = 0;
 		virtual std::string name() = 0;
@@ -101,7 +102,7 @@ namespace nimble
 		SceneRenderNode(RenderGraph* graph);
 		~SceneRenderNode();
 
-		void execute(View* view) override;
+		void execute(const View& view) override;
 
 	protected:
 		void render_scene();
@@ -113,7 +114,7 @@ namespace nimble
 		MultiPassRenderNode(RenderNodeType type, RenderGraph* graph);
 		~MultiPassRenderNode();
 
-		void execute(View* view) override;
+		void execute(const View& view) override;
 		void timing_sub_pass(const uint32_t& index, std::string& name, float& cpu_time, float& gpu_time);
 
 		// Inline getters

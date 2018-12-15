@@ -2,6 +2,7 @@
 
 #include "entity.h"
 #include "packed_array.h"
+#include "camera.h"
 #include <vector>
 #include <string>
 
@@ -59,6 +60,7 @@ namespace nimble
 		inline void set_prefiltered_map(const std::shared_ptr<TextureCube>& texture) { m_prefiltered_map = texture; }
 
 		// Inline getters.
+		inline Camera* camera() { return &m_camera; }
 		inline uint32_t entity_count() { return m_entities.size(); }
 		inline Entity* entities() { return &m_entities._objects[0]; }
 		inline uint32_t reflection_probe_count() { return m_reflection_probes.size(); }
@@ -74,6 +76,7 @@ namespace nimble
 		
 	private:
 		std::string						  m_name;
+		Camera							  m_camera;
 		PackedArray<ReflectionProbe, 128> m_reflection_probes;
 		PackedArray<GIProbe, 128>		  m_gi_probes;
 		PackedArray<Entity, 1024>		  m_entities;
