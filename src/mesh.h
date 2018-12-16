@@ -1,5 +1,6 @@
 #pragma once
 
+#include "geometry.h"
 #include "material.h"
 #include <common/mesh.h>
 #include <memory>
@@ -30,9 +31,10 @@ namespace nimble
 			std::shared_ptr<VertexArray> vertex_array);
 		~Mesh();
 		void bind();
-		void bind_material(Program* program, const uint32_t& index);
+		void bind_material(Program* program, const uint32_t& index, int32_t& unit);
 		ast::SubMesh& submesh(const uint32_t& index);
 		uint32_t submesh_count();
+		AABB aabb();
 
 		// Inline getters
 		inline MeshType type() { return m_type; }
@@ -40,10 +42,9 @@ namespace nimble
 	private:
 		MeshType					m_type = MESH_TYPE_STATIC;
 		std::string                 m_name;
-		glm::vec3                   m_max_extents;
-		glm::vec3                   m_min_extents;
+		AABB						m_aabb;
 		std::vector<ast::SubMesh>   m_submeshes;
-		std::vector<std::shared_ptr<Material>>      m_materials;
+		std::vector<std::shared_ptr<Material>> m_materials;
 		std::shared_ptr<VertexBuffer> m_vertex_buffer;
 		std::shared_ptr<IndexBuffer>  m_index_buffer;
 		std::shared_ptr<VertexArray>  m_vertex_array;

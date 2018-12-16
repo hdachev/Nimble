@@ -420,6 +420,26 @@ namespace nimble
 
 					e.m_prev_transform = e.m_transform;
 					e.m_transform = T * R * S;
+
+					e.m_obb.min = e.m_mesh->aabb().min;
+					e.m_obb.max = e.m_mesh->aabb().max;
+					e.m_obb.position = e.m_position;
+
+#ifdef ENABLE_SUBMESH_CULLING
+					for (uint32_t i = 0; i < e.m_mesh->submesh_count(); i++)
+					{
+						ast::SubMesh& submesh = e.m_mesh->submesh(i);
+
+						Sphere sphere;
+
+						glm::vec3 center = (submesh.min_extents + submesh.max_extents) / 2.0f;
+
+						sphere.position = center + e.m_position;
+						sphere.radius = glm::length(submesh.max_extents - submesh.min_extents) / 2.0f;
+
+						e.m_submesh_spheres.push_back(sphere);
+					}
+#endif
 				}
 
 				// Load environment

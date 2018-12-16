@@ -10,6 +10,7 @@
 #include "constants.h"
 #include "profiler.h"
 #include "render_graph.h"
+#include "geometry.h"
 
 #include <gtc/matrix_transform.hpp>
 #include <fstream>
@@ -34,7 +35,7 @@ namespace nimble
 
 		render_all_views();
 
-		m_num_active_views = 0;
+		clear_all_views();
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -51,7 +52,16 @@ namespace nimble
 		if (m_num_active_views == MAX_VIEWS)
 			NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
 		else
-			m_active_views[m_num_active_views++] = view;
+		{
+			uint32_t idx = m_num_active_views++;
+
+			Frustum frustum;
+			frustum_from_matrix(frustum, view.m_vp_mat);
+
+			m_active_views[idx] = view;
+			m_active_frustums[idx] = frustum;
+		}
+			
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -79,14 +89,47 @@ namespace nimble
 
 	void Renderer::clear_all_views()
 	{
-
+		m_num_active_views = 0;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	void Renderer::cull_scene()
 	{
+		if (m_scene)
+		{
+			Entity* entities = m_scene->entities();
 
+			for (uint32_t i = 0; i < m_scene->entity_count(); i++)
+			{
+				Entity& entity = entities[i];
+
+				glm::mat3 rotation_mat = glm::mat3(entity.m_transform);
+
+				for (uint32_t j = 0; j < m_num_active_views; j++)
+				{
+					OBB obb;
+					obb.
+
+					if (intersects(m_active_frustums[j], obb))
+					{
+						entity.set_visible(j);
+
+#ifdef ENABLE_SUBMESH_CULLING
+						for (uint32_t k = 0; k < entity.m_mesh->submesh_count(); k++)
+						{
+							if (intersects(m_active_frustums[j], obb))
+								entity.set_submesh_visible(k, j);
+							else
+								entity.set_submesh_invisible(k, j);
+						}
+#endif
+					}
+					else
+						entity.set_invisible(j);
+				}
+			}
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

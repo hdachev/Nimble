@@ -13,15 +13,14 @@ namespace nimble
 		std::shared_ptr<VertexBuffer> vertex_buffer,
 		std::shared_ptr<IndexBuffer> index_buffer,
 		std::shared_ptr<VertexArray> vertex_array) : m_name(name),
-									 m_max_extents(max_extents),
-									 m_min_extents(min_extents),
 									 m_submeshes(submeshes),
 									 m_materials(materials),
 									 m_vertex_buffer(vertex_buffer),
 									 m_index_buffer(index_buffer),
 									 m_vertex_array(vertex_array)
 	{
-
+		m_aabb.min = min_extents;
+		m_aabb.max = max_extents;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -42,9 +41,9 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void Mesh::bind_material(Program* program, const uint32_t& index)
+	void Mesh::bind_material(Program* program, const uint32_t& index, int32_t& unit)
 	{
-		m_materials[index]->bind(program);
+		m_materials[index]->bind(program, unit);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -59,6 +58,13 @@ namespace nimble
 	uint32_t Mesh::submesh_count()
 	{
 		return m_submeshes.size();
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	AABB Mesh::aabb()
+	{
+		return m_aabb;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "geometry.h"
 #include "mesh.h"
 #include "material.h"
 #include "ogl.h"
@@ -20,11 +21,13 @@ namespace nimble
 		glm::mat4				  m_prev_transform;
 		std::shared_ptr<Material> m_override_mat;
 		std::shared_ptr<Mesh>	  m_mesh;
+		OBB						  m_obb;
 		uint64_t				  m_visibility;
 		bool					  m_dirty;
 		bool					  m_static;
 
 #ifdef ENABLE_SUBMESH_CULLING
+		std::vector<Sphere>		  m_submesh_spheres;
 		std::vector<uint64_t>	  m_submesh_visibility;
 #endif
 

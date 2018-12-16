@@ -37,6 +37,7 @@ namespace nimble
 		// Current scene.
 		uint32_t m_num_active_views = 0;
 		std::array<View, MAX_VIEWS> m_active_views;
+		std::array<Frustum, MAX_VIEWS> m_active_frustums;
 		std::shared_ptr<Scene> m_scene;
 	};
 }
