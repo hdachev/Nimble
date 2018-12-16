@@ -104,21 +104,24 @@ namespace nimble
 			{
 				Entity& entity = entities[i];
 
-				glm::mat3 rotation_mat = glm::mat3(entity.m_transform);
-
+				entity.m_obb.position = entity.m_position;
+				entity.m_obb.orientation = glm::mat3(entity.m_transform);
+				
 				for (uint32_t j = 0; j < m_num_active_views; j++)
 				{
-					OBB obb;
-					obb.
-
-					if (intersects(m_active_frustums[j], obb))
+					if (intersects(m_active_frustums[j], entity.m_obb))
 					{
 						entity.set_visible(j);
 
 #ifdef ENABLE_SUBMESH_CULLING
 						for (uint32_t k = 0; k < entity.m_mesh->submesh_count(); k++)
 						{
-							if (intersects(m_active_frustums[j], obb))
+							ast::SubMesh& submesh = entity.m_mesh->submesh(k);
+							glm::vec3 center = (submesh.min_extents + submesh.max_extents) / 2.0f;
+
+							entity.m_submesh_spheres[k].position = center + entity.m_position;
+
+							if (intersects(m_active_frustums[j], entity.m_submesh_spheres[k]))
 								entity.set_submesh_visible(k, j);
 							else
 								entity.set_submesh_invisible(k, j);

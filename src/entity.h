@@ -6,6 +6,8 @@
 #include "ogl.h"
 #include <string>
 
+#define ENABLE_SUBMESH_CULLING
+
 namespace nimble
 {
 	struct Entity
