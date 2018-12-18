@@ -17,6 +17,7 @@ A simple and lightweight OpenGL rendering engine built on top of dwSampleFramewo
 * Bloom
 * Variety of Tone-Mapping operators (Reinhard, Uncharted 2, Filmic etc)
 * GPU Profiling
+* Experimental Render Graph implementation
 
 ## Screenshots
 
