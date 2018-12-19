@@ -96,16 +96,34 @@ namespace nimble
 		std::unordered_map<std::string, Buffer*> m_buffer_dependecies;
 	};
 
+	class Scene;
+	struct FramebufferGroup;
+
 	class SceneRenderNode : public RenderNode
 	{
 	public:
+		struct Params
+		{
+			Scene scene;
+			FramebufferGroup* fbg;
+			uint32_t target_slice;
+			uint32_t x;
+			uint32_t y;
+			uint32_t w;
+			uint32_t h;
+			GLenum clear_flags = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
+			uint32_t num_clear_colors = 0;
+			float clear_colors[8][4];
+			double clear_depth = 1;
+		};
+
 		SceneRenderNode(RenderGraph* graph);
 		~SceneRenderNode();
 
 		void execute(const View& view) override;
 
 	protected:
-		void render_scene();
+		void render_scene(const Params& params);
 	};
 
 	class MultiPassRenderNode : public RenderNode

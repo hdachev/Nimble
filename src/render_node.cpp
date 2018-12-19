@@ -2,6 +2,8 @@
 #include "render_graph.h"
 #include "profiler.h"
 #include "view.h"
+#include "scene.h"
+#include "framebuffer_group.h"
 
 namespace nimble
 {
@@ -125,7 +127,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void SceneRenderNode::render_scene()
+	void SceneRenderNode::render_scene(const Params& params)
 	{
 
 	}
