@@ -97,16 +97,14 @@ namespace nimble
 	};
 
 	class Scene;
-	struct FramebufferGroup;
 
 	class SceneRenderNode : public RenderNode
 	{
 	public:
 		struct Params
 		{
-			Scene scene;
-			FramebufferGroup* fbg;
-			uint32_t target_slice;
+			Scene* scene;
+			View* view;
 			uint32_t x;
 			uint32_t y;
 			uint32_t w;

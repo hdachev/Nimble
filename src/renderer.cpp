@@ -159,7 +159,7 @@ namespace nimble
 			scene_view.m_jitter = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
 			scene_view.m_render_target_array_slice = 0;
 			scene_view.m_render_target_cubemap_slice = 0;
-			scene_view.m_render_target = nullptr;
+			scene_view.m_fbg = nullptr;
 
 			// @TODO: Create shadow views for scene views
 		}

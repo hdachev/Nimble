@@ -3,7 +3,6 @@
 #include "profiler.h"
 #include "view.h"
 #include "scene.h"
-#include "framebuffer_group.h"
 
 namespace nimble
 {
@@ -129,7 +128,48 @@ namespace nimble
 
 	void SceneRenderNode::render_scene(const Params& params)
 	{
+		if (params.view->m_target_framebuffer)
+			params.view->m_target_framebuffer->bind();
+		else
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+		glViewport(params.x, params.y, params.h, params.w);
+
+		if (params.clear_flags != 0)
+		{
+			if (params.view->m_target_framebuffer)
+			{
+				if (params.num_clear_colors == 1)
+					glClearColor(params.clear_colors[0][0], params.clear_colors[0][1], params.clear_colors[0][2], params.clear_colors[0][3]);
+				else
+				{
+					for (uint32_t i = 0; i < params.num_clear_colors; i++)
+						glClearBufferfv(GL_COLOR, i, &params.clear_colors[i][0]);
+				}
+			}
+			else
+			{
+				if (params.num_clear_colors == 1)
+					glClearColor(params.clear_colors[0][0], params.clear_colors[0][1], params.clear_colors[0][2], params.clear_colors[0][3]);
+			}
+
+			glClearDepth(params.clear_depth);
+
+			glClear(params.clear_flags);
+		}
+
+		if (params.scene)
+		{
+			Entity* entities = params.scene->entities();
+
+			for (uint32_t i = 0; i < params.scene->entity_count(); i++)
+			{
+				if (!params.view->m_culling || (params.view->m_culling && entities[i].visibility(params.view->m_id)))
+				{
+
+				}
+			}
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
