@@ -19,6 +19,20 @@ namespace nimble
 	std::shared_ptr<UniformBuffer> GlobalGraphicsResources::m_per_entity = nullptr;
 	PerFrameUniforms			   GlobalGraphicsResources::m_per_frame_uniforms;
 
+	struct RenderTargetKey
+	{
+		uint32_t face = UINT32_MAX;
+		uint32_t layer = UINT32_MAX;
+		uint32_t mip_level = UINT32_MAX;
+		uint32_t gl_id = UINT32_MAX;
+	};
+
+	struct FramebufferKey
+	{
+		RenderTargetKey rt_keys[8];
+		RenderTargetKey depth_key;
+	};
+
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	void GlobalGraphicsResources::initialize()
@@ -219,6 +233,43 @@ namespace nimble
 				current->expired = false;
 			}
 		}
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	Framebuffer* GlobalGraphicsResources::framebuffer_for_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView* depth_view)
+	{
+		FramebufferKey key;
+
+		if (rt_views)
+		{
+			for (int i = 0; i < num_render_targets; i++)
+			{
+				key.rt_keys[i].face = rt_views[i].face;
+				key.rt_keys[i].layer = rt_views[i].layer;
+				key.rt_keys[i].mip_level = rt_views[i].mip_level;
+				key.rt_keys[i].gl_id = rt_views[i].render_target->texture->id();
+			}
+		}
+		
+		if (depth_view)
+		{
+			key.depth_key.face = depth_view->face;
+			key.depth_key.layer = depth_view->layer;
+			key.depth_key.mip_level = depth_view->mip_level;
+			key.depth_key.gl_id = depth_view->render_target->texture->id();;
+		}
+
+		uint64_t hash = murmur_hash_64(&key, sizeof(FramebufferKey), 5234);
+
+
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void GlobalGraphicsResources::bind_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView& depth_view)
+	{
+
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
