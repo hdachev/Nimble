@@ -105,6 +105,9 @@ namespace nimble
 		{
 			Scene* scene;
 			View* view;
+			uint32_t num_rt_views;
+			RenderTargetView* rt_views;
+			RenderTargetView* depth_views;
 			uint32_t x;
 			uint32_t y;
 			uint32_t w;

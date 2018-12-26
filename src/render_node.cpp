@@ -128,8 +128,8 @@ namespace nimble
 
 	void SceneRenderNode::render_scene(const Params& params)
 	{
-		if (params.view->m_target_framebuffer)
-			params.view->m_target_framebuffer->bind();
+		if (params.rt_views || params.depth_views)
+			GlobalGraphicsResources::bind_render_targets(params.num_rt_views, params.rt_views, params.depth_views);
 		else
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -137,7 +137,7 @@ namespace nimble
 
 		if (params.clear_flags != 0)
 		{
-			if (params.view->m_target_framebuffer)
+			if (params.rt_views || params.depth_views)
 			{
 				if (params.num_clear_colors == 1)
 					glClearColor(params.clear_colors[0][0], params.clear_colors[0][1], params.clear_colors[0][2], params.clear_colors[0][3]);

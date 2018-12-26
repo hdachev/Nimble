@@ -5,7 +5,7 @@
 
 namespace nimble
 {
-	class Framebuffer;
+	class RenderTargetView;
 	class RenderGraph;
 
 	struct View
@@ -26,6 +26,6 @@ namespace nimble
 		uint32_t m_render_target_array_slice;
 		uint32_t m_render_target_cubemap_slice;
 		RenderGraph* m_graph;
-		Framebuffer* m_target_framebuffer;
+		RenderTargetView* m_dest_render_target_view;
 	};
 } // namespace nimble
