@@ -6,15 +6,10 @@
 #include "material.h"
 #include "uniforms.h"
 #include "render_target.h"
+#include "static_hash_map.h"
 
 namespace nimble
 {
-	enum RendererType
-	{
-		RENDERER_FORWARD = 0,
-		RENDERER_DEFERRED = 1
-	};
-
 	// Class for associating names with graphics resources and offering a global point-of-access for all render passes.
 	class GlobalGraphicsResources
 	{
@@ -64,6 +59,8 @@ namespace nimble
 
 		// Shader and Program cache.
 		static std::unordered_map<std::string, std::weak_ptr<Program>> m_program_cache;
+
+		static StaticHashMap<uint64_t, Framebuffer*, 1024> m_fbo_cache;
 
 		// Common geometry.
 		static std::shared_ptr<VertexArray>   m_quad_vao;

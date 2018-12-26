@@ -139,6 +139,13 @@ namespace nimble
 
 	void GlobalGraphicsResources::initialize_render_targets(const uint32_t& window_w, const uint32_t& window_h)
 	{
+		// Clear all render targets
+		for (int i = 0; i < m_fbo_cache.size(); i++)
+		{
+			NIMBLE_SAFE_DELETE(m_fbo_cache.m_value[i]);
+			m_fbo_cache.remove(m_fbo_cache.m_key[i]);
+		}
+
 		for (auto& rt : m_render_target_pool)
 		{
 			std::shared_ptr<RenderTarget> rt_ptr = rt.lock();
@@ -262,7 +269,45 @@ namespace nimble
 
 		uint64_t hash = murmur_hash_64(&key, sizeof(FramebufferKey), 5234);
 
+		Framebuffer* fbo = nullptr;
 
+		if (!m_fbo_cache.get(hash, fbo))
+		{
+			fbo = new Framebuffer();
+			
+			if (rt_views)
+			{
+				if (num_render_targets == 0)
+				{
+					if (rt_views[0].render_target->texture->target() == GL_TEXTURE_2D)
+						fbo->attach_render_target(0, rt_views[0].render_target->texture.get(), rt_views[0].layer, rt_views[0].mip_level);
+					else
+						fbo->attach_render_target(0, static_cast<TextureCube*>(rt_views[0].render_target->texture.get()), rt_views[0].face, rt_views[0].layer, rt_views[0].mip_level);
+				}
+				else
+				{
+					Texture* textures[8];
+
+					for (int i = 0; i < num_render_targets; i++)
+						textures[i] = rt_views[i].render_target->texture.get();
+
+					fbo->attach_multiple_render_targets(num_render_targets, textures);
+				}
+				
+			}
+
+			if (depth_view)
+			{
+				if (depth_view->render_target->texture->target() == GL_TEXTURE_2D)
+					fbo->attach_depth_stencil_target(depth_view->render_target->texture.get(), depth_view->layer, depth_view->mip_level);
+				else
+					fbo->attach_depth_stencil_target(static_cast<TextureCube*>(depth_view->render_target->texture.get()), depth_view->face, depth_view->layer, depth_view->mip_level);
+			}
+
+			m_fbo_cache.set(hash, fbo);
+		}
+
+		return fbo;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
