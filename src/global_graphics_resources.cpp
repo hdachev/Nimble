@@ -281,7 +281,7 @@ namespace nimble
 				{
 					if (rt_views[0].render_target->texture->target() == GL_TEXTURE_2D)
 						fbo->attach_render_target(0, rt_views[0].render_target->texture.get(), rt_views[0].layer, rt_views[0].mip_level);
-					else
+					else if (rt_views[0].render_target->texture->target() == GL_TEXTURE_CUBE_MAP)
 						fbo->attach_render_target(0, static_cast<TextureCube*>(rt_views[0].render_target->texture.get()), rt_views[0].face, rt_views[0].layer, rt_views[0].mip_level);
 				}
 				else
@@ -300,7 +300,7 @@ namespace nimble
 			{
 				if (depth_view->render_target->texture->target() == GL_TEXTURE_2D)
 					fbo->attach_depth_stencil_target(depth_view->render_target->texture.get(), depth_view->layer, depth_view->mip_level);
-				else
+				else if (depth_view->render_target->texture->target() == GL_TEXTURE_CUBE_MAP)
 					fbo->attach_depth_stencil_target(static_cast<TextureCube*>(depth_view->render_target->texture.get()), depth_view->face, depth_view->layer, depth_view->mip_level);
 			}
 
@@ -312,9 +312,12 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void GlobalGraphicsResources::bind_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView& depth_view)
+	void GlobalGraphicsResources::bind_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView* depth_view)
 	{
+		Framebuffer* fbo = framebuffer_for_render_targets(num_render_targets, rt_views, depth_view);
 
+		if (fbo)
+			fbo->bind();
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
