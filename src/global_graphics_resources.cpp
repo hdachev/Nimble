@@ -10,14 +10,12 @@ namespace nimble
 {
 	std::vector<std::weak_ptr<RenderTarget>> GlobalGraphicsResources::m_render_target_pool;
 	std::unordered_map<std::string, std::weak_ptr<Program>> GlobalGraphicsResources::m_program_cache;
-	std::shared_ptr<VertexArray>   GlobalGraphicsResources::m_quad_vao = nullptr;
-	std::shared_ptr<VertexBuffer>  GlobalGraphicsResources::m_quad_vbo = nullptr;
+	StaticHashMap<uint64_t, Framebuffer*, 1024> GlobalGraphicsResources::m_fbo_cache;
 	std::shared_ptr<VertexArray>   GlobalGraphicsResources::m_cube_vao = nullptr;
 	std::shared_ptr<VertexBuffer>  GlobalGraphicsResources::m_cube_vbo = nullptr;
-	std::shared_ptr<UniformBuffer> GlobalGraphicsResources::m_per_frame = nullptr;
+	std::shared_ptr<UniformBuffer> GlobalGraphicsResources::m_per_view = nullptr;
 	std::shared_ptr<UniformBuffer> GlobalGraphicsResources::m_per_scene = nullptr;
 	std::shared_ptr<UniformBuffer> GlobalGraphicsResources::m_per_entity = nullptr;
-	PerFrameUniforms			   GlobalGraphicsResources::m_per_frame_uniforms;
 
 	struct RenderTargetKey
 	{
@@ -37,23 +35,12 @@ namespace nimble
 
 	void GlobalGraphicsResources::initialize()
 	{
-		// Set initial settings.
-		m_per_frame_uniforms.ssao = 1;
-		m_per_frame_uniforms.motion_blur = 1;
-		m_per_frame_uniforms.renderer = 1;
-		m_per_frame_uniforms.current_output = SHOW_DEFERRED_COLOR;
-		m_per_frame_uniforms.max_motion_blur_samples = 32;
-		m_per_frame_uniforms.ssao_num_samples = 64;
-		m_per_frame_uniforms.ssao_radius = 10.0f;
-		m_per_frame_uniforms.ssao_bias = 0.025f;
-
 		// Create uniform buffers.
-		m_per_frame = std::make_shared<UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerFrameUniforms));
+		m_per_view = std::make_shared<UniformBuffer>(GL_DYNAMIC_DRAW, 8 * sizeof(PerViewUniforms));
 		m_per_scene = std::make_shared<UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
 		m_per_entity = std::make_shared<UniformBuffer>(GL_DYNAMIC_DRAW, 1024 * sizeof(PerEntityUniforms));
 
 		// Create common geometry VBO's and VAO's.
-		create_quad();
 		create_cube();
 	}
 
@@ -62,15 +49,20 @@ namespace nimble
 	void GlobalGraphicsResources::shutdown()
 	{
 		// Delete common geometry VBO's and VAO's.
-		m_quad_vao.reset();
-		m_quad_vbo.reset();
 		m_cube_vao.reset();
 		m_cube_vbo.reset();
 
 		// Delete uniform buffers.
-		m_per_frame.reset();
+		m_per_view.reset();
 		m_per_scene.reset();
 		m_per_entity.reset();
+
+		// Delete framebuffer
+		for (int i = 0; i < m_fbo_cache.size(); i++)
+		{
+			NIMBLE_SAFE_DELETE(m_fbo_cache.m_value[i]);
+			m_fbo_cache.remove(m_fbo_cache.m_key[i]);
+		}
 
 		// Delete render targets.
 		for (auto itr : m_render_target_pool)
@@ -139,13 +131,14 @@ namespace nimble
 
 	void GlobalGraphicsResources::initialize_render_targets(const uint32_t& window_w, const uint32_t& window_h)
 	{
-		// Clear all render targets
+		// Clear all framebuffers
 		for (int i = 0; i < m_fbo_cache.size(); i++)
 		{
 			NIMBLE_SAFE_DELETE(m_fbo_cache.m_value[i]);
 			m_fbo_cache.remove(m_fbo_cache.m_key[i]);
 		}
 
+		// Clear all render targets
 		for (auto& rt : m_render_target_pool)
 		{
 			std::shared_ptr<RenderTarget> rt_ptr = rt.lock();
@@ -443,36 +436,6 @@ namespace nimble
 		if (!m_cube_vbo || !m_cube_vao)
 		{
 			NIMBLE_LOG_FATAL("Failed to create Vertex Buffers/Arrays");
-		}
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void GlobalGraphicsResources::create_quad()
-	{
-		const float vertices[] =
-		{
-			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-			1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-			1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-			1.0f,  -1.0f, 0.0f, 1.0f, 0.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f
-		};
-
-		m_quad_vbo = std::make_shared<VertexBuffer>(GL_STATIC_DRAW, sizeof(vertices), (void*)vertices);
-
-		VertexAttrib quad_attribs[] =
-		{
-			{ 3, GL_FLOAT, false, 0, },
-			{ 2, GL_FLOAT, false, sizeof(float) * 3 }
-		};
-
-		m_quad_vao = std::make_shared<VertexArray>(m_quad_vbo.get(), nullptr, sizeof(float) * 5, 2, quad_attribs);
-
-		if (!m_quad_vbo || !m_quad_vao)
-		{
-			NIMBLE_LOG_INFO("Failed to create Vertex Buffers/Arrays");
 		}
 	}
 

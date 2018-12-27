@@ -26,7 +26,7 @@ namespace nimble
 		NIMBLE_ALIGNED(16) float	 farPlane;
 	};
 
-	struct PerFrameUniforms
+	struct PerViewUniforms
 	{
 		NIMBLE_ALIGNED(16) glm::mat4	 lastViewProj;
 		NIMBLE_ALIGNED(16) glm::mat4	 viewProj;
@@ -37,7 +37,7 @@ namespace nimble
 		NIMBLE_ALIGNED(16) glm::mat4	 viewMat;
 		NIMBLE_ALIGNED(16) glm::vec4	 viewPos;
 		NIMBLE_ALIGNED(16) glm::vec4	 viewDir;
-		NIMBLE_ALIGNED(16) glm::vec4	 current_prev_jitter;
+		NIMBLE_ALIGNED(16) glm::vec4	 currentPrevJitter;
 		NIMBLE_ALIGNED(16) int			 numCascades;
 		NIMBLE_ALIGNED(16) ShadowFrustum shadowFrustums[MAX_SHADOW_FRUSTUM];
 		float		 				 	 tanHalfFov;
@@ -45,17 +45,9 @@ namespace nimble
 		float		 				 	 nearPlane;
 		float		 				 	 farPlane;
 		// Renderer settings.
-		int			 					 renderer;
-		int			 					 current_output;
-		int			 					 motion_blur;
-		int			 					 max_motion_blur_samples;
-		float		 					 velocity_scale;
 		int			 					 viewport_width;
 		int			 					 viewport_height;
-		int			 					 ssao;
-		int			 					 ssao_num_samples;
-		float		 					 ssao_radius;
-		float		 					 ssao_bias;
+		uint8_t	  						 padding[212];
 	};
 
 	struct PerEntityUniforms

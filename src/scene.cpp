@@ -13,7 +13,7 @@ namespace nimble
 
 	Scene::Scene(const std::string& name) : m_name(name)
 	{
-
+		m_camera = std::make_unique<Camera>(60.0f, 0.1f, 1000.0f, 16.0f/9.0f, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

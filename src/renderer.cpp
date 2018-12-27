@@ -47,6 +47,13 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	void Renderer::set_scene_render_graph(RenderGraph* graph)
+	{
+		m_scene_render_graph = graph;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	void Renderer::queue_view(View view)
 	{
 		if (m_num_active_views == MAX_VIEWS)
@@ -61,7 +68,6 @@ namespace nimble
 			m_active_views[idx] = view;
 			m_active_frustums[idx] = frustum;
 		}
-			
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -116,7 +122,7 @@ namespace nimble
 #ifdef ENABLE_SUBMESH_CULLING
 						for (uint32_t k = 0; k < entity.m_mesh->submesh_count(); k++)
 						{
-							ast::SubMesh& submesh = entity.m_mesh->submesh(k);
+							SubMesh& submesh = entity.m_mesh->submesh(k);
 							glm::vec3 center = (submesh.min_extents + submesh.max_extents) / 2.0f;
 
 							entity.m_submesh_spheres[k].position = center + entity.m_position;
@@ -159,9 +165,13 @@ namespace nimble
 			scene_view.m_jitter = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
 			scene_view.m_render_target_array_slice = 0;
 			scene_view.m_render_target_cubemap_slice = 0;
-			scene_view.m_fbg = nullptr;
+			scene_view.m_dest_render_target_view = nullptr;
+			scene_view.m_graph = m_scene_render_graph;
 
 			// @TODO: Create shadow views for scene views
+
+			// Finally queue the scene view
+			queue_view(scene_view);
 		}
 	}
 

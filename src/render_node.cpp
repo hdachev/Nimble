@@ -197,10 +197,13 @@ namespace nimble
 
 							// Bind uniform buffers
 							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
-								GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
+								GlobalGraphicsResources::per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->m_id, sizeof(PerViewUniforms));
+
+							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_SCENE_UBO))
+								GlobalGraphicsResources::per_scene_ubo()->bind_base(1);
 
 							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_OBJECT_UBO))
-								GlobalGraphicsResources::per_entity_ubo()->bind_base(1);
+								GlobalGraphicsResources::per_entity_ubo()->bind_range(2, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));
 
 							glDrawElementsBaseVertex(GL_TRIANGLES, s.index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * s.base_index), s.base_vertex);
 #ifdef ENABLE_SUBMESH_CULLING
@@ -344,7 +347,7 @@ namespace nimble
 			glClear(params.clear_flags);
 		}
 
-		GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
+		GlobalGraphicsResources::per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->m_id, sizeof(PerViewUniforms));
 
 		// Render fullscreen triangle
 		glDrawArrays(GL_TRIANGLES, 0, 3);

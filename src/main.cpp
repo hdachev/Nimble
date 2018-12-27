@@ -11,6 +11,7 @@
 #include "debug_draw.h"
 #include "imgui_helpers.h"
 #include "external/nfd/nfd.h"
+#include "resource_manager.h"
 #include "renderer.h"
 
 namespace nimble
@@ -27,7 +28,7 @@ namespace nimble
 			m_renderer = std::make_unique<Renderer>();
 
 			// Attempt to load startup scene.
-			Scene* scene = Scene::load(utility::path_for_resource("/assets/scene/startup.json"));
+			std::shared_ptr<Scene> scene = ResourceManager::load_scene("/scene/startup.json");
 
 			// If failed, prompt user to select scene to be loaded.
 			if (!scene)
@@ -37,7 +38,7 @@ namespace nimble
 
 				if (result == NFD_OKAY)
 				{
-					scene = Scene::load(scene_path);
+					scene = ResourceManager::load_scene(scene_path);
 					free(scene_path);
 				}
 				else if (result == NFD_CANCEL)
@@ -57,14 +58,14 @@ namespace nimble
 				return false;
 			}
 			else
-				m_scene = std::unique_ptr<Scene>(scene);
+				m_scene = scene;
 
 			// Create camera.
 			create_camera();
 
 			m_renderer->initialize(m_width, m_height, m_main_camera.get());
 
-			m_renderer->set_scene(m_scene.get());
+			m_renderer->set_scene(m_scene);
 
 			return true;
 		}
@@ -236,7 +237,7 @@ namespace nimble
 		float m_camera_speed = 0.1f;
 
 		std::unique_ptr<Renderer> m_renderer;
-		std::unique_ptr<Scene> m_scene;
+		std::shared_ptr<Scene> m_scene;
 	};
 }
 
