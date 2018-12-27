@@ -75,6 +75,7 @@ namespace nimble
 		virtual void execute(const View& view) = 0;
 		virtual bool initialize() = 0;
 		virtual void shutdown() = 0;
+		virtual uint32_t flags() = 0;
 		virtual std::string name() = 0;
 
 	protected:
@@ -97,6 +98,7 @@ namespace nimble
 	};
 
 	class Scene;
+	class ShaderLibrary;
 
 	class SceneRenderNode : public RenderNode
 	{
@@ -104,6 +106,7 @@ namespace nimble
 		struct Params
 		{
 			Scene* scene;
+			ShaderLibrary* library;
 			View* view;
 			uint32_t num_rt_views;
 			RenderTargetView* rt_views;
@@ -150,8 +153,26 @@ namespace nimble
 	class FullscreenRenderNode : public MultiPassRenderNode
 	{
 	public:
+		struct Params
+		{
+			Scene* scene;
+			View* view;
+			uint32_t num_rt_views;
+			RenderTargetView* rt_views;
+			uint32_t x;
+			uint32_t y;
+			uint32_t w;
+			uint32_t h;
+			GLenum clear_flags = GL_COLOR_BUFFER_BIT;
+			uint32_t num_clear_colors = 0;
+			float clear_colors[8][4];
+		};
+
 		FullscreenRenderNode(RenderGraph* graph);
 		~FullscreenRenderNode();
+
+	protected:
+		void render_triangle(const Params& params);
 	};
 
 	class ComputeRenderNode : public MultiPassRenderNode

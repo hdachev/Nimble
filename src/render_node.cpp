@@ -3,6 +3,7 @@
 #include "profiler.h"
 #include "view.h"
 #include "scene.h"
+#include "shader_library.h"
 
 namespace nimble
 {
@@ -164,9 +165,48 @@ namespace nimble
 
 			for (uint32_t i = 0; i < params.scene->entity_count(); i++)
 			{
-				if (!params.view->m_culling || (params.view->m_culling && entities[i].visibility(params.view->m_id)))
-				{
+				Entity& e = entities[i];
 
+				if (!params.view->m_culling || (params.view->m_culling && e.visibility(params.view->m_id)))
+				{
+					// Bind mesh VAO
+					e.m_mesh->bind();
+
+					for (uint32_t j = 0; j < e.m_mesh->submesh_count(); j++)
+					{
+						SubMesh& s = e.m_mesh->submesh(j);
+
+						int32_t tex_unit = 0;
+
+#ifdef ENABLE_SUBMESH_CULLING
+						if (e.submesh_visibility(j, params.view->m_id))
+						{
+#endif
+							ProgramKey& key = s.material->program_key();
+
+							// Only static meshes for now
+							key.set_mesh_type(MESH_TYPE_STATIC);
+
+							// Lookup shader program from library
+							Program* program = params.library->lookup_program(key);
+
+							program->use();
+
+							// Bind material
+							s.material->bind(program, tex_unit);
+
+							// Bind uniform buffers
+							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
+								GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
+
+							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_OBJECT_UBO))
+								GlobalGraphicsResources::per_entity_ubo()->bind_base(1);
+
+							glDrawElementsBaseVertex(GL_TRIANGLES, s.index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * s.base_index), s.base_vertex);
+#ifdef ENABLE_SUBMESH_CULLING
+						}
+#endif
+					}
 				}
 			}
 		}
@@ -270,6 +310,42 @@ namespace nimble
 	FullscreenRenderNode::~FullscreenRenderNode()
 	{
 
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void FullscreenRenderNode::render_triangle(const Params& params)
+	{
+		if (params.rt_views)
+			GlobalGraphicsResources::bind_render_targets(params.num_rt_views, params.rt_views, nullptr);
+		else
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		glViewport(params.x, params.y, params.h, params.w);
+
+		if (params.clear_flags != 0)
+		{
+			if (params.rt_views)
+			{
+				if (params.num_clear_colors == 1)
+					glClearColor(params.clear_colors[0][0], params.clear_colors[0][1], params.clear_colors[0][2], params.clear_colors[0][3]);
+				else
+				{
+					for (uint32_t i = 0; i < params.num_clear_colors; i++)
+						glClearBufferfv(GL_COLOR, i, &params.clear_colors[i][0]);
+				}
+			}
+			else
+			{
+				if (params.num_clear_colors == 1)
+					glClearColor(params.clear_colors[0][0], params.clear_colors[0][1], params.clear_colors[0][2], params.clear_colors[0][3]);
+			}
+
+			glClear(params.clear_flags);
+		}
+
+		// Render fullscreen triangle
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

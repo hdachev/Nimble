@@ -366,7 +366,21 @@ namespace nimble
 				for (uint32_t i = 0; i < ast_mesh.materials.size(); i++)
 					materials[i] = load_material(ast_mesh.material_paths[i]);
 
-				std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(ast_mesh.name, ast_mesh.max_extents, ast_mesh.min_extents, ast_mesh.submeshes, materials, vbo, ibo, vao);
+				std::vector<SubMesh> submeshes;
+				submeshes.resize(ast_mesh.submeshes.size());
+
+				for (uint32_t i = 0; i < ast_mesh.submeshes.size(); i++)
+				{
+					submeshes[i] = { ast_mesh.submeshes[i].index_count, 
+									 ast_mesh.submeshes[i].base_vertex, 
+									 ast_mesh.submeshes[i].base_index, 
+									 ast_mesh.submeshes[i].max_extents, 
+									 ast_mesh.submeshes[i].min_extents, 
+									 materials[ast_mesh.submeshes[i].material_index] 
+								   };
+				}
+
+				std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(ast_mesh.name, ast_mesh.max_extents, ast_mesh.min_extents, submeshes, vbo, ibo, vao);
 
 				m_mesh_cache[path] = mesh;
 
@@ -428,7 +442,7 @@ namespace nimble
 #ifdef ENABLE_SUBMESH_CULLING
 					for (uint32_t i = 0; i < e.m_mesh->submesh_count(); i++)
 					{
-						ast::SubMesh& submesh = e.m_mesh->submesh(i);
+						SubMesh& submesh = e.m_mesh->submesh(i);
 
 						Sphere sphere;
 
