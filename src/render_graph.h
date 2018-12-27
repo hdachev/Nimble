@@ -27,10 +27,6 @@ namespace nimble
 		inline virtual uint32_t rendered_viewport_width() { return actual_viewport_width(); }
 		inline virtual uint32_t rendered_viewport_height() { return actual_viewport_height(); }
 
-		virtual uint32_t actual_viewport_width();
-		virtual uint32_t actual_viewport_height();
-		virtual uint32_t rendered_viewport_width();
-		virtual uint32_t rendered_viewport_height();
 		virtual std::string name() = 0;
 		virtual bool build() = 0;
 		virtual void refresh() = 0;

@@ -179,7 +179,7 @@ namespace nimble
 						int32_t tex_unit = 0;
 
 #ifdef ENABLE_SUBMESH_CULLING
-						if (e.submesh_visibility(j, params.view->m_id))
+						if (!params.view->m_culling || (params.view->m_culling && e.submesh_visibility(j, params.view->m_id)))
 						{
 #endif
 							ProgramKey& key = s.material->program_key();
@@ -343,6 +343,8 @@ namespace nimble
 
 			glClear(params.clear_flags);
 		}
+
+		GlobalGraphicsResources::per_frame_ubo()->bind_base(0);
 
 		// Render fullscreen triangle
 		glDrawArrays(GL_TRIANGLES, 0, 3);
