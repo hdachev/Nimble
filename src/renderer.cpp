@@ -31,6 +31,8 @@ namespace nimble
 	{
 		queue_default_views();
 
+		update_uniforms();
+
 		cull_scene();
 
 		render_all_views();
@@ -96,6 +98,49 @@ namespace nimble
 	void Renderer::clear_all_views()
 	{
 		m_num_active_views = 0;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Renderer::update_uniforms()
+	{
+		if (m_scene)
+		{
+			// Update per entity uniforms
+			Entity* entities = m_scene->entities();
+
+			for (uint32_t i = 0; i < m_scene->entity_count(); i++)
+			{
+				Entity& entity = entities[i];
+
+				m_per_entity_uniforms[i].modalMat = entity.m_transform;
+				m_per_entity_uniforms[i].lastModelMat = entity.m_prev_transform;
+				m_per_entity_uniforms[i].worldPos = glm::vec4(entity.m_position, 0.0f);
+			}
+
+			void* ptr = GlobalGraphicsResources::per_entity_ubo()->map(GL_MAP_WRITE_BIT);
+			memcpy(ptr, &m_per_entity_uniforms[0], sizeof(PerEntityUniforms) * m_scene->entity_count());
+			GlobalGraphicsResources::per_entity_ubo()->unmap();
+
+			// Update per view uniforms
+			for (uint32_t i = 0; i < m_num_active_views; i++)
+			{
+				View& view = m_active_views[i];
+
+				m_per_view_uniforms[i].viewMat = view.m_view_mat;
+				m_per_view_uniforms[i].projMat = view.m_projection_mat;
+				m_per_view_uniforms[i].viewProj= view.m_vp_mat;
+				m_per_view_uniforms[i].lastViewProj = view.m_prev_vp_mat;
+				m_per_view_uniforms[i].invProj = view.m_inv_projection_mat;
+				m_per_view_uniforms[i].invView = view.m_inv_view_mat;
+				m_per_view_uniforms[i].invViewProj = view.m_inv_vp_mat;
+				m_per_view_uniforms[i].viewPos = glm::vec4(view.m_position, 0.0f);
+			}
+
+			ptr = GlobalGraphicsResources::per_view_ubo()->map(GL_MAP_WRITE_BIT);
+			memcpy(ptr, &m_per_view_uniforms[0], sizeof(PerViewUniforms) * m_num_active_views);
+			GlobalGraphicsResources::per_view_ubo()->unmap();
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

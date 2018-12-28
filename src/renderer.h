@@ -31,6 +31,7 @@ namespace nimble
 		void clear_all_views();
 
 	private:
+		void update_uniforms();
 		void cull_scene();
 		void queue_default_views();
 		void render_all_views();

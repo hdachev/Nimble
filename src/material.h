@@ -6,6 +6,7 @@
 #include <memory>
 #include "macros.h"
 #include "shader_key.h"
+#include "uniforms.h"
 #include "murmur_hash.h"
 
 namespace nimble
@@ -37,13 +38,6 @@ namespace nimble
 		"s_Texture6",
 		"s_Texture7",
 		"s_Texture8"
-	};
-
-	struct MaterialUniforms
-	{
-		glm::vec4 albedo;
-		glm::vec4 emissive;
-		glm::vec4 metal_rough;
 	};
 
 	enum ShadingModel : uint32_t
@@ -105,8 +99,8 @@ namespace nimble
 		inline void set_double_sided(bool double_sided) { m_double_sided = double_sided; }
 		inline void set_uniform_albedo(const glm::vec4& albedo) { m_uniforms.albedo = albedo; }
 		inline void set_uniform_emissive(const glm::vec3& emissive) { m_uniforms.emissive = glm::vec4(emissive, 0.0f); }
-		inline void set_uniform_metallic(const float& metallic) { m_uniforms.metal_rough.x = metallic; }
-		inline void set_uniform_roughness(const float& roughness) { m_uniforms.metal_rough.y = roughness; }
+		inline void set_uniform_metallic(const float& metallic) { m_uniforms.metalnessRoughness.x = metallic; }
+		inline void set_uniform_roughness(const float& roughness) { m_uniforms.metalnessRoughness.y = roughness; }
 		inline void set_blend_mode(const BlendMode& blend) { m_blend_mode = blend; }
 		inline void set_displacement_type(const DisplacementType& displacement) { m_displacement_type = displacement; }
 		inline void set_shading_model(const ShadingModel& shading) { m_shading_model = shading; }
@@ -132,9 +126,9 @@ namespace nimble
 		inline bool is_double_sided() { return m_double_sided; }
 		inline glm::vec4 uniform_albedo() { return m_uniforms.albedo; }
 		inline glm::vec3 uniform_emissive() { return glm::vec3(m_uniforms.emissive); }
-		inline float uniform_metallic() { return m_uniforms.metal_rough.x; }
-		inline float uniform_roughness() { return m_uniforms.metal_rough.y; }
-		inline MaterialUniforms uniforms() { return m_uniforms; }
+		inline float uniform_metallic() { return m_uniforms.metalnessRoughness.x; }
+		inline float uniform_roughness() { return m_uniforms.metalnessRoughness.y; }
+		inline PerMaterialUniforms uniforms() { return m_uniforms; }
 		inline BlendMode blend_mode() { return m_blend_mode; }
 		inline DisplacementType displacement_type() { return m_displacement_type; }
 		inline ShadingModel shading_model() { return m_shading_model; }
@@ -164,7 +158,7 @@ namespace nimble
 		LightingModel	 m_lighting_model = LIGHTING_MODEL_LIT;
 		std::shared_ptr<Texture> m_custom_textures[MAX_MATERIAL_TEXTURES];
 		std::shared_ptr<Texture> m_surface_textures[MAX_MATERIAL_TEXTURES];
-		MaterialUniforms m_uniforms;
+		PerMaterialUniforms m_uniforms;
 		ProgramKey		 m_program_key;
 		VertexShaderKey  m_vs_key;
 		FragmentShaderKey m_fs_key;

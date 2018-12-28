@@ -52,11 +52,10 @@ namespace nimble
 
 	struct PerEntityUniforms
 	{
-		NIMBLE_ALIGNED(16) glm::mat4 mvpMat;
-		NIMBLE_ALIGNED(16) glm::mat4 lastMvpMat;
+		NIMBLE_ALIGNED(16) glm::mat4 lastModelMat;
 		NIMBLE_ALIGNED(16) glm::mat4 modalMat;
 		NIMBLE_ALIGNED(16) glm::vec4 worldPos;
-		uint8_t	  		   padding[48];
+		uint8_t	  		   padding[112];
 	};
 
 	struct PerSceneUniforms
@@ -68,7 +67,8 @@ namespace nimble
 
 	struct PerMaterialUniforms
 	{
-		NIMBLE_ALIGNED(16) glm::vec4 albedoValue;
+		NIMBLE_ALIGNED(16) glm::vec4 albedo;
+		NIMBLE_ALIGNED(16) glm::vec4 emissive;
 		NIMBLE_ALIGNED(16) glm::vec4 metalnessRoughness;
 	};
 

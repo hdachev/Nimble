@@ -336,6 +336,10 @@ namespace nimble
 
 			m_program_cache[id] = program;
 
+			program->uniform_block_binding("u_PerView", 0);
+			program->uniform_block_binding("u_PerScene", 1);
+			program->uniform_block_binding("u_PerEntity", 2);
+
 			return program;
 		}
 	}
@@ -367,6 +371,10 @@ namespace nimble
 			}
 
 			m_program_cache[id] = program;
+
+			program->uniform_block_binding("u_PerView", 0);
+			program->uniform_block_binding("u_PerScene", 1);
+			program->uniform_block_binding("u_PerEntity", 2);
 
 			return program;
 		}

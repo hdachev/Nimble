@@ -184,8 +184,7 @@ namespace nimble
 #endif
 							ProgramKey& key = s.material->program_key();
 
-							// Only static meshes for now
-							key.set_mesh_type(MESH_TYPE_STATIC);
+							key.set_mesh_type(e.m_mesh->type());
 
 							// Lookup shader program from library
 							Program* program = params.library->lookup_program(key);
@@ -193,6 +192,16 @@ namespace nimble
 							program->use();
 
 							// Bind material
+							if (HAS_BIT_FLAG(flags(), NODE_USAGE_MATERIAL_ALBEDO) && !s.material->surface_texture(TEXTURE_TYPE_ALBEDO))
+								program->set_uniform("u_Albedo", s.material->uniform_albedo());
+
+							if (HAS_BIT_FLAG(flags(), NODE_USAGE_MATERIAL_EMISSIVE) && !s.material->surface_texture(TEXTURE_TYPE_EMISSIVE))
+								program->set_uniform("u_Emissive", s.material->uniform_emissive());
+
+							if ((HAS_BIT_FLAG(flags(), NODE_USAGE_MATERIAL_ROUGH_SMOOTH) && !s.material->surface_texture(TEXTURE_TYPE_ROUGH_SMOOTH)) || 
+								(HAS_BIT_FLAG(flags(), NODE_USAGE_MATERIAL_METAL_SPEC) && !s.material->surface_texture(TEXTURE_TYPE_METAL_SPEC)))
+								program->set_uniform("u_MetalRough", glm::vec4(s.material->uniform_metallic(), s.material->uniform_roughness(), 0.0f, 0.0f));
+
 							s.material->bind(program, tex_unit);
 
 							// Bind uniform buffers
@@ -206,6 +215,7 @@ namespace nimble
 								GlobalGraphicsResources::per_entity_ubo()->bind_range(2, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));
 
 							glDrawElementsBaseVertex(GL_TRIANGLES, s.index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * s.base_index), s.base_vertex);
+
 #ifdef ENABLE_SUBMESH_CULLING
 						}
 #endif

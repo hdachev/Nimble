@@ -63,8 +63,6 @@ namespace nimble
 			// Create camera.
 			create_camera();
 
-			m_renderer->initialize(m_width, m_height, m_main_camera.get());
-
 			m_renderer->set_scene(m_scene);
 
 			return true;
@@ -79,10 +77,7 @@ namespace nimble
 
 			m_scene->update();
 
-			if (m_debug_gui)
-				m_renderer->debug_gui(delta);
-
-			m_renderer->render(delta);
+			m_renderer->render();
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -110,14 +105,11 @@ namespace nimble
 
 		void window_resized(int width, int height) override
 		{
-			m_main_camera->m_width = m_width;
-			m_main_camera->m_height = m_height;
+			m_scene->camera()->m_width = m_width;
+			m_scene->camera()->m_height = m_height;
 
 			// Override window resized method to update camera projection.
-			m_main_camera->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
-			m_debug_camera->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE * 2.0f, float(m_width) / float(m_height));
-
-			m_renderer->on_window_resized(width, height);
+			m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -179,22 +171,16 @@ namespace nimble
 
 		void create_camera()
 		{
-			m_main_camera = std::make_unique<Camera>(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height), glm::vec3(0.0f, 5.0f, 20.0f), glm::vec3(0.0f, 0.0, -1.0f));
-			m_debug_camera = std::make_unique<Camera>(60.0f, 0.1f, CAMERA_FAR_PLANE * 2.0f, float(m_width) / float(m_height), glm::vec3(0.0f, 5.0f, 20.0f), glm::vec3(0.0f, 0.0, -1.0f));
-
-			m_main_camera->m_width = m_width;
-			m_main_camera->m_height = m_height;
-			m_main_camera->m_half_pixel_jitter = true;
+			m_scene->camera()->m_width = m_width;
+			m_scene->camera()->m_height = m_height;
+			m_scene->camera()->m_half_pixel_jitter = false;
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
 
 		void update_camera()
 		{
-			Camera* current = m_main_camera.get();
-
-			if (m_debug_mode)
-				current = m_debug_camera.get();
+			Camera* current = m_scene->camera();
 
 			float forward_delta = m_heading_speed * m_delta;
 			float right_delta = m_sideways_speed * m_delta;
@@ -222,10 +208,6 @@ namespace nimble
 		// -----------------------------------------------------------------------------------------------------------------------------------
 
 	private:
-		// Camera.
-		std::unique_ptr<Camera> m_main_camera;
-		std::unique_ptr<Camera> m_debug_camera;
-
 		// Camera controls.
 		bool m_mouse_look = false;
 		bool m_debug_mode = false;
