@@ -23,7 +23,11 @@ namespace nimble
 		StaticHashMap<uint64_t, Program*, MAX_PROGRAM_CACHE_SIZE> m_program_cache;
 		std::unordered_map<uint64_t, Shader*> m_vs_cache;
 		std::unordered_map<uint64_t, Shader*> m_fs_cache;
-		std::string m_vs_template;
-		std::string m_fs_template;
+		std::string m_vs_template_source;
+		std::string m_fs_template_source;
+		std::string m_vs_template_includes;
+		std::string m_fs_template_includes;
+		std::string m_vs_template_defines;
+		std::string m_fs_template_defines;
 	};
 }

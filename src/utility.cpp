@@ -196,7 +196,34 @@ namespace nimble
 				out += "\n";
 			}
 
-			return preprocess_shader(path, og_source, out);
+			std::string include_source;
+			std::string read_source;
+
+			bool status = preprocess_shader(path, og_source, include_source, read_source);
+			out += include_source;
+			out += read_source;
+
+			return status;
+		}
+
+		// -----------------------------------------------------------------------------------------------------------------------------------
+
+		bool read_shader_separate(const std::string& path, std::string& out_includes, std::string& out_source, std::string& out_defines, std::vector<std::string> defines = std::vector<std::string>())
+		{
+			std::string og_source;
+
+			if (!utility::read_text(path, og_source))
+				return false;
+
+			if (defines.size() > 0)
+			{
+				for (auto define : defines)
+					out_defines += "#define " + define + "\n";
+
+				out_defines += "\n";
+			}
+
+			return preprocess_shader(path, og_source, out_includes, out_source);
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -211,7 +238,7 @@ namespace nimble
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
 
-		bool preprocess_shader(const std::string& path, const std::string& src, std::string& out)
+		bool preprocess_shader(const std::string& path, const std::string& src, std::string& out_includes, std::string& out_source)
 		{
 			std::istringstream stream(src);
 			std::string line;
@@ -231,14 +258,15 @@ namespace nimble
 					if (slash_pos != std::string::npos)
 						path_to_shader = path.substr(0, slash_pos + 1);
 
-					std::string include_source;
+					std::string inner_includes;
+					std::string inner_source;
 
 					std::string og_source;
 
 					if (!utility::read_text(path_to_shader + include_path, og_source))
 						return false;
 
-					if (!preprocess_shader(path_to_shader + include_path, og_source, include_source))
+					if (!preprocess_shader(path_to_shader + include_path, og_source, inner_includes, inner_source))
 					{
 						NIMBLE_LOG_ERROR("Included file <" + include_path + "> cannot be opened!");
 						return false;
@@ -251,17 +279,19 @@ namespace nimble
 
 						std::string header_guard = header_guard_from_path(include_path);
 
-						out += "#ifndef ";
-						out += header_guard;
-						out += "\n#define ";
-						out += header_guard;
-						out += "\n\n";
-						out += include_source + "\n\n";
-						out += "#endif\n\n";
+						out_includes += inner_includes;
+						out_includes += "\n\n";
+						out_includes += "#ifndef ";
+						out_includes += header_guard;
+						out_includes += "\n#define ";
+						out_includes += header_guard;
+						out_includes += "\n\n";
+						out_includes += inner_source + "\n\n";
+						out_includes += "#endif\n\n";
 					}
 				}
 				else
-					out += line + "\n";
+					out_source += line + "\n";
 			}
 
 			return true;

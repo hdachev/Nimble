@@ -23,7 +23,9 @@ namespace nimble
 		// Reads the specified shader source.
 		extern bool read_shader(const std::string& path, std::string& out, std::vector<std::string> defines = std::vector<std::string>());
 
-		extern bool preprocess_shader(const std::string& path, const std::string& src, std::string& out);
+		extern bool read_shader_separate(const std::string& path, std::string& out_includes, std::string& out_source, std::string& out_defines, std::vector<std::string> defines = std::vector<std::string>());
+
+		extern bool preprocess_shader(const std::string& path, const std::string& src, std::string& out_includes, std::string& out_source);
 
 		// Removes the filename from a file path.
 		extern std::string path_without_file(std::string filepath);

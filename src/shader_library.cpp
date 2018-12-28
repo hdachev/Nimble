@@ -53,10 +53,10 @@ namespace nimble
 
 	ShaderLibrary::ShaderLibrary(const std::string& vs, const std::string& fs)
 	{
-		if (!utility::read_shader(utility::path_for_resource("assets/" + vs), m_vs_template))
+		if (!utility::read_shader_separate(utility::path_for_resource("assets/" + vs), m_vs_template_includes, m_vs_template_source, m_vs_template_defines))
 			NIMBLE_LOG_ERROR("Failed load Shader Library VS Source: " + vs);
 
-		if (!utility::read_shader(utility::path_for_resource("assets/" + fs), m_fs_template))
+		if (!utility::read_shader_separate(utility::path_for_resource("assets/" + fs), m_fs_template_includes, m_fs_template_source, m_fs_template_defines))
 			NIMBLE_LOG_ERROR("Failed load Shader Library FS Source: " + fs);
 	}
 
@@ -96,8 +96,8 @@ namespace nimble
 
 	Program* ShaderLibrary::create_program(const MeshType& type, const uint32_t& flags, const std::shared_ptr<Material>& material)
 	{
-		std::string vs_template = m_vs_template;
-		std::string fs_template = m_fs_template;
+		std::string vs_template = m_vs_template_source;
+		std::string fs_template = m_fs_template_source;
 
 		std::vector<std::string> vs_defines;
 		std::vector<std::string> fs_defines;
@@ -145,7 +145,11 @@ namespace nimble
 			// Vertex Func
 			if (material->has_vertex_shader_func())
 			{
-				source = "#ifndef VERTEX_SHADER_FUNC\n";
+				source = m_vs_template_defines;
+				source += "\n\n";
+				source += m_vs_template_includes;
+				source += "\n\n";
+				source += "#ifndef VERTEX_SHADER_FUNC\n";
 				source += "#define VERTEX_SHADER_FUNC\n";
 				source += material->vertex_shader_func();
 				source += "#endif\n\n";
@@ -198,7 +202,11 @@ namespace nimble
 			// Fragment Func
 			if (material->has_fragment_shader_func())
 			{
-				source = "#ifndef FRAGMENT_SHADER_FUNC\n";
+				source += m_fs_template_defines;
+				source += "\n\n";
+				source += m_fs_template_includes;
+				source += "\n\n";
+				source += "#ifndef FRAGMENT_SHADER_FUNC\n";
 				source += "#define FRAGMENT_SHADER_FUNC\n";
 				source += material->fragment_shader_func();
 				source += "#endif\n\n";
