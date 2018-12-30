@@ -61,6 +61,7 @@ namespace nimble
 
 	static const TextureType kTextureTypeTable[] = 
 	{
+		TEXTURE_TYPE_ALBEDO,
 		TEXTURE_TYPE_EMISSIVE,
 		TEXTURE_TYPE_DISPLACEMENT,
 		TEXTURE_TYPE_NORMAL,
@@ -73,16 +74,22 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	ResourceManager::ResourceManager()
+	void ResourceManager::shutdown()
 	{
+		for (auto& itr : m_mesh_cache)
+			itr.second.reset();
 
-	}
+		for (auto& itr : m_material_cache)
+			itr.second.reset();
 
-	// -----------------------------------------------------------------------------------------------------------------------------------
+		for (auto& itr : m_texture_cache)
+			itr.second.reset();
+	
+		for (auto& itr : m_shader_cache)
+			itr.second.reset();
 
-	ResourceManager::~ResourceManager()
-	{
-
+		for (auto& itr : m_scene_cache)
+			itr.second.reset();
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -363,7 +370,7 @@ namespace nimble
 				};
 
 				// Create vertex array.
-				vao = std::make_shared<VertexArray>(vbo, ibo, sizeof(ast::Vertex), 5, attribs);
+				vao = std::make_shared<VertexArray>(vbo.get(), ibo.get(), sizeof(ast::Vertex), 5, attribs);
 
 				if (!vao)
 					NIMBLE_LOG_ERROR("Failed to create Vertex Array");
@@ -372,7 +379,7 @@ namespace nimble
 				materials.resize(ast_mesh.materials.size());
 
 				for (uint32_t i = 0; i < ast_mesh.materials.size(); i++)
-					materials[i] = load_material(ast_mesh.material_paths[i]);
+					materials[i] = load_material(ast_mesh.material_paths[i], true);
 
 				std::vector<SubMesh> submeshes;
 				submeshes.resize(ast_mesh.submeshes.size());
@@ -440,14 +447,16 @@ namespace nimble
 					glm::mat4 S = glm::scale(glm::mat4(1.0f), e.m_scale);
 					glm::mat4 T = glm::translate(glm::mat4(1.0f), e.m_position);
 
-					e.m_prev_transform = e.m_transform;
 					e.m_transform = T * R * S;
+					e.m_prev_transform = e.m_transform;
 
 					e.m_obb.min = e.m_mesh->aabb().min;
 					e.m_obb.max = e.m_mesh->aabb().max;
 					e.m_obb.position = e.m_position;
 
 #ifdef ENABLE_SUBMESH_CULLING
+					e.m_submesh_visibility.resize(e.m_mesh->submesh_count());
+
 					for (uint32_t i = 0; i < e.m_mesh->submesh_count(); i++)
 					{
 						SubMesh& submesh = e.m_mesh->submesh(i);
@@ -464,10 +473,19 @@ namespace nimble
 #endif
 				}
 
+				// Load camera
+				Camera* camera = scene->camera();
+				camera->set_position(ast_scene.camera.position);
+
 				// Load environment
-				scene->set_environment_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.environment_map, false, true)));
-				scene->set_irradiance_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.diffuse_irradiance, false, true)));
-				scene->set_prefiltered_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.specular_irradiance, false, true)));
+				if (ast_scene.skybox.environment_map.size() > 0)
+					scene->set_environment_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.environment_map, false, true)));
+
+				if (ast_scene.skybox.diffuse_irradiance.size() > 0)
+					scene->set_irradiance_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.diffuse_irradiance, false, true)));
+				
+				if (ast_scene.skybox.specular_irradiance.size() > 0)
+					scene->set_prefiltered_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.specular_irradiance, false, true)));
 
 				// @TODO: Load reflection probes
 

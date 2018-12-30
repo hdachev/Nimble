@@ -1,6 +1,9 @@
 #include "application.h"
 #include "imgui_impl_glfw_gl3.h"
 #include "utility.h"
+#include "resource_manager.h"
+#include "shader_cache.h"
+#include "global_graphics_resources.h"
 
 #include <iostream>
 
@@ -142,6 +145,8 @@ namespace nimble
         
         if(!init(argc, argv))
             return false;
+
+		GlobalGraphicsResources::initialize();
         
         return true;
     }
@@ -161,6 +166,10 @@ namespace nimble
     {
 		// Execute user-side shutdown method.
         shutdown();
+
+		GlobalGraphicsResources::shutdown();
+		ResourceManager::shutdown();
+		ShaderCache::shutdown();
         
 		// Shutdown debug draw.
 		m_debug_draw.shutdown();

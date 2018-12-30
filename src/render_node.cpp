@@ -3,6 +3,7 @@
 #include "profiler.h"
 #include "view.h"
 #include "scene.h"
+#include "shader_cache.h"
 #include "shader_library.h"
 
 namespace nimble
@@ -13,8 +14,7 @@ namespace nimble
 
 	RenderNode::RenderNode(RenderNodeType type, RenderGraph* graph) : m_enabled(true), m_render_node_type(type), m_graph(graph), m_id(g_last_node_id++), m_total_time_cpu(0.0f), m_total_time_gpu(0.0f)
 	{
-		m_passthrough_name = name();
-		m_passthrough_name += "_Passthrough";
+
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -79,7 +79,31 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	bool RenderNode::initialize_internal()
+	{
+		m_passthrough_name = name();
+		m_passthrough_name += "_Passthrough";
+
+		return true;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	void RenderNode::passthrough()
+	{
+
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	uint32_t RenderNode::flags()
+	{
+		return NODE_USAGE_DEFAULT;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void RenderNode::on_window_resized(const uint32_t& w, const uint32_t& h)
 	{
 
 	}
@@ -106,9 +130,30 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	SceneRenderNode::Params::Params()
+	{
+		view = nullptr;
+		num_rt_views = 1;
+		rt_views = nullptr;
+		depth_views = nullptr;
+		x = 0;
+		y = 0;
+		w = 0;
+		h = 0;
+		clear_flags = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
+		num_clear_colors = 0;
+		clear_colors[0][0] = 0.0f;
+		clear_colors[0][1] = 0.0f;
+		clear_colors[0][2] = 0.0f;
+		clear_colors[0][3] = 0.0f;
+		clear_depth = 1;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	SceneRenderNode::SceneRenderNode(RenderGraph* graph) : RenderNode(RENDER_NODE_SCENE, graph)
 	{
-
+		
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -120,9 +165,12 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void SceneRenderNode::execute(const View& view)
+	bool SceneRenderNode::initialize_internal()
 	{
+		bool status = RenderNode::initialize_internal();
+		m_library = ShaderCache::load_library(vs_template_path(), fs_template_path());
 
+		return status && m_library != nullptr;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -159,11 +207,12 @@ namespace nimble
 			glClear(params.clear_flags);
 		}
 
-		if (params.scene)
+		if (params.view->m_scene)
 		{
-			Entity* entities = params.scene->entities();
+			Scene* scene = params.view->m_scene;
+			Entity* entities = scene->entities();
 
-			for (uint32_t i = 0; i < params.scene->entity_count(); i++)
+			for (uint32_t i = 0; i < scene->entity_count(); i++)
 			{
 				Entity& e = entities[i];
 
@@ -187,7 +236,10 @@ namespace nimble
 							key.set_mesh_type(e.m_mesh->type());
 
 							// Lookup shader program from library
-							Program* program = params.library->lookup_program(key);
+							Program* program = m_library->lookup_program(key);
+
+							if (!program)
+								program = m_library->create_program(e.m_mesh->type(), flags(), s.material);
 
 							program->use();
 

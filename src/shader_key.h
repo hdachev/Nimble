@@ -12,10 +12,12 @@ namespace nimble
 		inline void set_vertex_func_id(const uint32_t& value) { WRITE_BIT_RANGE_64(value, key, 0, 10); }
 		inline void set_mesh_type(const uint32_t& value) { WRITE_BIT_RANGE_64(value, key, 10, 3); }
 		inline void set_normal_texture(const uint32_t& value) { WRITE_BIT_RANGE_64(value, key, 13, 1); }
+		inline void set_displacement_type(const uint32_t& value) { WRITE_BIT_RANGE_64(value, key, 14, 2); }
 
 		inline uint32_t vertex_func_id() { return READ_BIT_RANGE_64(key, 0, 10); }
 		inline uint32_t mesh_type() { return READ_BIT_RANGE_64(key, 10, 3); }
 		inline uint32_t normal_texture() { return READ_BIT_RANGE_64(key, 13, 1); }
+		inline uint32_t displacement_type() { return READ_BIT_RANGE_64(key, 14, 2); }
 	};
 
 	struct FragmentShaderKey

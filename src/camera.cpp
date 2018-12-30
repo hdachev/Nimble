@@ -23,12 +23,18 @@ namespace nimble
 		return result;
 	}
 
-	Camera::Camera(float fov, float near, float far, float aspect_ratio, glm::vec3 position, glm::vec3 forward) : m_fov(fov),
-		m_near(near),
-		m_far(far),
-		m_aspect_ratio(aspect_ratio),
-		m_position(position)
+	Camera::Camera(float fov, float near, float far, float aspect_ratio, glm::vec3 position, glm::vec3 forward)
 	{
+		reset(fov, near, far, aspect_ratio, position, forward);
+	}
+
+	void Camera::reset(float fov, float near, float far, float aspect_ratio, glm::vec3 position, glm::vec3 forward)
+	{
+		m_fov = fov;
+		m_near = near;
+		m_far = far;
+		m_aspect_ratio = aspect_ratio;
+		m_position = position;
 		m_forward = glm::normalize(forward);
 		m_world_up = glm::vec3(0, 1, 0);
 		m_right = glm::normalize(glm::cross(m_forward, m_world_up));

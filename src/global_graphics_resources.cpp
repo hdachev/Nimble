@@ -1,5 +1,4 @@
 #include "global_graphics_resources.h"
-#include "demo_loader.h"
 #include "uniforms.h"
 #include "constants.h"
 #include "utility.h"
@@ -13,9 +12,9 @@ namespace nimble
 	StaticHashMap<uint64_t, Framebuffer*, 1024> GlobalGraphicsResources::m_fbo_cache;
 	std::shared_ptr<VertexArray>   GlobalGraphicsResources::m_cube_vao = nullptr;
 	std::shared_ptr<VertexBuffer>  GlobalGraphicsResources::m_cube_vbo = nullptr;
-	std::shared_ptr<UniformBuffer> GlobalGraphicsResources::m_per_view = nullptr;
-	std::shared_ptr<UniformBuffer> GlobalGraphicsResources::m_per_scene = nullptr;
-	std::shared_ptr<UniformBuffer> GlobalGraphicsResources::m_per_entity = nullptr;
+	std::unique_ptr<UniformBuffer> GlobalGraphicsResources::m_per_view = nullptr;
+	std::unique_ptr<UniformBuffer> GlobalGraphicsResources::m_per_scene = nullptr;
+	std::unique_ptr<UniformBuffer> GlobalGraphicsResources::m_per_entity = nullptr;
 
 	struct RenderTargetKey
 	{
@@ -36,9 +35,9 @@ namespace nimble
 	void GlobalGraphicsResources::initialize()
 	{
 		// Create uniform buffers.
-		m_per_view = std::make_shared<UniformBuffer>(GL_DYNAMIC_DRAW, 8 * sizeof(PerViewUniforms));
-		m_per_scene = std::make_shared<UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
-		m_per_entity = std::make_shared<UniformBuffer>(GL_DYNAMIC_DRAW, 1024 * sizeof(PerEntityUniforms));
+		m_per_view = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, 8 * sizeof(PerViewUniforms));
+		m_per_scene = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
+		m_per_entity = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, 1024 * sizeof(PerEntityUniforms));
 
 		// Create common geometry VBO's and VAO's.
 		create_cube();
@@ -94,6 +93,7 @@ namespace nimble
 		rt->num_samples = num_samples;
 		rt->array_size = array_size;
 		rt->mip_levels = mip_levels;
+		rt->target = target;
 
 		m_render_target_pool.push_back(rt);
 
@@ -121,6 +121,7 @@ namespace nimble
 		rt->num_samples = num_samples;
 		rt->array_size = array_size;
 		rt->mip_levels = mip_levels;
+		rt->target = target;
 
 		m_render_target_pool.push_back(rt);
 

@@ -16,8 +16,7 @@ namespace nimble
 	class ResourceManager
 	{
 	public:
-		ResourceManager();
-		~ResourceManager();
+		static void shutdown();
 
 		static std::shared_ptr<Texture> load_texture(const std::string& path, const bool& absolute = false, const bool& srgb = false, const bool& cubemap = false);
 		static std::shared_ptr<Material> load_material(const std::string& path, const bool& absolute = false);

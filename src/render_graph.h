@@ -18,8 +18,8 @@ namespace nimble
 		uint32_t id();
 		bool attach_and_initialize_node(std::shared_ptr<RenderNode> node);
 		std::shared_ptr<RenderNode> node_by_name(const std::string& name);
+		void on_window_resized(const uint32_t& w, const uint32_t& h);
 
-		inline void window_resized(const uint32_t& w, const uint32_t& h) { m_window_width = w; m_window_height = h; }
 		inline uint32_t window_width() { return m_window_width; }
 		inline uint32_t window_height() { return m_window_height; }
 		inline virtual uint32_t actual_viewport_width() { return window_width(); }

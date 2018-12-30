@@ -1,5 +1,7 @@
+#ifdef PCF_SOFT_SHADOWS
+
 // ------------------------------------------------------------------
-// CSM  -------------------------------------------------------------
+// PCF  -------------------------------------------------------------
 // ------------------------------------------------------------------
 
 float depth_compare(float a, float b, float bias)
@@ -9,7 +11,7 @@ float depth_compare(float a, float b, float bias)
 
 // ------------------------------------------------------------------
 
-float shadow_occlussion(float frag_depth, vec3 position, vec3 n, vec3 l)
+float directional_light_shadows(float frag_depth, vec3 position, vec3 n, vec3 l)
 {
 	int index = 0;
     float blend = 0.0;
@@ -66,6 +68,18 @@ float shadow_occlussion(float frag_depth, vec3 position, vec3 n, vec3 l)
 
 // ------------------------------------------------------------------
 
+float point_light_shadows()
+{
+}
+
+// ------------------------------------------------------------------
+
+float spot_light_shadows()
+{
+}
+
+// ------------------------------------------------------------------
+
 vec3 debug_color(float frag_depth)
 {
 	int index = 0;
@@ -88,3 +102,5 @@ vec3 debug_color(float frag_depth)
 }
 
 // ------------------------------------------------------------------
+
+#endif

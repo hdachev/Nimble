@@ -27,6 +27,16 @@ namespace nimble
 		"#define TEXTURE_EMISSIVE"
 	};
 
+	static const std::string kMaterialUniformLUT[] =
+	{
+		"#define UNIFORM_ALBEDO",
+		"",
+		"#define UNIFORM_METAL_SPEC",
+		"#define UNIFORM_ROUGH_SMOOTH",
+		"",
+		"#define UNIFORM_EMISSIVE"
+	};
+
 	static const std::string kCustomTextureLUT[] =
 	{
 		"#define TEXTURE_CUSTOM_1",
@@ -114,22 +124,34 @@ namespace nimble
 
 		// COMMON
 
-		if (flags & NODE_USAGE_PER_OBJECT_UBO)
+		if (HAS_BIT_FLAG(flags, NODE_USAGE_PER_OBJECT_UBO))
 		{
 			vs_defines.push_back("#define PER_OBJECT_UBO");
 			fs_defines.push_back("#define PER_OBJECT_UBO");
 		}
-		if (flags & NODE_USAGE_PER_VIEW_UBO)
+		if (HAS_BIT_FLAG(flags, NODE_USAGE_PER_VIEW_UBO))
 		{
 			vs_defines.push_back("#define PER_VIEW_UBO");
 			fs_defines.push_back("#define PER_VIEW_UBO");
 		}
+		if (HAS_BIT_FLAG(flags, NODE_USAGE_PER_SCENE_UBO))
+		{
+			vs_defines.push_back("#define PER_SCENE_UBO");
+			fs_defines.push_back("#define PER_SCENE_UBO");
+		}
 
 		// Normal Texture
-		if (material->surface_texture(TEXTURE_TYPE_NORMAL) && (flags & NODE_USAGE_MATERIAL_NORMAL))
+		if (material->surface_texture(TEXTURE_TYPE_NORMAL) && HAS_BIT_FLAG(flags, NODE_USAGE_MATERIAL_NORMAL))
 		{
 			vs_defines.push_back(kSurfaceTextureLUT[TEXTURE_TYPE_NORMAL]);
 			fs_defines.push_back(kSurfaceTextureLUT[TEXTURE_TYPE_NORMAL]);
+		}
+
+		// Displacement
+		if (material->surface_texture(TEXTURE_TYPE_DISPLACEMENT) && HAS_BIT_FLAG(flags, NODE_USAGE_MATERIAL_DISPLACEMENT))
+		{
+			vs_defines.push_back(kDisplacementTypeLUT[type]);
+			fs_defines.push_back(kDisplacementTypeLUT[type]);
 		}
 
 		// VERTEX SHADER
@@ -142,19 +164,21 @@ namespace nimble
 			// Mesh Type
 			vs_defines.push_back(kMeshTypeLUT[type]);
 
-			// Vertex Func
+			// Vertex Source
+			source = m_vs_template_defines;
+			source += "\n\n";
+			source += m_vs_template_includes;
+			source += "\n\n";
+
 			if (material->has_vertex_shader_func())
 			{
-				source = m_vs_template_defines;
-				source += "\n\n";
-				source += m_vs_template_includes;
-				source += "\n\n";
 				source += "#ifndef VERTEX_SHADER_FUNC\n";
 				source += "#define VERTEX_SHADER_FUNC\n";
 				source += material->vertex_shader_func();
 				source += "#endif\n\n";
-				source += vs_template;
 			}
+			
+			source += vs_template;
 
 			std::string defines_str = "";
 
@@ -184,15 +208,13 @@ namespace nimble
 			if (!material->is_metallic_workflow())
 				fs_defines.push_back("#define SPECULAR_WORKFLOW");
 
-			// Displacement
-			if (material->surface_texture(TEXTURE_TYPE_DISPLACEMENT) && (flags & NODE_USAGE_MATERIAL_DISPLACEMENT))
-				fs_defines.push_back(kDisplacementTypeLUT[type]);
-
 			// Surface textures
 			for (uint32_t i = 0; i < 7; i++)
 			{
-				if (material->surface_texture(i) && (flags & kRenderNodeFlags[i]))
+				if (material->surface_texture(i) && HAS_BIT_FLAG(flags, kRenderNodeFlags[i]))
 					fs_defines.push_back(kSurfaceTextureLUT[i]);
+				else if (!material->surface_texture(i) && HAS_BIT_FLAG(flags, kRenderNodeFlags[i]))
+					fs_defines.push_back(kMaterialUniformLUT[i]);
 			}
 
 			// Custom Textures
@@ -200,18 +222,20 @@ namespace nimble
 				fs_defines.push_back(kCustomTextureLUT[i]);
 
 			// Fragment Func
+			source += m_fs_template_defines;
+			source += "\n\n";
+			source += m_fs_template_includes;
+			source += "\n\n";
+
 			if (material->has_fragment_shader_func())
 			{
-				source += m_fs_template_defines;
-				source += "\n\n";
-				source += m_fs_template_includes;
-				source += "\n\n";
 				source += "#ifndef FRAGMENT_SHADER_FUNC\n";
 				source += "#define FRAGMENT_SHADER_FUNC\n";
 				source += material->fragment_shader_func();
 				source += "#endif\n\n";
-				source += fs_template;
 			}
+			
+			source += fs_template;
 
 			std::string defines_str = "";
 

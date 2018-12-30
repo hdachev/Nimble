@@ -63,7 +63,7 @@ namespace nimble
 	{
 		m_nodes.push_back(node);
 
-		return node->initialize();
+		return node->initialize_internal() && node->initialize();
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -77,6 +77,17 @@ namespace nimble
 		}
 
 		return nullptr;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void RenderGraph::on_window_resized(const uint32_t& w, const uint32_t& h)
+	{
+		m_window_width = w;
+		m_window_height = h;
+
+		for (auto& node : m_nodes)
+			node->on_window_resized(w, h);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

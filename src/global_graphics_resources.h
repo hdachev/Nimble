@@ -38,9 +38,9 @@ namespace nimble
 		static std::shared_ptr<Program> create_program(const std::vector<std::shared_ptr<Shader>>& shaders);
 
 		// Uniform buffer getters.
-		inline static std::shared_ptr<UniformBuffer> per_view_ubo() { return m_per_view; }
-		inline static std::shared_ptr<UniformBuffer> per_scene_ubo() { return m_per_scene; }
-		inline static std::shared_ptr<UniformBuffer> per_entity_ubo() { return m_per_entity; }
+		inline static UniformBuffer* per_view_ubo() { return m_per_view.get(); }
+		inline static UniformBuffer* per_scene_ubo() { return m_per_scene.get(); }
+		inline static UniformBuffer* per_entity_ubo() { return m_per_entity.get(); }
 
 		// Common geometry getters.
 		inline static std::shared_ptr<VertexArray> cube_vao() { return m_cube_vao; }
@@ -62,8 +62,8 @@ namespace nimble
 		static std::shared_ptr<VertexBuffer>  m_cube_vbo;
 
 		// Uniform buffers.
-		static std::shared_ptr<UniformBuffer> m_per_view;
-		static std::shared_ptr<UniformBuffer> m_per_scene;
-		static std::shared_ptr<UniformBuffer> m_per_entity;
+		static std::unique_ptr<UniformBuffer> m_per_view;
+		static std::unique_ptr<UniformBuffer> m_per_scene;
+		static std::unique_ptr<UniformBuffer> m_per_entity;
 	};
 }

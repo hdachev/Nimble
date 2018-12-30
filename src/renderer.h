@@ -29,6 +29,10 @@ namespace nimble
 		void push_spot_light_views();
 		void push_point_light_views();
 		void clear_all_views();
+		void on_window_resized(const uint32_t& w, const uint32_t& h);
+
+		// Inline getters
+		inline RenderGraph* scene_render_graph() { return m_scene_render_graph; }
 
 	private:
 		void update_uniforms();

@@ -11,7 +11,7 @@ namespace nimble
 	class ShaderCache
 	{
 	public:
-		void shutdown();
+		static void shutdown();
 		static std::shared_ptr<ShaderLibrary> load_library(const std::string& vs, const std::string& fs);
 
 	private:

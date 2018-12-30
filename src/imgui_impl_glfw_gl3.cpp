@@ -58,7 +58,7 @@
 #include <GLFW/glfw3native.h>
 #endif
 
-#include <logger.h>
+#include "logger.h"
 
 // GLFW data
 static GLFWwindow*  g_Window = NULL;
@@ -326,7 +326,7 @@ bool ImGui_ImplGlfwGL3_CreateDeviceObjects()
         std::string log_error = "OPENGL: Shader compilation failed: ";
         log_error += std::string(infoLog);
         
-		DW_LOG_ERROR(log_error);
+		NIMBLE_LOG_ERROR(log_error);
     }
     
     glCompileShader(g_FragHandle);
@@ -340,7 +340,7 @@ bool ImGui_ImplGlfwGL3_CreateDeviceObjects()
         std::string log_error = "OPENGL: Shader compilation failed: ";
         log_error += std::string(infoLog);
         
-		DW_LOG_ERROR(log_error);
+		NIMBLE_LOG_ERROR(log_error);
     }
     
     glAttachShader(g_ShaderHandle, g_VertHandle);

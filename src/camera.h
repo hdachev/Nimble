@@ -50,6 +50,7 @@ namespace nimble
 		uint32_t m_height;
 
 		Camera(float fov, float near, float far, float aspect_ratio, glm::vec3 position, glm::vec3 forward);
+		void reset(float fov, float near, float far, float aspect_ratio, glm::vec3 position, glm::vec3 forward);
 		void set_translation_delta(glm::vec3 direction, float amount);
 		void set_rotatation_delta(glm::vec3 angles);
 		void set_position(glm::vec3 position);

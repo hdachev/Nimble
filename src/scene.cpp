@@ -4,7 +4,6 @@
 #include "material.h"
 #include "macros.h"
 #include "utility.h"
-#include "demo_loader.h"
 #include "global_graphics_resources.h"
 
 namespace nimble
@@ -100,41 +99,59 @@ namespace nimble
 
 	ReflectionProbe::ID Scene::create_reflection_probe(const glm::vec3& position, const glm::vec3& extents)
 	{
+		ReflectionProbe::ID id = m_reflection_probes.add();
 
+		ReflectionProbe& p = m_reflection_probes.lookup(id);
+
+		p.id = id;
+		p.position = position;
+		p.extents = extents;
+
+		return id;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	GIProbe::ID Scene::create_gi_probe(const glm::vec3& position)
 	{
+		GIProbe::ID id = m_gi_probes.add();
 
+		GIProbe& p = m_gi_probes.lookup(id);
+
+		p.id = id;
+		p.position = position;
+
+		return id;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	ReflectionProbe& Scene::lookup_reflection_probe(const ReflectionProbe::ID& id)
 	{
+		return m_reflection_probes.lookup(id);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	GIProbe& Scene::lookup_gi_probe(const GIProbe::ID& id)
 	{
-
+		return m_gi_probes.lookup(id);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	void Scene::destroy_reflection_probe(const ReflectionProbe::ID& id)
 	{
-
+		if (m_reflection_probes.has(id))
+			m_reflection_probes.remove(id);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	void Scene::destroy_gi_probe(const GIProbe::ID& id)
 	{
-
+		if (m_gi_probes.has(id))
+			m_gi_probes.remove(id);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

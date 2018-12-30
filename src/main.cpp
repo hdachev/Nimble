@@ -13,6 +13,7 @@
 #include "external/nfd/nfd.h"
 #include "resource_manager.h"
 #include "renderer.h"
+#include "graphs/forward_render_graph.h"
 
 namespace nimble
 {
@@ -28,7 +29,7 @@ namespace nimble
 			m_renderer = std::make_unique<Renderer>();
 
 			// Attempt to load startup scene.
-			std::shared_ptr<Scene> scene = ResourceManager::load_scene("/scene/startup.json");
+			std::shared_ptr<Scene> scene = ResourceManager::load_scene("scene/startup.json");
 
 			// If failed, prompt user to select scene to be loaded.
 			if (!scene)
@@ -63,7 +64,11 @@ namespace nimble
 			// Create camera.
 			create_camera();
 
+			m_forward_graph = std::make_unique<ForwardRenderGraph>();
+
 			m_renderer->set_scene(m_scene);
+			m_renderer->set_scene_render_graph(m_forward_graph.get());
+			m_renderer->on_window_resized(m_width, m_height);
 
 			return true;
 		}
@@ -84,7 +89,9 @@ namespace nimble
 
 		void shutdown() override
 		{
-
+			m_forward_graph.reset();
+			m_renderer.reset();
+			m_scene.reset();
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -110,6 +117,8 @@ namespace nimble
 
 			// Override window resized method to update camera projection.
 			m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
+
+			m_renderer->on_window_resized(width, height);
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -220,6 +229,7 @@ namespace nimble
 
 		std::unique_ptr<Renderer> m_renderer;
 		std::shared_ptr<Scene> m_scene;
+		std::unique_ptr<ForwardRenderGraph> m_forward_graph;
 	};
 }
 

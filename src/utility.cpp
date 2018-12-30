@@ -208,7 +208,7 @@ namespace nimble
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
 
-		bool read_shader_separate(const std::string& path, std::string& out_includes, std::string& out_source, std::string& out_defines, std::vector<std::string> defines = std::vector<std::string>())
+		bool read_shader_separate(const std::string& path, std::string& out_includes, std::string& out_source, std::string& out_defines, std::vector<std::string> defines)
 		{
 			std::string og_source;
 

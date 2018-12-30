@@ -52,8 +52,8 @@ namespace nimble
 
 	struct PerEntityUniforms
 	{
-		NIMBLE_ALIGNED(16) glm::mat4 lastModelMat;
 		NIMBLE_ALIGNED(16) glm::mat4 modalMat;
+		NIMBLE_ALIGNED(16) glm::mat4 lastModelMat;
 		NIMBLE_ALIGNED(16) glm::vec4 worldPos;
 		uint8_t	  		   padding[112];
 	};

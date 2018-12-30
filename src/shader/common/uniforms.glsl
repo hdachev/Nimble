@@ -4,35 +4,26 @@
 // COMMON UNIFORM BUFFERS -------------------------------------------
 // ------------------------------------------------------------------
 
-layout (std140) uniform u_PerFrame
+layout (std140) uniform u_PerView
 { 
-	mat4 		  lastViewProj;
-	mat4 		  viewProj;
-	mat4 		  invViewProj;
-	mat4 		  invProj;
-	mat4 		  invView;
-	mat4 		  projMat;
-	mat4 		  viewMat;
-	vec4 		  viewPos;
-	vec4 		  viewDir;
-	vec4		  current_prev_jitter;
+	mat4	 	  lastViewProj;
+	mat4	 	  viewProj;
+	mat4	 	  invViewProj;
+	mat4	 	  invProj;
+	mat4	 	  invView;
+	mat4	 	  projMat;
+	mat4	 	  viewMat;
+	vec4	 	  viewPos;
+	vec4	 	  viewDir;
+	vec4	 	  currentPrevJitter;
 	int			  numCascades;
 	ShadowFrustum shadowFrustums[MAX_SHADOW_FRUSTUM];
 	float		  tanHalfFov;
 	float		  aspectRatio;
 	float		  nearPlane;
 	float		  farPlane;
-	int			  renderer;
-	int			  current_output;
-	int			  motion_blur;
-	int			  max_motion_blur_samples;
-	float		  velocity_scale;
 	int			  viewport_width;
 	int			  viewport_height;
-	int			  ssao;
-	int			  ssao_num_samples;
-	float		  ssao_radius;
-	float		  ssao_bias;
 };
 
 // ------------------------------------------------------------------
@@ -48,10 +39,64 @@ layout (std140) uniform u_PerScene
 
 layout (std140) uniform u_PerEntity
 {
-	mat4 mvpMat;
-	mat4 lastMvpMat;
-	mat4 modelMat;	
+	mat4 modalMat;
+	mat4 lastModelMat;
 	vec4 worldPos;
 };
+
+// ------------------------------------------------------------------
+
+layout (std140) uniform u_PerSkeleton
+{
+	mat4 boneTransforms[MAX_BONES];
+};
+
+// ------------------------------------------------------------------
+// SAMPLERS  --------------------------------------------------------
+// ------------------------------------------------------------------
+
+#ifdef TEXTURE_ALBEDO
+    uniform sampler2D s_Albedo;
+#endif
+
+#ifdef TEXTURE_NORMAL
+    uniform sampler2D s_Normal;
+#endif
+
+#ifdef TEXTURE_METAL_SPEC
+    uniform sampler2D s_MetalSpec;
+#endif
+
+#ifdef TEXTURE_ROUGH_SMOOTH
+    uniform sampler2D s_RoughSmooth;
+#endif
+
+#ifdef TEXTURE_DISPLACEMENT
+    uniform sampler2D s_Displacement;
+#endif
+
+#ifdef TEXTURE_EMISSIVE
+    uniform sampler2D s_Emissive;
+#endif
+
+#ifdef UNIFORM_ALBEDO
+	vec4 u_Albedo;
+#endif
+
+#ifdef UNIFORM_METAL_SPEC
+	#ifdef UNIFORM_ROUGH_SMOOTH
+		vec4 u_MetalRough;
+	#else
+		vec4 u_MetalRough;
+	#endif
+#else
+	#ifdef UNIFORM_ROUGH_SMOOTH
+		vec4 u_MetalRough;
+	#endif
+#endif
+
+#ifdef UNIFORM_EMISSIVE
+	vec4 u_Emissive;
+#endif
 
 // ------------------------------------------------------------------

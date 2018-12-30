@@ -11,6 +11,8 @@ namespace nimble
 	struct View;
 	struct FramebufferGroup;
 	class RenderGraph;
+	class Scene;
+	class ShaderLibrary;
 
 	enum RenderNodeType
 	{
@@ -32,7 +34,8 @@ namespace nimble
 		NODE_USAGE_MATERIAL_ROUGH_SMOOTH = BIT_FLAG(8),
 		NODE_USAGE_MATERIAL_DISPLACEMENT = BIT_FLAG(9),
 		NODE_USAGE_MATERIAL_EMISSIVE = BIT_FLAG(10),
-		NODE_USAGE_ALL_MATERIALS = NODE_USAGE_MATERIAL_ALBEDO | NODE_USAGE_MATERIAL_NORMAL | NODE_USAGE_MATERIAL_METAL_SPEC | NODE_USAGE_MATERIAL_ROUGH_SMOOTH | NODE_USAGE_MATERIAL_EMISSIVE | NODE_USAGE_MATERIAL_DISPLACEMENT
+		NODE_USAGE_ALL_MATERIALS = NODE_USAGE_MATERIAL_ALBEDO | NODE_USAGE_MATERIAL_NORMAL | NODE_USAGE_MATERIAL_METAL_SPEC | NODE_USAGE_MATERIAL_ROUGH_SMOOTH | NODE_USAGE_MATERIAL_EMISSIVE | NODE_USAGE_MATERIAL_DISPLACEMENT,
+		NODE_USAGE_DEFAULT = NODE_USAGE_PER_OBJECT_UBO | NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_PER_SCENE_UBO | NODE_USAGE_STATIC_MESH | NODE_USAGE_SKELETAL_MESH | NODE_USAGE_ALL_MATERIALS
 	};
 
 	struct SceneRenderDesc
@@ -71,13 +74,17 @@ namespace nimble
 		inline void enable() { m_enabled = true; }
 		inline void disable() { m_enabled = false; }
 
-		// Virtual methods
+		// Virtual methods	
+		virtual bool initialize_internal();
 		virtual void passthrough();
+		virtual uint32_t flags();
 		virtual void execute(const View& view) = 0;
 		virtual bool initialize() = 0;
 		virtual void shutdown() = 0;
-		virtual uint32_t flags() = 0;
 		virtual std::string name() = 0;
+
+		// Event callbacks
+		virtual void on_window_resized(const uint32_t& w, const uint32_t& h);
 
 	protected:
 		std::shared_ptr<RenderTarget> register_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
@@ -98,17 +105,12 @@ namespace nimble
 		std::unordered_map<std::string, Buffer*> m_buffer_dependecies;
 	};
 
-	class Scene;
-	class ShaderLibrary;
-
 	class SceneRenderNode : public RenderNode
 	{
 	public:
 		struct Params
 		{
-			Scene* scene;
-			ShaderLibrary* library;
-			View* view;
+			const View* view;
 			uint32_t num_rt_views;
 			RenderTargetView* rt_views;
 			RenderTargetView* depth_views;
@@ -120,15 +122,22 @@ namespace nimble
 			uint32_t num_clear_colors = 0;
 			float clear_colors[8][4];
 			double clear_depth = 1;
+
+			Params();
 		};
 
 		SceneRenderNode(RenderGraph* graph);
 		~SceneRenderNode();
 
-		void execute(const View& view) override;
+		bool initialize_internal() override;
+		virtual std::string vs_template_path() = 0;
+		virtual std::string fs_template_path() = 0;
 
 	protected:
 		void render_scene(const Params& params);
+
+	private:
+		std::shared_ptr<ShaderLibrary> m_library;
 	};
 
 	class MultiPassRenderNode : public RenderNode
