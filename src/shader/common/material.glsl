@@ -2,17 +2,19 @@
 // MATERIAL ---------------------------------------------------------
 // ------------------------------------------------------------------
 
+#define MIN_ROUGHNESS 0.04
+
 float convert_metallic(vec3 diffuse, vec3 specular, float maxSpecular) 
 {
 	float perceivedDiffuse = sqrt(0.299 * diffuse.r * diffuse.r + 0.587 * diffuse.g * diffuse.g + 0.114 * diffuse.b * diffuse.b);
 	float perceivedSpecular = sqrt(0.299 * specular.r * specular.r + 0.587 * specular.g * specular.g + 0.114 * specular.b * specular.b);
 
-	if (perceivedSpecular < c_MinRoughness)
+	if (perceivedSpecular < MIN_ROUGHNESS)
 		return 0.0;
 
-	float a = c_MinRoughness;
-	float b = perceivedDiffuse * (1.0 - maxSpecular) / (1.0 - c_MinRoughness) + perceivedSpecular - 2.0 * c_MinRoughness;
-	float c = c_MinRoughness - perceivedSpecular;
+	float a = MIN_ROUGHNESS;
+	float b = perceivedDiffuse * (1.0 - maxSpecular) / (1.0 - MIN_ROUGHNESS) + perceivedSpecular - 2.0 * MIN_ROUGHNESS;
+	float c = MIN_ROUGHNESS - perceivedSpecular;
 	float D = max(b * b - 4.0 * a * c, 0.0);
 	return clamp((-b + sqrt(D)) / (2.0 * a), 0.0, 1.0);
 }
@@ -30,12 +32,12 @@ vec4 get_albedo(vec2 tex_coord)
 
 // ------------------------------------------------------------------
 
-vec3 get_normal(vec2 tex_coord, in FragmentProperties f)
+vec3 get_normal(in FragmentProperties f)
 {
 #ifdef NORMAL_TEXTURE
-	return get_normal_from_map(f.Tangent, f.Bitangent, f.Normal, tex_coord, s_Normal);
+	return get_normal_from_map(f.Tangent, f.Bitangent, f.Normal, f.TexCoords, s_Normal);
 #else
-	return v.Normal;
+	return f.Normal;
 #endif
 }
 

@@ -13,7 +13,7 @@ out vec4 PS_IN_LastScreenPosition;
 out vec3 PS_IN_Normal;
 out vec2 PS_IN_TexCoord;
 
-#ifdef NORMAL_TEXTURE
+#ifdef TEXTURE_NORMAL
 	out vec3 PS_IN_Tangent;
 	out vec3 PS_IN_Bitangent;
 #endif

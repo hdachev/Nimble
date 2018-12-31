@@ -59,7 +59,7 @@ vec3 pbr_directional_lights(in MaterialProperties m, in FragmentProperties f,  i
 	vec3 H = normalize(pbr.V + L);
 	float HdotV = clamp(dot(H, pbr.V), 0.0, 1.0);
 	float NdotH = max(dot(pbr.N, H), 0.0);
-	float NdotL = max(dot(pbr.N, pbr.L), 0.0);
+	float NdotL = max(dot(pbr.N, L), 0.0);
 
 	// Shadows ------------------------------------------------------------------
 	float frag_depth = f.FragDepth;
@@ -89,7 +89,7 @@ vec3 pbr_directional_lights(in MaterialProperties m, in FragmentProperties f,  i
 	vec3 diffuse = m.albedo.xyz / kPI;
 	// --------------------------------------------------------------------------
 
-	return shadow * (kD * m.albedo.xyz / kPI + specular) * Li * NdotL;
+	return shadow * (pbr.kD * m.albedo.xyz / kPI + specular) * Li * NdotL;
 }
 
 // ------------------------------------------------------------------

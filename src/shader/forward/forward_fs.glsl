@@ -20,7 +20,7 @@ in vec4 PS_IN_LastScreenPosition;
 in vec3 PS_IN_Normal;
 in vec2 PS_IN_TexCoord;
 
-#ifdef NORMAL_TEXTURE
+#ifdef TEXTURE_NORMAL
 	in vec3 PS_IN_Tangent;
 	in vec3 PS_IN_Bitangent;
 #endif
@@ -58,6 +58,9 @@ void fill_fragment_properties(inout FragmentProperties f)
 #ifdef DISPLACEMENT_TYPE_PARALLAX_OCCLUSION
 	f.TangentViewPos = PS_IN_TangentViewPos;
 	f.TangentFragPos = PS_IN_TangentFragPos;
+	f.TexCoords = get_parallax_occlusion_texcoords(PS_IN_TexCoord, PS_IN_TangentViewPos, PS_IN_TangentFragPos);
+#else
+	f.TexCoords = PS_IN_TexCoord;
 #endif
 }
 
@@ -66,12 +69,12 @@ void fill_fragment_properties(inout FragmentProperties f)
 #ifndef FRAGMENT_SHADER_FUNC
 #define FRAGMENT_SHADER_FUNC
 
-void fragment_func(inout MaterialProperties m, inout FragmentProperties f, vec2 tex_coord)
+void fragment_func(inout MaterialProperties m, inout FragmentProperties f)
 {
-	m.albedo = get_albedo(tex_coord);
-	m.normal = get_normal(tex_coord, f);
-	m.metallic = get_metallic(tex_coord);
-	m.roughness = get_roughness(tex_coord);
+	m.albedo = get_albedo(f.TexCoords);
+	m.normal = get_normal(f);
+	m.metallic = get_metallic(f.TexCoords);
+	m.roughness = get_roughness(f.TexCoords);
 }
 
 #endif
@@ -88,11 +91,8 @@ void main()
 
 	MaterialProperties m;
 
-	// Calculate texture coordinates
-	vec2 tex_coord = get_texcoords(PS_IN_TexCoord);
-
 	// Set material properties
-	fragment_func(m, f, tex_coord);
+	fragment_func(m, f);
 
 #ifdef BLEND_MODE_MASKED
 	// Discard fragments below alpha threshold
@@ -104,10 +104,10 @@ void main()
 
 	// Set PBR properties
 	pbr.N = m.normal;
-	pbr.V = normalize(PS_IN_CamPos - PS_IN_Position); // FragPos -> ViewPos vector
+	pbr.V = normalize(viewPos.xyz - f.Position); // FragPos -> ViewPos vector
 	pbr.R = reflect(-pbr.V, pbr.N); 
 	pbr.F0 = vec3(0.04);
-	pbr.F0 = mix(pbr.F0, m.albedo, m.metallic);
+	pbr.F0 = mix(pbr.F0, m.albedo.xyz, m.metallic);
 	pbr.NdotV = max(dot(pbr.N, pbr.V), 0.0);
 	pbr.F = fresnel_schlick_roughness(pbr.NdotV, pbr.F0, m.roughness);
 	pbr.kS = pbr.F;
@@ -137,7 +137,7 @@ void main()
 	vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
 	vec3 color = Lo + ambient;
 
-	PS_OUT_Color = m.albedo;
+	PS_OUT_Color = m.albedo.xyz;
     // PS_OUT_Color = color;
 	// PS_OUT_Velocity = motion_vector(PS_IN_LastScreenPosition, PS_IN_ScreenPosition);
 }

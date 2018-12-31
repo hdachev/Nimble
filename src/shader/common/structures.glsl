@@ -59,6 +59,7 @@ struct VertexProperties
 struct FragmentProperties
 {
 	vec3 Position;
+	vec2 TexCoords;
 	vec3 Normal;
 	float FragDepth;
 #ifdef TEXTURE_NORMAL
@@ -92,7 +93,7 @@ struct PBRProperties
 	vec3 F;
 	vec3 kS;
 	vec3 kD;
-	float NdotV
+	float NdotV;
 };
 
 // ------------------------------------------------------------------

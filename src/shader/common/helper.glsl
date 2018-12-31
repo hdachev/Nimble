@@ -109,15 +109,13 @@ vec2 parallax_occlusion(vec3 view_dir, vec2 tex_coord, float height_scale, sampl
 
 // ------------------------------------------------------------------
 
-vec2 get_texcoords(vec2 tex_coord)
-{
 #ifdef DISPLACEMENT_TYPE_PARALLAX_OCCLUSION
-	vec3 tangent_view_dir = normalize(PS_IN_TangentViewPos - PS_IN_TangentFragPos);
-	return parallax_occlusion(tangent_view_dir, PS_IN_TexCoord, 0.05, s_Displacement);
-#else
-	return PS_IN_TexCoord;
-#endif
+vec2 get_parallax_occlusion_texcoords(vec2 tex_coord, vec3 tangent_view_pos, vec3 tangent_frag_pos)
+{
+	vec3 tangent_view_dir = normalize(tangent_view_pos - tangent_frag_pos);
+	return parallax_occlusion(tangent_view_dir, tex_coord, 0.05, s_Displacement);
 }
+#endif
 
 // ------------------------------------------------------------------
 

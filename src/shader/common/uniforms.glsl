@@ -15,7 +15,7 @@ layout (std140) uniform u_PerView
 	mat4	 	  viewMat;
 	vec4	 	  viewPos;
 	vec4	 	  viewDir;
-	vec4	 	  currentPrevJitter;
+	vec4	 	  current_prev_jitter;
 	int			  numCascades;
 	ShadowFrustum shadowFrustums[MAX_SHADOW_FRUSTUM];
 	float		  tanHalfFov;
@@ -39,7 +39,7 @@ layout (std140) uniform u_PerScene
 
 layout (std140) uniform u_PerEntity
 {
-	mat4 modalMat;
+	mat4 modelMat;
 	mat4 lastModelMat;
 	vec4 worldPos;
 };

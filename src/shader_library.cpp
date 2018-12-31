@@ -209,7 +209,7 @@ namespace nimble
 				fs_defines.push_back("#define SPECULAR_WORKFLOW");
 
 			// Surface textures
-			for (uint32_t i = 0; i < 7; i++)
+			for (uint32_t i = 0; i < 6; i++)
 			{
 				if (material->surface_texture(i) && HAS_BIT_FLAG(flags, kRenderNodeFlags[i]))
 					fs_defines.push_back(kSurfaceTextureLUT[i]);
