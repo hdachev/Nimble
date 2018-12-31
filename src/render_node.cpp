@@ -182,7 +182,11 @@ namespace nimble
 		else
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		glViewport(params.x, params.y, params.h, params.w);
+		glViewport(params.x, params.y, params.w, params.h);
+
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
 
 		if (params.clear_flags != 0)
 		{

@@ -121,11 +121,23 @@ namespace nimble
 
 					if (image.compression == ast::COMPRESSION_NONE)
 					{
+						GLenum internal_format = kInternalFormatTable[type][image.components - 1];
+
+						if (srgb)
+						{
+							if (image.components == 3)
+								internal_format == GL_SRGB8;
+							else if (image.components == 4)
+								internal_format == GL_SRGB8_ALPHA8;
+							else
+								NIMBLE_LOG_ERROR("SRGB textures can only be created from images with 3 or 4 color components!");
+						}
+
 						std::shared_ptr<TextureCube> texture = std::make_shared<TextureCube>(image.data[0][0].width,
 							image.data[0][0].height,
 							image.array_slices,
 							image.mip_slices,
-							kInternalFormatTable[type][image.components - 1],
+							internal_format,
 							kFormatTable[image.components - 1],
 							kTypeTable[type]);
 
@@ -171,12 +183,24 @@ namespace nimble
 				{
 					if (image.compression == ast::COMPRESSION_NONE)
 					{
+						GLenum internal_format = kInternalFormatTable[type][image.components - 1];
+			
+						if (srgb)
+						{
+							if (image.components == 3)
+								internal_format == GL_SRGB8;
+							else if (image.components == 4)
+								internal_format == GL_SRGB8_ALPHA8;
+							else
+								NIMBLE_LOG_ERROR("SRGB textures can only be created from images with 3 or 4 color components!");
+						}
+
 						std::shared_ptr<Texture2D> texture = std::make_shared<Texture2D>(image.data[0][0].width,
 							image.data[0][0].height,
 							image.array_slices,
 							image.mip_slices,
 							1,
-							kInternalFormatTable[type][image.components - 1],
+							internal_format,
 							kFormatTable[image.components - 1],
 							kTypeTable[type]);
 
@@ -354,7 +378,7 @@ namespace nimble
 					NIMBLE_LOG_ERROR("Failed to create Vertex Buffer");
 
 				// Create index buffer.
-				ibo = std::make_shared<IndexBuffer>(GL_STATIC_DRAW, sizeof(uint32_t) * ast_mesh.indices.size(), (void*)ast_mesh.indices[0]);
+				ibo = std::make_shared<IndexBuffer>(GL_STATIC_DRAW, sizeof(uint32_t) * ast_mesh.indices.size(), (void*)&ast_mesh.indices[0]);
 
 				if (!ibo)
 					NIMBLE_LOG_ERROR("Failed to create Index Buffer");
