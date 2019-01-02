@@ -6,38 +6,35 @@
 
 namespace nimble
 {
-	struct DirectionalLight
+	struct Light
 	{
-		using ID = uint32_t;
-
-		ID m_id;
-		glm::vec3 m_direction;
-		glm::vec3 m_color;
-		float m_intensity;
-		CSM m_csm;
-		bool m_casts_shadow;
-	};
-
-	struct PointLight
-	{
-		using ID = uint32_t;
-
-		ID m_id;
-		glm::vec3 m_position;
 		glm::vec3 m_color;
 		float m_intensity;
 		bool m_casts_shadow;
 	};
 
-	struct SpotLight
+	struct DirectionalLight : public Light
 	{
 		using ID = uint32_t;
 
 		ID m_id;
-		glm::vec3 m_direction;
+		glm::vec3 m_rotation;
+	};
+
+	struct PointLight : public Light
+	{
+		using ID = uint32_t;
+
+		ID m_id;
 		glm::vec3 m_position;
-		glm::vec3 m_color;
-		float m_intensity;
-		bool m_casts_shadow;
+	};
+
+	struct SpotLight : public Light
+	{
+		using ID = uint32_t;
+
+		ID m_id;
+		glm::vec3 m_rotation;
+		glm::vec3 m_position;
 	};
 } // namespace nimble
