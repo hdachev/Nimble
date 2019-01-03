@@ -156,7 +156,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	PointLight::ID Scene::create_point_light(const glm::vec3& position, const glm::vec3& color, const float& range, const float& intensity)
+	PointLight::ID Scene::create_point_light(const glm::vec3& position, const glm::vec3& color, const float& range, const float& intensity, const bool& casts_shadows)
 	{
 		PointLight::ID id = m_point_lights.add();
 
@@ -168,7 +168,7 @@ namespace nimble
 		p.range = range;
 		p.intensity = intensity;
 		p.enabled = true;
-		p.casts_shadow = false;
+		p.casts_shadow = casts_shadows;
 
 		return id;
 	}
@@ -189,7 +189,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	SpotLight::ID Scene::create_spot_light(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color, const float& cone_angle, const float& range, const float& intensity)
+	SpotLight::ID Scene::create_spot_light(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color, const float& cone_angle, const float& range, const float& intensity, const bool& casts_shadows)
 	{
 		SpotLight::ID id = m_spot_lights.add();
 
@@ -202,7 +202,7 @@ namespace nimble
 		p.intensity = intensity;
 		p.cone_angle = cone_angle;
 		p.enabled = true;
-		p.casts_shadow = false;
+		p.casts_shadow = casts_shadows;
 		p.transform.set_orientation_from_euler(rotation);
 
 		return id;
@@ -224,7 +224,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	DirectionalLight::ID Scene::create_directional_light(const glm::vec3& rotation, const glm::vec3& color, const float& range, const float& intensity)
+	DirectionalLight::ID Scene::create_directional_light(const glm::vec3& rotation, const glm::vec3& color, const float& intensity, const bool& casts_shadows)
 	{
 		DirectionalLight::ID id = m_directional_lights.add();
 
@@ -234,7 +234,7 @@ namespace nimble
 		p.color = color;
 		p.intensity = intensity;
 		p.enabled = true;
-		p.casts_shadow = false;
+		p.casts_shadow = casts_shadows;
 		p.transform.set_orientation_from_euler(rotation);
 
 		return id;

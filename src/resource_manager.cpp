@@ -502,6 +502,18 @@ namespace nimble
 				if (ast_scene.skybox.specular_irradiance.size() > 0)
 					scene->set_prefiltered_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.specular_irradiance, false, true)));
 
+				// Load point lights
+				for (const auto& l : ast_scene.point_lights)
+					scene->create_point_light(l.position, l.color, l.range, l.intensity, l.casts_shadows);
+				
+				// Load spot lights
+				for (const auto& l : ast_scene.spot_lights)
+					scene->create_spot_light(l.position, l.rotation, l.color, l.cone_angle, l.range, l.intensity, l.casts_shadows);
+
+				// Load directional lights
+				for (const auto& l : ast_scene.directional_lights)
+					scene->create_directional_light(l.rotation, l.color, l.intensity, l.casts_shadows);
+
 				// @TODO: Load reflection probes
 
 				// @TODO: Load GI probes

@@ -8,13 +8,13 @@ namespace nimble
 	#define MAX_POINT_LIGHTS 32
 	#define MAX_SHADOW_FRUSTUM 8
 
-	struct PointLight
+	struct PointLightUBO
 	{
 		NIMBLE_ALIGNED(16) glm::vec4 position;
 		NIMBLE_ALIGNED(16) glm::vec4 color;
 	};
 
-	struct DirectionalLight
+	struct DirectionalLightUBO
 	{
 		NIMBLE_ALIGNED(16) glm::vec4 direction;
 		NIMBLE_ALIGNED(16) glm::vec4 color;
@@ -60,9 +60,9 @@ namespace nimble
 
 	struct PerSceneUniforms
 	{
-		NIMBLE_ALIGNED(16) PointLight 		pointLights[MAX_POINT_LIGHTS];
-		NIMBLE_ALIGNED(16) DirectionalLight directionalLight;
-		NIMBLE_ALIGNED(16) int				pointLightCount;
+		NIMBLE_ALIGNED(16) PointLightUBO 		pointLights[MAX_POINT_LIGHTS];
+		NIMBLE_ALIGNED(16) DirectionalLightUBO  directionalLight;
+		NIMBLE_ALIGNED(16) int					pointLightCount;
 	};
 
 	struct PerMaterialUniforms
