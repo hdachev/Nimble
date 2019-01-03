@@ -1,16 +1,17 @@
 #pragma once
 
-#include <glm.hpp>
 #include <stdint.h>
+#include "transform.h"
 
 namespace nimble
 {
 	struct Light
 	{
 		bool enabled;
+		bool casts_shadow;
 		glm::vec3 color;
 		float intensity;
-		bool casts_shadow;
+		Transform transform;
 	};
 
 	struct DirectionalLight : public Light
@@ -18,7 +19,6 @@ namespace nimble
 		using ID = uint32_t;
 
 		ID id;
-		glm::vec3 rotation;
 	};
 
 	struct PointLight : public Light
@@ -26,7 +26,7 @@ namespace nimble
 		using ID = uint32_t;
 
 		ID id;
-		glm::vec3 position;
+		float range;
 	};
 
 	struct SpotLight : public Light
@@ -34,7 +34,7 @@ namespace nimble
 		using ID = uint32_t;
 
 		ID id;
-		glm::vec3 rotation;
-		glm::vec3 position;
+		float range;
+		float cone_angle;
 	};
 } // namespace nimble

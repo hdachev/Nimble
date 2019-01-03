@@ -3,6 +3,7 @@
 #include "entity.h"
 #include "packed_array.h"
 #include "camera.h"
+#include "lights.h"
 #include <vector>
 #include <string>
 
@@ -47,11 +48,22 @@ namespace nimble
 
 		// Probe manipulation methods.
 		ReflectionProbe::ID create_reflection_probe(const glm::vec3& position, const glm::vec3& extents);
-		GIProbe::ID create_gi_probe(const glm::vec3& position);
 		ReflectionProbe& lookup_reflection_probe(const ReflectionProbe::ID& id);
-		GIProbe& lookup_gi_probe(const GIProbe::ID& id);
 		void destroy_reflection_probe(const ReflectionProbe::ID& id);
+		GIProbe::ID create_gi_probe(const glm::vec3& position);
+		GIProbe& lookup_gi_probe(const GIProbe::ID& id);
 		void destroy_gi_probe(const GIProbe::ID& id);
+
+		// Light manipulation methods.
+		PointLight::ID create_point_light(const glm::vec3& position, const glm::vec3& color, const float& range, const float& intensity);
+		PointLight& lookup_point_light(const PointLight::ID& id);
+		void destroy_point_light(const PointLight::ID& id);
+		SpotLight::ID create_spot_light(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color, const float& cone_angle, const float& range, const float& intensity);
+		SpotLight& lookup_spot_light(const SpotLight::ID& id);
+		void destroy_spot_light(const SpotLight::ID& id);
+		DirectionalLight::ID create_directional_light(const glm::vec3& rotation, const glm::vec3& color, const float& range, const float& intensity);
+		DirectionalLight& lookup_directional_light(const DirectionalLight::ID& id);
+		void destroy_directional_light(const DirectionalLight::ID& id);
 
 		// Inline setters.
 		inline void set_name(const std::string& name) { m_name = name; }
@@ -75,17 +87,20 @@ namespace nimble
 		inline std::shared_ptr<TextureCube>& gi_probe_cubemap() { return m_gi_probe_cubemap; }
 		
 	private:
-		std::string						  m_name;
-		std::unique_ptr<Camera>			  m_camera;
-		PackedArray<ReflectionProbe, 128> m_reflection_probes;
-		PackedArray<GIProbe, 128>		  m_gi_probes;
-		PackedArray<Entity, 1024>		  m_entities;
+		std::string						    m_name;
+		std::unique_ptr<Camera>			    m_camera;
+		PackedArray<ReflectionProbe, 128>   m_reflection_probes;
+		PackedArray<GIProbe, 128>		    m_gi_probes;
+		PackedArray<Entity, 1024>		    m_entities;
+		PackedArray<PointLight, 1024>	    m_point_lights;
+		PackedArray<SpotLight, 1024>	    m_spot_lights;
+		PackedArray<DirectionalLight, 1024>	m_directional_lights;
 		// PBR cubemaps common to the entire scene.
-		std::shared_ptr<TextureCube>	  m_env_map;
-		std::shared_ptr<TextureCube>	  m_irradiance_map;
-		std::shared_ptr<TextureCube>	  m_prefiltered_map;
-		// Probe cubemap arrays
-		std::shared_ptr<TextureCube>	  m_reflection_probe_cubemap;
-		std::shared_ptr<TextureCube>	  m_gi_probe_cubemap;
+		std::shared_ptr<TextureCube>	    m_env_map;
+		std::shared_ptr<TextureCube>	    m_irradiance_map;
+		std::shared_ptr<TextureCube>	    m_prefiltered_map;
+		// Probe cubemap arrays			    
+		std::shared_ptr<TextureCube>	    m_reflection_probe_cubemap;
+		std::shared_ptr<TextureCube>	    m_gi_probe_cubemap;
 	};
 }

@@ -156,6 +156,106 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	PointLight::ID Scene::create_point_light(const glm::vec3& position, const glm::vec3& color, const float& range, const float& intensity)
+	{
+		PointLight::ID id = m_point_lights.add();
+
+		PointLight& p = m_point_lights.lookup(id);
+
+		p.id = id;
+		p.transform.position = position;
+		p.color = color;
+		p.range = range;
+		p.intensity = intensity;
+		p.enabled = true;
+		p.casts_shadow = false;
+
+		return id;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	PointLight& Scene::lookup_point_light(const PointLight::ID& id)
+	{
+		return m_point_lights.lookup(id);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Scene::destroy_point_light(const PointLight::ID& id)
+	{
+		m_point_lights.remove(id);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	SpotLight::ID Scene::create_spot_light(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color, const float& cone_angle, const float& range, const float& intensity)
+	{
+		SpotLight::ID id = m_spot_lights.add();
+
+		SpotLight& p = m_spot_lights.lookup(id);
+
+		p.id = id;
+		p.transform.position = position;
+		p.color = color;
+		p.range = range;
+		p.intensity = intensity;
+		p.cone_angle = cone_angle;
+		p.enabled = true;
+		p.casts_shadow = false;
+		p.transform.set_orientation_from_euler(rotation);
+
+		return id;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	SpotLight& Scene::lookup_spot_light(const SpotLight::ID& id)
+	{
+		return m_spot_lights.lookup(id);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Scene::destroy_spot_light(const SpotLight::ID& id)
+	{
+		m_spot_lights.remove(id);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	DirectionalLight::ID Scene::create_directional_light(const glm::vec3& rotation, const glm::vec3& color, const float& range, const float& intensity)
+	{
+		DirectionalLight::ID id = m_directional_lights.add();
+
+		DirectionalLight& p = m_directional_lights.lookup(id);
+
+		p.id = id;
+		p.color = color;
+		p.intensity = intensity;
+		p.enabled = true;
+		p.casts_shadow = false;
+		p.transform.set_orientation_from_euler(rotation);
+
+		return id;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	DirectionalLight& Scene::lookup_directional_light(const DirectionalLight::ID& id)
+	{
+		return m_directional_lights.lookup(id);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Scene::destroy_directional_light(const DirectionalLight::ID& id)
+	{
+		m_directional_lights.remove(id);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	void Scene::update_reflection_probes()
 	{
 
