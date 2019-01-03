@@ -458,41 +458,32 @@ namespace nimble
 					e.set_rotation(entity.rotation);
 					e.set_scale(entity.scale);
 					
-					e.m_mesh = load_mesh(entity.mesh);
+					e.mesh = load_mesh(entity.mesh);
 					
 					if (entity.material_override.size() > 0)
-						e.m_override_mat = load_material(entity.material_override);
+						e.override_mat = load_material(entity.material_override);
 
-					glm::mat4 H = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.x), glm::vec3(0.0f, 1.0f, 0.0f));
-					glm::mat4 P = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
-					glm::mat4 B = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+					e.transform.update();
 
-					glm::mat4 R = H * P * B;
-					glm::mat4 S = glm::scale(glm::mat4(1.0f), e.m_scale);
-					glm::mat4 T = glm::translate(glm::mat4(1.0f), e.m_position);
-
-					e.m_transform = T * R * S;
-					e.m_prev_transform = e.m_transform;
-
-					e.m_obb.min = e.m_mesh->aabb().min;
-					e.m_obb.max = e.m_mesh->aabb().max;
-					e.m_obb.position = e.m_position;
+					e.obb.min = e.mesh->aabb().min;
+					e.obb.max = e.mesh->aabb().max;
+					e.obb.position = e.transform.position;
 
 #ifdef ENABLE_SUBMESH_CULLING
-					e.m_submesh_visibility.resize(e.m_mesh->submesh_count());
+					e.submesh_visibility_flags.resize(e.mesh->submesh_count());
 
-					for (uint32_t i = 0; i < e.m_mesh->submesh_count(); i++)
+					for (uint32_t i = 0; i < e.mesh->submesh_count(); i++)
 					{
-						SubMesh& submesh = e.m_mesh->submesh(i);
+						SubMesh& submesh = e.mesh->submesh(i);
 
 						Sphere sphere;
 
 						glm::vec3 center = (submesh.min_extents + submesh.max_extents) / 2.0f;
 
-						sphere.position = center + e.m_position;
+						sphere.position = center + e.transform.position;
 						sphere.radius = glm::length(submesh.max_extents - submesh.min_extents) / 2.0f;
 
-						e.m_submesh_spheres.push_back(sphere);
+						e.submesh_spheres.push_back(sphere);
 					}
 #endif
 				}

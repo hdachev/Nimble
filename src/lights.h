@@ -1,6 +1,5 @@
 #pragma once
 
-#include "csm.h"
 #include <glm.hpp>
 #include <stdint.h>
 
@@ -8,33 +7,34 @@ namespace nimble
 {
 	struct Light
 	{
-		glm::vec3 m_color;
-		float m_intensity;
-		bool m_casts_shadow;
+		bool enabled;
+		glm::vec3 color;
+		float intensity;
+		bool casts_shadow;
 	};
 
 	struct DirectionalLight : public Light
 	{
 		using ID = uint32_t;
 
-		ID m_id;
-		glm::vec3 m_rotation;
+		ID id;
+		glm::vec3 rotation;
 	};
 
 	struct PointLight : public Light
 	{
 		using ID = uint32_t;
 
-		ID m_id;
-		glm::vec3 m_position;
+		ID id;
+		glm::vec3 position;
 	};
 
 	struct SpotLight : public Light
 	{
 		using ID = uint32_t;
 
-		ID m_id;
-		glm::vec3 m_rotation;
-		glm::vec3 m_position;
+		ID id;
+		glm::vec3 rotation;
+		glm::vec3 position;
 	};
 } // namespace nimble

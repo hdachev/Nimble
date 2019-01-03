@@ -4,6 +4,7 @@
 #include "mesh.h"
 #include "material.h"
 #include "ogl.h"
+#include "transform.h"
 #include <string>
 
 #define ENABLE_SUBMESH_CULLING
@@ -14,42 +15,38 @@ namespace nimble
 	{
 		using ID = uint32_t;
 
-		ID						  m_id;
-		std::string				  m_name;
-		glm::vec3				  m_position;
-		glm::vec3				  m_rotation;
-		glm::vec3				  m_scale;
-		glm::mat4				  m_transform;
-		glm::mat4				  m_prev_transform;
-		std::shared_ptr<Material> m_override_mat;
-		std::shared_ptr<Mesh>	  m_mesh;
-		OBB						  m_obb;
-		uint64_t				  m_visibility;
-		bool					  m_dirty;
-		bool					  m_static;
+		ID						  id;
+		std::string				  name;
+		std::shared_ptr<Material> override_mat;
+		std::shared_ptr<Mesh>	  mesh;
+		OBB						  obb;
+		uint64_t				  visibility_flags;
+		bool					  dirty;
+		bool					  is_static;
+		Transform				  transform;
 
 #ifdef ENABLE_SUBMESH_CULLING
-		std::vector<Sphere>		  m_submesh_spheres;
-		std::vector<uint64_t>	  m_submesh_visibility;
+		std::vector<Sphere>		  submesh_spheres;
+		std::vector<uint64_t>	  submesh_visibility_flags;
 #endif
 
 		Entity()
 		{
-			m_static = false;
-			m_dirty = true;
+			is_static = false;
+			dirty = true;
 		}
 
-		inline void set_position(const glm::vec3& position) { m_position = position; m_dirty = true; }
-		inline void set_rotation(const glm::vec3& rotation) { m_rotation = rotation; m_dirty = true; }
-		inline void set_scale(const glm::vec3& scale) { m_scale = scale; m_dirty = true; }
-		inline bool visibility(const uint32_t& view_index) { return m_visibility & BIT_FLAG(view_index) == 1; }
-		inline void set_visible(const uint32_t& view_index) {  SET_BIT(m_visibility, view_index); }
-		inline void set_invisible(const uint32_t& view_index) { CLEAR_BIT(m_visibility, view_index); }
+		inline void set_position(const glm::vec3& p) { transform.position = p; dirty = true; }
+		inline void set_rotation(const glm::vec3& r) { transform.set_orientation_from_euler(r); dirty = true; }
+		inline void set_scale(const glm::vec3& s) { transform.scale = s; dirty = true; }
+		inline bool visibility(const uint32_t& view_index) { return visibility_flags & BIT_FLAG(view_index) == 1; }
+		inline void set_visible(const uint32_t& view_index) {  SET_BIT(visibility_flags, view_index); }
+		inline void set_invisible(const uint32_t& view_index) { CLEAR_BIT(visibility_flags, view_index); }
 
 #ifdef ENABLE_SUBMESH_CULLING
-		inline bool submesh_visibility(const uint32_t& submesh_index, const uint32_t& view_index) { return m_submesh_visibility[submesh_index] & BIT_FLAG(view_index) == 1; }
-		inline void set_submesh_visible(const uint32_t& submesh_index, const uint32_t& view_index) { SET_BIT(m_submesh_visibility[submesh_index], view_index); }
-		inline void set_submesh_invisible(const uint32_t& submesh_index, const uint32_t& view_index) { CLEAR_BIT(m_submesh_visibility[submesh_index], view_index); }
+		inline bool submesh_visibility(const uint32_t& submesh_index, const uint32_t& view_index) { return submesh_visibility_flags[submesh_index] & BIT_FLAG(view_index) == 1; }
+		inline void set_submesh_visible(const uint32_t& submesh_index, const uint32_t& view_index) { SET_BIT(submesh_visibility_flags[submesh_index], view_index); }
+		inline void set_submesh_invisible(const uint32_t& submesh_index, const uint32_t& view_index) { CLEAR_BIT(submesh_visibility_flags[submesh_index], view_index); }
 #endif
 	};
 }

@@ -129,9 +129,9 @@ namespace nimble
 			{
 				Entity& entity = entities[i];
 
-				m_per_entity_uniforms[i].modalMat = entity.m_transform;
-				m_per_entity_uniforms[i].lastModelMat = entity.m_prev_transform;
-				m_per_entity_uniforms[i].worldPos = glm::vec4(entity.m_position, 0.0f);
+				m_per_entity_uniforms[i].modalMat = entity.transform.model;
+				m_per_entity_uniforms[i].lastModelMat = entity.transform.prev_model;
+				m_per_entity_uniforms[i].worldPos = glm::vec4(entity.transform.position, 0.0f);
 			}
 
 			void* ptr = GlobalGraphicsResources::per_entity_ubo()->map(GL_WRITE_ONLY);
@@ -171,26 +171,26 @@ namespace nimble
 			{
 				Entity& entity = entities[i];
 
-				entity.m_obb.position = entity.m_position;
-				entity.m_obb.orientation = glm::mat3(entity.m_transform);
+				entity.obb.position = entity.transform.position;
+				entity.obb.orientation = glm::mat3(entity.transform.model);
 				
 				for (uint32_t j = 0; j < m_num_active_views; j++)
 				{
 					if (m_active_views[j].m_culling)
 					{
-						if (intersects(m_active_frustums[j], entity.m_obb))
+						if (intersects(m_active_frustums[j], entity.obb))
 						{
 							entity.set_visible(j);
 
 #ifdef ENABLE_SUBMESH_CULLING
-							for (uint32_t k = 0; k < entity.m_mesh->submesh_count(); k++)
+							for (uint32_t k = 0; k < entity.mesh->submesh_count(); k++)
 							{
-								SubMesh& submesh = entity.m_mesh->submesh(k);
+								SubMesh& submesh = entity.mesh->submesh(k);
 								glm::vec3 center = (submesh.min_extents + submesh.max_extents) / 2.0f;
 
-								entity.m_submesh_spheres[k].position = center + entity.m_position;
+								entity.submesh_spheres[k].position = center + entity.transform.position;
 
-								if (intersects(m_active_frustums[j], entity.m_submesh_spheres[k]))
+								if (intersects(m_active_frustums[j], entity.submesh_spheres[k]))
 									entity.set_submesh_visible(k, j);
 								else
 									entity.set_submesh_invisible(k, j);

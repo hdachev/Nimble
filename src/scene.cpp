@@ -30,8 +30,8 @@ namespace nimble
 
 		Entity& e = m_entities.lookup(id);
 
-		e.m_id = id;
-		e.m_name = name;
+		e.id = id;
+		e.name = name;
 
 		return id;
 	}
@@ -42,8 +42,8 @@ namespace nimble
 	{
 		for (uint32_t i = 0; i < m_entities.size(); i++)
 		{
-			if (m_entities._objects[i].m_name == name)
-				return m_entities._objects[i].m_id;
+			if (m_entities._objects[i].name == name)
+				return m_entities._objects[i].id;
 		}
 
 		return USHRT_MAX;
@@ -68,7 +68,7 @@ namespace nimble
 
 	void Scene::update_entity(Entity e)
 	{
-		Entity& old_entity = lookup_entity(e.m_id);
+		Entity& old_entity = lookup_entity(e.id);
 		old_entity = e;
 	}
 
@@ -176,19 +176,8 @@ namespace nimble
 		{
 			Entity& e = m_entities._objects[i];
 
-			if (e.m_dirty)
-			{
-				glm::mat4 H = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.x), glm::vec3(0.0f, 1.0f, 0.0f));
-				glm::mat4 P = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
-				glm::mat4 B = glm::rotate(glm::mat4(1.0f), glm::radians(e.m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-
-				glm::mat4 R = H * P * B;
-				glm::mat4 S = glm::scale(glm::mat4(1.0f), e.m_scale);
-				glm::mat4 T = glm::translate(glm::mat4(1.0f), e.m_position);
-
-				e.m_prev_transform = e.m_transform;
-				e.m_transform = T * R * S;
-			}
+			if (e.dirty)
+				e.transform.update();
 		}
 	}
 

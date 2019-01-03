@@ -223,11 +223,11 @@ namespace nimble
 				if (!params.view->m_culling || (params.view->m_culling && e.visibility(params.view->m_id)))
 				{
 					// Bind mesh VAO
-					e.m_mesh->bind();
+					e.mesh->bind();
 
-					for (uint32_t j = 0; j < e.m_mesh->submesh_count(); j++)
+					for (uint32_t j = 0; j < e.mesh->submesh_count(); j++)
 					{
-						SubMesh& s = e.m_mesh->submesh(j);
+						SubMesh& s = e.mesh->submesh(j);
 
 						int32_t tex_unit = 0;
 
@@ -237,13 +237,13 @@ namespace nimble
 #endif
 							ProgramKey& key = s.material->program_key();
 
-							key.set_mesh_type(e.m_mesh->type());
+							key.set_mesh_type(e.mesh->type());
 
 							// Lookup shader program from library
 							Program* program = m_library->lookup_program(key);
 
 							if (!program)
-								program = m_library->create_program(e.m_mesh->type(), flags(), s.material);
+								program = m_library->create_program(e.mesh->type(), flags(), s.material);
 
 							program->use();
 
@@ -260,7 +260,7 @@ namespace nimble
 
 							s.material->bind(program, tex_unit);
 
-							// Bind uniform buffers
+							// Binuffers
 							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
 								GlobalGraphicsResources::per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->m_id, sizeof(PerViewUniforms));
 
