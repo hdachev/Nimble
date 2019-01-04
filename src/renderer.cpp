@@ -214,7 +214,7 @@ namespace nimble
 		if (m_scene)
 		{
 			// Allocate view for scene camera
-			Camera* camera = m_scene->camera();
+			auto camera = m_scene->camera();
 			View scene_view;
 
 			scene_view.m_enabled = true;

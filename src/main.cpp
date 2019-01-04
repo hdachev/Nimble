@@ -189,7 +189,7 @@ namespace nimble
 
 		void update_camera()
 		{
-			Camera* current = m_scene->camera();
+			auto current = m_scene->camera();
 
 			float forward_delta = m_heading_speed * m_delta;
 			float right_delta = m_sideways_speed * m_delta;

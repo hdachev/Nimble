@@ -489,7 +489,7 @@ namespace nimble
 				}
 
 				// Load camera
-				Camera* camera = scene->camera();
+				auto camera = std::make_shared<Camera>(60.0f, 0.1f, 1000.0f, 16.0f / 9.0f, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
 				camera->set_position(ast_scene.camera.position);
 
 				// Load environment
@@ -513,6 +513,8 @@ namespace nimble
 				// Load directional lights
 				for (const auto& l : ast_scene.directional_lights)
 					scene->create_directional_light(l.rotation, l.color, l.intensity, l.casts_shadows);
+
+				scene->set_camera(camera);
 
 				// @TODO: Load reflection probes
 

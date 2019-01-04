@@ -57,7 +57,20 @@ namespace
 			glm::quat roll = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(e.z)));
 
 			orientation = yaw * pitch * roll;
-			euler = glm::degrees(glm::eulerAngles(orientation));
+			euler = e;
+		}
+
+		// -----------------------------------------------------------------------------------------------------------------------------------
+
+		inline void rotate(const glm::vec3& e)
+		{
+			euler += e;
+
+			glm::quat pitch = glm::quat(glm::vec3(glm::radians(euler.x), glm::radians(0.0f), glm::radians(0.0f)));
+			glm::quat yaw = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(euler.y), glm::radians(0.0f)));
+			glm::quat roll = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(euler.z)));
+
+			orientation = yaw * pitch * roll;
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------

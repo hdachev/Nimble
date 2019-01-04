@@ -66,13 +66,14 @@ namespace nimble
 		void destroy_directional_light(const DirectionalLight::ID& id);
 
 		// Inline setters.
+		inline void set_camera(std::shared_ptr<Camera> camera) { m_camera = camera; }
 		inline void set_name(const std::string& name) { m_name = name; }
 		inline void set_environment_map(const std::shared_ptr<TextureCube>& texture) { m_env_map = texture; }
 		inline void set_irradiance_map(const std::shared_ptr<TextureCube>& texture) { m_irradiance_map = texture; }
 		inline void set_prefiltered_map(const std::shared_ptr<TextureCube>& texture) { m_prefiltered_map = texture; }
 
 		// Inline getters.
-		inline Camera* camera() { return m_camera.get(); }
+		inline std::shared_ptr<Camera> camera() { return m_camera; }
 		inline uint32_t entity_count() { return m_entities.size(); }
 		inline Entity* entities() { return &m_entities._objects[0]; }
 		inline uint32_t reflection_probe_count() { return m_reflection_probes.size(); }
@@ -94,7 +95,7 @@ namespace nimble
 		
 	private:
 		std::string						    m_name;
-		std::unique_ptr<Camera>			    m_camera;
+		std::shared_ptr<Camera>			    m_camera;
 		PackedArray<ReflectionProbe, 128>   m_reflection_probes;
 		PackedArray<GIProbe, 128>		    m_gi_probes;
 		PackedArray<Entity, 1024>		    m_entities;
