@@ -79,6 +79,12 @@ namespace nimble
 		inline ReflectionProbe* reflection_probes() { return &m_reflection_probes._objects[0]; }
 		inline uint32_t gi_probe_count() { return m_gi_probes.size(); }
 		inline GIProbe* gi_probes() { return &m_gi_probes._objects[0]; }
+		inline uint32_t point_light_count() { return m_point_lights.size(); }
+		inline PointLight* point_lights() { return &m_point_lights._objects[0]; }
+		inline uint32_t spot_light_count() { return m_spot_lights.size(); }
+		inline SpotLight* spot_lights() { return &m_spot_lights._objects[0]; }
+		inline uint32_t directional_light_count() { return m_directional_lights.size(); }
+		inline DirectionalLight* directional_lights() { return &m_directional_lights._objects[0]; }
 		inline std::string name() const { return m_name; }
 		inline std::shared_ptr<TextureCube>& env_map() { return m_env_map; }
 		inline std::shared_ptr<TextureCube>& irradiance_map() { return m_irradiance_map; }
