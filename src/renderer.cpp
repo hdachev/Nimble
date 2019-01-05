@@ -129,9 +129,9 @@ namespace nimble
 			{
 				Entity& entity = entities[i];
 
-				m_per_entity_uniforms[i].modalMat = entity.transform.model;
-				m_per_entity_uniforms[i].lastModelMat = entity.transform.prev_model;
-				m_per_entity_uniforms[i].worldPos = glm::vec4(entity.transform.position, 0.0f);
+				m_per_entity_uniforms[i].modal = entity.transform.model;
+				m_per_entity_uniforms[i].last_model= entity.transform.prev_model;
+				m_per_entity_uniforms[i].world_pos = glm::vec4(entity.transform.position, 0.0f);
 			}
 
 			void* ptr = GlobalGraphicsResources::per_entity_ubo()->map(GL_WRITE_ONLY);
@@ -143,14 +143,14 @@ namespace nimble
 			{
 				View& view = m_active_views[i];
 
-				m_per_view_uniforms[i].viewMat = view.m_view_mat;
-				m_per_view_uniforms[i].projMat = view.m_projection_mat;
-				m_per_view_uniforms[i].viewProj= view.m_vp_mat;
-				m_per_view_uniforms[i].lastViewProj = view.m_prev_vp_mat;
-				m_per_view_uniforms[i].invProj = view.m_inv_projection_mat;
-				m_per_view_uniforms[i].invView = view.m_inv_view_mat;
-				m_per_view_uniforms[i].invViewProj = view.m_inv_vp_mat;
-				m_per_view_uniforms[i].viewPos = glm::vec4(view.m_position, 0.0f);
+				m_per_view_uniforms[i].view_mat = view.m_view_mat;
+				m_per_view_uniforms[i].proj_mat = view.m_projection_mat;
+				m_per_view_uniforms[i].view_proj= view.m_vp_mat;
+				m_per_view_uniforms[i].last_view_proj = view.m_prev_vp_mat;
+				m_per_view_uniforms[i].inv_proj = view.m_inv_projection_mat;
+				m_per_view_uniforms[i].inv_view = view.m_inv_view_mat;
+				m_per_view_uniforms[i].inv_view_proj = view.m_inv_vp_mat;
+				m_per_view_uniforms[i].view_pos = glm::vec4(view.m_position, 0.0f);
 			}
 
 			ptr = GlobalGraphicsResources::per_view_ubo()->map(GL_WRITE_ONLY);

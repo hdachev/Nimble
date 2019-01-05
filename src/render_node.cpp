@@ -265,7 +265,7 @@ namespace nimble
 								GlobalGraphicsResources::per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->m_id, sizeof(PerViewUniforms));
 
 							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_SCENE_UBO))
-								GlobalGraphicsResources::per_scene_ubo()->bind_base(1);
+								GlobalGraphicsResources::per_scene_ssbo()->bind_base(1);
 
 							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_OBJECT_UBO))
 								GlobalGraphicsResources::per_entity_ubo()->bind_range(2, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));

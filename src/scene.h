@@ -4,6 +4,7 @@
 #include "packed_array.h"
 #include "camera.h"
 #include "lights.h"
+#include "constants.h"
 #include <vector>
 #include <string>
 
@@ -94,20 +95,20 @@ namespace nimble
 		inline std::shared_ptr<TextureCube>& gi_probe_cubemap() { return m_gi_probe_cubemap; }
 		
 	private:
-		std::string						    m_name;
-		std::shared_ptr<Camera>			    m_camera;
-		PackedArray<ReflectionProbe, 128>   m_reflection_probes;
-		PackedArray<GIProbe, 128>		    m_gi_probes;
-		PackedArray<Entity, 1024>		    m_entities;
-		PackedArray<PointLight, 1024>	    m_point_lights;
-		PackedArray<SpotLight, 1024>	    m_spot_lights;
-		PackedArray<DirectionalLight, 1024>	m_directional_lights;
+		std::string											  m_name;
+		std::shared_ptr<Camera>								  m_camera;
+		PackedArray<ReflectionProbe, MAX_RELFECTION_PROBES>   m_reflection_probes;
+		PackedArray<GIProbe, MAX_GI_PROBES>					  m_gi_probes;
+		PackedArray<Entity, MAX_ENTITIES>					  m_entities;
+		PackedArray<PointLight, MAX_POINT_LIGHTS>			  m_point_lights;
+		PackedArray<SpotLight, MAX_SPOT_LIGHTS>				  m_spot_lights;
+		PackedArray<DirectionalLight, MAX_DIRECTIONAL_LIGHTS> m_directional_lights;
 		// PBR cubemaps common to the entire scene.
-		std::shared_ptr<TextureCube>	    m_env_map;
-		std::shared_ptr<TextureCube>	    m_irradiance_map;
-		std::shared_ptr<TextureCube>	    m_prefiltered_map;
+		std::shared_ptr<TextureCube>						  m_env_map;
+		std::shared_ptr<TextureCube>						  m_irradiance_map;
+		std::shared_ptr<TextureCube>						  m_prefiltered_map;
 		// Probe cubemap arrays			    
-		std::shared_ptr<TextureCube>	    m_reflection_probe_cubemap;
-		std::shared_ptr<TextureCube>	    m_gi_probe_cubemap;
+		std::shared_ptr<TextureCube>						  m_reflection_probe_cubemap;
+		std::shared_ptr<TextureCube>						  m_gi_probe_cubemap;
 	};
 }

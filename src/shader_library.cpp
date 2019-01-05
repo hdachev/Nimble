@@ -256,7 +256,6 @@ namespace nimble
 		Program* program = new Program(2, shaders);
 
 		program->uniform_block_binding("u_PerView", 0);
-		program->uniform_block_binding("u_PerScene", 1);
 		program->uniform_block_binding("u_PerEntity", 2);
 
 		m_program_cache.set(program_key.key, program);

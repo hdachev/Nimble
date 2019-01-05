@@ -39,7 +39,7 @@ namespace nimble
 
 		// Uniform buffer getters.
 		inline static UniformBuffer* per_view_ubo() { return m_per_view.get(); }
-		inline static UniformBuffer* per_scene_ubo() { return m_per_scene.get(); }
+		inline static ShaderStorageBuffer* per_scene_ssbo() { return m_per_scene.get(); }
 		inline static UniformBuffer* per_entity_ubo() { return m_per_entity.get(); }
 
 		// Common geometry getters.
@@ -63,7 +63,7 @@ namespace nimble
 
 		// Uniform buffers.
 		static std::unique_ptr<UniformBuffer> m_per_view;
-		static std::unique_ptr<UniformBuffer> m_per_scene;
+		static std::unique_ptr<ShaderStorageBuffer> m_per_scene;
 		static std::unique_ptr<UniformBuffer> m_per_entity;
 	};
 }

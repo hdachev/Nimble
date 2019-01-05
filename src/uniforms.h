@@ -2,48 +2,56 @@
 
 #include <glm.hpp>
 #include "macros.h"
+#include "constants.h"
 
 namespace nimble
 {
-	#define MAX_POINT_LIGHTS 32
-	#define MAX_SHADOW_FRUSTUM 8
-
-	struct PointLightUBO
+	struct PointLightData
 	{
-		NIMBLE_ALIGNED(16) glm::vec4 position;
-		NIMBLE_ALIGNED(16) glm::vec4 color;
+		NIMBLE_ALIGNED(16) glm::vec4 position_range;
+		NIMBLE_ALIGNED(16) glm::vec4 color_intensity;
+		NIMBLE_ALIGNED(16) int32_t	 shadow_map_idx;
 	};
 
-	struct DirectionalLightUBO
+	struct SpotLightData
+	{
+		NIMBLE_ALIGNED(16) glm::vec4 position_cone_angle;
+		NIMBLE_ALIGNED(16) glm::vec4 direction_range;
+		NIMBLE_ALIGNED(16) glm::vec4 color_intensity;
+		NIMBLE_ALIGNED(16) int32_t	 shadow_map_idx;
+	};
+
+	struct DirectionalLightData
 	{
 		NIMBLE_ALIGNED(16) glm::vec4 direction;
-		NIMBLE_ALIGNED(16) glm::vec4 color;
+		NIMBLE_ALIGNED(16) glm::vec4 color_intensity;
+		NIMBLE_ALIGNED(16) int32_t	 shadow_map_idx;
 	};
 
 	struct ShadowFrustum
 	{
-		NIMBLE_ALIGNED(16) glm::mat4 shadowMatrix;
-		NIMBLE_ALIGNED(16) float	 farPlane;
+		NIMBLE_ALIGNED(16) glm::mat4 shadow_matrix;
+		NIMBLE_ALIGNED(16) float	 far_plane;
 	};
 
 	struct PerViewUniforms
 	{
-		NIMBLE_ALIGNED(16) glm::mat4	 lastViewProj;
-		NIMBLE_ALIGNED(16) glm::mat4	 viewProj;
-		NIMBLE_ALIGNED(16) glm::mat4	 invViewProj;
-		NIMBLE_ALIGNED(16) glm::mat4	 invProj;
-		NIMBLE_ALIGNED(16) glm::mat4	 invView;
-		NIMBLE_ALIGNED(16) glm::mat4	 projMat;
-		NIMBLE_ALIGNED(16) glm::mat4	 viewMat;
-		NIMBLE_ALIGNED(16) glm::vec4	 viewPos;
-		NIMBLE_ALIGNED(16) glm::vec4	 viewDir;
-		NIMBLE_ALIGNED(16) glm::vec4	 currentPrevJitter;
-		NIMBLE_ALIGNED(16) int			 numCascades;
-		NIMBLE_ALIGNED(16) ShadowFrustum shadowFrustums[MAX_SHADOW_FRUSTUM];
-		float		 				 	 tanHalfFov;
-		float		 				 	 aspectRatio;
-		float		 				 	 nearPlane;
-		float		 				 	 farPlane;
+		NIMBLE_ALIGNED(16) glm::mat4	 last_view_proj;
+		NIMBLE_ALIGNED(16) glm::mat4	 view_proj;
+		NIMBLE_ALIGNED(16) glm::mat4	 inv_view_proj;
+		NIMBLE_ALIGNED(16) glm::mat4	 inv_proj;
+		NIMBLE_ALIGNED(16) glm::mat4	 inv_view;
+		NIMBLE_ALIGNED(16) glm::mat4	 proj_mat;
+		NIMBLE_ALIGNED(16) glm::mat4	 view_mat;
+		NIMBLE_ALIGNED(16) glm::vec4	 view_pos;
+		NIMBLE_ALIGNED(16) glm::vec4	 view_dir;
+		NIMBLE_ALIGNED(16) glm::vec4	 current_prev_jitter;
+		NIMBLE_ALIGNED(16) int			 num_cascades;
+		NIMBLE_ALIGNED(16) ShadowFrustum shadow_frustums[MAX_SHADOW_MAP_CASCADES];
+		float		 				 	 tan_half_fov;
+		float		 				 	 aspect_ratio;
+		float		 				 	 near_plane;
+		float		 				 	 far_plane;
 		// Renderer settings.
 		int			 					 viewport_width;
 		int			 					 viewport_height;
@@ -52,17 +60,20 @@ namespace nimble
 
 	struct PerEntityUniforms
 	{
-		NIMBLE_ALIGNED(16) glm::mat4 modalMat;
-		NIMBLE_ALIGNED(16) glm::mat4 lastModelMat;
-		NIMBLE_ALIGNED(16) glm::vec4 worldPos;
+		NIMBLE_ALIGNED(16) glm::mat4 modal;
+		NIMBLE_ALIGNED(16) glm::mat4 last_model;
+		NIMBLE_ALIGNED(16) glm::vec4 world_pos;
 		uint8_t	  		   padding[112];
 	};
 
 	struct PerSceneUniforms
 	{
-		NIMBLE_ALIGNED(16) PointLightUBO 		pointLights[MAX_POINT_LIGHTS];
-		NIMBLE_ALIGNED(16) DirectionalLightUBO  directionalLight;
-		NIMBLE_ALIGNED(16) int					pointLightCount;
+		NIMBLE_ALIGNED(16) PointLightData 		point_lights[MAX_POINT_LIGHTS];
+		NIMBLE_ALIGNED(16) SpotLightData		spot_lights[MAX_SPOT_LIGHTS];
+		NIMBLE_ALIGNED(16) DirectionalLightData directional_lights[MAX_DIRECTIONAL_LIGHTS];
+		NIMBLE_ALIGNED(16) int32_t			    point_light_count;
+		NIMBLE_ALIGNED(16) int32_t			    spot_light_count;
+		NIMBLE_ALIGNED(16) int32_t			    directional_light_count;
 	};
 
 	struct PerMaterialUniforms
