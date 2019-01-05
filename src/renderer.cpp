@@ -17,13 +17,63 @@
 
 namespace nimble
 {
+	static const uint32_t kDirectionalLightShadowMapSizes[] =
+	{
+		512,
+		1024,
+		2048,
+		4096
+	};
+
+	static const uint32_t kSpotLightShadowMapSizes[] =
+	{
+		512,
+		1024,
+		2048,
+		4096
+	};
+
+	static const uint32_t kPointShadowMapSizes[] =
+	{
+		256,
+		512,
+		1024,
+		2048
+	};
+
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Renderer::Renderer() {}
+	Renderer::Renderer(Settings settings) : m_settings(settings) {}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	Renderer::~Renderer() {}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	bool Renderer::initialize()
+	{
+		m_directional_light_shadow_maps.reset();
+		m_spot_light_shadow_maps.reset();
+		m_point_light_shadow_maps.reset();
+
+		m_directional_light_shadow_maps = std::make_unique<Texture2D>(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality],
+			kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality],
+			m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS,
+			1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+
+		m_spot_light_shadow_maps = std::make_unique<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality],
+			kSpotLightShadowMapSizes[m_settings.shadow_map_quality],
+			MAX_SHADOW_CASTING_SPOT_LIGHTS,
+			1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+
+		m_point_light_shadow_maps = std::make_unique<TextureCube>(kPointShadowMapSizes[m_settings.shadow_map_quality],
+			kPointShadowMapSizes[m_settings.shadow_map_quality],
+			MAX_SHADOW_CASTING_POINT_LIGHTS,
+			1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+
+		return true;
+	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -38,6 +88,23 @@ namespace nimble
 		render_all_views();
 
 		clear_all_views();
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Renderer::shutdown()
+	{
+		m_directional_light_shadow_maps.reset();
+		m_spot_light_shadow_maps.reset();
+		m_point_light_shadow_maps.reset();
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Renderer::set_settings(Settings settings)
+	{
+		m_settings = settings;
+		initialize();
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

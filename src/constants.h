@@ -1,5 +1,6 @@
 #pragma once
 
+#define MAX_VIEWS 64
 #define MAX_SHADOW_MAP_CASCADES 8
 #define MAX_RELFECTION_PROBES 128
 #define MAX_GI_PROBES 128
