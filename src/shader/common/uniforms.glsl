@@ -6,49 +6,70 @@
 
 layout (std140) uniform u_PerView
 { 
-	mat4	 	  lastViewProj;
-	mat4	 	  viewProj;
-	mat4	 	  invViewProj;
-	mat4	 	  invProj;
-	mat4	 	  invView;
-	mat4	 	  projMat;
-	mat4	 	  viewMat;
-	vec4	 	  viewPos;
-	vec4	 	  viewDir;
+	mat4	 	  last_view_proj;
+	mat4	 	  view_proj;
+	mat4	 	  inv_view_proj;
+	mat4	 	  inv_proj;
+	mat4	 	  inv_view;
+	mat4	 	  proj_mat;
+	mat4	 	  view_mat;
+	vec4	 	  view_pos;
+	vec4	 	  view_dir;
 	vec4	 	  current_prev_jitter;
-	int			  numCascades;
-	ShadowFrustum shadowFrustums[MAX_SHADOW_FRUSTUM];
-	float		  tanHalfFov;
-	float		  aspectRatio;
-	float		  nearPlane;
-	float		  farPlane;
+	int			  num_cascades;
+	ShadowFrustum shadow_frustums[MAX_SHADOW_MAP_CASCADES];
+	float		  tan_half_fov;
+	float		  aspect_ratio;
+	float		  near_plane;
+	float		  far_plane;
 	int			  viewport_width;
 	int			  viewport_height;
 };
 
 // ------------------------------------------------------------------
 
-layout (std140) uniform u_PerScene
+#ifdef POINT_LIGHTS
+layout (std140) uniform u_PerScenePointLights
 {
-	PointLight 		 pointLights[MAX_POINT_LIGHTS];
-	DirectionalLight directionalLight;
-	int				 pointLightCount;
+	PointLightData point_lights[MAX_POINT_LIGHTS];
+	int			   point_light_count;
 };
+#endif
+
+// ------------------------------------------------------------------
+
+#ifdef SPOT_LIGHTS
+layout (std140) uniform u_PerSceneSpotLights
+{
+	SpotLightData spot_lights[MAX_SPOT_LIGHTS];
+	int		      spot_light_count;
+};
+#endif
+
+// ------------------------------------------------------------------
+
+#ifdef DIRECTIONAL_LIGHTS
+layout (std140) uniform u_PerSceneDirectionalLights
+{
+	DirectionalLightData directional_lights[MAX_DIRECTIONAL_LIGHTS];
+	int		    		 directional_light_count;
+};
+#endif
 
 // ------------------------------------------------------------------
 
 layout (std140) uniform u_PerEntity
 {
-	mat4 modelMat;
-	mat4 lastModelMat;
-	vec4 worldPos;
+	mat4 model_mat;
+	mat4 last_model_mat;
+	vec4 world_pos;
 };
 
 // ------------------------------------------------------------------
 
 layout (std140) uniform u_PerSkeleton
 {
-	mat4 boneTransforms[MAX_BONES];
+	mat4 bone_transforms[MAX_BONES];
 };
 
 // ------------------------------------------------------------------

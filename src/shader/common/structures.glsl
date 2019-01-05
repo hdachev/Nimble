@@ -2,8 +2,15 @@
 // DEFINITIONS ------------------------------------------------------
 // ------------------------------------------------------------------
 
-#define MAX_SHADOW_FRUSTUM 8
-#define MAX_POINT_LIGHTS 32
+#define MAX_SHADOW_MAP_CASCADES 8
+#define MAX_RELFECTION_PROBES 128
+#define MAX_GI_PROBES 128
+#define MAX_POINT_LIGHTS 512
+#define MAX_SPOT_LIGHTS 512
+#define MAX_DIRECTIONAL_LIGHTS 512
+#define MAX_SHADOW_CASTING_POINT_LIGHTS 8
+#define MAX_SHADOW_CASTING_SPOT_LIGHTS 8
+#define MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS 8
 #define MAX_BONES 100
 
 // ------------------------------------------------------------------
@@ -12,24 +19,36 @@
 
 struct ShadowFrustum
 {
-	mat4  shadowMatrix;
-	float farPlane;
+	mat4  shadow_matrix;
+	float far_plane;
 };
 
 // ------------------------------------------------------------------
 
-struct PointLight
+struct PointLightData
 {
-	vec4 position;
-	vec4 color;
+	vec4 position_range;
+	vec4 color_intensity;
+	int	 shadow_map_idx;
 };
 
 // ------------------------------------------------------------------
 
-struct DirectionalLight
+struct SpotLightData
+{
+	vec4 position_cone_angle;
+	vec4 direction_range;
+	vec4 color_intensity;
+	int	 shadow_map_idx;
+};
+
+// ------------------------------------------------------------------
+
+struct DirectionalLightData
 {
 	vec4 direction;
-	vec4 color;
+	vec4 color_intensity;
+	int	 shadow_map_idx;
 };
 
 // ------------------------------------------------------------------

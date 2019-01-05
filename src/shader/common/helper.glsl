@@ -157,8 +157,8 @@ vec3 get_view_space_position(vec2 tex_coords, float depth)
 {
     vec3 clip_space_position = vec3(tex_coords, depth) * 2.0 - vec3(1.0);
 
-    vec4 view_position = vec4(vec2(invProj[0][0], invProj[1][1]) * clip_space_position.xy, -1.0,
-                                   invProj[2][3] * clip_space_position.z + invProj[3][3]);
+    vec4 view_position = vec4(vec2(inv_proj[0][0], inv_proj[1][1]) * clip_space_position.xy, -1.0,
+                                   inv_proj[2][3] * clip_space_position.z + inv_proj[3][3]);
 
     return (view_position.xyz / view_position.w);
 }
@@ -168,7 +168,7 @@ vec3 get_view_space_position(vec2 tex_coords, float depth)
 float get_view_space_depth(vec2 tex_coords, float depth)
 {
     depth = depth * 2.0 - 1.0;
-    float w = invProj[2][3] * depth + invProj[3][3];
+    float w = inv_proj[2][3] * depth + inv_proj[3][3];
     return (-1.0 / w);
 }
 
@@ -178,7 +178,7 @@ vec3 get_view_space_normal(vec2 tex_coords, sampler2D g_buffer_normals)
 {
 	//vec2 encoded_normal = texture(g_buffer_normals, tex_coords).rg;
     //vec3 n = mat3(viewMat) * decode_normal(encoded_normal);
-    vec3 n = mat3(viewMat) * normalize(texture(g_buffer_normals, tex_coords).rgb);
+    vec3 n = mat3(view_mat) * normalize(texture(g_buffer_normals, tex_coords).rgb);
     return n;
 }
 

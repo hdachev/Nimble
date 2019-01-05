@@ -17,19 +17,19 @@ float directional_light_shadows(float frag_depth, vec3 position, vec3 n, vec3 l)
     float blend = 0.0;
     
 	// Find shadow cascade.
-	for (int i = 0; i < numCascades - 1; i++)
+	for (int i = 0; i < num_cascades - 1; i++)
 	{
-		if (frag_depth > shadowFrustums[i].farPlane)
+		if (frag_depth > shadow_frustums[i].far_plane)
 			index = i + 1;
 	}
 
-	blend = clamp( (frag_depth - shadowFrustums[index].farPlane * 0.995) * 200.0, 0.0, 1.0);
+	blend = clamp( (frag_depth - shadow_frustums[index].far_plane * 0.995) * 200.0, 0.0, 1.0);
     
     // Apply blend options.
     //blend *= options.z;
 
 	// Transform frag position into Light-space.
-	vec4 light_space_pos = shadowFrustums[index].shadowMatrix * vec4(position, 1.0f);
+	vec4 light_space_pos = shadow_frustums[index].shadow_matrix * vec4(position, 1.0f);
 
 	float current_depth = light_space_pos.z;
     
@@ -85,9 +85,9 @@ vec3 debug_color(float frag_depth)
 	int index = 0;
 
 	// Find shadow cascade.
-	for (int i = 0; i < numCascades - 1; i++)
+	for (int i = 0; i < num_cascades - 1; i++)
 	{
-		if (frag_depth > shadowFrustums[i].farPlane)
+		if (frag_depth > shadow_frustums[i].far_plane)
 			index = i + 1;
 	}
 

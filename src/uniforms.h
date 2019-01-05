@@ -66,13 +66,21 @@ namespace nimble
 		uint8_t	  		   padding[112];
 	};
 
-	struct PerSceneUniforms
+	struct PerScenePointLightsUniforms
 	{
 		NIMBLE_ALIGNED(16) PointLightData 		point_lights[MAX_POINT_LIGHTS];
-		NIMBLE_ALIGNED(16) SpotLightData		spot_lights[MAX_SPOT_LIGHTS];
-		NIMBLE_ALIGNED(16) DirectionalLightData directional_lights[MAX_DIRECTIONAL_LIGHTS];
 		NIMBLE_ALIGNED(16) int32_t			    point_light_count;
+	};
+
+	struct PerSceneSpotLightsUniforms
+	{
+		NIMBLE_ALIGNED(16) SpotLightData		spot_lights[MAX_SPOT_LIGHTS];
 		NIMBLE_ALIGNED(16) int32_t			    spot_light_count;
+	};
+
+	struct PerSceneDirectionalLightsUniforms
+	{
+		NIMBLE_ALIGNED(16) DirectionalLightData directional_lights[MAX_DIRECTIONAL_LIGHTS];
 		NIMBLE_ALIGNED(16) int32_t			    directional_light_count;
 	};
 

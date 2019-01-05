@@ -134,10 +134,26 @@ namespace nimble
 			vs_defines.push_back("#define PER_VIEW_UBO");
 			fs_defines.push_back("#define PER_VIEW_UBO");
 		}
-		if (HAS_BIT_FLAG(flags, NODE_USAGE_PER_SCENE_UBO))
+		if (HAS_BIT_FLAG(flags, NODE_USAGE_POINT_LIGHTS))
 		{
-			vs_defines.push_back("#define PER_SCENE_UBO");
-			fs_defines.push_back("#define PER_SCENE_UBO");
+			vs_defines.push_back("#define POINT_LIGHTS");
+			fs_defines.push_back("#define POINT_LIGHTS");
+		}
+		if (HAS_BIT_FLAG(flags, NODE_USAGE_SPOT_LIGHTS))
+		{
+			vs_defines.push_back("#define SPOT_LIGHTS");
+			fs_defines.push_back("#define SPOT_LIGHTS");
+		}
+		if (HAS_BIT_FLAG(flags, NODE_USAGE_DIRECTIONAL_LIGHTS))
+		{
+			vs_defines.push_back("#define DIRECTIONAL_LIGHTS");
+			fs_defines.push_back("#define DIRECTIONAL_LIGHTS");
+		}
+		if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING))
+		{
+			// @NOTE: Temporarily disable shadow mapping
+			//vs_defines.push_back("#define SHADOW_MAPPING");
+			//fs_defines.push_back("#define SHADOW_MAPPING");
 		}
 
 		// Normal Texture
@@ -256,7 +272,10 @@ namespace nimble
 		Program* program = new Program(2, shaders);
 
 		program->uniform_block_binding("u_PerView", 0);
-		program->uniform_block_binding("u_PerEntity", 2);
+		program->uniform_block_binding("u_PerScenePointLights", 1);
+		program->uniform_block_binding("u_PerSceneSpotLights", 2);
+		program->uniform_block_binding("u_PerSceneDirectionalLights", 3);
+		program->uniform_block_binding("u_PerEntity", 4);
 
 		m_program_cache.set(program_key.key, program);
 

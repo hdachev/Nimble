@@ -104,7 +104,7 @@ void main()
 
 	// Set PBR properties
 	pbr.N = m.normal;
-	pbr.V = normalize(viewPos.xyz - f.Position); // FragPos -> ViewPos vector
+	pbr.V = normalize(view_pos.xyz - f.Position); // FragPos -> ViewPos vector
 	pbr.R = reflect(-pbr.V, pbr.N); 
 	pbr.F0 = vec3(0.04);
 	pbr.F0 = mix(pbr.F0, m.albedo.xyz, m.metallic);
@@ -117,14 +117,8 @@ void main()
 	// Output radiance
 	vec3 Lo = vec3(0.0);
 
-	// Add directional light contribution
-	Lo += pbr_directional_lights(m, f, pbr);
-
-	// Add point light contributions
-	Lo += pbr_point_lights(m, f, pbr);
-
-	// Add spot light contributions
-	Lo += pbr_spot_lights(m, f, pbr);
+	// Add all light contributions
+	Lo += pbr_light_contribution(m, f, pbr);
 
 	vec3 irradiance = texture(s_IrradianceMap, pbr.N).rgb;
 	vec3 diffuse = irradiance * m.albedo.xyz;

@@ -45,16 +45,16 @@ void main()
 {
 	VertexProperties v;
 
-	vec4 pos = modelMat * vec4(VS_IN_Position, 1.0f);
+	vec4 pos = model_mat * vec4(VS_IN_Position, 1.0f);
 	v.Position = pos.xyz;
 
 	// Calculate current and previous screen positions
-	v.ScreenPosition = viewProj * pos;
-	v.LastScreenPosition = lastViewProj * lastModelMat * vec4(VS_IN_Position, 1.0f);
+	v.ScreenPosition = view_proj * pos;
+	v.LastScreenPosition = last_view_proj * last_model_mat * vec4(VS_IN_Position, 1.0f);
 
-	pos = viewProj * vec4(pos.xyz, 1.0f);
+	pos = view_proj * vec4(pos.xyz, 1.0f);
 	
-	mat3 normal_mat = mat3(modelMat);
+	mat3 normal_mat = mat3(model_mat);
 	v.Normal = normal_mat * VS_IN_Normal;
 
 #ifdef TEXTURE_NORMAL
@@ -63,7 +63,7 @@ void main()
 
 	#ifdef DISPLACEMENT_TYPE_PARALLAX_OCCLUSION
 		mat3 TBN = transpose(mat3(normalize(PS_IN_Tangent), normalize(-PS_IN_Bitangent), normalize(PS_IN_Normal)));
-		v.TangentViewPos = TBN * viewPos.xyz;
+		v.TangentViewPos = TBN * view_pos.xyz;
 		v.TangentFragPos = TBN * PS_IN_Position;
 	#endif
 #endif

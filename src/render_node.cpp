@@ -216,6 +216,19 @@ namespace nimble
 			Scene* scene = params.view->m_scene;
 			Entity* entities = scene->entities();
 
+			// Bind buffers
+			if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
+				GlobalGraphicsResources::per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->m_id, sizeof(PerViewUniforms));
+
+			if (HAS_BIT_FLAG(flags(), NODE_USAGE_POINT_LIGHTS))
+				GlobalGraphicsResources::per_scene_point_lights_ubo()->bind_base(1);
+
+			if (HAS_BIT_FLAG(flags(), NODE_USAGE_SPOT_LIGHTS))
+				GlobalGraphicsResources::per_scene_spot_lights_ubo()->bind_base(2);
+
+			if (HAS_BIT_FLAG(flags(), NODE_USAGE_DIRECTIONAL_LIGHTS))
+				GlobalGraphicsResources::per_scene_directional_lights_ubo()->bind_base(3);
+
 			for (uint32_t i = 0; i < scene->entity_count(); i++)
 			{
 				Entity& e = entities[i];
@@ -260,15 +273,8 @@ namespace nimble
 
 							s.material->bind(program, tex_unit);
 
-							// Binuffers
-							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
-								GlobalGraphicsResources::per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->m_id, sizeof(PerViewUniforms));
-
-							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_SCENE_UBO))
-								GlobalGraphicsResources::per_scene_ssbo()->bind_base(1);
-
 							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_OBJECT_UBO))
-								GlobalGraphicsResources::per_entity_ubo()->bind_range(2, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));
+								GlobalGraphicsResources::per_entity_ubo()->bind_range(4, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));
 
 							glDrawElementsBaseVertex(GL_TRIANGLES, s.index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * s.base_index), s.base_vertex);
 
