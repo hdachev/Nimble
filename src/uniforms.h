@@ -60,8 +60,8 @@ namespace nimble
 
 	struct PerEntityUniforms
 	{
-		NIMBLE_ALIGNED(16) glm::mat4 modal;
-		NIMBLE_ALIGNED(16) glm::mat4 last_model;
+		NIMBLE_ALIGNED(16) glm::mat4 modal_mat;
+		NIMBLE_ALIGNED(16) glm::mat4 last_model_mat;
 		NIMBLE_ALIGNED(16) glm::vec4 world_pos;
 		uint8_t	  		   padding[112];
 	};
@@ -88,7 +88,7 @@ namespace nimble
 	{
 		NIMBLE_ALIGNED(16) glm::vec4 albedo;
 		NIMBLE_ALIGNED(16) glm::vec4 emissive;
-		NIMBLE_ALIGNED(16) glm::vec4 metalnessRoughness;
+		NIMBLE_ALIGNED(16) glm::vec4 metalness_roughness;
 	};
 
 	struct PerFrustumSplitUniforms

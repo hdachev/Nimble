@@ -39,12 +39,12 @@ namespace nimble
 		inline void set_position(const glm::vec3& p) { transform.position = p; dirty = true; }
 		inline void set_rotation(const glm::vec3& r) { transform.set_orientation_from_euler(r); dirty = true; }
 		inline void set_scale(const glm::vec3& s) { transform.scale = s; dirty = true; }
-		inline bool visibility(const uint32_t& view_index) { return visibility_flags & BIT_FLAG(view_index) == 1; }
+		inline bool visibility(const uint32_t& view_index) { return (visibility_flags & BIT_FLAG(view_index)) == 1; }
 		inline void set_visible(const uint32_t& view_index) {  SET_BIT(visibility_flags, view_index); }
 		inline void set_invisible(const uint32_t& view_index) { CLEAR_BIT(visibility_flags, view_index); }
 
 #ifdef ENABLE_SUBMESH_CULLING
-		inline bool submesh_visibility(const uint32_t& submesh_index, const uint32_t& view_index) { return submesh_visibility_flags[submesh_index] & BIT_FLAG(view_index) == 1; }
+		inline bool submesh_visibility(const uint32_t& submesh_index, const uint32_t& view_index) { return (submesh_visibility_flags[submesh_index] & BIT_FLAG(view_index)) == 1; }
 		inline void set_submesh_visible(const uint32_t& submesh_index, const uint32_t& view_index) { SET_BIT(submesh_visibility_flags[submesh_index], view_index); }
 		inline void set_submesh_invisible(const uint32_t& submesh_index, const uint32_t& view_index) { CLEAR_BIT(submesh_visibility_flags[submesh_index], view_index); }
 #endif

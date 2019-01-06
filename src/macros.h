@@ -1,6 +1,6 @@
 #pragma once
 
-#define HAS_BIT_FLAG(x, flag) (x & flag == flag) 
+#define HAS_BIT_FLAG(x, flag) ((x & flag) == flag) 
 #define BIT_FLAG(x) (1 << x)
 #define SET_BIT(number, n) number |= 1UL << n
 #define CLEAR_BIT(number, n) number &= ~(1UL << n)

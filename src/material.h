@@ -21,11 +21,10 @@ namespace nimble
 	{
 		"s_Albedo",
 		"s_Normal",
-		"s_Metallic",
-		"s_Roughness",
-		"s_Specular",
-		"s_Smoothness",
-		"s_Displacement"
+		"s_MetalSpec",
+		"s_RoughSmooth",
+		"s_Displacement",
+		"s_Emissive"
 	};
 
 	static const std::string kCustomTextureNames[] =
@@ -99,8 +98,8 @@ namespace nimble
 		inline void set_double_sided(bool double_sided) { m_double_sided = double_sided; }
 		inline void set_uniform_albedo(const glm::vec4& albedo) { m_uniforms.albedo = albedo; }
 		inline void set_uniform_emissive(const glm::vec3& emissive) { m_uniforms.emissive = glm::vec4(emissive, 0.0f); }
-		inline void set_uniform_metallic(const float& metallic) { m_uniforms.metalnessRoughness.x = metallic; }
-		inline void set_uniform_roughness(const float& roughness) { m_uniforms.metalnessRoughness.y = roughness; }
+		inline void set_uniform_metallic(const float& metallic) { m_uniforms.metalness_roughness.x = metallic; }
+		inline void set_uniform_roughness(const float& roughness) { m_uniforms.metalness_roughness.y = roughness; }
 		inline void set_blend_mode(const BlendMode& blend) { m_blend_mode = blend; }
 		inline void set_displacement_type(const DisplacementType& displacement) { m_displacement_type = displacement; }
 		inline void set_shading_model(const ShadingModel& shading) { m_shading_model = shading; }
@@ -126,8 +125,8 @@ namespace nimble
 		inline bool is_double_sided() { return m_double_sided; }
 		inline glm::vec4 uniform_albedo() { return m_uniforms.albedo; }
 		inline glm::vec3 uniform_emissive() { return glm::vec3(m_uniforms.emissive); }
-		inline float uniform_metallic() { return m_uniforms.metalnessRoughness.x; }
-		inline float uniform_roughness() { return m_uniforms.metalnessRoughness.y; }
+		inline float uniform_metallic() { return m_uniforms.metalness_roughness.x; }
+		inline float uniform_roughness() { return m_uniforms.metalness_roughness.y; }
 		inline PerMaterialUniforms uniforms() { return m_uniforms; }
 		inline BlendMode blend_mode() { return m_blend_mode; }
 		inline DisplacementType displacement_type() { return m_displacement_type; }

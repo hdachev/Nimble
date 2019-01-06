@@ -34,7 +34,7 @@ vec4 get_albedo(vec2 tex_coord)
 
 vec3 get_normal(in FragmentProperties f)
 {
-#ifdef NORMAL_TEXTURE
+#ifdef TEXTURE_NORMAL
 	return get_normal_from_map(f.Tangent, f.Bitangent, f.Normal, f.TexCoords, s_Normal);
 #else
 	return f.Normal;

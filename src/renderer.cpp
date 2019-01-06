@@ -196,8 +196,8 @@ namespace nimble
 			{
 				Entity& entity = entities[i];
 
-				m_per_entity_uniforms[i].modal = entity.transform.model;
-				m_per_entity_uniforms[i].last_model= entity.transform.prev_model;
+				m_per_entity_uniforms[i].modal_mat = entity.transform.model;
+				m_per_entity_uniforms[i].last_model_mat = entity.transform.prev_model;
 				m_per_entity_uniforms[i].world_pos = glm::vec4(entity.transform.position, 0.0f);
 			}
 

@@ -49,7 +49,7 @@ namespace nimble
 
 	void Material::bind_surface_textures(Program* program, int32_t& unit)
 	{
-		for (uint32_t i = 0; i < MAX_MATERIAL_TEXTURES; i++)
+		for (uint32_t i = 0; i < (MAX_MATERIAL_TEXTURES - 1); i++)
 			bind_surface_texture(static_cast<TextureType>(i), program, unit);
 	}
 
