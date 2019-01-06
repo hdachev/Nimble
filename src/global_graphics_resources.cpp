@@ -13,10 +13,8 @@ namespace nimble
 	std::shared_ptr<VertexArray>   GlobalGraphicsResources::m_cube_vao = nullptr;
 	std::shared_ptr<VertexBuffer>  GlobalGraphicsResources::m_cube_vbo = nullptr;
 	std::unique_ptr<UniformBuffer> GlobalGraphicsResources::m_per_view = nullptr;
-	std::unique_ptr<UniformBuffer> GlobalGraphicsResources::m_per_scene_point_lights = nullptr;
-	std::unique_ptr<UniformBuffer> GlobalGraphicsResources::m_per_scene_spot_lights = nullptr;
-	std::unique_ptr<UniformBuffer> GlobalGraphicsResources::m_per_scene_directional_lights = nullptr;
 	std::unique_ptr<UniformBuffer> GlobalGraphicsResources::m_per_entity = nullptr;
+	std::unique_ptr<ShaderStorageBuffer> GlobalGraphicsResources::m_per_scene = nullptr;
 
 	struct RenderTargetKey
 	{
@@ -37,11 +35,25 @@ namespace nimble
 	void GlobalGraphicsResources::initialize()
 	{
 		// Create uniform buffers.
-		m_per_view = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, 8 * sizeof(PerViewUniforms));
-		m_per_scene_point_lights = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerScenePointLightsUniforms));
-		m_per_scene_spot_lights = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneSpotLightsUniforms));
-		m_per_scene_directional_lights = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneDirectionalLightsUniforms));
-		m_per_entity = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, 1024 * sizeof(PerEntityUniforms));
+		m_per_view = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, MAX_VIEWS * sizeof(PerViewUniforms));
+		m_per_entity = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, MAX_ENTITIES * sizeof(PerEntityUniforms));
+		m_per_scene = std::make_unique<ShaderStorageBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
+			
+		PerSceneUniforms* ssbo = (PerSceneUniforms*)m_per_scene->map(GL_WRITE_ONLY);
+
+		ssbo->point_lights[0].color_intensity = glm::vec4(1.0f, 0.5f, 1.0f, 0.0f);
+		ssbo->point_lights[0].position_range = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+		ssbo->point_lights[0].shadow_map_idx = 3;
+
+		ssbo->point_lights[1].color_intensity = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		ssbo->point_lights[1].position_range = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+		ssbo->point_lights[1].shadow_map_idx = 1;
+
+		ssbo->directional_light_count = 1;
+		ssbo->point_light_count = 1;
+		ssbo->spot_light_count = 1;
+
+		m_per_scene->unmap();
 
 		// Create common geometry VBO's and VAO's.
 		create_cube();
@@ -57,10 +69,8 @@ namespace nimble
 
 		// Delete uniform buffers.
 		m_per_view.reset();
-		m_per_scene_point_lights.reset();
-		m_per_scene_spot_lights.reset();
-		m_per_scene_directional_lights.reset();
 		m_per_entity.reset();
+		m_per_scene.reset();
 
 		// Delete framebuffer
 		for (int i = 0; i < m_fbo_cache.size(); i++)

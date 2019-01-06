@@ -8,24 +8,24 @@ namespace nimble
 {
 	struct PointLightData
 	{
-		NIMBLE_ALIGNED(16) glm::vec4 position_range;
-		NIMBLE_ALIGNED(16) glm::vec4 color_intensity;
-		NIMBLE_ALIGNED(16) int32_t	 shadow_map_idx;
+		glm::vec4 position_range;
+		glm::vec4 color_intensity;
+		int32_t	  shadow_map_idx;
 	};
 
 	struct SpotLightData
 	{
-		NIMBLE_ALIGNED(16) glm::vec4 position_cone_angle;
-		NIMBLE_ALIGNED(16) glm::vec4 direction_range;
-		NIMBLE_ALIGNED(16) glm::vec4 color_intensity;
-		NIMBLE_ALIGNED(16) int32_t	 shadow_map_idx;
+		glm::vec4 position_cone_angle;
+		glm::vec4 direction_range;
+		glm::vec4 color_intensity;
+		int32_t	  shadow_map_idx;
 	};
 
 	struct DirectionalLightData
 	{
-		NIMBLE_ALIGNED(16) glm::vec4 direction;
-		NIMBLE_ALIGNED(16) glm::vec4 color_intensity;
-		NIMBLE_ALIGNED(16) int32_t	 shadow_map_idx;
+		glm::vec4 direction;
+		glm::vec4 color_intensity;
+		int32_t	  shadow_map_idx;
 	};
 
 	struct ShadowFrustum
@@ -34,6 +34,7 @@ namespace nimble
 		NIMBLE_ALIGNED(16) float	 far_plane;
 	};
 
+	// Size: 1392 bytes
 	struct PerViewUniforms
 	{
 		NIMBLE_ALIGNED(16) glm::mat4	 last_view_proj;
@@ -82,6 +83,16 @@ namespace nimble
 	{
 		NIMBLE_ALIGNED(16) DirectionalLightData directional_lights[MAX_DIRECTIONAL_LIGHTS];
 		NIMBLE_ALIGNED(16) int32_t			    directional_light_count;
+	};
+
+	struct PerSceneUniforms
+	{
+		int32_t			     point_light_count;
+		int32_t			     spot_light_count;
+		int32_t			     directional_light_count;
+		PointLightData 		 point_lights[MAX_POINT_LIGHTS];
+		SpotLightData		 spot_lights[MAX_SPOT_LIGHTS];
+		DirectionalLightData directional_lights[MAX_DIRECTIONAL_LIGHTS];
 	};
 
 	struct PerMaterialUniforms

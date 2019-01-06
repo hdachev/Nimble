@@ -28,41 +28,23 @@ layout (std140) uniform u_PerView
 
 // ------------------------------------------------------------------
 
-#ifdef POINT_LIGHTS
-layout (std140) uniform u_PerScenePointLights
-{
-	PointLightData point_lights[MAX_POINT_LIGHTS];
-	int			   point_light_count;
-};
-#endif
-
-// ------------------------------------------------------------------
-
-#ifdef SPOT_LIGHTS
-layout (std140) uniform u_PerSceneSpotLights
-{
-	SpotLightData spot_lights[MAX_SPOT_LIGHTS];
-	int		      spot_light_count;
-};
-#endif
-
-// ------------------------------------------------------------------
-
-#ifdef DIRECTIONAL_LIGHTS
-layout (std140) uniform u_PerSceneDirectionalLights
-{
-	DirectionalLightData directional_lights[MAX_DIRECTIONAL_LIGHTS];
-	int		    		 directional_light_count;
-};
-#endif
-
-// ------------------------------------------------------------------
-
 layout (std140) uniform u_PerEntity
 {
 	mat4 model_mat;
 	mat4 last_model_mat;
 	vec4 world_pos;
+};
+
+// ------------------------------------------------------------------
+
+layout(std430, binding = 2) buffer u_PerScene
+{
+	int			   		 point_light_count;
+	int		      		 spot_light_count;
+	int		    		 directional_light_count;
+	PointLightData 		 point_lights[MAX_POINT_LIGHTS];
+	SpotLightData 		 spot_lights[MAX_SPOT_LIGHTS];
+	DirectionalLightData directional_lights[MAX_DIRECTIONAL_LIGHTS];
 };
 
 // ------------------------------------------------------------------

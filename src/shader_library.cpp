@@ -272,10 +272,7 @@ namespace nimble
 		Program* program = new Program(2, shaders);
 
 		program->uniform_block_binding("u_PerView", 0);
-		program->uniform_block_binding("u_PerScenePointLights", 1);
-		program->uniform_block_binding("u_PerSceneSpotLights", 2);
-		program->uniform_block_binding("u_PerSceneDirectionalLights", 3);
-		program->uniform_block_binding("u_PerEntity", 4);
+		program->uniform_block_binding("u_PerEntity", 1);
 
 		m_program_cache.set(program_key.key, program);
 

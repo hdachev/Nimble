@@ -220,14 +220,8 @@ namespace nimble
 			if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
 				GlobalGraphicsResources::per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->m_id, sizeof(PerViewUniforms));
 
-			if (HAS_BIT_FLAG(flags(), NODE_USAGE_POINT_LIGHTS))
-				GlobalGraphicsResources::per_scene_point_lights_ubo()->bind_base(1);
-
-			if (HAS_BIT_FLAG(flags(), NODE_USAGE_SPOT_LIGHTS))
-				GlobalGraphicsResources::per_scene_spot_lights_ubo()->bind_base(2);
-
-			if (HAS_BIT_FLAG(flags(), NODE_USAGE_DIRECTIONAL_LIGHTS))
-				GlobalGraphicsResources::per_scene_directional_lights_ubo()->bind_base(3);
+			if (HAS_BIT_FLAG(flags(), NODE_USAGE_POINT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_SPOT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_DIRECTIONAL_LIGHTS))
+				GlobalGraphicsResources::per_scene_ssbo()->bind_base(2);
 
 			for (uint32_t i = 0; i < scene->entity_count(); i++)
 			{
@@ -267,14 +261,13 @@ namespace nimble
 							if (HAS_BIT_FLAG(flags(), NODE_USAGE_MATERIAL_EMISSIVE) && !s.material->surface_texture(TEXTURE_TYPE_EMISSIVE))
 								program->set_uniform("u_Emissive", s.material->uniform_emissive());
 
-							if ((HAS_BIT_FLAG(flags(), NODE_USAGE_MATERIAL_ROUGH_SMOOTH) && !s.material->surface_texture(TEXTURE_TYPE_ROUGH_SMOOTH)) || 
-								(HAS_BIT_FLAG(flags(), NODE_USAGE_MATERIAL_METAL_SPEC) && !s.material->surface_texture(TEXTURE_TYPE_METAL_SPEC)))
+							if ((HAS_BIT_FLAG(flags(), NODE_USAGE_MATERIAL_ROUGH_SMOOTH) && !s.material->surface_texture(TEXTURE_TYPE_ROUGH_SMOOTH)) || (HAS_BIT_FLAG(flags(), NODE_USAGE_MATERIAL_METAL_SPEC) && !s.material->surface_texture(TEXTURE_TYPE_METAL_SPEC)))
 								program->set_uniform("u_MetalRough", glm::vec4(s.material->uniform_metallic(), s.material->uniform_roughness(), 0.0f, 0.0f));
 
 							s.material->bind(program, tex_unit);
 
 							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_OBJECT_UBO))
-								GlobalGraphicsResources::per_entity_ubo()->bind_range(4, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));
+								GlobalGraphicsResources::per_entity_ubo()->bind_range(1, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));
 
 							glDrawElementsBaseVertex(GL_TRIANGLES, s.index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * s.base_index), s.base_vertex);
 
