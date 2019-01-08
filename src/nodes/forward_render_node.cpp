@@ -20,7 +20,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void ForwardRenderNode::execute(const View& view)
+	void ForwardRenderNode::execute_internal(const View& view)
 	{
 		//RenderTargetView views[] = { m_color_rtv, m_velocity_rtv };
 

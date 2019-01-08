@@ -4,6 +4,7 @@
 namespace nimble
 {
 	std::unordered_map<std::string, std::unique_ptr<ProfileScope>> Profiler::m_scopes;
+	std::unordered_map<std::string, std::unique_ptr<CPUProfileScope>> Profiler::m_cpu_scopes;
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -49,6 +50,34 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	void Profiler::begin_cpu_sample(std::string name)
+	{
+		if (m_cpu_scopes.find(name) == m_cpu_scopes.end())
+			m_cpu_scopes[name] = std::make_unique<CPUProfileScope>();
+
+		auto& scope = m_cpu_scopes[name];
+
+		uint64_t result = 0;
+		scope->last_result_cpu = static_cast<float>(scope->timer.elapsed_time_milisec());
+
+		scope->timer.start();
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Profiler::end_cpu_sample(std::string name)
+	{
+		auto& scope = m_cpu_scopes[name];
+		scope->timer.stop();
+
+		scope->index++;
+
+		if (scope->index == NUM_BUFFERED_QUERIES)
+			scope->index = 0;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	void Profiler::result(std::string name, float& cpu_sample, float& gpu_sample)
 	{
 		if (m_scopes.find(name) == m_scopes.end())
@@ -56,6 +85,16 @@ namespace nimble
 
 		cpu_sample = m_scopes[name]->last_result_cpu;
 		gpu_sample = m_scopes[name]->last_result_gpu;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Profiler::cpu_result(std::string name, float& cpu_sample)
+	{
+		if (m_cpu_scopes.find(name) == m_cpu_scopes.end())
+			m_cpu_scopes[name] = std::make_unique<CPUProfileScope>();
+
+		cpu_sample = m_cpu_scopes[name]->last_result_cpu;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

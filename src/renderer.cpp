@@ -11,6 +11,7 @@
 #include "profiler.h"
 #include "render_graph.h"
 #include "geometry.h"
+#include "profiler.h"
 
 #include <gtc/matrix_transform.hpp>
 #include <fstream>
@@ -230,6 +231,8 @@ namespace nimble
 
 	void Renderer::cull_scene()
 	{
+		Profiler::begin_cpu_sample("Frustum Culling");
+
 		if (m_scene)
 		{
 			Entity* entities = m_scene->entities();
@@ -272,6 +275,8 @@ namespace nimble
 				}
 			}
 		}
+
+		Profiler::end_cpu_sample("Frustum Culling");
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

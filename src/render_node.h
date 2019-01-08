@@ -139,10 +139,12 @@ namespace nimble
 		~SceneRenderNode();
 
 		bool initialize_internal() override;
+		void execute(const View& view) override;
 		virtual std::string vs_template_path() = 0;
 		virtual std::string fs_template_path() = 0;
 
 	protected:
+		virtual void execute_internal(const View& view) = 0;
 		void render_scene(const Params& params);
 
 	private:

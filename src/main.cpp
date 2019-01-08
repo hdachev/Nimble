@@ -14,6 +14,7 @@
 #include "resource_manager.h"
 #include "renderer.h"
 #include "graphs/forward_render_graph.h"
+#include "profiler.h"
 
 namespace nimble
 {
@@ -79,6 +80,8 @@ namespace nimble
 		{
 			// Update camera.
 			update_camera();
+
+			gui();
 
 			m_scene->update();
 
@@ -183,6 +186,27 @@ namespace nimble
 			m_scene->camera()->m_width = m_width;
 			m_scene->camera()->m_height = m_height;
 			m_scene->camera()->m_half_pixel_jitter = false;
+		}
+
+		// -----------------------------------------------------------------------------------------------------------------------------------
+
+		void gui()
+		{
+			float cpu_time = 0.0f;
+			float gpu_time = 0.0f;
+
+			Profiler::cpu_result("Frustum Culling", cpu_time);
+
+			ImGui::Text("Frustum Culling: %f(CPU), 0.0(GPU)", cpu_time);
+
+			for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
+			{
+				std::shared_ptr<RenderNode> node = m_forward_graph->node(i);
+
+				node->timing_total(cpu_time, gpu_time);
+
+				ImGui::Text("%s: %f(CPU), %f(GPU)", node->name().c_str(), cpu_time, gpu_time);
+			}
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------

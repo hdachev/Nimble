@@ -10,12 +10,14 @@ namespace nimble
 		ForwardRenderNode(RenderGraph* graph);
 		~ForwardRenderNode();
 
-		void execute(const View& view) override;
 		bool initialize() override;
 		void shutdown() override;
 		std::string name() override;
 		std::string vs_template_path() override;
 		std::string fs_template_path() override;
+
+	protected:
+		void execute_internal(const View& view) override;
 
 	private:
 		std::shared_ptr<RenderTarget> m_color_rt;

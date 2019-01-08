@@ -228,6 +228,24 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	void SceneRenderNode::execute(const View& view)
+	{
+		float cpu_time, gpu_time;
+
+		Profiler::result(name(), cpu_time, gpu_time);
+
+		m_total_time_cpu = cpu_time;
+		m_total_time_gpu = gpu_time;
+
+		Profiler::begin_sample(name());
+
+		execute_internal(view);
+
+		Profiler::end_sample(name());
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	void SceneRenderNode::render_scene(const Params& params)
 	{
 		if (params.rt_views || params.depth_views)
