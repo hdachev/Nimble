@@ -5,6 +5,7 @@
 #include "scene.h"
 #include "shader_cache.h"
 #include "shader_library.h"
+#include "logger.h"
 
 namespace nimble
 {
@@ -68,15 +69,23 @@ namespace nimble
 
 	void RenderNode::set_input(const std::string& name, RenderTarget* rt)
 	{
-		rt->last_dependent_node_id = id();
-		m_input_rts[name] = rt;
+		if (m_input_rts.find(name) != m_input_rts.end())
+		{
+			rt->last_dependent_node_id = id();
+			m_input_rts[name] = rt;
+		}
+		else
+			NIMBLE_LOG_ERROR("No input render target with name: " + name);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	void RenderNode::set_input(const std::string& name, Buffer* buffer)
 	{
-		m_input_buffers[name] = buffer;
+		if (m_input_buffers.find(name) != m_input_buffers.end())
+			m_input_buffers[name] = buffer;
+		else
+			NIMBLE_LOG_ERROR("No input buffer with name: " + name);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
