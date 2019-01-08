@@ -231,8 +231,8 @@ namespace nimble
 
 	void Renderer::cull_scene()
 	{
-		Profiler::begin_cpu_sample("Frustum Culling");
-
+		Profiler::begin_cpu_sample(PROFILER_FRUSTUM_CULLING);
+		 
 		if (m_scene)
 		{
 			Entity* entities = m_scene->entities();
@@ -276,7 +276,7 @@ namespace nimble
 			}
 		}
 
-		Profiler::end_cpu_sample("Frustum Culling");
+		Profiler::end_cpu_sample(PROFILER_FRUSTUM_CULLING);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

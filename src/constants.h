@@ -13,6 +13,9 @@
 #define MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS 8
 #define MAX_BONES 100
 
+// Profiling Scopes
+#define PROFILER_FRUSTUM_CULLING "Frustum Culling"
+
 // Forward Renderer
 #define FRAMEBUFFER_FORWARD "Forward_FBO"
 #define RENDER_TARGET_FORWARD_COLOR "Forward_Color"

@@ -195,7 +195,7 @@ namespace nimble
 			float cpu_time = 0.0f;
 			float gpu_time = 0.0f;
 
-			Profiler::cpu_result("Frustum Culling", cpu_time);
+			Profiler::cpu_result(PROFILER_FRUSTUM_CULLING, cpu_time);
 
 			ImGui::Text("Frustum Culling: %f(CPU), 0.0(GPU)", cpu_time);
 
