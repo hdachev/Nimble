@@ -26,47 +26,57 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	RenderTarget* RenderNode::render_target_by_name(const std::string& name)
+	RenderTarget* RenderNode::find_output_render_target(const std::string& name)
 	{
-		if (m_render_targets.find(name) != m_render_targets.end())
-			return m_render_targets[name];
+		if (m_output_rts.find(name) != m_output_rts.end())
+			return m_output_rts[name];
 		else
 			return nullptr;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	RenderTarget* RenderNode::render_target_dependecy_by_name(const std::string& name)
+	RenderTarget* RenderNode::find_intermediate_render_target(const std::string& name)
 	{
-		if (m_rt_dependecies.find(name) != m_rt_dependecies.end())
-			return m_rt_dependecies[name];
+		if (m_intermediate_rts.find(name) != m_intermediate_rts.end())
+			return m_intermediate_rts[name];
 		else
 			return nullptr;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Buffer* RenderNode::buffer_dependecy_by_name(const std::string& name)
+	RenderTarget* RenderNode::find_input_render_target(const std::string& name)
 	{
-		if (m_buffer_dependecies.find(name) != m_buffer_dependecies.end())
-			return m_buffer_dependecies[name];
+		if (m_input_rts.find(name) != m_input_rts.end())
+			return m_input_rts[name];
 		else
 			return nullptr;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void RenderNode::set_dependency(const std::string& name, RenderTarget* rt)
+	Buffer* RenderNode::find_input_buffer(const std::string& name)
+	{
+		if (m_input_buffers.find(name) != m_input_buffers.end())
+			return m_input_buffers[name];
+		else
+			return nullptr;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void RenderNode::set_input(const std::string& name, RenderTarget* rt)
 	{
 		rt->last_dependent_node_id = id();
-		m_rt_dependecies[name] = rt;
+		m_input_rts[name] = rt;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void RenderNode::set_dependency(const std::string& name, Buffer* buffer)
+	void RenderNode::set_input(const std::string& name, Buffer* buffer)
 	{
-		m_buffer_dependecies[name] = buffer;
+		m_input_buffers[name] = buffer;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -110,20 +120,54 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::shared_ptr<RenderTarget> RenderNode::register_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
+	void RenderNode::register_input_render_target(const std::string& name)
+	{
+		m_input_rts[name] = nullptr;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void RenderNode::register_input_buffer(const std::string& name)
+	{
+		m_input_buffers[name] = nullptr;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	std::shared_ptr<RenderTarget> RenderNode::register_output_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
 	{
 		std::shared_ptr<RenderTarget> rt = GlobalGraphicsResources::request_render_target(m_graph->id(), id(), w, h, target, internal_format, format, type, num_samples, array_size, mip_levels);
-		m_render_targets[name] = rt.get();
+		m_output_rts[name] = rt.get();
 
 		return rt;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::shared_ptr<RenderTarget> RenderNode::register_scaled_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
+	std::shared_ptr<RenderTarget> RenderNode::register_scaled_output_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
 	{
 		std::shared_ptr<RenderTarget> rt = GlobalGraphicsResources::request_scaled_render_target(m_graph->id(), id(), w, h, target, internal_format, format, type, num_samples, array_size, mip_levels);
-		m_render_targets[name] = rt.get();
+		m_output_rts[name] = rt.get();
+
+		return rt;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	std::shared_ptr<RenderTarget> RenderNode::register_intermediate_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
+	{
+		std::shared_ptr<RenderTarget> rt = GlobalGraphicsResources::request_render_target(m_graph->id(), id(), w, h, target, internal_format, format, type, num_samples, array_size, mip_levels);
+		m_intermediate_rts[name] = rt.get();
+
+		return rt;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	std::shared_ptr<RenderTarget> RenderNode::register_scaled_intermediate_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
+	{
+		std::shared_ptr<RenderTarget> rt = GlobalGraphicsResources::request_scaled_render_target(m_graph->id(), id(), w, h, target, internal_format, format, type, num_samples, array_size, mip_levels);
+		m_intermediate_rts[name] = rt.get();
 
 		return rt;
 	}
@@ -368,6 +412,26 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	FullscreenRenderNode::Params::Params()
+	{
+		scene = nullptr;
+		view = nullptr;
+		num_rt_views = 0;
+		rt_views = nullptr;
+		x = 0;
+		y = 0;
+		w = 0;
+		h = 0;
+		clear_flags = GL_COLOR_BUFFER_BIT;
+		num_clear_colors = 0;
+		clear_colors[0][0] = 0.0f;
+		clear_colors[0][1] = 0.0f;
+		clear_colors[0][2] = 0.0f;
+		clear_colors[0][3] = 0.0f;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	FullscreenRenderNode::FullscreenRenderNode(RenderGraph* graph) : MultiPassRenderNode(RENDER_NODE_FULLSCREEN, graph)
 	{
 
@@ -430,6 +494,26 @@ namespace nimble
 	ComputeRenderNode::~ComputeRenderNode()
 	{
 
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	Buffer* ComputeRenderNode::find_output_buffer(const std::string& name)
+	{
+		if (m_output_buffers.find(name) != m_output_buffers.end())
+			return m_output_buffers[name];
+		else
+			return nullptr;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	Buffer* ComputeRenderNode::find_intermediate_buffer(const std::string& name)
+	{
+		if (m_intermediate_buffers.find(name) != m_intermediate_buffers.end())
+			return m_intermediate_buffers[name];
+		else
+			return nullptr;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

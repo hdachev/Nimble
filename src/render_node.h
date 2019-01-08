@@ -61,11 +61,12 @@ namespace nimble
 		RenderNode(RenderNodeType type, RenderGraph* graph);
 		~RenderNode();
 
-		RenderTarget* render_target_by_name(const std::string& name);
-		RenderTarget* render_target_dependecy_by_name(const std::string& name);
-		Buffer* buffer_dependecy_by_name(const std::string& name);
-		void set_dependency(const std::string& name, RenderTarget* rt);
-		void set_dependency(const std::string& name, Buffer* buffer);
+		RenderTarget* find_output_render_target(const std::string& name);
+		RenderTarget* find_intermediate_render_target(const std::string& name);
+		RenderTarget* find_input_render_target(const std::string& name);
+		Buffer* find_input_buffer(const std::string& name);
+		void set_input(const std::string& name, RenderTarget* rt);
+		void set_input(const std::string& name, Buffer* buffer);
 		void timing_total(float& cpu_time, float& gpu_time);
 
 		// Inline getters
@@ -90,8 +91,12 @@ namespace nimble
 		virtual void on_window_resized(const uint32_t& w, const uint32_t& h);
 
 	protected:
-		std::shared_ptr<RenderTarget> register_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-		std::shared_ptr<RenderTarget> register_scaled_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+		void register_input_render_target(const std::string& name);
+		void register_input_buffer(const std::string& name);
+		std::shared_ptr<RenderTarget> register_output_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+		std::shared_ptr<RenderTarget> register_scaled_output_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+		std::shared_ptr<RenderTarget> register_intermediate_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+		std::shared_ptr<RenderTarget> register_scaled_intermediate_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
 
 	protected:
 		RenderGraph* m_graph;
@@ -103,9 +108,10 @@ namespace nimble
 		bool m_enabled;
 		uint32_t m_id;
 		RenderNodeType m_render_node_type;
-		std::unordered_map<std::string, RenderTarget*> m_render_targets;
-		std::unordered_map<std::string, RenderTarget*> m_rt_dependecies;
-		std::unordered_map<std::string, Buffer*> m_buffer_dependecies;
+		std::unordered_map<std::string, RenderTarget*> m_output_rts;
+		std::unordered_map<std::string, RenderTarget*> m_input_rts;
+		std::unordered_map<std::string, RenderTarget*> m_intermediate_rts;
+		std::unordered_map<std::string, Buffer*> m_input_buffers;
 	};
 
 	class SceneRenderNode : public RenderNode
@@ -179,6 +185,8 @@ namespace nimble
 			GLenum clear_flags = GL_COLOR_BUFFER_BIT;
 			uint32_t num_clear_colors = 0;
 			float clear_colors[8][4];
+
+			Params();
 		};
 
 		FullscreenRenderNode(RenderGraph* graph);
@@ -193,5 +201,12 @@ namespace nimble
 	public:
 		ComputeRenderNode(RenderGraph* graph);
 		~ComputeRenderNode();
+
+		Buffer* find_output_buffer(const std::string& name);
+		Buffer* find_intermediate_buffer(const std::string& name);
+
+	protected:
+		std::unordered_map<std::string, Buffer*> m_output_buffers;
+		std::unordered_map<std::string, Buffer*> m_intermediate_buffers;
 	};
 }
