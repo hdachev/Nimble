@@ -58,20 +58,26 @@ namespace nimble
 		m_spot_light_shadow_maps.reset();
 		m_point_light_shadow_maps.reset();
 
-		m_directional_light_shadow_maps = std::make_unique<Texture2D>(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality],
-			kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality],
-			m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS,
-			1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+		// Create shadow maps
+		m_directional_light_shadow_maps = GlobalGraphicsResources::request_general_render_target(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS);
+		m_spot_light_shadow_maps = GlobalGraphicsResources::request_general_render_target(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, MAX_SHADOW_CASTING_SPOT_LIGHTS);
+		m_point_light_shadow_maps = GlobalGraphicsResources::request_general_render_target(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, MAX_SHADOW_CASTING_POINT_LIGHTS);
 
-		m_spot_light_shadow_maps = std::make_unique<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality],
-			kSpotLightShadowMapSizes[m_settings.shadow_map_quality],
-			MAX_SHADOW_CASTING_SPOT_LIGHTS,
-			1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+		// Create shadow map Render Target Views
+		for (uint32_t i = 0; i < MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS; i++)
+		{
+			for (uint32_t j = 0; j < m_settings.cascade_count; j++)
+				m_directionl_light_rt_views.push_back({ 0, i * m_settings.cascade_count + j, 0, m_directional_light_shadow_maps.get() });
+		}
 
-		m_point_light_shadow_maps = std::make_unique<TextureCube>(kPointShadowMapSizes[m_settings.shadow_map_quality],
-			kPointShadowMapSizes[m_settings.shadow_map_quality],
-			MAX_SHADOW_CASTING_POINT_LIGHTS,
-			1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+		for (uint32_t i = 0; i < MAX_SHADOW_CASTING_SPOT_LIGHTS; i++)
+			m_spot_light_rt_views.push_back({ 0, i, 0, m_spot_light_shadow_maps.get() });
+
+		for (uint32_t i = 0; i < MAX_SHADOW_CASTING_POINT_LIGHTS; i++)
+		{
+			for (uint32_t j = 0; j < 6; j++)
+				m_point_light_rt_views.push_back({ j, i, 0, m_point_light_shadow_maps.get() });
+		}
 
 		return true;
 	}
@@ -150,7 +156,48 @@ namespace nimble
 
 	void Renderer::push_directional_light_views(View& dependent_view)
 	{
+		if (m_scene)
+		{
+			uint32_t shadow_casting_light_idx = 0;
+			DirectionalLight* lights = m_scene->directional_lights();
 
+			for (uint32_t light_idx = 0; light_idx < m_scene->directional_light_count(); light_idx++)
+			{
+				DirectionalLight& light = lights[light_idx];
+
+				if (light.casts_shadow)
+				{
+					for (uint32_t cascade_idx = 0; cascade_idx < m_settings.cascade_count; cascade_idx++)
+					{
+						View light_view;
+
+						light_view.m_enabled = true;
+						light_view.m_culling = true;
+						light_view.m_direction = light.transform.forward();
+						light_view.m_position = light.transform.position;
+						light_view.m_view_mat = glm::mat4(1.0f); // @TODO
+						light_view.m_projection_mat = glm::mat4(1.0f); // @TODO
+						light_view.m_vp_mat = glm::mat4(1.0f); // @TODO
+						light_view.m_prev_vp_mat = glm::mat4(1.0f); // @TODO
+						light_view.m_inv_view_mat = glm::mat4(1.0f); // @TODO
+						light_view.m_inv_projection_mat = glm::mat4(1.0f); // @TODO
+						light_view.m_inv_vp_mat = glm::mat4(1.0f); // @TODO
+						light_view.m_jitter = glm::vec4(0.0);
+						light_view.m_dest_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
+						light_view.m_graph = m_shadow_map_render_graph;
+						light_view.m_scene = m_scene.get();
+
+						queue_view(light_view);
+					}
+
+					shadow_casting_light_idx++;
+				}	
+
+				// Stop adding views if max number of shadow casting lights is already queued.
+				if (shadow_casting_light_idx == (MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS - 1))
+					break;
+			}
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -301,8 +348,6 @@ namespace nimble
 			scene_view.m_inv_projection_mat = glm::inverse(camera->m_projection);
 			scene_view.m_inv_vp_mat = glm::inverse(camera->m_view_projection);
 			scene_view.m_jitter = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
-			scene_view.m_render_target_array_slice = 0;
-			scene_view.m_render_target_cubemap_slice = 0;
 			scene_view.m_dest_render_target_view = nullptr;
 			scene_view.m_graph = m_scene_render_graph;
 			scene_view.m_scene = m_scene.get();

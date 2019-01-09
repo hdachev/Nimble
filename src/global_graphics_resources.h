@@ -23,6 +23,8 @@ namespace nimble
 		// Render Target creation methods. Actual texture is created during initialize_render_targets().
 		static std::shared_ptr<RenderTarget> request_render_target(const uint32_t& graph_id, const uint32_t& node_id, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
 
+		static std::shared_ptr<RenderTarget> request_general_render_target(const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+
 		// Scaled variant. Uses a normalized float value to represent the w/h ratio to the w/h of the window.
 		static std::shared_ptr<RenderTarget> request_scaled_render_target(const uint32_t& graph_id, const uint32_t& node_id, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
 

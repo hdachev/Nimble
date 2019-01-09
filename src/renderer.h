@@ -9,6 +9,7 @@
 #include "scene.h"
 #include "view.h"
 #include "uniforms.h"
+#include "render_target.h"
 
 namespace nimble
 {
@@ -51,9 +52,9 @@ namespace nimble
 		inline std::shared_ptr<Scene> scene() { return m_scene; }
 		inline Settings settings() { return m_settings; }
 		inline RenderGraph* scene_render_graph() { return m_scene_render_graph; }
-		inline Texture2D* directional_light_shadow_maps() { return m_directional_light_shadow_maps.get(); }
-		inline Texture2D* spot_light_shadow_maps() { return m_spot_light_shadow_maps.get(); }
-		inline TextureCube* point_light_shadow_maps() { return m_point_light_shadow_maps.get(); }
+		inline RenderTarget* directional_light_shadow_maps() { return m_directional_light_shadow_maps.get(); }
+		inline RenderTarget* spot_light_shadow_maps() { return m_spot_light_shadow_maps.get(); }
+		inline RenderTarget* point_light_shadow_maps() { return m_point_light_shadow_maps.get(); }
 
 	private:
 		void update_uniforms();
@@ -68,13 +69,17 @@ namespace nimble
 		std::array<Frustum, MAX_VIEWS> m_active_frustums;
 		std::shared_ptr<Scene> m_scene;
 		RenderGraph* m_scene_render_graph = nullptr;
+		RenderGraph* m_shadow_map_render_graph = nullptr;
 		std::array<PerViewUniforms, MAX_VIEWS> m_per_view_uniforms;
 		std::array<PerEntityUniforms, MAX_ENTITIES> m_per_entity_uniforms;
 
 		// Shadow Maps
-		std::unique_ptr<Texture2D>   m_directional_light_shadow_maps;
-		std::unique_ptr<Texture2D>   m_spot_light_shadow_maps;
-		std::unique_ptr<TextureCube> m_point_light_shadow_maps;
+		std::shared_ptr<RenderTarget> m_directional_light_shadow_maps;
+		std::shared_ptr<RenderTarget> m_spot_light_shadow_maps;
+		std::shared_ptr<RenderTarget> m_point_light_shadow_maps;
+		std::vector<RenderTargetView> m_directionl_light_rt_views;
+		std::vector<RenderTargetView> m_point_light_rt_views;
+		std::vector<RenderTargetView> m_spot_light_rt_views;
 		Settings m_settings;
 	};
 }

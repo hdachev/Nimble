@@ -118,6 +118,13 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	std::shared_ptr<RenderTarget> GlobalGraphicsResources::request_general_render_target(const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
+	{
+		return request_render_target(UINT32_MAX, UINT32_MAX, w, h, target, internal_format, format, type, num_samples, array_size, mip_levels);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	std::shared_ptr<RenderTarget> GlobalGraphicsResources::request_scaled_render_target(const uint32_t& graph_id, const uint32_t& node_id, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
 	{
 		std::shared_ptr<RenderTarget> rt = std::make_shared<RenderTarget>();
