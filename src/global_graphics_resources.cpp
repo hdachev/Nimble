@@ -38,22 +38,6 @@ namespace nimble
 		m_per_view = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, MAX_VIEWS * sizeof(PerViewUniforms));
 		m_per_entity = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, MAX_ENTITIES * sizeof(PerEntityUniforms));
 		m_per_scene = std::make_unique<ShaderStorageBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
-			
-		PerSceneUniforms* ssbo = (PerSceneUniforms*)m_per_scene->map(GL_WRITE_ONLY);
-
-		ssbo->point_lights[0].color_intensity = glm::vec4(1.0f, 0.5f, 1.0f, 0.0f);
-		ssbo->point_lights[0].position_range = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
-		ssbo->point_lights[0].shadow_map_idx = 3;
-
-		ssbo->point_lights[1].color_intensity = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-		ssbo->point_lights[1].position_range = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
-		ssbo->point_lights[1].shadow_map_idx = 1;
-
-		ssbo->directional_light_count = 1;
-		ssbo->point_light_count = 1;
-		ssbo->spot_light_count = 1;
-
-		m_per_scene->unmap();
 
 		// Create common geometry VBO's and VAO's.
 		create_cube();

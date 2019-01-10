@@ -72,6 +72,7 @@ namespace nimble
 		RenderGraph* m_shadow_map_render_graph = nullptr;
 		std::array<PerViewUniforms, MAX_VIEWS> m_per_view_uniforms;
 		std::array<PerEntityUniforms, MAX_ENTITIES> m_per_entity_uniforms;
+		PerSceneUniforms m_per_scene_uniforms;
 
 		// Shadow Maps
 		std::shared_ptr<RenderTarget> m_directional_light_shadow_maps;

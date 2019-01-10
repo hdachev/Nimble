@@ -272,13 +272,22 @@ namespace nimble
 
 	void Scene::update()
 	{
-		for (int i = 0; i < m_entities.size(); i++)
+		for (uint32_t i = 0; i < m_entities.size(); i++)
 		{
 			Entity& e = m_entities._objects[i];
 
 			if (e.dirty)
 				e.transform.update();
 		}
+
+		for (uint32_t i = 0; i < m_directional_lights.size(); i++)
+			m_directional_lights._objects[i].transform.update();
+
+		for (uint32_t i = 0; i < m_spot_lights.size(); i++)
+			m_spot_lights._objects[i].transform.update();
+
+		for (uint32_t i = 0; i < m_point_lights.size(); i++)
+			m_point_lights._objects[i].transform.update();
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

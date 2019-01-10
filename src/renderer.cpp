@@ -271,6 +271,51 @@ namespace nimble
 			ptr = GlobalGraphicsResources::per_view_ubo()->map(GL_WRITE_ONLY);
 			memcpy(ptr, &m_per_view_uniforms[0], sizeof(PerViewUniforms) * m_num_active_views);
 			GlobalGraphicsResources::per_view_ubo()->unmap();
+
+			// Update per scene uniforms
+			DirectionalLight* dir_lights = m_scene->directional_lights();
+
+			m_per_scene_uniforms.directional_light_count = m_scene->directional_light_count();
+
+			for (uint32_t light_idx = 0; light_idx < m_per_scene_uniforms.directional_light_count; light_idx++)
+			{
+				DirectionalLight& light = dir_lights[light_idx];
+
+				m_per_scene_uniforms.directional_lights[light_idx].direction = glm::vec4(light.transform.forward(), 0.0f);
+				m_per_scene_uniforms.directional_lights[light_idx].color_intensity = glm::vec4(light.color, light.intensity);
+				m_per_scene_uniforms.directional_lights[light_idx].casts_shadow = light.casts_shadow ? 1 : 0;
+			}
+
+			SpotLight* spot_lights = m_scene->spot_lights();
+
+			m_per_scene_uniforms.spot_light_count = m_scene->spot_light_count();
+
+			for (uint32_t light_idx = 0; light_idx < m_per_scene_uniforms.spot_light_count; light_idx++)
+			{
+				SpotLight& light = spot_lights[light_idx];
+
+				m_per_scene_uniforms.spot_lights[light_idx].direction_range = glm::vec4(light.transform.forward(), light.range);
+				m_per_scene_uniforms.spot_lights[light_idx].color_intensity = glm::vec4(light.color, light.intensity);
+				m_per_scene_uniforms.spot_lights[light_idx].position_cone_angle = glm::vec4(light.transform.position, light.cone_angle);
+				m_per_scene_uniforms.spot_lights[light_idx].casts_shadow = light.casts_shadow ? 1 : 0;
+			}
+
+			PointLight* point_lights = m_scene->point_lights();
+
+			m_per_scene_uniforms.point_light_count = m_scene->point_light_count();
+
+			for (uint32_t light_idx = 0; light_idx < m_per_scene_uniforms.point_light_count; light_idx++)
+			{
+				PointLight& light = point_lights[light_idx];
+
+				m_per_scene_uniforms.point_lights[light_idx].position_range = glm::vec4(light.transform.position, light.range);
+				m_per_scene_uniforms.point_lights[light_idx].color_intensity = glm::vec4(light.color, light.intensity);
+				m_per_scene_uniforms.point_lights[light_idx].casts_shadow = light.casts_shadow ? 1 : 0;
+			}
+
+			ptr = GlobalGraphicsResources::per_scene_ssbo()->map(GL_WRITE_ONLY);
+			memcpy(ptr, &m_per_scene_uniforms, sizeof(PerSceneUniforms));
+			GlobalGraphicsResources::per_scene_ssbo()->unmap();
 		}
 	}
 
