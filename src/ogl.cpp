@@ -250,12 +250,14 @@ namespace nimble
 		m_internal_format = internal_format;
 		m_format = format;
 		m_type = type;
+		m_num_samples = num_samples;
+		m_mip_levels = mip_levels;
+		m_compressed = compressed;
 		m_width = w;
 		m_height = h;
-		m_num_samples = num_samples;
 
 		// If mip levels is -1, calculate mip levels
-		if (mip_levels == -1)
+		if (m_mip_levels == -1)
 		{
 			m_mip_levels = 1;
 
@@ -269,18 +271,16 @@ namespace nimble
 				m_mip_levels++;
 			}
 		}
-		else
-			m_mip_levels = mip_levels;
 
 		// Allocate memory for mip levels.
-		if (array_size > 1)
+		if (m_array_size > 1)
 		{
 			if (m_num_samples > 1)
 				m_target = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
 			else
 				m_target = GL_TEXTURE_2D_ARRAY;
 
-			if (!compressed)
+			if (!m_compressed)
 			{
 				int width = m_width;
 				int height = m_height;
@@ -316,7 +316,7 @@ namespace nimble
 			else
 				m_target = GL_TEXTURE_2D;
 
-			if (!compressed)
+			if (!m_compressed)
 			{
 				int width = m_width;
 				int height = m_height;
@@ -345,11 +345,11 @@ namespace nimble
 				GL_CHECK_ERROR(glBindTexture(m_target, 0));
 			}
 		}
-        
-        // Default sampling options.
-        set_wrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
-        set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
-        set_mag_filter(GL_LINEAR);
+
+		// Default sampling options.
+		set_wrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
+		set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
+		set_mag_filter(GL_LINEAR);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -422,6 +422,114 @@ namespace nimble
 
 			GL_CHECK_ERROR(glBindTexture(m_target, 0));
 		}
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Texture2D::resize(uint32_t w, uint32_t h)
+	{
+		if (m_gl_tex != UINT32_MAX)
+		{
+			GL_CHECK_ERROR(glDeleteTextures(1, &m_gl_tex));
+		}
+
+		m_width = w;
+		m_height = h;
+
+		// If mip levels is -1, calculate mip levels
+		if (m_mip_levels == -1)
+		{
+			m_mip_levels = 1;
+
+			int width = m_width;
+			int height = m_height;
+
+			while (width > 1 && height > 1)
+			{
+				width = std::max(1, (width / 2));
+				height = std::max(1, (height / 2));
+				m_mip_levels++;
+			}
+		}
+
+		// Allocate memory for mip levels.
+		if (m_array_size > 1)
+		{
+			if (m_num_samples > 1)
+				m_target = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+			else
+				m_target = GL_TEXTURE_2D_ARRAY;
+
+			if (!m_compressed)
+			{
+				int width = m_width;
+				int height = m_height;
+
+				GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
+
+				if (m_num_samples > 1)
+				{
+					if (m_mip_levels > 1)
+						NIMBLE_LOG_WARNING("OPENGL: Multisampled textures cannot have mipmaps. Setting mip levels to 1...");
+
+					m_mip_levels = 1;
+					GL_CHECK_ERROR(glTexImage3DMultisample(m_target, m_num_samples, m_internal_format, width, height, m_array_size, true));
+				}
+				else
+				{
+					for (int i = 0; i < m_mip_levels; i++)
+					{
+						GL_CHECK_ERROR(glTexImage3D(m_target, i, m_internal_format, width, height, m_array_size, 0, m_format, m_type, NULL));
+
+						width = std::max(1, (width / 2));
+						height = std::max(1, (height / 2));
+					}
+				}
+
+				GL_CHECK_ERROR(glBindTexture(m_target, 0));
+			}
+		}
+		else
+		{
+			if (m_num_samples > 1)
+				m_target = GL_TEXTURE_2D_MULTISAMPLE;
+			else
+				m_target = GL_TEXTURE_2D;
+
+			if (!m_compressed)
+			{
+				int width = m_width;
+				int height = m_height;
+
+				GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
+
+				if (m_num_samples > 1)
+				{
+					if (m_mip_levels > 1)
+						NIMBLE_LOG_WARNING("OPENGL: Multisampled textures cannot have mipmaps. Setting mip levels to 1...");
+
+					m_mip_levels = 1;
+					GL_CHECK_ERROR(glTexImage2DMultisample(m_target, m_num_samples, m_internal_format, width, height, true));
+				}
+				else
+				{
+					for (int i = 0; i < m_mip_levels; i++)
+					{
+						GL_CHECK_ERROR(glTexImage2D(m_target, i, m_internal_format, width, height, 0, m_format, m_type, NULL));
+
+						width = std::max(1, (width / 2));
+						height = std::max(1, (height / 2));
+					}
+				}
+
+				GL_CHECK_ERROR(glBindTexture(m_target, 0));
+			}
+		}
+
+		// Default sampling options.
+		set_wrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
+		set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
+		set_mag_filter(GL_LINEAR);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

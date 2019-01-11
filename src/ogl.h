@@ -68,7 +68,7 @@ namespace nimble
 		void set_compare_func(GLenum func);
         
     protected:
-        GLuint m_gl_tex;
+		GLuint m_gl_tex = UINT32_MAX;
 		GLenum m_target;
 		GLenum m_internal_format;
 		GLenum m_format; 
@@ -100,12 +100,14 @@ namespace nimble
         ~Texture2D();
 		void set_data(int array_index, int mip_level, void* data);
 		void set_compressed_data(int array_index, int mip_level, size_t size, void* data);
+		void resize(uint32_t w, uint32_t h);
         uint32_t width();
         uint32_t height();
 		uint32_t mip_levels();
 		uint32_t num_samples();
 
 	private:
+		bool m_compressed;
 		uint32_t m_width;
 		uint32_t m_height;
 		uint32_t m_mip_levels;
