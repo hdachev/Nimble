@@ -67,6 +67,10 @@ namespace nimble
 
 			m_forward_graph = std::make_shared<ForwardRenderGraph>(m_renderer.get());
 
+			m_renderer->register_render_graph(m_forward_graph);
+
+			m_renderer->initialize(m_width, m_height);
+
 			m_renderer->set_scene(m_scene);
 			m_renderer->set_scene_render_graph(m_forward_graph);
 			m_renderer->on_window_resized(m_width, m_height);

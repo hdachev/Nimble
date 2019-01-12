@@ -21,7 +21,13 @@ namespace nimble
 
 	bool RenderGraph::initialize()
 	{
-		return build();
+		for (auto& node : m_nodes)
+		{
+			if (!node->initialize())
+				return false;
+		}
+
+		return true;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -55,7 +61,7 @@ namespace nimble
 	{
 		m_nodes.push_back(node);
 
-		return node->initialize_internal() && node->initialize();
+		return node->initialize_internal() && node->register_resources();
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

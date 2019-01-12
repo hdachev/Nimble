@@ -34,7 +34,7 @@ namespace nimble
 		Renderer(Settings settings = Settings());
 		~Renderer();
 
-		bool initialize();
+		bool initialize(const uint32_t& w, const uint32_t& h);
 		void render();
 		void shutdown();
 

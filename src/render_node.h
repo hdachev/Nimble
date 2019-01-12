@@ -85,6 +85,7 @@ namespace nimble
 
 		// Virtual methods	
 		virtual bool initialize_internal();
+		virtual bool register_resources();
 		virtual void passthrough();
 		virtual uint32_t flags();
 		virtual void execute(const View& view) = 0;

@@ -10,6 +10,7 @@ namespace nimble
 		ForwardRenderNode(RenderGraph* graph);
 		~ForwardRenderNode();
 
+		bool register_resources() override;
 		bool initialize() override;
 		void shutdown() override;
 		std::string name() override;

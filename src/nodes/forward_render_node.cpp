@@ -41,12 +41,19 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool ForwardRenderNode::initialize()
+	bool ForwardRenderNode::register_resources()
 	{
 		//m_color_rt = register_render_target("Color", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 		//m_depth_rt = register_render_target("Depth", 1.0f, 1.0f, GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
 		//m_velocity_rt = register_render_target("Velocity", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RG16F, GL_RG, GL_HALF_FLOAT);
 
+		return true;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	bool ForwardRenderNode::initialize()
+	{		
 		//m_color_rtv = RenderTargetView(0, 0, 0, m_color_rt.get());
 		//m_velocity_rtv = RenderTargetView(0, 0, 0, m_velocity_rt.get());
 		//m_depth_rtv = RenderTargetView(0, 0, 0, m_depth_rt.get());

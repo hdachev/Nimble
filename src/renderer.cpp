@@ -52,8 +52,11 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool Renderer::initialize()
+	bool Renderer::initialize(const uint32_t& w, const uint32_t& h)
 	{
+		m_window_width = w;
+		m_window_height = h;
+
 		m_directional_light_shadow_maps.reset();
 		m_spot_light_shadow_maps.reset();
 		m_point_light_shadow_maps.reset();
@@ -78,6 +81,14 @@ namespace nimble
 		//	for (uint32_t j = 0; j < 6; j++)
 		//		m_point_light_rt_views.push_back({ j, i, 0, m_point_light_shadow_maps.get() });
 		//}
+
+		bake_render_graphs();
+
+		for (auto& current_graph : m_registered_render_graphs)
+		{
+			if (!current_graph->initialize())
+				return false;
+		}
 
 		return true;
 	}
@@ -111,7 +122,6 @@ namespace nimble
 	void Renderer::set_settings(Settings settings)
 	{
 		m_settings = settings;
-		initialize();
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -134,7 +144,8 @@ namespace nimble
 			}
 		}
 
-		m_registered_render_graphs.push_back(graph);
+		if (graph->build())
+			m_registered_render_graphs.push_back(graph);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -142,12 +153,7 @@ namespace nimble
 	void Renderer::set_scene_render_graph(std::shared_ptr<RenderGraph> graph)
 	{
 		if (graph)
-		{
-			m_scene_render_graph = graph;
-
-			if (!m_scene_render_graph->initialize())
-				NIMBLE_LOG_ERROR("Failed to initialize Scene Render Graph!");
-		}
+			m_scene_render_graph = graph;	
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -244,7 +250,17 @@ namespace nimble
 		m_window_width = w;
 		m_window_height = h;
 
-		bake_render_graphs();
+		for (auto& desc : m_rt_cache)
+		{
+			if (desc.rt->is_scaled() && desc.rt->target == GL_TEXTURE_2D)
+			{
+				uint32_t width = float(w) * desc.rt->scale_w;
+				uint32_t height = float(h) * desc.rt->scale_h;
+
+				Texture2D* texture = (Texture2D*)desc.rt->texture.get();
+				texture->resize(width, height);
+			}
+		}
 
 		if (m_scene_render_graph)
 			m_scene_render_graph->on_window_resized(w, h);
