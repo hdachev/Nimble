@@ -40,7 +40,8 @@ namespace nimble
 
 		void set_settings(Settings settings);
 		void set_scene(std::shared_ptr<Scene> scene);
-		void set_scene_render_graph(RenderGraph* graph);
+		void register_render_graph(std::shared_ptr<RenderGraph> graph);
+		void set_scene_render_graph(std::shared_ptr<RenderGraph> graph);
 		void queue_view(View view);
 		void push_directional_light_views(View& dependent_view);
 		void push_spot_light_views();
@@ -51,25 +52,45 @@ namespace nimble
 		// Inline getters
 		inline std::shared_ptr<Scene> scene() { return m_scene; }
 		inline Settings settings() { return m_settings; }
-		inline RenderGraph* scene_render_graph() { return m_scene_render_graph; }
+		inline std::shared_ptr<RenderGraph> scene_render_graph() { return m_scene_render_graph; }
 		inline RenderTarget* directional_light_shadow_maps() { return m_directional_light_shadow_maps.get(); }
 		inline RenderTarget* spot_light_shadow_maps() { return m_spot_light_shadow_maps.get(); }
 		inline RenderTarget* point_light_shadow_maps() { return m_point_light_shadow_maps.get(); }
 
 	private:
+		using TextureLifetimes = std::pair<std::shared_ptr<Texture>, std::vector<std::pair<uint32_t, uint32_t>>>;
+		using TextureLifetimesList = std::vector<std::pair<std::shared_ptr<Texture>, std::vector<std::pair<uint32_t, uint32_t>>>>;
+
+		int32_t find_render_target_last_usage(std::shared_ptr<RenderTarget> rt);
+		bool is_aliasing_candidate(std::shared_ptr<RenderTarget>, uint32_t write_node, uint32_t read_node, const TextureLifetimes& tex_lifetimes);
+		void create_texture_for_render_target(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node, TextureLifetimesList& tex_lifetimes_list);
+		void bake_render_graphs();
 		void update_uniforms();
 		void cull_scene();
 		void queue_default_views();
 		void render_all_views();
 
 	private:
+		struct ScaledRenderTargetDesc
+		{
+			std::shared_ptr<Texture> rt;
+			float scale_w;
+			float scale_h;
+		};
+
+		std::vector<ScaledRenderTargetDesc> m_scale_rt_cache;
+		std::vector<std::shared_ptr<Texture>> m_rt_cache;
+		uint32_t m_window_width;
+		uint32_t m_window_height;
+
 		// Current scene.
 		uint32_t m_num_active_views = 0;
 		std::array<View, MAX_VIEWS> m_active_views;
 		std::array<Frustum, MAX_VIEWS> m_active_frustums;
 		std::shared_ptr<Scene> m_scene;
-		RenderGraph* m_scene_render_graph = nullptr;
-		RenderGraph* m_shadow_map_render_graph = nullptr;
+		std::shared_ptr<RenderGraph> m_scene_render_graph = nullptr;
+		std::shared_ptr<RenderGraph> m_shadow_map_render_graph = nullptr;
+		std::vector<std::shared_ptr<RenderGraph>> m_registered_render_graphs;
 		std::array<PerViewUniforms, MAX_VIEWS> m_per_view_uniforms;
 		std::array<PerEntityUniforms, MAX_ENTITIES> m_per_entity_uniforms;
 		PerSceneUniforms m_per_scene_uniforms;

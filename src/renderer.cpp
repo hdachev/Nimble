@@ -123,7 +123,23 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void Renderer::set_scene_render_graph(RenderGraph* graph)
+	void Renderer::register_render_graph(std::shared_ptr<RenderGraph> graph)
+	{
+		for (auto& current_graph : m_registered_render_graphs)
+		{
+			if (current_graph->name() == graph->name())
+			{
+				NIMBLE_LOG_WARNING("Attempting to register the same Render Graph twice: " + graph->name());
+				return;
+			}
+		}
+
+		m_registered_render_graphs.push_back(graph);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Renderer::set_scene_render_graph(std::shared_ptr<RenderGraph> graph)
 	{
 		if (graph)
 		{
@@ -229,6 +245,152 @@ namespace nimble
 
 		if (m_scene_render_graph)
 			m_scene_render_graph->on_window_resized(w, h);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	int32_t Renderer::find_render_target_last_usage(std::shared_ptr<RenderTarget> rt)
+	{
+		int32_t node_gid = 0;
+		int32_t last_node_id = -1;
+
+		for (uint32_t graph_idx = 0; graph_idx < m_registered_render_graphs.size(); graph_idx++)
+		{
+			std::shared_ptr<RenderGraph> graph = m_registered_render_graphs[graph_idx];
+
+			for (uint32_t node_idx = 0; node_idx < graph->node_count(); node_idx++)
+			{
+				std::shared_ptr<RenderNode> node = graph->node(node_idx);
+
+				for (uint32_t rt_idx = 0; rt_idx < node->input_render_target_count(); rt_idx++)
+				{
+					std::shared_ptr<RenderTarget> input_rt = node->input_render_target(rt_idx);
+
+					if (rt->id == input_rt->id)
+						last_node_id = node_gid;
+				}
+
+				node_gid++;
+			}
+		}
+
+		return last_node_id;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	bool Renderer::is_aliasing_candidate(std::shared_ptr<RenderTarget>, uint32_t write_node, uint32_t read_node, const TextureLifetimes& tex_lifetimes)
+	{
+
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Renderer::create_texture_for_render_target(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node, TextureLifetimesList& tex_lifetimes_list)
+	{
+		// Create new texture
+		std::shared_ptr<Texture> tex;
+
+		bool scaled = rt->scale_w > 0.0f && rt->scale_h > 0.0f;
+
+		if (scaled)
+		{
+			rt->w = uint32_t(rt->scale_w * float(m_window_width));
+			rt->h = uint32_t(rt->scale_h * float(m_window_height));
+		}
+
+		if (rt->target == GL_TEXTURE_2D)
+			tex = std::make_shared<Texture2D>(rt->w, rt->h, rt->array_size, rt->mip_levels, rt->num_samples, rt->internal_format, rt->format, rt->type);
+		else if (rt->target == GL_TEXTURE_CUBE_MAP)
+			tex = std::make_shared<TextureCube>(rt->w, rt->h, rt->array_size, rt->mip_levels, rt->internal_format, rt->format, rt->type);
+
+		// Assign it to the current output Render Target
+		rt->texture = tex;
+
+		if (scaled)
+		{
+			// Push it into the list of total Render Targets
+			m_scale_rt_cache.push_back({ tex, rt->scale_w, rt->scale_h });
+		}
+		else
+		{
+			// Push it into the list of total Render Targets
+			m_rt_cache.push_back(tex);
+		}
+
+		// Push it into the list of Texture-lifetime pairs
+		tex_lifetimes_list.push_back({ tex,{ { write_node, read_node } } });
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Renderer::bake_render_graphs()
+	{
+		TextureLifetimesList textures;
+
+		uint32_t node_gid = 0;
+
+		for (uint32_t graph_idx = 0; graph_idx < m_registered_render_graphs.size(); graph_idx++)
+		{
+			std::shared_ptr<RenderGraph> graph = m_registered_render_graphs[graph_idx];
+
+			for (uint32_t node_idx = 0; node_idx < graph->node_count(); node_idx++)
+			{
+				std::shared_ptr<RenderNode> node = graph->node(node_idx);
+
+				for (uint32_t rt_idx = 0; rt_idx < node->output_render_target_count(); rt_idx++)
+				{
+					std::shared_ptr<RenderTarget> rt = node->output_render_target(rt_idx);
+
+					// Find last usage of output
+					int32_t current_node_id = node_gid;
+					int32_t last_node_id = find_render_target_last_usage(rt);
+
+					bool found_texture = false;
+
+					// Try to find an already created texture that does not have an overlapping lifetime
+					for (auto& pair : textures)
+					{
+						// Check if current Texture is suitable to be aliased
+						if (is_aliasing_candidate(rt, current_node_id, last_node_id, pair))
+						{
+							found_texture = true;
+							// Add the new lifetime to the existing texture
+							pair.second.push_back({ current_node_id, last_node_id });
+							rt->texture = pair.first;
+						}
+					}
+
+					if (!found_texture)
+						create_texture_for_render_target(rt, current_node_id, last_node_id, textures);
+				}
+
+				for (uint32_t rt_idx = 0; rt_idx < node->intermediate_render_target_count(); rt_idx++)
+				{
+					std::shared_ptr<RenderTarget> rt = node->intermediate_render_target(rt_idx);
+
+					bool found_texture = false;
+
+					// Try to find an already created texture that does not have an overlapping lifetime
+					for (auto& pair : textures)
+					{
+						// Check if current Texture is suitable to be aliased
+						if (is_aliasing_candidate(rt, node_gid, node_gid, pair))
+						{
+							found_texture = true;
+							// Add the new lifetime to the existing texture
+							pair.second.push_back({ node_gid, node_gid });
+							rt->texture = pair.first;
+						}
+					}
+
+					if (!found_texture)
+						create_texture_for_render_target(rt, node_gid, node_gid, textures);
+				}
+
+				node_gid++;
+			}
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

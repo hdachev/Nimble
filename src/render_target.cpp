@@ -1,0 +1,11 @@
+#include "render_target.h"
+
+namespace nimble
+{
+	static uint32_t g_last_rt_id = 0;
+
+	RenderTarget::RenderTarget() : id(g_last_rt_id++)
+	{
+
+	}
+} // nimble

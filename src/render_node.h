@@ -61,18 +61,23 @@ namespace nimble
 		RenderNode(RenderNodeType type, RenderGraph* graph);
 		~RenderNode();
 
-		RenderTarget* find_output_render_target(const std::string& name);
-		RenderTarget* find_intermediate_render_target(const std::string& name);
-		RenderTarget* find_input_render_target(const std::string& name);
-		Buffer* find_input_buffer(const std::string& name);
-		void set_input(const std::string& name, RenderTarget* rt);
-		void set_input(const std::string& name, Buffer* buffer);
+		std::shared_ptr<RenderTarget> find_output_render_target(const std::string& name);
+		std::shared_ptr<RenderTarget> find_intermediate_render_target(const std::string& name);
+		std::shared_ptr<RenderTarget> find_input_render_target(const std::string& name);
+		std::shared_ptr<Buffer> find_input_buffer(const std::string& name);
+		void set_input(const std::string& name, std::shared_ptr<RenderTarget> rt);
+		void set_input(const std::string& name, std::shared_ptr<Buffer> buffer);
 		void timing_total(float& cpu_time, float& gpu_time);
 
 		// Inline getters
+		inline uint32_t output_render_target_count() { return m_output_rts.size(); }
+		inline std::shared_ptr<RenderTarget> output_render_target(const uint32_t& idx) { return m_output_rts[idx].second; }
+		inline uint32_t input_render_target_count() { return m_input_rts.size(); }
+		inline std::shared_ptr<RenderTarget> input_render_target(const uint32_t& idx) { return m_input_rts[idx].second; }
+		inline uint32_t intermediate_render_target_count() { return m_intermediate_rts.size(); }
+		inline std::shared_ptr<RenderTarget> intermediate_render_target(const uint32_t& idx) { return m_intermediate_rts[idx].second; }
 		inline RenderNodeType type() { return m_render_node_type; }
 		inline bool is_enabled() { return m_enabled; }
-		inline uint32_t id() { return m_id; }
 
 		// Inline setters
 		inline void enable() { m_enabled = true; }
@@ -106,12 +111,11 @@ namespace nimble
 		
 	private:
 		bool m_enabled;
-		uint32_t m_id;
 		RenderNodeType m_render_node_type;
-		std::unordered_map<std::string, RenderTarget*> m_output_rts;
-		std::unordered_map<std::string, RenderTarget*> m_input_rts;
-		std::unordered_map<std::string, RenderTarget*> m_intermediate_rts;
-		std::unordered_map<std::string, Buffer*> m_input_buffers;
+		std::vector<std::pair<std::string, std::shared_ptr<RenderTarget>>> m_output_rts;
+		std::vector<std::pair<std::string, std::shared_ptr<RenderTarget>>> m_intermediate_rts;
+		std::vector<std::pair<std::string, std::shared_ptr<RenderTarget>>> m_input_rts;
+		std::vector<std::pair<std::string, std::shared_ptr<Buffer>>> m_input_buffers;
 	};
 
 	class SceneRenderNode : public RenderNode

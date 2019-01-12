@@ -9,11 +9,9 @@
 
 namespace nimble
 {
-	static uint32_t g_last_node_id = 0;
-
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	RenderNode::RenderNode(RenderNodeType type, RenderGraph* graph) : m_enabled(true), m_render_node_type(type), m_graph(graph), m_id(g_last_node_id++), m_total_time_cpu(0.0f), m_total_time_gpu(0.0f)
+	RenderNode::RenderNode(RenderNodeType type, RenderGraph* graph) : m_enabled(true), m_render_node_type(type), m_graph(graph), m_total_time_cpu(0.0f), m_total_time_gpu(0.0f)
 	{
 
 	}
@@ -27,65 +25,86 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	RenderTarget* RenderNode::find_output_render_target(const std::string& name)
+	std::shared_ptr<RenderTarget> RenderNode::find_output_render_target(const std::string& name)
 	{
-		if (m_output_rts.find(name) != m_output_rts.end())
-			return m_output_rts[name];
-		else
-			return nullptr;
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	RenderTarget* RenderNode::find_intermediate_render_target(const std::string& name)
-	{
-		if (m_intermediate_rts.find(name) != m_intermediate_rts.end())
-			return m_intermediate_rts[name];
-		else
-			return nullptr;
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	RenderTarget* RenderNode::find_input_render_target(const std::string& name)
-	{
-		if (m_input_rts.find(name) != m_input_rts.end())
-			return m_input_rts[name];
-		else
-			return nullptr;
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	Buffer* RenderNode::find_input_buffer(const std::string& name)
-	{
-		if (m_input_buffers.find(name) != m_input_buffers.end())
-			return m_input_buffers[name];
-		else
-			return nullptr;
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void RenderNode::set_input(const std::string& name, RenderTarget* rt)
-	{
-		if (m_input_rts.find(name) != m_input_rts.end())
+		for (auto& pair : m_output_rts)
 		{
-			rt->last_dependent_node_id = id();
-			m_input_rts[name] = rt;
+			if (pair.first == name)
+				return pair.second;
 		}
-		else
-			NIMBLE_LOG_ERROR("No input render target with name: " + name);
+
+		return nullptr;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void RenderNode::set_input(const std::string& name, Buffer* buffer)
+	std::shared_ptr<RenderTarget> RenderNode::find_intermediate_render_target(const std::string& name)
 	{
-		if (m_input_buffers.find(name) != m_input_buffers.end())
-			m_input_buffers[name] = buffer;
-		else
-			NIMBLE_LOG_ERROR("No input buffer with name: " + name);
+		for (auto& pair : m_intermediate_rts)
+		{
+			if (pair.first == name)
+				return pair.second;
+		}
+
+		return nullptr;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	std::shared_ptr<RenderTarget> RenderNode::find_input_render_target(const std::string& name)
+	{
+		for (auto& pair : m_input_rts)
+		{
+			if (pair.first == name)
+				return pair.second;
+		}
+
+		return nullptr;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	std::shared_ptr<Buffer> RenderNode::find_input_buffer(const std::string& name)
+	{
+		for (auto& pair : m_input_buffers)
+		{
+			if (pair.first == name)
+				return pair.second;
+		}
+
+		return nullptr;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void RenderNode::set_input(const std::string& name, std::shared_ptr<RenderTarget> rt)
+	{
+		for (auto& pair : m_input_rts)
+		{
+			if (pair.first == name)
+			{
+				pair.second = rt;
+				return;
+			}
+		}
+
+		NIMBLE_LOG_ERROR("No input render target slot named: " + name);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void RenderNode::set_input(const std::string& name, std::shared_ptr<Buffer> buffer)
+	{
+		for (auto& pair : m_input_buffers)
+		{
+			if (pair.first == name)
+			{
+				pair.second = buffer;
+				return;
+			}
+		}
+
+		NIMBLE_LOG_ERROR("No input buffer slot named: " + name);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -131,22 +150,62 @@ namespace nimble
 
 	void RenderNode::register_input_render_target(const std::string& name)
 	{
-		m_input_rts[name] = nullptr;
+		for (auto& pair : m_input_rts)
+		{
+			if (pair.first == name)
+			{
+				NIMBLE_LOG_ERROR("Input render target slot already registered: " + name);
+				return;
+			}
+		}
+
+		m_input_rts.push_back({ name, nullptr });
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	void RenderNode::register_input_buffer(const std::string& name)
 	{
-		m_input_buffers[name] = nullptr;
+		for (auto& pair : m_input_buffers)
+		{
+			if (pair.first == name)
+			{
+				NIMBLE_LOG_ERROR("Input buffer slot already registered: " + name);
+				return;
+			}
+		}
+
+		m_input_buffers.push_back({ name, nullptr });
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	std::shared_ptr<RenderTarget> RenderNode::register_output_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
 	{
-		std::shared_ptr<RenderTarget> rt = GlobalGraphicsResources::request_render_target(m_graph->id(), id(), w, h, target, internal_format, format, type, num_samples, array_size, mip_levels);
-		m_output_rts[name] = rt.get();
+		for (auto& pair : m_output_rts)
+		{
+			if (pair.first == name)
+			{
+				NIMBLE_LOG_ERROR("Output render target already registered: " + name);
+				return nullptr;
+			}
+		}
+
+		std::shared_ptr<RenderTarget> rt = std::make_shared<RenderTarget>();
+		
+		rt->w = w;
+		rt->h = h;
+		rt->scale_w = 0.0f;
+		rt->scale_h = 0.0f;
+		rt->target = target;
+		rt->internal_format = internal_format;
+		rt->format = format;
+		rt->type = type;
+		rt->num_samples = num_samples;
+		rt->array_size = array_size;
+		rt->mip_levels = mip_levels;
+
+		m_output_rts.push_back({ name, rt });
 
 		return rt;
 	}
@@ -155,8 +214,30 @@ namespace nimble
 
 	std::shared_ptr<RenderTarget> RenderNode::register_scaled_output_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
 	{
-		std::shared_ptr<RenderTarget> rt = GlobalGraphicsResources::request_scaled_render_target(m_graph->id(), id(), w, h, target, internal_format, format, type, num_samples, array_size, mip_levels);
-		m_output_rts[name] = rt.get();
+		for (auto& pair : m_output_rts)
+		{
+			if (pair.first == name)
+			{
+				NIMBLE_LOG_ERROR("Output render target already registered: " + name);
+				return nullptr;
+			}
+		}
+
+		std::shared_ptr<RenderTarget> rt = std::make_shared<RenderTarget>();
+
+		rt->w = 0;
+		rt->h = 0;
+		rt->scale_w = w;
+		rt->scale_h = h;
+		rt->target = target;
+		rt->internal_format = internal_format;
+		rt->format = format;
+		rt->type = type;
+		rt->num_samples = num_samples;
+		rt->array_size = array_size;
+		rt->mip_levels = mip_levels;
+
+		m_output_rts.push_back({ name, rt });
 
 		return rt;
 	}
@@ -165,8 +246,30 @@ namespace nimble
 
 	std::shared_ptr<RenderTarget> RenderNode::register_intermediate_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
 	{
-		std::shared_ptr<RenderTarget> rt = GlobalGraphicsResources::request_render_target(m_graph->id(), id(), w, h, target, internal_format, format, type, num_samples, array_size, mip_levels);
-		m_intermediate_rts[name] = rt.get();
+		for (auto& pair : m_intermediate_rts)
+		{
+			if (pair.first == name)
+			{
+				NIMBLE_LOG_ERROR("Intermediate render target already registered: " + name);
+				return nullptr;
+			}
+		}
+
+		std::shared_ptr<RenderTarget> rt = std::make_shared<RenderTarget>();
+
+		rt->w = w;
+		rt->h = h;
+		rt->scale_w = 0.0f;
+		rt->scale_h = 0.0f;
+		rt->target = target;
+		rt->internal_format = internal_format;
+		rt->format = format;
+		rt->type = type;
+		rt->num_samples = num_samples;
+		rt->array_size = array_size;
+		rt->mip_levels = mip_levels;
+
+		m_intermediate_rts.push_back({ name, rt });
 
 		return rt;
 	}
@@ -175,8 +278,30 @@ namespace nimble
 
 	std::shared_ptr<RenderTarget> RenderNode::register_scaled_intermediate_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
 	{
-		std::shared_ptr<RenderTarget> rt = GlobalGraphicsResources::request_scaled_render_target(m_graph->id(), id(), w, h, target, internal_format, format, type, num_samples, array_size, mip_levels);
-		m_intermediate_rts[name] = rt.get();
+		for (auto& pair : m_intermediate_rts)
+		{
+			if (pair.first == name)
+			{
+				NIMBLE_LOG_ERROR("Intermediate render target already registered: " + name);
+				return nullptr;
+			}
+		}
+
+		std::shared_ptr<RenderTarget> rt = std::make_shared<RenderTarget>();
+
+		rt->w = 0;
+		rt->h = 0;
+		rt->scale_w = w;
+		rt->scale_h = h;
+		rt->target = target;
+		rt->internal_format = internal_format;
+		rt->format = format;
+		rt->type = type;
+		rt->num_samples = num_samples;
+		rt->array_size = array_size;
+		rt->mip_levels = mip_levels;
+
+		m_intermediate_rts.push_back({ name, rt });
 
 		return rt;
 	}

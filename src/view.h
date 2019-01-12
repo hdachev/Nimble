@@ -2,6 +2,7 @@
 
 #include <glm.hpp>
 #include <stdint.h>
+#include <memory>
 
 namespace nimble
 {
@@ -25,7 +26,7 @@ namespace nimble
 		glm::mat4 m_inv_vp_mat;
 		glm::vec4 m_jitter;
 		Scene* m_scene;
-		RenderGraph* m_graph;
+		std::shared_ptr<RenderGraph> m_graph;
 		RenderTargetView* m_dest_render_target_view;
 	};
 } // namespace nimble

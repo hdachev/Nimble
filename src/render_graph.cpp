@@ -1,12 +1,11 @@
 #include "render_graph.h"
+#include "renderer.h"
 
 namespace nimble
 {
-	static uint32_t g_last_graph_id = 0;
-
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	RenderGraph::RenderGraph() : m_id(g_last_graph_id++)
+	RenderGraph::RenderGraph(Renderer* renderer) : m_renderer(renderer)
 	{
 
 	}
@@ -48,13 +47,6 @@ namespace nimble
 	{
 		for (auto& node : m_nodes)
 			node->execute(view);
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	uint32_t RenderGraph::id()
-	{
-		return m_id;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
