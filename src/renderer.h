@@ -58,12 +58,17 @@ namespace nimble
 		inline RenderTarget* point_light_shadow_maps() { return m_point_light_shadow_maps.get(); }
 
 	private:
-		using TextureLifetimes = std::pair<std::shared_ptr<Texture>, std::vector<std::pair<uint32_t, uint32_t>>>;
-		using TextureLifetimesList = std::vector<std::pair<std::shared_ptr<Texture>, std::vector<std::pair<uint32_t, uint32_t>>>>;
+		using TextureLifetimes = std::vector<std::pair<uint32_t, uint32_t>>;
+
+		struct RenderTargetDesc
+		{
+			std::shared_ptr<RenderTarget> rt;
+			TextureLifetimes lifetimes;
+		};
 
 		int32_t find_render_target_last_usage(std::shared_ptr<RenderTarget> rt);
-		bool is_aliasing_candidate(std::shared_ptr<RenderTarget>, uint32_t write_node, uint32_t read_node, const TextureLifetimes& tex_lifetimes);
-		void create_texture_for_render_target(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node, TextureLifetimesList& tex_lifetimes_list);
+		bool is_aliasing_candidate(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node, const RenderTargetDesc& rt_desc);
+		void create_texture_for_render_target(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node);
 		void bake_render_graphs();
 		void update_uniforms();
 		void cull_scene();
@@ -71,15 +76,7 @@ namespace nimble
 		void render_all_views();
 
 	private:
-		struct ScaledRenderTargetDesc
-		{
-			std::shared_ptr<Texture> rt;
-			float scale_w;
-			float scale_h;
-		};
-
-		std::vector<ScaledRenderTargetDesc> m_scale_rt_cache;
-		std::vector<std::shared_ptr<Texture>> m_rt_cache;
+		std::vector<RenderTargetDesc> m_rt_cache;
 		uint32_t m_window_width;
 		uint32_t m_window_height;
 

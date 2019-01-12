@@ -22,6 +22,8 @@ namespace nimble
 		std::shared_ptr<Texture> texture;
 
 		RenderTarget();
+
+		bool is_scaled();
 	};
 
 	struct RenderTargetView

@@ -279,21 +279,26 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool Renderer::is_aliasing_candidate(std::shared_ptr<RenderTarget>, uint32_t write_node, uint32_t read_node, const TextureLifetimes& tex_lifetimes)
+	bool Renderer::is_aliasing_candidate(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node, const RenderTargetDesc& rt_desc)
 	{
+		bool format = rt->internal_format == rt_desc.rt->texture->internal_format() && 
+					  rt->target == rt_desc.rt->texture->target() &&
+					  rt->scale_h == rt_desc.rt->scale_h &&
+					  rt->scale_w == rt_desc.rt->scale_w &&
+					  rt->w == rt_desc.rt->w &&
+					  rt->h == rt_desc.rt->h;
+
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void Renderer::create_texture_for_render_target(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node, TextureLifetimesList& tex_lifetimes_list)
+	void Renderer::create_texture_for_render_target(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node)
 	{
 		// Create new texture
 		std::shared_ptr<Texture> tex;
 
-		bool scaled = rt->scale_w > 0.0f && rt->scale_h > 0.0f;
-
-		if (scaled)
+		if (rt->is_scaled())
 		{
 			rt->w = uint32_t(rt->scale_w * float(m_window_width));
 			rt->h = uint32_t(rt->scale_h * float(m_window_height));
@@ -307,27 +312,14 @@ namespace nimble
 		// Assign it to the current output Render Target
 		rt->texture = tex;
 
-		if (scaled)
-		{
-			// Push it into the list of total Render Targets
-			m_scale_rt_cache.push_back({ tex, rt->scale_w, rt->scale_h });
-		}
-		else
-		{
-			// Push it into the list of total Render Targets
-			m_rt_cache.push_back(tex);
-		}
-
-		// Push it into the list of Texture-lifetime pairs
-		tex_lifetimes_list.push_back({ tex,{ { write_node, read_node } } });
+		// Push it into the list of total Render Targets
+		m_rt_cache.push_back({ rt, {{ write_node, read_node }} });
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	void Renderer::bake_render_graphs()
 	{
-		TextureLifetimesList textures;
-
 		uint32_t node_gid = 0;
 
 		for (uint32_t graph_idx = 0; graph_idx < m_registered_render_graphs.size(); graph_idx++)
@@ -349,20 +341,20 @@ namespace nimble
 					bool found_texture = false;
 
 					// Try to find an already created texture that does not have an overlapping lifetime
-					for (auto& pair : textures)
+					for (auto& desc : m_rt_cache)
 					{
 						// Check if current Texture is suitable to be aliased
-						if (is_aliasing_candidate(rt, current_node_id, last_node_id, pair))
+						if (is_aliasing_candidate(rt, current_node_id, last_node_id, desc))
 						{
 							found_texture = true;
 							// Add the new lifetime to the existing texture
-							pair.second.push_back({ current_node_id, last_node_id });
-							rt->texture = pair.first;
+							desc.lifetimes.push_back({ current_node_id, last_node_id });
+							rt->texture = desc.rt;
 						}
 					}
 
 					if (!found_texture)
-						create_texture_for_render_target(rt, current_node_id, last_node_id, textures);
+						create_texture_for_render_target(rt, current_node_id, last_node_id);
 				}
 
 				for (uint32_t rt_idx = 0; rt_idx < node->intermediate_render_target_count(); rt_idx++)
@@ -372,20 +364,20 @@ namespace nimble
 					bool found_texture = false;
 
 					// Try to find an already created texture that does not have an overlapping lifetime
-					for (auto& pair : textures)
+					for (auto& desc : m_rt_cache)
 					{
 						// Check if current Texture is suitable to be aliased
-						if (is_aliasing_candidate(rt, node_gid, node_gid, pair))
+						if (is_aliasing_candidate(rt, node_gid, node_gid, desc))
 						{
 							found_texture = true;
 							// Add the new lifetime to the existing texture
-							pair.second.push_back({ node_gid, node_gid });
-							rt->texture = pair.first;
+							desc.lifetimes.push_back({ node_gid, node_gid });
+							rt->texture = desc.rt;
 						}
 					}
 
 					if (!found_texture)
-						create_texture_for_render_target(rt, node_gid, node_gid, textures);
+						create_texture_for_render_target(rt, node_gid, node_gid);
 				}
 
 				node_gid++;

@@ -66,7 +66,9 @@ namespace nimble
         void set_mag_filter(GLenum filter);
 		void set_compare_mode(GLenum mode);
 		void set_compare_func(GLenum func);
-        
+
+		inline GLenum internal_format() { return m_internal_format; }
+
     protected:
 		GLuint m_gl_tex = UINT32_MAX;
 		GLenum m_target;

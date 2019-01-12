@@ -8,4 +8,9 @@ namespace nimble
 	{
 
 	}
+
+	bool RenderTarget::is_scaled()
+	{
+		return scale_w > 0.0f && scale_h > 0.0f;
+	}
 } // nimble
