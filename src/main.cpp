@@ -65,10 +65,10 @@ namespace nimble
 			// Create camera.
 			create_camera();
 
-			m_forward_graph = std::make_unique<ForwardRenderGraph>();
+			m_forward_graph = std::make_shared<ForwardRenderGraph>(m_renderer.get());
 
 			m_renderer->set_scene(m_scene);
-			m_renderer->set_scene_render_graph(m_forward_graph.get());
+			m_renderer->set_scene_render_graph(m_forward_graph);
 			m_renderer->on_window_resized(m_width, m_height);
 
 			return true;
@@ -253,7 +253,7 @@ namespace nimble
 
 		std::unique_ptr<Renderer> m_renderer;
 		std::shared_ptr<Scene> m_scene;
-		std::unique_ptr<ForwardRenderGraph> m_forward_graph;
+		std::shared_ptr<ForwardRenderGraph> m_forward_graph;
 	};
 }
 

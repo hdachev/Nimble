@@ -59,25 +59,25 @@ namespace nimble
 		m_point_light_shadow_maps.reset();
 
 		// Create shadow maps
-		m_directional_light_shadow_maps = GlobalGraphicsResources::request_general_render_target(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS);
-		m_spot_light_shadow_maps = GlobalGraphicsResources::request_general_render_target(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, MAX_SHADOW_CASTING_SPOT_LIGHTS);
-		m_point_light_shadow_maps = GlobalGraphicsResources::request_general_render_target(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, MAX_SHADOW_CASTING_POINT_LIGHTS);
+		//m_directional_light_shadow_maps = GlobalGraphicsResources::request_general_render_target(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS);
+		//m_spot_light_shadow_maps = GlobalGraphicsResources::request_general_render_target(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, MAX_SHADOW_CASTING_SPOT_LIGHTS);
+		//m_point_light_shadow_maps = GlobalGraphicsResources::request_general_render_target(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, MAX_SHADOW_CASTING_POINT_LIGHTS);
 
-		// Create shadow map Render Target Views
-		for (uint32_t i = 0; i < MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS; i++)
-		{
-			for (uint32_t j = 0; j < m_settings.cascade_count; j++)
-				m_directionl_light_rt_views.push_back({ 0, i * m_settings.cascade_count + j, 0, m_directional_light_shadow_maps.get() });
-		}
+		//// Create shadow map Render Target Views
+		//for (uint32_t i = 0; i < MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS; i++)
+		//{
+		//	for (uint32_t j = 0; j < m_settings.cascade_count; j++)
+		//		m_directionl_light_rt_views.push_back({ 0, i * m_settings.cascade_count + j, 0, m_directional_light_shadow_maps.get() });
+		//}
 
-		for (uint32_t i = 0; i < MAX_SHADOW_CASTING_SPOT_LIGHTS; i++)
-			m_spot_light_rt_views.push_back({ 0, i, 0, m_spot_light_shadow_maps.get() });
+		//for (uint32_t i = 0; i < MAX_SHADOW_CASTING_SPOT_LIGHTS; i++)
+		//	m_spot_light_rt_views.push_back({ 0, i, 0, m_spot_light_shadow_maps.get() });
 
-		for (uint32_t i = 0; i < MAX_SHADOW_CASTING_POINT_LIGHTS; i++)
-		{
-			for (uint32_t j = 0; j < 6; j++)
-				m_point_light_rt_views.push_back({ j, i, 0, m_point_light_shadow_maps.get() });
-		}
+		//for (uint32_t i = 0; i < MAX_SHADOW_CASTING_POINT_LIGHTS; i++)
+		//{
+		//	for (uint32_t j = 0; j < 6; j++)
+		//		m_point_light_rt_views.push_back({ j, i, 0, m_point_light_shadow_maps.get() });
+		//}
 
 		return true;
 	}
@@ -241,7 +241,10 @@ namespace nimble
 
 	void Renderer::on_window_resized(const uint32_t& w, const uint32_t& h)
 	{
-		GlobalGraphicsResources::initialize_render_targets(w, h);
+		m_window_width = w;
+		m_window_height = h;
+
+		bake_render_graphs();
 
 		if (m_scene_render_graph)
 			m_scene_render_graph->on_window_resized(w, h);
@@ -281,14 +284,32 @@ namespace nimble
 
 	bool Renderer::is_aliasing_candidate(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node, const RenderTargetDesc& rt_desc)
 	{
-		bool format = rt->internal_format == rt_desc.rt->texture->internal_format() && 
-					  rt->target == rt_desc.rt->texture->target() &&
-					  rt->scale_h == rt_desc.rt->scale_h &&
-					  rt->scale_w == rt_desc.rt->scale_w &&
-					  rt->w == rt_desc.rt->w &&
-					  rt->h == rt_desc.rt->h;
+		bool format_match = rt->internal_format == rt_desc.rt->texture->internal_format() && 
+							rt->target == rt_desc.rt->texture->target() &&
+							rt->scale_h == rt_desc.rt->scale_h &&
+							rt->scale_w == rt_desc.rt->scale_w &&
+							rt->w == rt_desc.rt->w &&
+							rt->h == rt_desc.rt->h;
 
+		if (!format_match)
+			return false;
 
+		for (auto& pair : rt_desc.lifetimes)
+		{
+			// Is this an intermediate texture?
+			if (write_node == read_node)
+			{
+				if (write_node == pair.first || write_node == pair.second)
+					return false;
+			}
+			else
+			{
+				if (write_node == pair.first || write_node == pair.second || read_node == pair.first || read_node == pair.second || (write_node > pair.first && read_node < pair.second))
+					return false;
+			}
+		}
+
+		return true;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -349,7 +370,7 @@ namespace nimble
 							found_texture = true;
 							// Add the new lifetime to the existing texture
 							desc.lifetimes.push_back({ current_node_id, last_node_id });
-							rt->texture = desc.rt;
+							rt->texture = desc.rt->texture;
 						}
 					}
 
@@ -372,7 +393,7 @@ namespace nimble
 							found_texture = true;
 							// Add the new lifetime to the existing texture
 							desc.lifetimes.push_back({ node_gid, node_gid });
-							rt->texture = desc.rt;
+							rt->texture = desc.rt->texture;
 						}
 					}
 

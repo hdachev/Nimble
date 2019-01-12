@@ -20,17 +20,6 @@ namespace nimble
 		// Cleanup all allocated resources.
 		static void shutdown();
 
-		// Render Target creation methods. Actual texture is created during initialize_render_targets().
-		static std::shared_ptr<RenderTarget> request_render_target(const uint32_t& graph_id, const uint32_t& node_id, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-
-		static std::shared_ptr<RenderTarget> request_general_render_target(const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-
-		// Scaled variant. Uses a normalized float value to represent the w/h ratio to the w/h of the window.
-		static std::shared_ptr<RenderTarget> request_scaled_render_target(const uint32_t& graph_id, const uint32_t& node_id, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-
-		// Actually creates the texture associated with the render target. Used during initialization and window resizes.
-		static void initialize_render_targets(const uint32_t& window_w, const uint32_t& window_h);
-
 		static Framebuffer* framebuffer_for_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView* depth_view);
 
 		static void bind_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView* depth_view);
@@ -51,9 +40,6 @@ namespace nimble
 		static void create_cube();
 
 	private:
-		// Resource maps.
-		static std::vector<std::weak_ptr<RenderTarget>> m_render_target_pool;
-
 		// Shader and Program cache.
 		static std::unordered_map<std::string, std::weak_ptr<Program>> m_program_cache;
 

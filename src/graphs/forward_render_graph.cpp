@@ -5,6 +5,13 @@ namespace nimble
 {
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	ForwardRenderGraph::ForwardRenderGraph(Renderer* renderer) : RenderGraph(renderer)
+	{
+
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	std::string ForwardRenderGraph::name()
 	{
 		return "Forward Render Graph";

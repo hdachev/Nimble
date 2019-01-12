@@ -7,7 +7,6 @@
 
 namespace nimble
 {
-	std::vector<std::weak_ptr<RenderTarget>> GlobalGraphicsResources::m_render_target_pool;
 	std::unordered_map<std::string, std::weak_ptr<Program>> GlobalGraphicsResources::m_program_cache;
 	StaticHashMap<uint64_t, Framebuffer*, 1024> GlobalGraphicsResources::m_fbo_cache;
 	std::shared_ptr<VertexArray>   GlobalGraphicsResources::m_cube_vao = nullptr;
@@ -63,184 +62,9 @@ namespace nimble
 			m_fbo_cache.remove(m_fbo_cache.m_key[i]);
 		}
 
-		// Delete render targets.
-		for (auto itr : m_render_target_pool)
-			itr.reset();
-
 		// Delete programs.
 		for (auto itr : m_program_cache)
 			itr.second.reset();
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	std::shared_ptr<RenderTarget> GlobalGraphicsResources::request_render_target(const uint32_t& graph_id, const uint32_t& node_id, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
-	{
-		std::shared_ptr<RenderTarget> rt = std::make_shared<RenderTarget>();
-
-		rt->graph_id = graph_id;
-		rt->node_id = node_id;
-		rt->last_dependent_node_id = node_id;
-		rt->expired = true;
-		rt->scaled = false;
-		rt->w = w;
-		rt->h = h;
-		rt->scale_w = 0.0f;
-		rt->scale_h = 0.0f;
-		rt->internal_format = internal_format;
-		rt->format = format;
-		rt->type = type;
-		rt->num_samples = num_samples;
-		rt->array_size = array_size;
-		rt->mip_levels = mip_levels;
-		rt->target = target;
-
-		m_render_target_pool.push_back(rt);
-
-		return rt;
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	std::shared_ptr<RenderTarget> GlobalGraphicsResources::request_general_render_target(const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
-	{
-		return request_render_target(UINT32_MAX, UINT32_MAX, w, h, target, internal_format, format, type, num_samples, array_size, mip_levels);
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	std::shared_ptr<RenderTarget> GlobalGraphicsResources::request_scaled_render_target(const uint32_t& graph_id, const uint32_t& node_id, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
-	{
-		std::shared_ptr<RenderTarget> rt = std::make_shared<RenderTarget>();
-
-		rt->graph_id = graph_id;
-		rt->node_id = node_id;
-		rt->last_dependent_node_id = node_id;
-		rt->expired = true;
-		rt->scaled = true;
-		rt->w = 0;
-		rt->h = 0;
-		rt->scale_w = w;
-		rt->scale_h = h;
-		rt->internal_format = internal_format;
-		rt->format = format;
-		rt->type = type;
-		rt->num_samples = num_samples;
-		rt->array_size = array_size;
-		rt->mip_levels = mip_levels;
-		rt->target = target;
-
-		m_render_target_pool.push_back(rt);
-
-		return rt;
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void GlobalGraphicsResources::initialize_render_targets(const uint32_t& window_w, const uint32_t& window_h)
-	{
-		// Clear all framebuffers
-		for (int i = 0; i < m_fbo_cache.size(); i++)
-		{
-			NIMBLE_SAFE_DELETE(m_fbo_cache.m_value[i]);
-			m_fbo_cache.remove(m_fbo_cache.m_key[i]);
-		}
-
-		// Clear all render targets
-		for (auto& rt : m_render_target_pool)
-		{
-			std::shared_ptr<RenderTarget> rt_ptr = rt.lock();
-
-			if (rt_ptr)
-			{
-				rt_ptr->expired = true;
-				rt_ptr->texture.reset();
-			}
-		}
-
-		for (uint32_t i = 0; i < m_render_target_pool.size(); i++)
-		{
-			auto& current = m_render_target_pool[i].lock();
-
-#if defined(REUSE_RENDER_TARGETS)
-			// Try to find existing Render Target Textures.
-			for (uint32_t j = 0; j < m_render_target_pool.size(); j++)
-			{
-				if (m_render_target_pool[j].expired() || i == j)
-					continue;
-				else
-				{
-					const auto& current_inner = m_render_target_pool[j].lock();
-					
-					if (current->scaled == current_inner->scaled &&
-						current->w == current_inner->w &&
-						current->h == current_inner->h &&
-						current->target == current_inner->target &&
-						current->internal_format == current_inner->internal_format &&
-						current->format == current_inner->format &&
-						current->type == current_inner->type &&
-						current->scale_w == current_inner->scale_w &&
-						current->scale_h == current_inner->scale_h &&
-						current->node_id != current_inner->node_id &&
-						!current_inner->expired)
-					{
-						if ((current->graph_id != current_inner->graph_id) || (current->graph_id == current_inner->graph_id && current->node_id > current_inner->last_dependent_node_id))
-						{
-							// If reused, make sure the depedencies don't overlap.
-							bool reused = false;
-
-							for (uint32_t k = 0; k < m_render_target_pool.size(); k++)
-							{
-								if (k == i || k == j)
-									continue;
-
-								const auto& rt = m_render_target_pool[k].lock();
-
-								if (rt && rt->texture->id() == current_inner->texture->id() && 
-									((rt->node_id > current->node_id && 
-									  rt->node_id < current->last_dependent_node_id) || 
-									 (rt->last_dependent_node_id > current->node_id && 
-									  rt->last_dependent_node_id < current->last_dependent_node_id) || 
-									  rt->node_id == current->node_id || 
-									  rt->node_id == current->last_dependent_node_id ||
-									  rt->last_dependent_node_id == current->node_id ||
-									  rt->last_dependent_node_id == current->last_dependent_node_id))
-								{
-									reused = true;
-									break;
-								}
-							}
-
-							if (!reused)
-							{
-								current->texture = current_inner->texture;
-								current->expired = false;
-
-								break;
-							}
-						}
-					}
-				}
-			}
-#endif
-
-			// Else, create new texture.
-			if (current->expired)
-			{
-				if (current->scaled)
-				{
-					current->w = uint32_t(current->scale_w * float(window_w));
-					current->h = uint32_t(current->scale_h * float(window_h));
-				}
-
-				if (current->target == GL_TEXTURE_2D)
-					current->texture = std::make_shared<Texture2D>(current->w, current->h, current->array_size, current->mip_levels, current->num_samples, current->internal_format, current->format, current->type);
-				else if (current->target == GL_TEXTURE_CUBE_MAP)
-					current->texture = std::make_shared<TextureCube>(current->w, current->h, current->array_size, current->mip_levels, current->internal_format, current->format, current->type);
-
-				current->expired = false;
-			}
-		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -256,7 +80,7 @@ namespace nimble
 				key.rt_keys[i].face = rt_views[i].face;
 				key.rt_keys[i].layer = rt_views[i].layer;
 				key.rt_keys[i].mip_level = rt_views[i].mip_level;
-				key.rt_keys[i].gl_id = rt_views[i].render_target->texture->id();
+				key.rt_keys[i].gl_id = rt_views[i].texture->id();
 			}
 		}
 		
@@ -265,7 +89,7 @@ namespace nimble
 			key.depth_key.face = depth_view->face;
 			key.depth_key.layer = depth_view->layer;
 			key.depth_key.mip_level = depth_view->mip_level;
-			key.depth_key.gl_id = depth_view->render_target->texture->id();;
+			key.depth_key.gl_id = depth_view->texture->id();;
 		}
 
 		uint64_t hash = murmur_hash_64(&key, sizeof(FramebufferKey), 5234);
@@ -280,17 +104,17 @@ namespace nimble
 			{
 				if (num_render_targets == 0)
 				{
-					if (rt_views[0].render_target->texture->target() == GL_TEXTURE_2D)
-						fbo->attach_render_target(0, rt_views[0].render_target->texture.get(), rt_views[0].layer, rt_views[0].mip_level);
-					else if (rt_views[0].render_target->texture->target() == GL_TEXTURE_CUBE_MAP)
-						fbo->attach_render_target(0, static_cast<TextureCube*>(rt_views[0].render_target->texture.get()), rt_views[0].face, rt_views[0].layer, rt_views[0].mip_level);
+					if (rt_views[0].texture->target() == GL_TEXTURE_2D)
+						fbo->attach_render_target(0, rt_views[0].texture.get(), rt_views[0].layer, rt_views[0].mip_level);
+					else if (rt_views[0].texture->target() == GL_TEXTURE_CUBE_MAP)
+						fbo->attach_render_target(0, static_cast<TextureCube*>(rt_views[0].texture.get()), rt_views[0].face, rt_views[0].layer, rt_views[0].mip_level);
 				}
 				else
 				{
 					Texture* textures[8];
 
 					for (int i = 0; i < num_render_targets; i++)
-						textures[i] = rt_views[i].render_target->texture.get();
+						textures[i] = rt_views[i].texture.get();
 
 					fbo->attach_multiple_render_targets(num_render_targets, textures);
 				}
@@ -299,10 +123,10 @@ namespace nimble
 
 			if (depth_view)
 			{
-				if (depth_view->render_target->texture->target() == GL_TEXTURE_2D)
-					fbo->attach_depth_stencil_target(depth_view->render_target->texture.get(), depth_view->layer, depth_view->mip_level);
-				else if (depth_view->render_target->texture->target() == GL_TEXTURE_CUBE_MAP)
-					fbo->attach_depth_stencil_target(static_cast<TextureCube*>(depth_view->render_target->texture.get()), depth_view->face, depth_view->layer, depth_view->mip_level);
+				if (depth_view->texture->target() == GL_TEXTURE_2D)
+					fbo->attach_depth_stencil_target(depth_view->texture.get(), depth_view->layer, depth_view->mip_level);
+				else if (depth_view->texture->target() == GL_TEXTURE_CUBE_MAP)
+					fbo->attach_depth_stencil_target(static_cast<TextureCube*>(depth_view->texture.get()), depth_view->face, depth_view->layer, depth_view->mip_level);
 			}
 
 			m_fbo_cache.set(hash, fbo);

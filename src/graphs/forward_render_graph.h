@@ -7,6 +7,7 @@ namespace nimble
 	class ForwardRenderGraph : public RenderGraph
 	{
 	public:
+		ForwardRenderGraph(Renderer* renderer);
 		std::string name() override;
 		bool build() override;
 		void refresh() override;
