@@ -41,7 +41,7 @@ struct PackedArray
     
 	~PackedArray()
 	{
-		for (unsigned i = 0; i < N; ++i)
+		for (unsigned i = 0; i < _num_objects; ++i)
 			_objects[i].~T();
 	}
 

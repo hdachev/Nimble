@@ -124,15 +124,14 @@ void main()
 	vec3 diffuse = irradiance * m.albedo.xyz;
 
 	// Sample prefilter map and BRDF LUT
-	vec3 prefilteredColor = textureLod(s_PrefilteredMap, pbr.R, m.roughness * kMaxLOD).rgb;
-	vec2 brdf = texture(s_BRDF, vec2(max(pbr.NdotV, 0.0), m.roughness)).rg;
-	vec3 specular = prefilteredColor * (pbr.F * brdf.x + brdf.y);
+	// vec3 prefilteredColor = textureLod(s_PrefilteredMap, pbr.R, m.roughness * kMaxLOD).rgb;
+	// vec2 brdf = texture(s_BRDF, vec2(max(pbr.NdotV, 0.0), m.roughness)).rg;
+	// vec3 specular = prefilteredColor * (pbr.F * brdf.x + brdf.y);
 
-	vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
-	vec3 color = Lo + ambient;
+	// vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
+	vec3 color = Lo;// + ambient;
 
-	PS_OUT_Color = m.albedo.xyz;
-    // PS_OUT_Color = color;
+    PS_OUT_Color = color;
 	// PS_OUT_Velocity = motion_vector(PS_IN_LastScreenPosition, PS_IN_ScreenPosition);
 }
 

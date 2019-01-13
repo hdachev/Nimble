@@ -58,6 +58,8 @@ namespace nimble
 			else
 				m_scene = scene;
 
+			m_scene->create_directional_light(glm::vec3(90.0f, 0.0f, 0.0f), glm::vec3(1.0f), 10.0f, false);
+
 			// Create camera.
 			create_camera();
 

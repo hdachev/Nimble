@@ -39,12 +39,12 @@ layout (std140) uniform u_PerEntity
 
 layout(std430, binding = 2) buffer u_PerScene
 {
-	int			   		 point_light_count;
-	int		      		 spot_light_count;
-	int		    		 directional_light_count;
 	PointLightData 		 point_lights[MAX_POINT_LIGHTS];
 	SpotLightData 		 spot_lights[MAX_SPOT_LIGHTS];
 	DirectionalLightData directional_lights[MAX_DIRECTIONAL_LIGHTS];
+	int			   		 point_light_count;
+	int		      		 spot_light_count;
+	int		    		 directional_light_count;
 };
 
 // ------------------------------------------------------------------

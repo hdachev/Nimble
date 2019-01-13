@@ -63,7 +63,7 @@ vec3 pbr_directional_lights(in MaterialProperties m, in FragmentProperties f,  i
 
 #ifdef DIRECTIONAL_LIGHTS
 
-	for (int i = 0; i < point_light_count; i++)
+	for (int i = 0; i < directional_light_count; i++)
 	{
 		vec3 L = normalize(-directional_lights[i].direction.xyz); // FragPos -> LightPos vector
 		vec3 H = normalize(pbr.V + L);
