@@ -143,6 +143,9 @@ namespace nimble
 			m_fbo_cache.remove(m_fbo_cache.m_key[i]);
 		}
 
+		// Clean up Shader Cache
+		m_shader_cache.shutdown();
+
 		// Delete programs.
 		for (auto itr : m_program_cache)
 			itr.second.reset();

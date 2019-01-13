@@ -11,6 +11,7 @@
 #include "uniforms.h"
 #include "render_target.h"
 #include "static_hash_map.h"
+#include "shader_cache.h"
 
 namespace nimble
 {
@@ -58,6 +59,7 @@ namespace nimble
 		void bind_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView* depth_view);
 
 		// Inline getters
+		inline ShaderCache& shader_cache() { return m_shader_cache; }
 		inline std::shared_ptr<Scene> scene() { return m_scene; }
 		inline Settings settings() { return m_settings; }
 		inline std::shared_ptr<RenderGraph> scene_render_graph() { return m_scene_render_graph; }
@@ -90,6 +92,7 @@ namespace nimble
 
 	private:
 		// Resource caches
+		ShaderCache m_shader_cache;
 		StaticHashMap<uint64_t, Framebuffer*, 1024> m_fbo_cache;
 		std::unordered_map<std::string, std::weak_ptr<Program>> m_program_cache;
 		std::vector<RenderTargetDesc> m_rt_cache;

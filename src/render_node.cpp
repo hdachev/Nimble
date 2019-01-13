@@ -3,7 +3,6 @@
 #include "profiler.h"
 #include "view.h"
 #include "scene.h"
-#include "shader_cache.h"
 #include "shader_library.h"
 #include "logger.h"
 #include "renderer.h"
@@ -354,7 +353,7 @@ namespace nimble
 	bool SceneRenderNode::initialize_internal()
 	{
 		bool status = RenderNode::initialize_internal();
-		m_library = ShaderCache::load_library(vs_template_path(), fs_template_path());
+		m_library = m_graph->renderer()->shader_cache().load_library(vs_template_path(), fs_template_path());
 
 		return status && m_library != nullptr;
 	}

@@ -167,7 +167,6 @@ namespace nimble
 
 		m_renderer.shutdown();
 		m_resource_manager.shutdown();
-		ShaderCache::shutdown();
         
 		// Shutdown debug draw.
 		m_debug_draw.shutdown();

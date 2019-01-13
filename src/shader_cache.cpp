@@ -3,8 +3,6 @@
 
 namespace nimble
 {
-	std::unordered_map<std::string, std::weak_ptr<ShaderLibrary>> ShaderCache::m_library_cache;
-
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	void ShaderCache::shutdown()
