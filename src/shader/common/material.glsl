@@ -25,8 +25,12 @@ vec4 get_albedo(vec2 tex_coord)
 {
 #ifdef TEXTURE_ALBEDO
 	return texture(s_Albedo, tex_coord);
-#elif UNIFORM_ALBEDO
+#else
+#ifdef UNIFORM_ALBEDO
 	return u_Albedo;
+#else
+	return vec4(1.0);
+#endif
 #endif
 }
 
@@ -53,8 +57,12 @@ float get_roughness(vec2 tex_coord)
 	#else
 		return texture(s_RoughSmooth, tex_coord).x;
 	#endif
-#elif UNIFORM_METAL_SPEC
-	return s_MetalSpec.y;
+#else 
+#ifdef UNIFORM_METAL_SPEC
+	return u_MetalRough.y;
+#else
+	return 0.0;
+#endif
 #endif
 }
 
@@ -64,8 +72,12 @@ float get_metallic(vec2 tex_coord)
 {
 #ifdef TEXTURE_METAL_SPEC
 	return texture(s_MetalSpec, tex_coord).x;
-#elif UNIFORM_METAL_SPEC
-	return s_MetalSpec.x;
+#else
+#ifdef UNIFORM_METAL_SPEC
+	return u_MetalRough.x;
+#else
+	return 0.0;
+#endif
 #endif
 }
 

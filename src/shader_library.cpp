@@ -269,14 +269,22 @@ namespace nimble
 		}
 
 		Shader* shaders[] = { vs, fs };
-		Program* program = new Program(2, shaders);
 
-		program->uniform_block_binding("u_PerView", 0);
-		program->uniform_block_binding("u_PerEntity", 1);
+		if (vs->compiled() && fs->compiled())
+		{
+			Program* program = new Program(2, shaders);
 
-		m_program_cache.set(program_key.key, program);
 
-		return program;
+
+			program->uniform_block_binding("u_PerView", 0);
+			program->uniform_block_binding("u_PerEntity", 1);
+
+			m_program_cache.set(program_key.key, program);
+
+			return program;
+		}
+		else
+			return false;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
