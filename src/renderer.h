@@ -53,9 +53,9 @@ namespace nimble
 		inline std::shared_ptr<Scene> scene() { return m_scene; }
 		inline Settings settings() { return m_settings; }
 		inline std::shared_ptr<RenderGraph> scene_render_graph() { return m_scene_render_graph; }
-		inline RenderTarget* directional_light_shadow_maps() { return m_directional_light_shadow_maps.get(); }
-		inline RenderTarget* spot_light_shadow_maps() { return m_spot_light_shadow_maps.get(); }
-		inline RenderTarget* point_light_shadow_maps() { return m_point_light_shadow_maps.get(); }
+		inline std::shared_ptr<Texture> directional_light_shadow_maps() { return m_directional_light_shadow_maps; }
+		inline std::shared_ptr<Texture> spot_light_shadow_maps() { return m_spot_light_shadow_maps; }
+		inline std::shared_ptr<Texture> point_light_shadow_maps() { return m_point_light_shadow_maps; }
 
 	private:
 		using TextureLifetimes = std::vector<std::pair<uint32_t, uint32_t>>;
@@ -93,9 +93,9 @@ namespace nimble
 		PerSceneUniforms m_per_scene_uniforms;
 
 		// Shadow Maps
-		std::shared_ptr<RenderTarget> m_directional_light_shadow_maps;
-		std::shared_ptr<RenderTarget> m_spot_light_shadow_maps;
-		std::shared_ptr<RenderTarget> m_point_light_shadow_maps;
+		std::shared_ptr<Texture> m_directional_light_shadow_maps;
+		std::shared_ptr<Texture> m_spot_light_shadow_maps;
+		std::shared_ptr<Texture> m_point_light_shadow_maps;
 		std::vector<RenderTargetView> m_directionl_light_rt_views;
 		std::vector<RenderTargetView> m_point_light_rt_views;
 		std::vector<RenderTargetView> m_spot_light_rt_views;

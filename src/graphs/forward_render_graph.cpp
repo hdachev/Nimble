@@ -23,7 +23,7 @@ namespace nimble
 	{
 		std::shared_ptr<ForwardRenderNode> forward_node = std::make_shared<ForwardRenderNode>(this);
 
-		return attach_and_initialize_node(forward_node);;
+		return attach_and_initialize_node(forward_node);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

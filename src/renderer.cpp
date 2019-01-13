@@ -62,25 +62,25 @@ namespace nimble
 		m_point_light_shadow_maps.reset();
 
 		// Create shadow maps
-		//m_directional_light_shadow_maps = GlobalGraphicsResources::request_general_render_target(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS);
-		//m_spot_light_shadow_maps = GlobalGraphicsResources::request_general_render_target(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, MAX_SHADOW_CASTING_SPOT_LIGHTS);
-		//m_point_light_shadow_maps = GlobalGraphicsResources::request_general_render_target(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, MAX_SHADOW_CASTING_POINT_LIGHTS);
+		m_directional_light_shadow_maps = std::make_shared<Texture2D>(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+		m_spot_light_shadow_maps = std::make_shared<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_SPOT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+		m_point_light_shadow_maps = std::make_shared<TextureCube>(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_POINT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
 
-		//// Create shadow map Render Target Views
-		//for (uint32_t i = 0; i < MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS; i++)
-		//{
-		//	for (uint32_t j = 0; j < m_settings.cascade_count; j++)
-		//		m_directionl_light_rt_views.push_back({ 0, i * m_settings.cascade_count + j, 0, m_directional_light_shadow_maps.get() });
-		//}
+		// Create shadow map Render Target Views
+		for (uint32_t i = 0; i < MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS; i++)
+		{
+			for (uint32_t j = 0; j < m_settings.cascade_count; j++)
+				m_directionl_light_rt_views.push_back({ 0, i * m_settings.cascade_count + j, 0, m_directional_light_shadow_maps });
+		}
 
-		//for (uint32_t i = 0; i < MAX_SHADOW_CASTING_SPOT_LIGHTS; i++)
-		//	m_spot_light_rt_views.push_back({ 0, i, 0, m_spot_light_shadow_maps.get() });
+		for (uint32_t i = 0; i < MAX_SHADOW_CASTING_SPOT_LIGHTS; i++)
+			m_spot_light_rt_views.push_back({ 0, i, 0, m_spot_light_shadow_maps });
 
-		//for (uint32_t i = 0; i < MAX_SHADOW_CASTING_POINT_LIGHTS; i++)
-		//{
-		//	for (uint32_t j = 0; j < 6; j++)
-		//		m_point_light_rt_views.push_back({ j, i, 0, m_point_light_shadow_maps.get() });
-		//}
+		for (uint32_t i = 0; i < MAX_SHADOW_CASTING_POINT_LIGHTS; i++)
+		{
+			for (uint32_t j = 0; j < 6; j++)
+				m_point_light_rt_views.push_back({ j, i, 0, m_point_light_shadow_maps });
+		}
 
 		bake_render_graphs();
 
