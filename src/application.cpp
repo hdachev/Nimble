@@ -3,8 +3,6 @@
 #include "utility.h"
 #include "resource_manager.h"
 #include "shader_cache.h"
-#include "global_graphics_resources.h"
-
 #include <iostream>
 
 namespace nimble
@@ -146,7 +144,7 @@ namespace nimble
         if(!init(argc, argv))
             return false;
 
-		GlobalGraphicsResources::initialize();
+		m_renderer.initialize(m_width, m_height);
         
         return true;
     }
@@ -167,8 +165,8 @@ namespace nimble
 		// Execute user-side shutdown method.
         shutdown();
 
-		GlobalGraphicsResources::shutdown();
-		ResourceManager::shutdown();
+		m_renderer.shutdown();
+		m_resource_manager.shutdown();
 		ShaderCache::shutdown();
         
 		// Shutdown debug draw.

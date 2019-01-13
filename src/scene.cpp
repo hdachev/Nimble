@@ -4,7 +4,6 @@
 #include "material.h"
 #include "macros.h"
 #include "utility.h"
-#include "global_graphics_resources.h"
 
 namespace nimble
 {

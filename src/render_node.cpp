@@ -6,6 +6,7 @@
 #include "shader_cache.h"
 #include "shader_library.h"
 #include "logger.h"
+#include "renderer.h"
 
 namespace nimble
 {
@@ -381,7 +382,7 @@ namespace nimble
 	void SceneRenderNode::render_scene(const Params& params)
 	{
 		if (params.rt_views || params.depth_views)
-			GlobalGraphicsResources::bind_render_targets(params.num_rt_views, params.rt_views, params.depth_views);
+			m_graph->renderer()->bind_render_targets(params.num_rt_views, params.rt_views, params.depth_views);
 		else
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -421,10 +422,10 @@ namespace nimble
 
 			// Bind buffers
 			if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
-				GlobalGraphicsResources::per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->m_id, sizeof(PerViewUniforms));
+				m_graph->renderer()->per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->m_id, sizeof(PerViewUniforms));
 
 			if (HAS_BIT_FLAG(flags(), NODE_USAGE_POINT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_SPOT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_DIRECTIONAL_LIGHTS))
-				GlobalGraphicsResources::per_scene_ssbo()->bind_base(2);
+				m_graph->renderer()->per_scene_ssbo()->bind_base(2);
 
 			for (uint32_t i = 0; i < scene->entity_count(); i++)
 			{
@@ -470,7 +471,7 @@ namespace nimble
 							s.material->bind(program, tex_unit);
 
 							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_OBJECT_UBO))
-								GlobalGraphicsResources::per_entity_ubo()->bind_range(1, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));
+								m_graph->renderer()->per_entity_ubo()->bind_range(1, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));
 
 							glDrawElementsBaseVertex(GL_TRIANGLES, s.index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * s.base_index), s.base_vertex);
 
@@ -608,7 +609,7 @@ namespace nimble
 	void FullscreenRenderNode::render_triangle(const Params& params)
 	{
 		if (params.rt_views)
-			GlobalGraphicsResources::bind_render_targets(params.num_rt_views, params.rt_views, nullptr);
+			m_graph->renderer()->bind_render_targets(params.num_rt_views, params.rt_views, nullptr);
 		else
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -635,7 +636,7 @@ namespace nimble
 			glClear(params.clear_flags);
 		}
 
-		GlobalGraphicsResources::per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->m_id, sizeof(PerViewUniforms));
+		m_graph->renderer()->per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->m_id, sizeof(PerViewUniforms));
 
 		// Render fullscreen triangle
 		glDrawArrays(GL_TRIANGLES, 0, 3);

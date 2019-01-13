@@ -13,6 +13,8 @@
 #include "imgui.h"
 #include "logger.h"
 #include "timer.h"
+#include "renderer.h"
+#include "resource_manager.h"
 
 // Main method macro. Use this at the bottom of any cpp file.
 #define NIMBLE_DECLARE_MAIN(class_name) \
@@ -111,6 +113,8 @@ namespace nimble
         GLFWwindow*                         m_window;
         Timer                               m_timer;
 		DebugDraw							m_debug_draw;
+		ResourceManager						m_resource_manager;
+		Renderer							m_renderer;
     };
 }
 

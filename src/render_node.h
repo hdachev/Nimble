@@ -3,8 +3,8 @@
 #include <functional>
 
 #include "render_target.h"
-#include "global_graphics_resources.h"
 #include "view.h"
+#include "macros.h"
 
 namespace nimble
 {

@@ -6,7 +6,6 @@
 #include "utility.h"
 #include "imgui.h"
 #include "entity.h"
-#include "global_graphics_resources.h"
 #include "constants.h"
 #include "profiler.h"
 #include "render_graph.h"
@@ -42,6 +41,20 @@ namespace nimble
 		2048
 	};
 
+	struct RenderTargetKey
+	{
+		uint32_t face = UINT32_MAX;
+		uint32_t layer = UINT32_MAX;
+		uint32_t mip_level = UINT32_MAX;
+		uint32_t gl_id = UINT32_MAX;
+	};
+
+	struct FramebufferKey
+	{
+		RenderTargetKey rt_keys[8];
+		RenderTargetKey depth_key;
+	};
+
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	Renderer::Renderer(Settings settings) : m_settings(settings) {}
@@ -62,9 +75,9 @@ namespace nimble
 		m_point_light_shadow_maps.reset();
 
 		// Create shadow maps
-		m_directional_light_shadow_maps = std::make_shared<Texture2D>(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
-		m_spot_light_shadow_maps = std::make_shared<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_SPOT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
-		m_point_light_shadow_maps = std::make_shared<TextureCube>(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_POINT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+		m_directional_light_shadow_maps = std::make_shared<Texture2D>(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
+		m_spot_light_shadow_maps = std::make_shared<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_SPOT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
+		m_point_light_shadow_maps = std::make_shared<TextureCube>(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_POINT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
 
 		// Create shadow map Render Target Views
 		for (uint32_t i = 0; i < MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS; i++)
@@ -81,6 +94,13 @@ namespace nimble
 			for (uint32_t j = 0; j < 6; j++)
 				m_point_light_rt_views.push_back({ j, i, 0, m_point_light_shadow_maps });
 		}
+
+		// Common resources
+		m_per_view = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, MAX_VIEWS * sizeof(PerViewUniforms));
+		m_per_entity = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, MAX_ENTITIES * sizeof(PerEntityUniforms));
+		m_per_scene = std::make_unique<ShaderStorageBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
+
+		create_cube();
 
 		bake_render_graphs();
 
@@ -112,6 +132,25 @@ namespace nimble
 
 	void Renderer::shutdown()
 	{
+		// Delete common geometry VBO's and VAO's.
+		m_cube_vao.reset();
+		m_cube_vbo.reset();
+
+		// Delete framebuffer
+		for (int i = 0; i < m_fbo_cache.size(); i++)
+		{
+			NIMBLE_SAFE_DELETE(m_fbo_cache.m_value[i]);
+			m_fbo_cache.remove(m_fbo_cache.m_key[i]);
+		}
+
+		// Delete programs.
+		for (auto itr : m_program_cache)
+			itr.second.reset();
+
+		m_per_view.reset();
+		m_per_entity.reset();
+		m_per_scene.reset();
+
 		m_directional_light_shadow_maps.reset();
 		m_spot_light_shadow_maps.reset();
 		m_point_light_shadow_maps.reset();
@@ -264,6 +303,218 @@ namespace nimble
 
 		if (m_scene_render_graph)
 			m_scene_render_graph->on_window_resized(w, h);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	std::shared_ptr<Program> Renderer::create_program(const std::shared_ptr<Shader>& vs, const std::shared_ptr<Shader>& fs)
+	{
+		std::string id = std::to_string(vs->id()) + "-";
+		id += std::to_string(fs->id());
+
+		if (m_program_cache.find(id) != m_program_cache.end() && m_program_cache[id].lock())
+			return m_program_cache[id].lock();
+		else
+		{
+			Shader* shaders[] = { vs.get(), fs.get() };
+
+			std::shared_ptr<Program> program = std::make_shared<Program>(2, shaders);
+
+			if (!program)
+			{
+				NIMBLE_LOG_ERROR("Program failed to link!");
+				return nullptr;
+			}
+
+			m_program_cache[id] = program;
+
+			program->uniform_block_binding("u_PerView", 0);
+			program->uniform_block_binding("u_PerScene", 1);
+			program->uniform_block_binding("u_PerEntity", 2);
+
+			return program;
+		}
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	std::shared_ptr<Program> Renderer::create_program(const std::vector<std::shared_ptr<Shader>>& shaders)
+	{
+		std::vector<Shader*> shaders_raw;
+		std::string id = "";
+
+		for (const auto& shader : shaders)
+		{
+			shaders_raw.push_back(shader.get());
+			id += std::to_string(shader->id());
+			id += "-";
+		}
+
+		if (m_program_cache.find(id) != m_program_cache.end() && m_program_cache[id].lock())
+			return m_program_cache[id].lock();
+		else
+		{
+			std::shared_ptr<Program> program = std::make_shared<Program>(shaders_raw.size(), shaders_raw.data());
+
+			if (!program)
+			{
+				NIMBLE_LOG_ERROR("Program failed to link!");
+				return nullptr;
+			}
+
+			m_program_cache[id] = program;
+
+			program->uniform_block_binding("u_PerView", 0);
+			program->uniform_block_binding("u_PerScene", 1);
+			program->uniform_block_binding("u_PerEntity", 2);
+
+			return program;
+		}
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	Framebuffer* Renderer::framebuffer_for_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView* depth_view)
+	{
+		FramebufferKey key;
+
+		if (rt_views)
+		{
+			for (int i = 0; i < num_render_targets; i++)
+			{
+				key.rt_keys[i].face = rt_views[i].face;
+				key.rt_keys[i].layer = rt_views[i].layer;
+				key.rt_keys[i].mip_level = rt_views[i].mip_level;
+				key.rt_keys[i].gl_id = rt_views[i].texture->id();
+			}
+		}
+
+		if (depth_view)
+		{
+			key.depth_key.face = depth_view->face;
+			key.depth_key.layer = depth_view->layer;
+			key.depth_key.mip_level = depth_view->mip_level;
+			key.depth_key.gl_id = depth_view->texture->id();;
+		}
+
+		uint64_t hash = murmur_hash_64(&key, sizeof(FramebufferKey), 5234);
+
+		Framebuffer* fbo = nullptr;
+
+		if (!m_fbo_cache.get(hash, fbo))
+		{
+			fbo = new Framebuffer();
+
+			if (rt_views)
+			{
+				if (num_render_targets == 0)
+				{
+					if (rt_views[0].texture->target() == GL_TEXTURE_2D)
+						fbo->attach_render_target(0, rt_views[0].texture.get(), rt_views[0].layer, rt_views[0].mip_level);
+					else if (rt_views[0].texture->target() == GL_TEXTURE_CUBE_MAP)
+						fbo->attach_render_target(0, static_cast<TextureCube*>(rt_views[0].texture.get()), rt_views[0].face, rt_views[0].layer, rt_views[0].mip_level);
+				}
+				else
+				{
+					Texture* textures[8];
+
+					for (int i = 0; i < num_render_targets; i++)
+						textures[i] = rt_views[i].texture.get();
+
+					fbo->attach_multiple_render_targets(num_render_targets, textures);
+				}
+
+			}
+
+			if (depth_view)
+			{
+				if (depth_view->texture->target() == GL_TEXTURE_2D)
+					fbo->attach_depth_stencil_target(depth_view->texture.get(), depth_view->layer, depth_view->mip_level);
+				else if (depth_view->texture->target() == GL_TEXTURE_CUBE_MAP)
+					fbo->attach_depth_stencil_target(static_cast<TextureCube*>(depth_view->texture.get()), depth_view->face, depth_view->layer, depth_view->mip_level);
+			}
+
+			m_fbo_cache.set(hash, fbo);
+		}
+
+		return fbo;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Renderer::bind_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView* depth_view)
+	{
+		Framebuffer* fbo = framebuffer_for_render_targets(num_render_targets, rt_views, depth_view);
+
+		if (fbo)
+			fbo->bind();
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Renderer::create_cube()
+	{
+		float cube_vertices[] =
+		{
+			// back face
+			-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+			1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+			1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
+			1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+			-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+			-1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
+			// front face
+			-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+			1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
+			1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+			1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+			-1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
+			-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+			// left face
+			-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+			-1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
+			-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+			-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+			-1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+			-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+			// right face
+			1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+			1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+			1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
+			1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+			1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+			1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
+			// bottom face
+			-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+			1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
+			1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+			1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+			-1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+			-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+			// top face
+			-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+			1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+			1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
+			1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+			-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+			-1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
+		};
+
+		m_cube_vbo = std::make_shared<VertexBuffer>(GL_STATIC_DRAW, sizeof(cube_vertices), (void*)cube_vertices);
+
+		VertexAttrib attribs[] =
+		{
+			{ 3,GL_FLOAT, false, 0, },
+		{ 3,GL_FLOAT, false, sizeof(float) * 3 },
+		{ 2,GL_FLOAT, false, sizeof(float) * 6 }
+		};
+
+		m_cube_vao = std::make_shared<VertexArray>(m_cube_vbo.get(), nullptr, sizeof(float) * 8, 3, attribs);
+
+		if (!m_cube_vbo || !m_cube_vao)
+		{
+			NIMBLE_LOG_FATAL("Failed to create Vertex Buffers/Arrays");
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -440,9 +691,9 @@ namespace nimble
 				m_per_entity_uniforms[i].world_pos = glm::vec4(entity.transform.position, 0.0f);
 			}
 
-			void* ptr = GlobalGraphicsResources::per_entity_ubo()->map(GL_WRITE_ONLY);
+			void* ptr = m_per_entity->map(GL_WRITE_ONLY);
 			memcpy(ptr, &m_per_entity_uniforms[0], sizeof(PerEntityUniforms) * m_scene->entity_count());
-			GlobalGraphicsResources::per_entity_ubo()->unmap();
+			m_per_entity->unmap();
 
 			// Update per view uniforms
 			for (uint32_t i = 0; i < m_num_active_views; i++)
@@ -459,9 +710,9 @@ namespace nimble
 				m_per_view_uniforms[i].view_pos = glm::vec4(view.m_position, 0.0f);
 			}
 
-			ptr = GlobalGraphicsResources::per_view_ubo()->map(GL_WRITE_ONLY);
+			ptr = m_per_view->map(GL_WRITE_ONLY);
 			memcpy(ptr, &m_per_view_uniforms[0], sizeof(PerViewUniforms) * m_num_active_views);
-			GlobalGraphicsResources::per_view_ubo()->unmap();
+			m_per_view->unmap();
 
 			// Update per scene uniforms
 			DirectionalLight* dir_lights = m_scene->directional_lights();
@@ -504,9 +755,9 @@ namespace nimble
 				m_per_scene_uniforms.point_lights[light_idx].casts_shadow = light.casts_shadow ? 1 : 0;
 			}
 
-			ptr = GlobalGraphicsResources::per_scene_ssbo()->map(GL_WRITE_ONLY);
+			ptr = m_per_scene->map(GL_WRITE_ONLY);
 			memcpy(ptr, &m_per_scene_uniforms, sizeof(PerSceneUniforms));
-			GlobalGraphicsResources::per_scene_ssbo()->unmap();
+			m_per_scene->unmap();
 		}
 	}
 

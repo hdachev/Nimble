@@ -11,14 +11,6 @@
 
 namespace nimble
 {
-	std::unordered_map<std::string, std::weak_ptr<Texture>>  ResourceManager::m_texture_cache;
-	std::unordered_map<std::string, std::weak_ptr<Material>> ResourceManager::m_material_cache;
-	std::unordered_map<std::string, std::weak_ptr<Mesh>>	 ResourceManager::m_mesh_cache;
-	std::unordered_map<std::string, std::weak_ptr<Scene>>	 ResourceManager::m_scene_cache;
-	std::unordered_map<std::string, std::weak_ptr<Shader>>	 ResourceManager::m_shader_cache;
-	std::unordered_map<std::string, uint32_t>				 ResourceManager::m_vertex_func_id_map;
-	std::unordered_map<std::string, uint32_t>				 ResourceManager::m_fragment_func_id_map;
-
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	static uint32_t g_vertex_func_id_counter = 0;

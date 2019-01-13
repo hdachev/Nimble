@@ -10,6 +10,7 @@
 #include "view.h"
 #include "uniforms.h"
 #include "render_target.h"
+#include "static_hash_map.h"
 
 namespace nimble
 {
@@ -49,6 +50,13 @@ namespace nimble
 		void clear_all_views();
 		void on_window_resized(const uint32_t& w, const uint32_t& h);
 
+		// Shader program caching.
+		std::shared_ptr<Program> create_program(const std::shared_ptr<Shader>& vs, const std::shared_ptr<Shader>& fs);
+		std::shared_ptr<Program> create_program(const std::vector<std::shared_ptr<Shader>>& shaders);
+
+		Framebuffer* framebuffer_for_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView* depth_view);
+		void bind_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView* depth_view);
+
 		// Inline getters
 		inline std::shared_ptr<Scene> scene() { return m_scene; }
 		inline Settings settings() { return m_settings; }
@@ -56,6 +64,10 @@ namespace nimble
 		inline std::shared_ptr<Texture> directional_light_shadow_maps() { return m_directional_light_shadow_maps; }
 		inline std::shared_ptr<Texture> spot_light_shadow_maps() { return m_spot_light_shadow_maps; }
 		inline std::shared_ptr<Texture> point_light_shadow_maps() { return m_point_light_shadow_maps; }
+		inline UniformBuffer* per_view_ubo() { return m_per_view.get(); }
+		inline UniformBuffer* per_entity_ubo() { return m_per_entity.get(); }
+		inline ShaderStorageBuffer* per_scene_ssbo() { return m_per_scene.get(); }
+		inline std::shared_ptr<VertexArray> cube_vao() { return m_cube_vao; }
 
 	private:
 		using TextureLifetimes = std::vector<std::pair<uint32_t, uint32_t>>;
@@ -66,6 +78,7 @@ namespace nimble
 			TextureLifetimes lifetimes;
 		};
 
+		void create_cube();
 		int32_t find_render_target_last_usage(std::shared_ptr<RenderTarget> rt);
 		bool is_aliasing_candidate(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node, const RenderTargetDesc& rt_desc);
 		void create_texture_for_render_target(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node);
@@ -76,6 +89,9 @@ namespace nimble
 		void render_all_views();
 
 	private:
+		// Resource caches
+		StaticHashMap<uint64_t, Framebuffer*, 1024> m_fbo_cache;
+		std::unordered_map<std::string, std::weak_ptr<Program>> m_program_cache;
 		std::vector<RenderTargetDesc> m_rt_cache;
 		uint32_t m_window_width;
 		uint32_t m_window_height;
@@ -92,6 +108,11 @@ namespace nimble
 		std::array<PerEntityUniforms, MAX_ENTITIES> m_per_entity_uniforms;
 		PerSceneUniforms m_per_scene_uniforms;
 
+		// Uniform buffers
+		std::unique_ptr<UniformBuffer> m_per_view;
+		std::unique_ptr<UniformBuffer> m_per_entity;
+		std::unique_ptr<ShaderStorageBuffer> m_per_scene;
+
 		// Shadow Maps
 		std::shared_ptr<Texture> m_directional_light_shadow_maps;
 		std::shared_ptr<Texture> m_spot_light_shadow_maps;
@@ -100,5 +121,9 @@ namespace nimble
 		std::vector<RenderTargetView> m_point_light_rt_views;
 		std::vector<RenderTargetView> m_spot_light_rt_views;
 		Settings m_settings;
+
+		// Common geometry.
+		std::shared_ptr<VertexArray>   m_cube_vao;
+		std::shared_ptr<VertexBuffer>  m_cube_vbo;
 	};
 }

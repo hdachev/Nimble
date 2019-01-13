@@ -11,8 +11,6 @@
 #include "debug_draw.h"
 #include "imgui_helpers.h"
 #include "external/nfd/nfd.h"
-#include "resource_manager.h"
-#include "renderer.h"
 #include "graphs/forward_render_graph.h"
 #include "profiler.h"
 
@@ -27,10 +25,8 @@ namespace nimble
 
 		bool init(int argc, const char* argv[]) override
 		{
-			m_renderer = std::make_unique<Renderer>();
-
 			// Attempt to load startup scene.
-			std::shared_ptr<Scene> scene = ResourceManager::load_scene("scene/startup.json");
+			std::shared_ptr<Scene> scene = m_resource_manager.load_scene("scene/startup.json");
 
 			// If failed, prompt user to select scene to be loaded.
 			if (!scene)
@@ -40,7 +36,7 @@ namespace nimble
 
 				if (result == NFD_OKAY)
 				{
-					scene = ResourceManager::load_scene(scene_path);
+					scene = m_resource_manager.load_scene(scene_path);
 					free(scene_path);
 				}
 				else if (result == NFD_CANCEL)
@@ -65,15 +61,11 @@ namespace nimble
 			// Create camera.
 			create_camera();
 
-			m_forward_graph = std::make_shared<ForwardRenderGraph>(m_renderer.get());
+			m_forward_graph = std::make_shared<ForwardRenderGraph>(&m_renderer);
 
-			m_renderer->register_render_graph(m_forward_graph);
-
-			m_renderer->initialize(m_width, m_height);
-
-			m_renderer->set_scene(m_scene);
-			m_renderer->set_scene_render_graph(m_forward_graph);
-			m_renderer->on_window_resized(m_width, m_height);
+			m_renderer.register_render_graph(m_forward_graph);
+			m_renderer.set_scene(m_scene);
+			m_renderer.set_scene_render_graph(m_forward_graph);
 
 			return true;
 		}
@@ -89,7 +81,7 @@ namespace nimble
 
 			m_scene->update();
 
-			m_renderer->render();
+			m_renderer.render();
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -97,7 +89,6 @@ namespace nimble
 		void shutdown() override
 		{
 			m_forward_graph.reset();
-			m_renderer.reset();
 			m_scene.reset();
 		}
 
@@ -125,7 +116,7 @@ namespace nimble
 			// Override window resized method to update camera projection.
 			m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
 
-			m_renderer->on_window_resized(width, height);
+			m_renderer.on_window_resized(width, height);
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -255,7 +246,6 @@ namespace nimble
 		float m_camera_sensitivity = 0.05f;
 		float m_camera_speed = 0.1f;
 
-		std::unique_ptr<Renderer> m_renderer;
 		std::shared_ptr<Scene> m_scene;
 		std::shared_ptr<ForwardRenderGraph> m_forward_graph;
 	};

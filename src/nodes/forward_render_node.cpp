@@ -1,6 +1,5 @@
 #include "forward_render_node.h"
 #include "../render_graph.h"
-#include "../global_graphics_resources.h"
 
 namespace nimble
 {
