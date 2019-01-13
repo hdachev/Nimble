@@ -414,14 +414,14 @@ namespace nimble
 			glClear(params.clear_flags);
 		}
 
-		if (params.view->m_scene)
+		if (params.view->scene)
 		{
-			Scene* scene = params.view->m_scene;
+			Scene* scene = params.view->scene;
 			Entity* entities = scene->entities();
 
 			// Bind buffers
 			if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
-				m_graph->renderer()->per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->m_id, sizeof(PerViewUniforms));
+				m_graph->renderer()->per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->id, sizeof(PerViewUniforms));
 
 			if (HAS_BIT_FLAG(flags(), NODE_USAGE_POINT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_SPOT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_DIRECTIONAL_LIGHTS))
 				m_graph->renderer()->per_scene_ssbo()->bind_base(2);
@@ -430,7 +430,7 @@ namespace nimble
 			{
 				Entity& e = entities[i];
 
-				if (!params.view->m_culling || (params.view->m_culling && e.visibility(params.view->m_id)))
+				if (!params.view->culling || (params.view->culling && e.visibility(params.view->id)))
 				{
 					// Bind mesh VAO
 					e.mesh->bind();
@@ -442,7 +442,7 @@ namespace nimble
 						int32_t tex_unit = 0;
 
 #ifdef ENABLE_SUBMESH_CULLING
-						if (!params.view->m_culling || (params.view->m_culling && e.submesh_visibility(j, params.view->m_id)))
+						if (!params.view->culling || (params.view->culling && e.submesh_visibility(j, params.view->id)))
 						{
 #endif
 							ProgramKey& key = s.material->program_key();
@@ -635,7 +635,7 @@ namespace nimble
 			glClear(params.clear_flags);
 		}
 
-		m_graph->renderer()->per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->m_id, sizeof(PerViewUniforms));
+		m_graph->renderer()->per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->id, sizeof(PerViewUniforms));
 
 		// Render fullscreen triangle
 		glDrawArrays(GL_TRIANGLES, 0, 3);

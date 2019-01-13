@@ -16,7 +16,7 @@
 
 namespace nimble
 {
-	#define CAMERA_FAR_PLANE 1000.0f
+	#define CAMERA_FAR_PLANE 10000.0f
 
 	class Nimble : public Application
 	{
@@ -58,7 +58,7 @@ namespace nimble
 			else
 				m_scene = scene;
 
-			m_scene->create_directional_light(glm::vec3(90.0f, 0.0f, 0.0f), glm::vec3(1.0f), 10.0f, false);
+			m_scene->create_point_light(glm::vec3(0.0f, 100.0f, 0.0f), glm::vec3(1.0f), 2000.0f, 10.0f, false);
 
 			// Create camera.
 			create_camera();
@@ -183,6 +183,7 @@ namespace nimble
 			m_scene->camera()->m_width = m_width;
 			m_scene->camera()->m_height = m_height;
 			m_scene->camera()->m_half_pixel_jitter = false;
+			m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------

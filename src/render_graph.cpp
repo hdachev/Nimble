@@ -7,7 +7,7 @@ namespace nimble
 
 	RenderGraph::RenderGraph(Renderer* renderer) : m_renderer(renderer)
 	{
-
+		
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

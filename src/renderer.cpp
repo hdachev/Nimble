@@ -106,6 +106,8 @@ namespace nimble
 
 		for (auto& current_graph : m_registered_render_graphs)
 		{
+			current_graph->on_window_resized(m_window_width, m_window_height);
+
 			if (!current_graph->initialize())
 				return false;
 		}
@@ -209,7 +211,7 @@ namespace nimble
 			uint32_t idx = m_num_active_views++;
 
 			Frustum frustum;
-			frustum_from_matrix(frustum, view.m_vp_mat);
+			frustum_from_matrix(frustum, view.vp_mat);
 
 			m_active_views[idx] = view;
 			m_active_frustums[idx] = frustum;
@@ -235,21 +237,21 @@ namespace nimble
 					{
 						View light_view;
 
-						light_view.m_enabled = true;
-						light_view.m_culling = true;
-						light_view.m_direction = light.transform.forward();
-						light_view.m_position = light.transform.position;
-						light_view.m_view_mat = glm::mat4(1.0f); // @TODO
-						light_view.m_projection_mat = glm::mat4(1.0f); // @TODO
-						light_view.m_vp_mat = glm::mat4(1.0f); // @TODO
-						light_view.m_prev_vp_mat = glm::mat4(1.0f); // @TODO
-						light_view.m_inv_view_mat = glm::mat4(1.0f); // @TODO
-						light_view.m_inv_projection_mat = glm::mat4(1.0f); // @TODO
-						light_view.m_inv_vp_mat = glm::mat4(1.0f); // @TODO
-						light_view.m_jitter = glm::vec4(0.0);
-						light_view.m_dest_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
-						light_view.m_graph = m_shadow_map_render_graph;
-						light_view.m_scene = m_scene.get();
+						light_view.enabled = true;
+						light_view.culling = true;
+						light_view.direction = light.transform.forward();
+						light_view.position = light.transform.position;
+						light_view.view_mat = glm::mat4(1.0f); // @TODO
+						light_view.projection_mat = glm::mat4(1.0f); // @TODO
+						light_view.vp_mat = glm::mat4(1.0f); // @TODO
+						light_view.prev_vp_mat = glm::mat4(1.0f); // @TODO
+						light_view.inv_view_mat = glm::mat4(1.0f); // @TODO
+						light_view.inv_projection_mat = glm::mat4(1.0f); // @TODO
+						light_view.inv_vp_mat = glm::mat4(1.0f); // @TODO
+						light_view.jitter = glm::vec4(0.0);
+						light_view.dest_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
+						light_view.graph = m_shadow_map_render_graph;
+						light_view.scene = m_scene.get();
 
 						queue_view(light_view);
 					}
@@ -268,14 +270,93 @@ namespace nimble
 
 	void Renderer::push_spot_light_views()
 	{
+		if (m_scene)
+		{
+			uint32_t shadow_casting_light_idx = 0;
+			SpotLight* lights = m_scene->spot_lights();
 
+			for (uint32_t light_idx = 0; light_idx < m_scene->spot_light_count(); light_idx++)
+			{
+				SpotLight& light = lights[light_idx];
+
+				if (light.casts_shadow)
+				{
+					View light_view;
+
+					light_view.enabled = true;
+					light_view.culling = true;
+					light_view.direction = light.transform.forward();
+					light_view.position = light.transform.position;
+					light_view.view_mat = glm::mat4(1.0f); // @TODO
+					light_view.projection_mat = glm::mat4(1.0f); // @TODO
+					light_view.vp_mat = glm::mat4(1.0f); // @TODO
+					light_view.prev_vp_mat = glm::mat4(1.0f); // @TODO
+					light_view.inv_view_mat = glm::mat4(1.0f); // @TODO
+					light_view.inv_projection_mat = glm::mat4(1.0f); // @TODO
+					light_view.inv_vp_mat = glm::mat4(1.0f); // @TODO
+					light_view.jitter = glm::vec4(0.0);
+					light_view.dest_render_target_view = &m_spot_light_rt_views[shadow_casting_light_idx];
+					light_view.graph = m_shadow_map_render_graph;
+					light_view.scene = m_scene.get();
+
+					queue_view(light_view);
+
+					shadow_casting_light_idx++;
+				}
+
+				// Stop adding views if max number of shadow casting lights is already queued.
+				if (shadow_casting_light_idx == (MAX_SHADOW_CASTING_SPOT_LIGHTS - 1))
+					break;
+			}
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	void Renderer::push_point_light_views()
 	{
+		if (m_scene)
+		{
+			uint32_t shadow_casting_light_idx = 0;
+			PointLight* lights = m_scene->point_lights();
 
+			for (uint32_t light_idx = 0; light_idx < m_scene->point_light_count(); light_idx++)
+			{
+				PointLight& light = lights[light_idx];
+
+				if (light.casts_shadow)
+				{
+					for (uint32_t face_idx = 0; face_idx < 6; face_idx++)
+					{
+						View light_view;
+
+						light_view.enabled = true;
+						light_view.culling = true;
+						light_view.direction = light.transform.forward();
+						light_view.position = light.transform.position;
+						light_view.view_mat = glm::mat4(1.0f); // @TODO
+						light_view.projection_mat = glm::mat4(1.0f); // @TODO
+						light_view.vp_mat = glm::mat4(1.0f); // @TODO
+						light_view.prev_vp_mat = glm::mat4(1.0f); // @TODO
+						light_view.inv_view_mat = glm::mat4(1.0f); // @TODO
+						light_view.inv_projection_mat = glm::mat4(1.0f); // @TODO
+						light_view.inv_vp_mat = glm::mat4(1.0f); // @TODO
+						light_view.jitter = glm::vec4(0.0);
+						light_view.dest_render_target_view = &m_point_light_rt_views[shadow_casting_light_idx * light_idx + face_idx];
+						light_view.graph = m_shadow_map_render_graph;
+						light_view.scene = m_scene.get();
+
+						queue_view(light_view);
+					}
+
+					shadow_casting_light_idx++;
+				}
+
+				// Stop adding views if max number of shadow casting lights is already queued.
+				if (shadow_casting_light_idx == (MAX_SHADOW_CASTING_POINT_LIGHTS - 1))
+					break;
+			}
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -703,14 +784,14 @@ namespace nimble
 			{
 				View& view = m_active_views[i];
 
-				m_per_view_uniforms[i].view_mat = view.m_view_mat;
-				m_per_view_uniforms[i].proj_mat = view.m_projection_mat;
-				m_per_view_uniforms[i].view_proj= view.m_vp_mat;
-				m_per_view_uniforms[i].last_view_proj = view.m_prev_vp_mat;
-				m_per_view_uniforms[i].inv_proj = view.m_inv_projection_mat;
-				m_per_view_uniforms[i].inv_view = view.m_inv_view_mat;
-				m_per_view_uniforms[i].inv_view_proj = view.m_inv_vp_mat;
-				m_per_view_uniforms[i].view_pos = glm::vec4(view.m_position, 0.0f);
+				m_per_view_uniforms[i].view_mat = view.view_mat;
+				m_per_view_uniforms[i].proj_mat = view.projection_mat;
+				m_per_view_uniforms[i].view_proj= view.vp_mat;
+				m_per_view_uniforms[i].last_view_proj = view.prev_vp_mat;
+				m_per_view_uniforms[i].inv_proj = view.inv_projection_mat;
+				m_per_view_uniforms[i].inv_view = view.inv_view_mat;
+				m_per_view_uniforms[i].inv_view_proj = view.inv_vp_mat;
+				m_per_view_uniforms[i].view_pos = glm::vec4(view.position, 0.0f);
 			}
 
 			ptr = m_per_view->map(GL_WRITE_ONLY);
@@ -783,7 +864,7 @@ namespace nimble
 				
 				for (uint32_t j = 0; j < m_num_active_views; j++)
 				{
-					if (m_active_views[j].m_culling)
+					if (m_active_views[j].culling)
 					{
 						if (intersects(m_active_frustums[j], entity.obb))
 						{
@@ -826,21 +907,21 @@ namespace nimble
 			auto camera = m_scene->camera();
 			View scene_view;
 
-			scene_view.m_enabled = true;
-			scene_view.m_culling = true;
-			scene_view.m_direction = camera->m_forward;
-			scene_view.m_position = camera->m_position;
-			scene_view.m_view_mat = camera->m_view;
-			scene_view.m_projection_mat = camera->m_projection;
-			scene_view.m_vp_mat = camera->m_view_projection;
-			scene_view.m_prev_vp_mat = camera->m_prev_view_projection;
-			scene_view.m_inv_view_mat = glm::inverse(camera->m_view);
-			scene_view.m_inv_projection_mat = glm::inverse(camera->m_projection);
-			scene_view.m_inv_vp_mat = glm::inverse(camera->m_view_projection);
-			scene_view.m_jitter = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
-			scene_view.m_dest_render_target_view = nullptr;
-			scene_view.m_graph = m_scene_render_graph;
-			scene_view.m_scene = m_scene.get();
+			scene_view.enabled = true;
+			scene_view.culling = true;
+			scene_view.direction = camera->m_forward;
+			scene_view.position = camera->m_position;
+			scene_view.view_mat = camera->m_view;
+			scene_view.projection_mat = camera->m_projection;
+			scene_view.vp_mat = camera->m_view_projection;
+			scene_view.prev_vp_mat = camera->m_prev_view_projection;
+			scene_view.inv_view_mat = glm::inverse(camera->m_view);
+			scene_view.inv_projection_mat = glm::inverse(camera->m_projection);
+			scene_view.inv_vp_mat = glm::inverse(camera->m_view_projection);
+			scene_view.jitter = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
+			scene_view.dest_render_target_view = nullptr;
+			scene_view.graph = m_scene_render_graph;
+			scene_view.scene = m_scene.get();
 
 			// @TODO: Create shadow views for scene views
 
@@ -857,12 +938,12 @@ namespace nimble
 		{
 			View& view = m_active_views[i];
 
-			if (view.m_enabled)
+			if (view.enabled)
 			{
-				view.m_id = i;
+				view.id = i;
 
-				if (view.m_graph)
-					view.m_graph->execute(view);
+				if (view.graph)
+					view.graph->execute(view);
 				else
 					NIMBLE_LOG_ERROR("Render Graph not assigned for View!");
 			}

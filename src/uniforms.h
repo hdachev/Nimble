@@ -10,7 +10,7 @@ namespace nimble
 	{
 		NIMBLE_ALIGNED(16) glm::vec4 position_range;
 		NIMBLE_ALIGNED(16) glm::vec4 color_intensity;
-		NIMBLE_ALIGNED(16) int32_t	  casts_shadow;
+		NIMBLE_ALIGNED(16) int32_t	 casts_shadow;
 	};
 
 	struct SpotLightData
@@ -18,14 +18,14 @@ namespace nimble
 		NIMBLE_ALIGNED(16) glm::vec4 position_cone_angle;
 		NIMBLE_ALIGNED(16) glm::vec4 direction_range;
 		NIMBLE_ALIGNED(16) glm::vec4 color_intensity;
-		NIMBLE_ALIGNED(16) int32_t	  casts_shadow;
+		NIMBLE_ALIGNED(16) int32_t	 casts_shadow;
 	};
 
 	struct DirectionalLightData
 	{
 		NIMBLE_ALIGNED(16) glm::vec4 direction;
 		NIMBLE_ALIGNED(16) glm::vec4 color_intensity;
-		NIMBLE_ALIGNED(16) int32_t	  casts_shadow;
+		NIMBLE_ALIGNED(16) int32_t	 casts_shadow;
 	};
 
 	struct ShadowFrustum
