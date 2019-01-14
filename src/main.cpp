@@ -13,6 +13,7 @@
 #include "external/nfd/nfd.h"
 #include "graphs/forward_render_graph.h"
 #include "profiler.h"
+#include <random>
 
 namespace nimble
 {
@@ -58,7 +59,9 @@ namespace nimble
 			else
 				m_scene = scene;
 
-			m_scene->create_point_light(glm::vec3(0.0f, 100.0f, 0.0f), glm::vec3(1.0f), 2000.0f, 10.0f, false);
+			//m_scene->create_point_light(glm::vec3(0.0f, 100.0f, 0.0f), glm::vec3(1.0f), 2000.0f, 10.0f, false);
+
+			create_random_point_lights();
 
 			// Create camera.
 			create_camera();
@@ -184,6 +187,33 @@ namespace nimble
 			m_scene->camera()->m_height = m_height;
 			m_scene->camera()->m_half_pixel_jitter = false;
 			m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
+		}
+
+		// -----------------------------------------------------------------------------------------------------------------------------------
+
+		void create_random_point_lights()
+		{
+			AABB aabb = m_scene->aabb();
+
+			std::random_device rd;
+			std::mt19937 gen(rd());
+
+			std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+			std::uniform_real_distribution<float> dis_x(aabb.min.x, aabb.max.x);
+			std::uniform_real_distribution<float> dis_y(aabb.min.y, aabb.max.y);
+			std::uniform_real_distribution<float> dis_z(aabb.min.z, aabb.max.z);
+
+			const float range = 300.0f;
+			const float intensity = 10.0f;
+			const uint32_t num_lights = 100;
+
+			for (int n = 0; n < num_lights; n++)
+			{
+				glm::vec3 position = glm::vec3(dis_x(rd), dis_y(rd), dis_z(rd));
+				glm::vec3 color = glm::vec3(dis(rd), dis(rd), dis(rd));
+
+				m_scene->create_point_light(position, color, range, intensity, false);
+			}
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------

@@ -47,6 +47,8 @@ namespace nimble
 		void destroy_entity(const Entity::ID& id);
 		void destroy_entity(const std::string& name);
 
+		AABB aabb();
+
 		// Probe manipulation methods.
 		ReflectionProbe::ID create_reflection_probe(const glm::vec3& position, const glm::vec3& extents);
 		ReflectionProbe& lookup_reflection_probe(const ReflectionProbe::ID& id);

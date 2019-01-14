@@ -96,6 +96,37 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	AABB Scene::aabb()
+	{
+		AABB out = { glm::vec3(FLT_MAX), glm::vec3(-FLT_MAX) };
+
+		for (uint32_t i = 0; i < m_entities.size(); i++)
+		{
+			AABB b = m_entities._objects[i].mesh->aabb();
+
+			glm::vec4 min = m_entities._objects[i].transform.model * glm::vec4(b.min, 0.0f);
+			glm::vec4 max = m_entities._objects[i].transform.model * glm::vec4(b.max, 0.0f);
+
+			if (min.x < out.min.x)
+				out.min.x = min.x;
+			if (min.y < out.min.y)
+				out.min.y = min.y;
+			if (min.z < out.min.z)
+				out.min.z = min.z;
+
+			if (max.x > out.max.x)
+				out.max.x = max.x;
+			if (max.y > out.max.y)
+				out.max.y = max.y;
+			if (max.z > out.max.z)
+				out.max.z = max.z;
+		}
+
+		return out;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	ReflectionProbe::ID Scene::create_reflection_probe(const glm::vec3& position, const glm::vec3& extents)
 	{
 		ReflectionProbe::ID id = m_reflection_probes.add();
