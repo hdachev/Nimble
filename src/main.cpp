@@ -61,7 +61,8 @@ namespace nimble
 
 			//m_scene->create_point_light(glm::vec3(0.0f, 100.0f, 0.0f), glm::vec3(1.0f), 2000.0f, 10.0f, false);
 
-			create_random_point_lights();
+			m_scene->create_spot_light(glm::vec3(0.0f), glm::vec3(90.0f, 0.0f, 0.0f), glm::vec3(1.0f), 60.0f, 1000.0f, 10.0f);
+			//create_random_point_lights();
 
 			// Create camera.
 			create_camera();
@@ -195,17 +196,18 @@ namespace nimble
 		{
 			AABB aabb = m_scene->aabb();
 
+			const float range = 300.0f;
+			const float intensity = 10.0f;
+			const uint32_t num_lights = 100;
+			const float aabb_scale = 0.6f;
+
 			std::random_device rd;
 			std::mt19937 gen(rd());
 
 			std::uniform_real_distribution<float> dis(0.0f, 1.0f);
-			std::uniform_real_distribution<float> dis_x(aabb.min.x, aabb.max.x);
-			std::uniform_real_distribution<float> dis_y(aabb.min.y, aabb.max.y);
-			std::uniform_real_distribution<float> dis_z(aabb.min.z, aabb.max.z);
-
-			const float range = 300.0f;
-			const float intensity = 10.0f;
-			const uint32_t num_lights = 100;
+			std::uniform_real_distribution<float> dis_x(aabb.min.x * aabb_scale, aabb.max.x * aabb_scale);
+			std::uniform_real_distribution<float> dis_y(aabb.min.y * aabb_scale, aabb.max.y * aabb_scale);
+			std::uniform_real_distribution<float> dis_z(aabb.min.z * aabb_scale, aabb.max.z * aabb_scale);
 
 			for (int n = 0; n < num_lights; n++)
 			{

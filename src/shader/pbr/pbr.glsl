@@ -179,6 +179,49 @@ vec3 pbr_spot_lights(in MaterialProperties m, in FragmentProperties f,  in PBRPr
 
 #ifdef SPOT_LIGHTS
 
+	for (int i = 0; i < spot_light_count; i++)
+	{
+		vec3 L = normalize(spot_lights[i].position_cone_angle.xyz - f.Position); // FragPos -> LightPos vector
+		vec3 H = normalize(pbr.V + L);
+		float HdotV = clamp(dot(H, pbr.V), 0.0, 1.0);
+		float NdotH = max(dot(pbr.N, H), 0.0);
+		float NdotL = max(dot(pbr.N, L), 0.0);
+
+		// Shadows ------------------------------------------------------------------
+		float frag_depth = f.FragDepth;
+
+#ifdef SHADOW_MAPPING
+		float shadow = point_light_shadows();
+#else
+		float shadow = 1.0;
+#endif
+
+		// Radiance -----------------------------------------------------------------
+		float theta = dot(L, normalize(-pot_lights[i].direction_range.xyz));
+		float distance = length(spot_lights[i].position_cone_angle.xyz - f.Position);
+		float attenuation = smoothstep(spot_lights[i].direction_range.w, 0, distance) * smoothstep(position_cone_angle.w, 0.0, theta);
+		vec3 Li = spot_lights[i].color_intensity.xyz * spot_lights[i].color_intensity.w * attenuation;
+		// --------------------------------------------------------------------------
+
+		// Specular Term ------------------------------------------------------------
+		float D = distribution_trowbridge_reitz_ggx(NdotH, m.roughness);
+		float G = geometry_smith(pbr.NdotV, NdotL, m.roughness);
+
+		vec3 numerator = D * G * pbr.F;
+		float denominator = 4.0 * pbr.NdotV * NdotL; 
+
+		vec3 specular = numerator / max(denominator, 0.001);
+		// --------------------------------------------------------------------------
+
+		// Diffuse Term -------------------------------------------------------------
+		vec3 diffuse = m.albedo.xyz / kPI;
+		// --------------------------------------------------------------------------
+
+		// Combination --------------------------------------------------------------
+		Lo += shadow * (pbr.kD * m.albedo.xyz / kPI + specular) * Li * NdotL;
+		// --------------------------------------------------------------------------
+	}
+
 #endif
 
 	return Lo;

@@ -822,7 +822,7 @@ namespace nimble
 
 				m_per_scene_uniforms.spot_lights[light_idx].direction_range = glm::vec4(light.transform.forward(), light.range);
 				m_per_scene_uniforms.spot_lights[light_idx].color_intensity = glm::vec4(light.color, light.intensity);
-				m_per_scene_uniforms.spot_lights[light_idx].position_cone_angle = glm::vec4(light.transform.position, light.cone_angle);
+				m_per_scene_uniforms.spot_lights[light_idx].position_cone_angle = glm::vec4(light.transform.position, cosf(glm::radians(light.cone_angle)));
 				m_per_scene_uniforms.spot_lights[light_idx].casts_shadow = light.casts_shadow ? 1 : 0;
 			}
 
