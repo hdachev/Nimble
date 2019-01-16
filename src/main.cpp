@@ -59,8 +59,6 @@ namespace nimble
 			else
 				m_scene = scene;
 
-			//m_scene->create_point_light(glm::vec3(0.0f, 100.0f, 0.0f), glm::vec3(1.0f), 2000.0f, 10.0f, false);
-
 			m_scene->create_spot_light(glm::vec3(0.0f, 100.0f, 0.0f), glm::vec3(90.0f, 0.0f, 0.0f), glm::vec3(1.0f), 45.0f, 1000.0f, 10.0f);
 			//create_random_point_lights();
 
