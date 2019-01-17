@@ -59,8 +59,9 @@ namespace nimble
 			else
 				m_scene = scene;
 
-			m_scene->create_spot_light(glm::vec3(0.0f, 100.0f, 0.0f), glm::vec3(90.0f, 0.0f, 0.0f), glm::vec3(1.0f), 45.0f, 1000.0f, 10.0f);
+			m_scene->create_directional_light(glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), 10.0f);
 			//create_random_point_lights();
+			//create_random_spot_lights();
 
 			// Create camera.
 			create_camera();
@@ -190,6 +191,31 @@ namespace nimble
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
 
+		void create_random_spot_lights()
+		{
+			AABB aabb = m_scene->aabb();
+
+			const float range = 300.0f;
+			const float intensity = 10.0f;
+			const uint32_t num_lights = 10;
+			const float aabb_scale = 0.6f;
+
+			std::random_device rd;
+			std::mt19937 gen(rd());
+
+			std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+			std::uniform_real_distribution<float> dis_x(aabb.min.x * aabb_scale, aabb.max.x * aabb_scale);
+			std::uniform_real_distribution<float> dis_y(aabb.min.y * aabb_scale, aabb.max.y * aabb_scale);
+			std::uniform_real_distribution<float> dis_z(aabb.min.z * aabb_scale, aabb.max.z * aabb_scale);
+			std::uniform_real_distribution<float> dis_pitch(0.0f, 180.0f);
+			std::uniform_real_distribution<float> dis_yaw(0.0f, 360.0f);
+
+			for (int n = 0; n < num_lights; n++)
+				m_scene->create_spot_light(glm::vec3(dis_x(rd), dis_y(rd), dis_z(rd)), glm::vec3(dis_pitch(rd), dis_yaw(rd), 0.0f), glm::vec3(dis(rd), dis(rd), dis(rd)), 45.0f, 1000.0f, 10.0f);
+		}
+
+		// -----------------------------------------------------------------------------------------------------------------------------------
+
 		void create_random_point_lights()
 		{
 			AABB aabb = m_scene->aabb();
@@ -208,12 +234,7 @@ namespace nimble
 			std::uniform_real_distribution<float> dis_z(aabb.min.z * aabb_scale, aabb.max.z * aabb_scale);
 
 			for (int n = 0; n < num_lights; n++)
-			{
-				glm::vec3 position = glm::vec3(dis_x(rd), dis_y(rd), dis_z(rd));
-				glm::vec3 color = glm::vec3(dis(rd), dis(rd), dis(rd));
-
-				m_scene->create_point_light(position, color, range, intensity, false);
-			}
+				m_scene->create_point_light(glm::vec3(dis_x(rd), dis_y(rd), dis_z(rd)), glm::vec3(dis(rd), dis(rd), dis(rd)), range, intensity, false);
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
