@@ -243,18 +243,71 @@ namespace nimble
 		{
 			float cpu_time = 0.0f;
 			float gpu_time = 0.0f;
-
-			Profiler::cpu_result(PROFILER_FRUSTUM_CULLING, cpu_time);
-
-			ImGui::Text("Frustum Culling: %f(CPU), 0.0(GPU)", cpu_time);
-
-			for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
+			
+			if (ImGui::CollapsingHeader("Profiler"))
 			{
-				std::shared_ptr<RenderNode> node = m_forward_graph->node(i);
+				Profiler::cpu_result(PROFILER_FRUSTUM_CULLING, cpu_time);
 
-				node->timing_total(cpu_time, gpu_time);
+				ImGui::Text("Frustum Culling: %f(CPU), 0.0(GPU)", cpu_time);
 
-				ImGui::Text("%s: %f(CPU), %f(GPU)", node->name().c_str(), cpu_time, gpu_time);
+				for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
+				{
+					std::shared_ptr<RenderNode> node = m_forward_graph->node(i);
+
+					node->timing_total(cpu_time, gpu_time);
+
+					ImGui::Text("%s: %f(CPU), %f(GPU)", node->name().c_str(), cpu_time, gpu_time);
+				}
+			}
+
+			if (ImGui::CollapsingHeader("Entities"))
+			{
+				Entity* entities = m_scene->entities();
+
+				for (uint32_t i = 0; i < m_scene->entity_count(); i++)
+				{
+					if (ImGui::Selectable(entities[i].name.c_str(), m_selected_entity == entities[i].id))
+						m_selected_entity = entities[i].id;
+				}
+			}
+
+			if (ImGui::CollapsingHeader("Point Lights"))
+			{
+				PointLight* lights = m_scene->point_lights();
+
+				for (uint32_t i = 0; i < m_scene->point_light_count(); i++)
+				{
+					std::string name = std::to_string(i);
+
+					if (ImGui::Selectable(name.c_str(), m_selected_point_light == lights[i].id))
+						m_selected_point_light = lights[i].id;
+				}
+			}
+	
+			if (ImGui::CollapsingHeader("Spot Lights"))
+			{
+				SpotLight* lights = m_scene->spot_lights();
+
+				for (uint32_t i = 0; i < m_scene->spot_light_count(); i++)
+				{
+					std::string name = std::to_string(i);
+
+					if (ImGui::Selectable(name.c_str(), m_selected_spot_light == lights[i].id))
+						m_selected_spot_light = lights[i].id;
+				}
+			}
+		
+			if (ImGui::CollapsingHeader("Directional Lights"))
+			{
+				DirectionalLight* lights = m_scene->directional_lights();
+
+				for (uint32_t i = 0; i < m_scene->directional_light_count(); i++)
+				{
+					std::string name = std::to_string(i);
+
+					if (ImGui::Selectable(name.c_str(), m_selected_dir_light == lights[i].id))
+						m_selected_dir_light = lights[i].id;
+				}
 			}
 		}
 
@@ -302,6 +355,11 @@ namespace nimble
 
 		std::shared_ptr<Scene> m_scene;
 		std::shared_ptr<ForwardRenderGraph> m_forward_graph;
+
+		Entity::ID m_selected_entity = UINT32_MAX;
+		PointLight::ID m_selected_point_light = UINT32_MAX;
+		SpotLight::ID m_selected_spot_light = UINT32_MAX;
+		DirectionalLight::ID m_selected_dir_light = UINT32_MAX;
 	};
 }
 
