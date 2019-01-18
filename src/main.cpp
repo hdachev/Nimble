@@ -277,11 +277,30 @@ namespace nimble
 
 				for (uint32_t i = 0; i < m_scene->point_light_count(); i++)
 				{
-					std::string name = std::to_string(i);
+					std::string name = std::to_string(lights[i].id);
 
 					if (ImGui::Selectable(name.c_str(), m_selected_point_light == lights[i].id))
 						m_selected_point_light = lights[i].id;
 				}
+
+				ImGui::Separator();
+
+				ImGui::PushID(1);
+				if (ImGui::Button("Create"))
+					m_scene->create_point_light(glm::vec3(0.0f),  glm::vec3(1.0f), 100.0f, 1.0f);
+
+				if (m_selected_point_light != UINT32_MAX)
+				{
+					ImGui::SameLine();
+
+					if (ImGui::Button("Remove"))
+					{
+						m_scene->destroy_point_light(m_selected_point_light);
+						m_selected_point_light = UINT32_MAX;
+					}
+				}
+
+				ImGui::PopID();
 			}
 	
 			if (ImGui::CollapsingHeader("Spot Lights"))
@@ -290,11 +309,30 @@ namespace nimble
 
 				for (uint32_t i = 0; i < m_scene->spot_light_count(); i++)
 				{
-					std::string name = std::to_string(i);
+					std::string name = std::to_string(lights[i].id);
 
 					if (ImGui::Selectable(name.c_str(), m_selected_spot_light == lights[i].id))
 						m_selected_spot_light = lights[i].id;
 				}
+
+				ImGui::Separator();
+
+				ImGui::PushID(2);
+				if (ImGui::Button("Create"))
+					m_scene->create_spot_light(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 45.0f, 100.0f, 1.0f);
+
+				if (m_selected_spot_light != UINT32_MAX)
+				{
+					ImGui::SameLine();
+
+					if (ImGui::Button("Remove"))
+					{
+						m_scene->destroy_spot_light(m_selected_spot_light);
+						m_selected_spot_light = UINT32_MAX;
+					}
+				}
+
+				ImGui::PopID();
 			}
 		
 			if (ImGui::CollapsingHeader("Directional Lights"))
@@ -303,11 +341,30 @@ namespace nimble
 
 				for (uint32_t i = 0; i < m_scene->directional_light_count(); i++)
 				{
-					std::string name = std::to_string(i);
+					std::string name = std::to_string(lights[i].id);
 
 					if (ImGui::Selectable(name.c_str(), m_selected_dir_light == lights[i].id))
 						m_selected_dir_light = lights[i].id;
 				}
+
+				ImGui::Separator();
+
+				ImGui::PushID(3);
+				if (ImGui::Button("Create"))
+					m_scene->create_directional_light(glm::vec3(0.0f), glm::vec3(1.0f), 1.0f);
+				
+				if (m_selected_dir_light != UINT32_MAX)
+				{
+					ImGui::SameLine();
+
+					if (ImGui::Button("Remove"))
+					{
+						m_scene->destroy_directional_light(m_selected_dir_light);
+						m_selected_dir_light = UINT32_MAX;
+					}
+				}
+
+				ImGui::PopID();
 			}
 		}
 
