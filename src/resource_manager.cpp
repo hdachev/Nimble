@@ -82,6 +82,12 @@ namespace nimble
 
 		for (auto& itr : m_scene_cache)
 			itr.second.reset();
+
+		m_mesh_cache.clear();
+		m_material_cache.clear();
+		m_texture_cache.clear();
+		m_shader_cache.clear();
+		m_scene_cache.clear();
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -350,7 +356,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::shared_ptr<Mesh> ResourceManager::load_mesh(const std::string& path)
+	std::shared_ptr<Mesh> ResourceManager::load_mesh(const std::string& path, const bool& absolute)
 	{
 		if (m_mesh_cache.find(path) != m_mesh_cache.end() && m_mesh_cache[path].lock())
 			return m_mesh_cache[path].lock();
@@ -358,7 +364,7 @@ namespace nimble
 		{
 			ast::Mesh ast_mesh;
 
-			if (ast::load_mesh(utility::path_for_resource("assets/" + path), ast_mesh))
+			if (ast::load_mesh(absolute ? path : utility::path_for_resource("assets/" + path), ast_mesh))
 			{
 				std::shared_ptr<VertexArray> vao = nullptr;
 				std::shared_ptr<VertexBuffer> vbo = nullptr;
@@ -427,7 +433,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::shared_ptr<Scene> ResourceManager::load_scene(const std::string& path)
+	std::shared_ptr<Scene> ResourceManager::load_scene(const std::string& path, const bool& absolute)
 	{
 		if (m_scene_cache.find(path) != m_scene_cache.end() && m_scene_cache[path].lock())
 			return m_scene_cache[path].lock();
@@ -435,7 +441,7 @@ namespace nimble
 		{
 			ast::Scene ast_scene;
 
-			if (ast::load_scene(utility::path_for_resource("assets/" + path), ast_scene))
+			if (ast::load_scene(absolute ? path : utility::path_for_resource("assets/" + path), ast_scene))
 			{
 				std::shared_ptr<Scene> scene = std::make_shared<Scene>(ast_scene.name);
 

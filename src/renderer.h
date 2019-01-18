@@ -60,7 +60,7 @@ namespace nimble
 
 		// Inline getters
 		inline ShaderCache& shader_cache() { return m_shader_cache; }
-		inline std::shared_ptr<Scene> scene() { return m_scene; }
+		inline std::weak_ptr<Scene> scene() { return m_scene; }
 		inline Settings settings() { return m_settings; }
 		inline std::shared_ptr<RenderGraph> scene_render_graph() { return m_scene_render_graph; }
 		inline std::shared_ptr<Texture> directional_light_shadow_maps() { return m_directional_light_shadow_maps; }
@@ -103,7 +103,7 @@ namespace nimble
 		uint32_t m_num_active_views = 0;
 		std::array<View, MAX_VIEWS> m_active_views;
 		std::array<Frustum, MAX_VIEWS> m_active_frustums;
-		std::shared_ptr<Scene> m_scene;
+		std::weak_ptr<Scene> m_scene;
 		std::shared_ptr<RenderGraph> m_scene_render_graph = nullptr;
 		std::shared_ptr<RenderGraph> m_shadow_map_render_graph = nullptr;
 		std::vector<std::shared_ptr<RenderGraph>> m_registered_render_graphs;

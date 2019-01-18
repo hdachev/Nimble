@@ -30,32 +30,8 @@ namespace nimble
 			std::shared_ptr<Scene> scene = m_resource_manager.load_scene("scene/startup.json");
 
 			// If failed, prompt user to select scene to be loaded.
-			if (!scene)
-			{
-				nfdchar_t* scene_path = nullptr;
-				nfdresult_t result = NFD_OpenDialog("json", nullptr, &scene_path);
-
-				if (result == NFD_OKAY)
-				{
-					scene = m_resource_manager.load_scene(scene_path);
-					free(scene_path);
-				}
-				else if (result == NFD_CANCEL)
-					return false;
-				else
-				{
-					std::string error = "Scene file read error: ";
-					error += NFD_GetError();
-					NIMBLE_LOG_ERROR(error);
-					return false;
-				}
-			}
-
-			if (!scene)
-			{
-				NIMBLE_LOG_ERROR("Failed to load scene!");
+			if (!scene && !load_scene_from_dialog())
 				return false;
-			}
 			else
 				m_scene = scene;
 
@@ -84,7 +60,8 @@ namespace nimble
 
 			gui();
 
-			m_scene->update();
+			if (m_scene)
+				m_scene->update();
 
 			m_renderer.render();
 		}
@@ -115,11 +92,14 @@ namespace nimble
 
 		void window_resized(int width, int height) override
 		{
-			m_scene->camera()->m_width = m_width;
-			m_scene->camera()->m_height = m_height;
+			if (m_scene)
+			{
+				m_scene->camera()->m_width = m_width;
+				m_scene->camera()->m_height = m_height;
 
-			// Override window resized method to update camera projection.
-			m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
+				// Override window resized method to update camera projection.
+				m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
+			}
 
 			m_renderer.on_window_resized(width, height);
 		}
@@ -243,6 +223,32 @@ namespace nimble
 		{
 			float cpu_time = 0.0f;
 			float gpu_time = 0.0f;
+
+			if (ImGui::CollapsingHeader("Scene"))
+			{
+				if (m_scene)
+					ImGui::Text("Current Scene: %s", m_scene->name().c_str());
+				else
+					ImGui::Text("Current Scene: -");
+				
+				if (ImGui::Button("Load"))
+				{
+					if (load_scene_from_dialog())
+					{
+						create_camera();
+						m_renderer.set_scene(m_scene);
+					}
+				}
+
+				if (m_scene)
+				{
+					if (ImGui::Button("Unload"))
+					{
+						m_scene = nullptr;
+						m_resource_manager.shutdown();
+					}
+				}
+			}
 			
 			if (ImGui::CollapsingHeader("Profiler"))
 			{
@@ -262,109 +268,155 @@ namespace nimble
 
 			if (ImGui::CollapsingHeader("Entities"))
 			{
-				Entity* entities = m_scene->entities();
-
-				for (uint32_t i = 0; i < m_scene->entity_count(); i++)
+				if (m_scene)
 				{
-					if (ImGui::Selectable(entities[i].name.c_str(), m_selected_entity == entities[i].id))
-						m_selected_entity = entities[i].id;
+					Entity* entities = m_scene->entities();
+
+					for (uint32_t i = 0; i < m_scene->entity_count(); i++)
+					{
+						if (ImGui::Selectable(entities[i].name.c_str(), m_selected_entity == entities[i].id))
+							m_selected_entity = entities[i].id;
+					}
 				}
 			}
 
 			if (ImGui::CollapsingHeader("Point Lights"))
 			{
-				PointLight* lights = m_scene->point_lights();
-
-				for (uint32_t i = 0; i < m_scene->point_light_count(); i++)
+				if (m_scene)
 				{
-					std::string name = std::to_string(lights[i].id);
+					PointLight* lights = m_scene->point_lights();
 
-					if (ImGui::Selectable(name.c_str(), m_selected_point_light == lights[i].id))
-						m_selected_point_light = lights[i].id;
-				}
-
-				ImGui::Separator();
-
-				ImGui::PushID(1);
-				if (ImGui::Button("Create"))
-					m_scene->create_point_light(glm::vec3(0.0f),  glm::vec3(1.0f), 100.0f, 1.0f);
-
-				if (m_selected_point_light != UINT32_MAX)
-				{
-					ImGui::SameLine();
-
-					if (ImGui::Button("Remove"))
+					for (uint32_t i = 0; i < m_scene->point_light_count(); i++)
 					{
-						m_scene->destroy_point_light(m_selected_point_light);
-						m_selected_point_light = UINT32_MAX;
-					}
-				}
+						std::string name = std::to_string(lights[i].id);
 
-				ImGui::PopID();
+						if (ImGui::Selectable(name.c_str(), m_selected_point_light == lights[i].id))
+							m_selected_point_light = lights[i].id;
+					}
+
+					ImGui::Separator();
+
+					ImGui::PushID(1);
+					if (ImGui::Button("Create"))
+						m_scene->create_point_light(glm::vec3(0.0f), glm::vec3(1.0f), 100.0f, 1.0f);
+
+					if (m_selected_point_light != UINT32_MAX)
+					{
+						ImGui::SameLine();
+
+						if (ImGui::Button("Remove"))
+						{
+							m_scene->destroy_point_light(m_selected_point_light);
+							m_selected_point_light = UINT32_MAX;
+						}
+					}
+
+					ImGui::PopID();
+				}
 			}
 	
 			if (ImGui::CollapsingHeader("Spot Lights"))
 			{
-				SpotLight* lights = m_scene->spot_lights();
-
-				for (uint32_t i = 0; i < m_scene->spot_light_count(); i++)
+				if (m_scene)
 				{
-					std::string name = std::to_string(lights[i].id);
+					SpotLight* lights = m_scene->spot_lights();
 
-					if (ImGui::Selectable(name.c_str(), m_selected_spot_light == lights[i].id))
-						m_selected_spot_light = lights[i].id;
-				}
-
-				ImGui::Separator();
-
-				ImGui::PushID(2);
-				if (ImGui::Button("Create"))
-					m_scene->create_spot_light(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 45.0f, 100.0f, 1.0f);
-
-				if (m_selected_spot_light != UINT32_MAX)
-				{
-					ImGui::SameLine();
-
-					if (ImGui::Button("Remove"))
+					for (uint32_t i = 0; i < m_scene->spot_light_count(); i++)
 					{
-						m_scene->destroy_spot_light(m_selected_spot_light);
-						m_selected_spot_light = UINT32_MAX;
-					}
-				}
+						std::string name = std::to_string(lights[i].id);
 
-				ImGui::PopID();
+						if (ImGui::Selectable(name.c_str(), m_selected_spot_light == lights[i].id))
+							m_selected_spot_light = lights[i].id;
+					}
+
+					ImGui::Separator();
+
+					ImGui::PushID(2);
+					if (ImGui::Button("Create"))
+						m_scene->create_spot_light(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 45.0f, 100.0f, 1.0f);
+
+					if (m_selected_spot_light != UINT32_MAX)
+					{
+						ImGui::SameLine();
+
+						if (ImGui::Button("Remove"))
+						{
+							m_scene->destroy_spot_light(m_selected_spot_light);
+							m_selected_spot_light = UINT32_MAX;
+						}
+					}
+
+					ImGui::PopID();
+				}
 			}
 		
 			if (ImGui::CollapsingHeader("Directional Lights"))
 			{
-				DirectionalLight* lights = m_scene->directional_lights();
-
-				for (uint32_t i = 0; i < m_scene->directional_light_count(); i++)
+				if (m_scene)
 				{
-					std::string name = std::to_string(lights[i].id);
+					DirectionalLight* lights = m_scene->directional_lights();
 
-					if (ImGui::Selectable(name.c_str(), m_selected_dir_light == lights[i].id))
-						m_selected_dir_light = lights[i].id;
-				}
-
-				ImGui::Separator();
-
-				ImGui::PushID(3);
-				if (ImGui::Button("Create"))
-					m_scene->create_directional_light(glm::vec3(0.0f), glm::vec3(1.0f), 1.0f);
-				
-				if (m_selected_dir_light != UINT32_MAX)
-				{
-					ImGui::SameLine();
-
-					if (ImGui::Button("Remove"))
+					for (uint32_t i = 0; i < m_scene->directional_light_count(); i++)
 					{
-						m_scene->destroy_directional_light(m_selected_dir_light);
-						m_selected_dir_light = UINT32_MAX;
-					}
-				}
+						std::string name = std::to_string(lights[i].id);
 
-				ImGui::PopID();
+						if (ImGui::Selectable(name.c_str(), m_selected_dir_light == lights[i].id))
+							m_selected_dir_light = lights[i].id;
+					}
+
+					ImGui::Separator();
+
+					ImGui::PushID(3);
+					if (ImGui::Button("Create"))
+						m_scene->create_directional_light(glm::vec3(0.0f), glm::vec3(1.0f), 1.0f);
+
+					if (m_selected_dir_light != UINT32_MAX)
+					{
+						ImGui::SameLine();
+
+						if (ImGui::Button("Remove"))
+						{
+							m_scene->destroy_directional_light(m_selected_dir_light);
+							m_selected_dir_light = UINT32_MAX;
+						}
+					}
+
+					ImGui::PopID();
+				}
+			}
+		}
+
+		// -----------------------------------------------------------------------------------------------------------------------------------
+
+		bool load_scene_from_dialog()
+		{
+			std::shared_ptr<Scene> scene = nullptr;
+			nfdchar_t* scene_path = nullptr;
+			nfdresult_t result = NFD_OpenDialog("json", nullptr, &scene_path);
+
+			if (result == NFD_OKAY)
+			{
+				scene = m_resource_manager.load_scene(scene_path, true);
+				free(scene_path);
+
+				if (!scene)
+				{
+					NIMBLE_LOG_ERROR("Failed to load scene!");
+					return false;
+				}
+				else
+					m_scene = scene;
+
+				return true;
+			}
+			else if (result == NFD_CANCEL)
+				return false;
+			else
+			{
+				std::string error = "Scene file read error: ";
+				error += NFD_GetError();
+				NIMBLE_LOG_ERROR(error);
+				return false;
 			}
 		}
 
@@ -372,29 +424,32 @@ namespace nimble
 
 		void update_camera()
 		{
-			auto current = m_scene->camera();
-
-			float forward_delta = m_heading_speed * m_delta;
-			float right_delta = m_sideways_speed * m_delta;
-
-			current->set_translation_delta(current->m_forward, forward_delta);
-			current->set_translation_delta(current->m_right, right_delta);
-
-			if (m_mouse_look)
+			if (m_scene)
 			{
-				// Activate Mouse Look
-				current->set_rotatation_delta(glm::vec3((float)(m_mouse_delta_y * m_camera_sensitivity),
-					(float)(m_mouse_delta_x * m_camera_sensitivity),
-					(float)(0.0f)));
-			}
-			else
-			{
-				current->set_rotatation_delta(glm::vec3((float)(0),
-					(float)(0),
-					(float)(0)));
-			}
+				auto current = m_scene->camera();
 
-			current->update();
+				float forward_delta = m_heading_speed * m_delta;
+				float right_delta = m_sideways_speed * m_delta;
+
+				current->set_translation_delta(current->m_forward, forward_delta);
+				current->set_translation_delta(current->m_right, right_delta);
+
+				if (m_mouse_look)
+				{
+					// Activate Mouse Look
+					current->set_rotatation_delta(glm::vec3((float)(m_mouse_delta_y * m_camera_sensitivity),
+						(float)(m_mouse_delta_x * m_camera_sensitivity),
+						(float)(0.0f)));
+				}
+				else
+				{
+					current->set_rotatation_delta(glm::vec3((float)(0),
+						(float)(0),
+						(float)(0)));
+				}
+
+				current->update();
+			}
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------

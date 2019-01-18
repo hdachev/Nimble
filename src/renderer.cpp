@@ -222,12 +222,14 @@ namespace nimble
 
 	void Renderer::push_directional_light_views(View& dependent_view)
 	{
-		if (m_scene)
+		if (!m_scene.expired())
 		{
-			uint32_t shadow_casting_light_idx = 0;
-			DirectionalLight* lights = m_scene->directional_lights();
+			auto scene = m_scene.lock();
 
-			for (uint32_t light_idx = 0; light_idx < m_scene->directional_light_count(); light_idx++)
+			uint32_t shadow_casting_light_idx = 0;
+			DirectionalLight* lights = scene->directional_lights();
+
+			for (uint32_t light_idx = 0; light_idx < scene->directional_light_count(); light_idx++)
 			{
 				DirectionalLight& light = lights[light_idx];
 
@@ -251,7 +253,7 @@ namespace nimble
 						light_view.jitter = glm::vec4(0.0);
 						light_view.dest_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
 						light_view.graph = m_shadow_map_render_graph;
-						light_view.scene = m_scene.get();
+						light_view.scene = scene.get();
 
 						queue_view(light_view);
 					}
@@ -270,12 +272,14 @@ namespace nimble
 
 	void Renderer::push_spot_light_views()
 	{
-		if (m_scene)
+		if (!m_scene.expired())
 		{
-			uint32_t shadow_casting_light_idx = 0;
-			SpotLight* lights = m_scene->spot_lights();
+			auto scene = m_scene.lock();
 
-			for (uint32_t light_idx = 0; light_idx < m_scene->spot_light_count(); light_idx++)
+			uint32_t shadow_casting_light_idx = 0;
+			SpotLight* lights = scene->spot_lights();
+
+			for (uint32_t light_idx = 0; light_idx < scene->spot_light_count(); light_idx++)
 			{
 				SpotLight& light = lights[light_idx];
 
@@ -297,7 +301,7 @@ namespace nimble
 					light_view.jitter = glm::vec4(0.0);
 					light_view.dest_render_target_view = &m_spot_light_rt_views[shadow_casting_light_idx];
 					light_view.graph = m_shadow_map_render_graph;
-					light_view.scene = m_scene.get();
+					light_view.scene = scene.get();
 
 					queue_view(light_view);
 
@@ -315,12 +319,14 @@ namespace nimble
 
 	void Renderer::push_point_light_views()
 	{
-		if (m_scene)
+		if (!m_scene.expired())
 		{
-			uint32_t shadow_casting_light_idx = 0;
-			PointLight* lights = m_scene->point_lights();
+			auto scene = m_scene.lock();
 
-			for (uint32_t light_idx = 0; light_idx < m_scene->point_light_count(); light_idx++)
+			uint32_t shadow_casting_light_idx = 0;
+			PointLight* lights = scene->point_lights();
+
+			for (uint32_t light_idx = 0; light_idx < scene->point_light_count(); light_idx++)
 			{
 				PointLight& light = lights[light_idx];
 
@@ -344,7 +350,7 @@ namespace nimble
 						light_view.jitter = glm::vec4(0.0);
 						light_view.dest_render_target_view = &m_point_light_rt_views[shadow_casting_light_idx * light_idx + face_idx];
 						light_view.graph = m_shadow_map_render_graph;
-						light_view.scene = m_scene.get();
+						light_view.scene = scene.get();
 
 						queue_view(light_view);
 					}
@@ -761,12 +767,14 @@ namespace nimble
 
 	void Renderer::update_uniforms()
 	{
-		if (m_scene)
+		if (!m_scene.expired())
 		{
-			// Update per entity uniforms
-			Entity* entities = m_scene->entities();
+			auto scene = m_scene.lock();
 
-			for (uint32_t i = 0; i < m_scene->entity_count(); i++)
+			// Update per entity uniforms
+			Entity* entities = scene->entities();
+
+			for (uint32_t i = 0; i < scene->entity_count(); i++)
 			{
 				Entity& entity = entities[i];
 
@@ -776,7 +784,7 @@ namespace nimble
 			}
 
 			void* ptr = m_per_entity->map(GL_WRITE_ONLY);
-			memcpy(ptr, &m_per_entity_uniforms[0], sizeof(PerEntityUniforms) * m_scene->entity_count());
+			memcpy(ptr, &m_per_entity_uniforms[0], sizeof(PerEntityUniforms) * scene->entity_count());
 			m_per_entity->unmap();
 
 			// Update per view uniforms
@@ -799,9 +807,9 @@ namespace nimble
 			m_per_view->unmap();
 
 			// Update per scene uniforms
-			DirectionalLight* dir_lights = m_scene->directional_lights();
+			DirectionalLight* dir_lights = scene->directional_lights();
 
-			m_per_scene_uniforms.directional_light_count = m_scene->directional_light_count();
+			m_per_scene_uniforms.directional_light_count = scene->directional_light_count();
 
 			for (uint32_t light_idx = 0; light_idx < m_per_scene_uniforms.directional_light_count; light_idx++)
 			{
@@ -812,9 +820,9 @@ namespace nimble
 				m_per_scene_uniforms.directional_lights[light_idx].casts_shadow = light.casts_shadow ? 1 : 0;
 			}
 
-			SpotLight* spot_lights = m_scene->spot_lights();
+			SpotLight* spot_lights = scene->spot_lights();
 
-			m_per_scene_uniforms.spot_light_count = m_scene->spot_light_count();
+			m_per_scene_uniforms.spot_light_count = scene->spot_light_count();
 
 			for (uint32_t light_idx = 0; light_idx < m_per_scene_uniforms.spot_light_count; light_idx++)
 			{
@@ -826,9 +834,9 @@ namespace nimble
 				m_per_scene_uniforms.spot_lights[light_idx].casts_shadow = light.casts_shadow ? 1 : 0;
 			}
 
-			PointLight* point_lights = m_scene->point_lights();
+			PointLight* point_lights = scene->point_lights();
 
-			m_per_scene_uniforms.point_light_count = m_scene->point_light_count();
+			m_per_scene_uniforms.point_light_count = scene->point_light_count();
 
 			for (uint32_t light_idx = 0; light_idx < m_per_scene_uniforms.point_light_count; light_idx++)
 			{
@@ -851,11 +859,13 @@ namespace nimble
 	{
 		Profiler::begin_cpu_sample(PROFILER_FRUSTUM_CULLING);
 		 
-		if (m_scene)
+		if (!m_scene.expired())
 		{
-			Entity* entities = m_scene->entities();
+			auto scene = m_scene.lock();
 
-			for (uint32_t i = 0; i < m_scene->entity_count(); i++)
+			Entity* entities = scene->entities();
+
+			for (uint32_t i = 0; i < scene->entity_count(); i++)
 			{
 				Entity& entity = entities[i];
 
@@ -901,10 +911,12 @@ namespace nimble
 
 	void Renderer::queue_default_views()
 	{
-		if (m_scene)
+		if (!m_scene.expired())
 		{
+			auto scene = m_scene.lock();
+
 			// Allocate view for scene camera
-			auto camera = m_scene->camera();
+			auto camera = scene->camera();
 			View scene_view;
 
 			scene_view.enabled = true;
@@ -921,7 +933,7 @@ namespace nimble
 			scene_view.jitter = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
 			scene_view.dest_render_target_view = nullptr;
 			scene_view.graph = m_scene_render_graph;
-			scene_view.scene = m_scene.get();
+			scene_view.scene = scene.get();
 
 			// @TODO: Create shadow views for scene views
 
@@ -934,20 +946,25 @@ namespace nimble
 
 	void Renderer::render_all_views()
 	{
-		for (uint32_t i = 0; i < m_num_active_views; i++)
+		if (m_num_active_views > 0)
 		{
-			View& view = m_active_views[i];
-
-			if (view.enabled)
+			for (uint32_t i = 0; i < m_num_active_views; i++)
 			{
-				view.id = i;
+				View& view = m_active_views[i];
 
-				if (view.graph)
-					view.graph->execute(view);
-				else
-					NIMBLE_LOG_ERROR("Render Graph not assigned for View!");
+				if (view.enabled)
+				{
+					view.id = i;
+
+					if (view.graph)
+						view.graph->execute(view);
+					else
+						NIMBLE_LOG_ERROR("Render Graph not assigned for View!");
+				}
 			}
 		}
+		else
+			glClear(GL_COLOR_BUFFER_BIT);
 	}
 	
 	// -----------------------------------------------------------------------------------------------------------------------------------
