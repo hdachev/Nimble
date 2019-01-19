@@ -37,7 +37,7 @@ namespace nimble
 		}
 
 		inline void set_position(const glm::vec3& p) { transform.position = p; dirty = true; }
-		inline void set_rotation(const glm::vec3& r) { transform.set_orientation_from_euler(r); dirty = true; }
+		inline void set_rotation(const glm::vec3& r) { transform.set_orientation_from_euler_yxz(r); dirty = true; }
 		inline void set_scale(const glm::vec3& s) { transform.scale = s; dirty = true; }
 		inline bool visibility(const uint32_t& view_index) { return (visibility_flags & BIT_FLAG(view_index)) == 1; }
 		inline void set_visible(const uint32_t& view_index) {  SET_BIT(visibility_flags, view_index); }

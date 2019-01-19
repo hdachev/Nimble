@@ -50,7 +50,7 @@ namespace
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
 
-		inline void set_orientation_from_euler(const glm::vec3& e)
+		inline void set_orientation_from_euler_yxz(const glm::vec3& e)
 		{
 			glm::quat pitch = glm::quat(glm::vec3(glm::radians(e.x), glm::radians(0.0f), glm::radians(0.0f)));
 			glm::quat yaw = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(e.y), glm::radians(0.0f)));
@@ -62,7 +62,19 @@ namespace
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
 
-		inline void rotate(const glm::vec3& e)
+		inline void set_orientation_from_euler_xyz(const glm::vec3& e)
+		{
+			glm::quat pitch = glm::quat(glm::vec3(glm::radians(e.x), glm::radians(0.0f), glm::radians(0.0f)));
+			glm::quat yaw = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(e.y), glm::radians(0.0f)));
+			glm::quat roll = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(e.z)));
+
+			orientation = pitch * yaw * roll;
+			euler = e;
+		}
+
+		// -----------------------------------------------------------------------------------------------------------------------------------
+
+		inline void rotate_euler_yxz(const glm::vec3& e)
 		{
 			euler += e;
 
@@ -71,6 +83,19 @@ namespace
 			glm::quat roll = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(euler.z)));
 
 			orientation = yaw * pitch * roll;
+		}
+
+		// -----------------------------------------------------------------------------------------------------------------------------------
+
+		inline void rotate_euler_xyz(const glm::vec3& e)
+		{
+			euler += e;
+
+			glm::quat pitch = glm::quat(glm::vec3(glm::radians(euler.x), glm::radians(0.0f), glm::radians(0.0f)));
+			glm::quat yaw = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(euler.y), glm::radians(0.0f)));
+			glm::quat roll = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(euler.z)));
+
+			orientation = pitch * yaw * roll;
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------

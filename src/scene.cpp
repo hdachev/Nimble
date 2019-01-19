@@ -199,6 +199,7 @@ namespace nimble
 		p.intensity = intensity;
 		p.enabled = true;
 		p.casts_shadow = casts_shadows;
+		p.transform.update();
 
 		return id;
 	}
@@ -233,7 +234,8 @@ namespace nimble
 		p.cone_angle = cone_angle;
 		p.enabled = true;
 		p.casts_shadow = casts_shadows;
-		p.transform.set_orientation_from_euler(rotation);
+		p.transform.set_orientation_from_euler_yxz(rotation);
+		p.transform.update();
 
 		return id;
 	}
@@ -265,7 +267,8 @@ namespace nimble
 		p.intensity = intensity;
 		p.enabled = true;
 		p.casts_shadow = casts_shadows;
-		p.transform.set_orientation_from_euler(rotation);
+		p.transform.set_orientation_from_euler_yxz(rotation);
+		p.transform.update();
 
 		return id;
 	}

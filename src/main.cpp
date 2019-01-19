@@ -20,7 +20,7 @@
 
 namespace nimble
 {
-	#define CAMERA_FAR_PLANE 10000.0f
+	#define CAMERA_FAR_PLANE 5000.0f
 
 	class Nimble : public Application
 	{
@@ -63,11 +63,13 @@ namespace nimble
 
 			gui();
 
-#ifndef NIMBLE_EDITOR
 			if (m_scene)
 				m_scene->update();
-#endif
+
 			m_renderer.render();
+
+			if (m_scene)
+				m_debug_draw.render(nullptr, m_width, m_height, m_scene->camera()->m_view_projection);
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -250,16 +252,52 @@ namespace nimble
 				Transform* t = nullptr;
 
 				if (m_selected_entity != UINT32_MAX)
+				{
 					t = &m_scene->lookup_entity(m_selected_entity).transform;
-				else if (m_selected_dir_light != UINT32_MAX)
-					t = &m_scene->lookup_directional_light(m_selected_dir_light).transform;
-				else if (m_selected_point_light != UINT32_MAX)
-					t = &m_scene->lookup_point_light(m_selected_point_light).transform;
-				else if (m_selected_spot_light != UINT32_MAX)
-					t = &m_scene->lookup_spot_light(m_selected_spot_light).transform;
-
-				if (t)
 					edit_transform((float*)&m_scene->camera()->m_view, (float*)&m_scene->camera()->m_projection, t);
+				}
+				else if (m_selected_dir_light != UINT32_MAX)
+				{
+					DirectionalLight& light = m_scene->lookup_directional_light(m_selected_dir_light);
+
+					t = &light.transform;
+					edit_transform((float*)&m_scene->camera()->m_view, (float*)&m_scene->camera()->m_projection, t, false, true, false);
+
+					ImGui::Separator();
+
+					ImGui::InputFloat("Intensity", &light.intensity);
+					ImGui::ColorPicker3("Color", &light.color.x);
+				}
+				else if (m_selected_point_light != UINT32_MAX)
+				{
+					PointLight& light = m_scene->lookup_point_light(m_selected_point_light);
+
+
+					t = &light.transform;
+					edit_transform((float*)&m_scene->camera()->m_view, (float*)&m_scene->camera()->m_projection, t, true, false, false);
+
+					ImGui::Separator();
+
+					ImGui::InputFloat("Intensity", &light.intensity);
+					ImGui::InputFloat("Range", &light.range);
+					ImGui::ColorPicker3("Color", &light.color.x);
+
+					m_debug_draw.sphere(light.range, light.transform.position, light.color);
+				}
+				else if (m_selected_spot_light != UINT32_MAX)
+				{
+					SpotLight& light = m_scene->lookup_spot_light(m_selected_spot_light);
+
+					t = &light.transform;
+					edit_transform((float*)&m_scene->camera()->m_view, (float*)&m_scene->camera()->m_projection, t, true, true, false);
+
+					ImGui::Separator();
+
+					ImGui::InputFloat("Intensity", &light.intensity);
+					ImGui::InputFloat("Range", &light.range);
+					ImGui::InputFloat("Cone Angle", &light.cone_angle);
+					ImGui::ColorPicker3("Color", &light.color.x);
+				}	
 			}
 			ImGui::End();
 
@@ -447,42 +485,50 @@ namespace nimble
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
 
-		void edit_transform(const float* cameraView, float* cameraProjection, Transform* t)
+		void edit_transform(const float* cameraView, float* cameraProjection, Transform* t, bool show_translate = true, bool show_rotate = true, bool show_scale = true)
 		{
 			static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
 			static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
 			static bool useSnap = false;
 			static float snap[3] = { 1.f, 1.f, 1.f };
 
-			//if (ImGui::IsKeyPressed(90))
-			//    mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-			//if (ImGui::IsKeyPressed(69))
-			//    mCurrentGizmoOperation = ImGuizmo::ROTATE;
-			//if (ImGui::IsKeyPressed(82)) // r Key
-			//    mCurrentGizmoOperation = ImGuizmo::SCALE;
-			if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
-				mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-			ImGui::SameLine();
-			if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE))
-				mCurrentGizmoOperation = ImGuizmo::ROTATE;
-			ImGui::SameLine();
-			if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE))
-				mCurrentGizmoOperation = ImGuizmo::SCALE;
+			if (show_translate)
+			{
+				if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
+					mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+			}
+			if (show_rotate)
+			{
+				ImGui::SameLine();
+				if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE))
+					mCurrentGizmoOperation = ImGuizmo::ROTATE;
+			}
+			if (show_scale)
+			{
+				ImGui::SameLine();
+				if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE))
+					mCurrentGizmoOperation = ImGuizmo::SCALE;
+			}
 
+			glm::vec3 position = t->position; 
+			glm::vec3 rotation = t->euler;
+			glm::vec3 scale = t->scale;
 
-			glm::vec3 position; 
-			glm::vec3 rotation;
-			glm::vec3 scale;
+			if (show_translate)
+				ImGui::InputFloat3("Tr", &position.x, 3);
+			if (show_rotate)
+				ImGui::InputFloat3("Rt", &rotation.x, 3);
+			if (show_scale)
+				ImGui::InputFloat3("Sc", &scale.x, 3);
 
-			ImGuizmo::DecomposeMatrixToComponents((float*)&t->model, &position.x, &rotation.x, &scale.x);
+			if (!ImGuizmo::IsUsing() && (position != t->position || rotation != t->euler || t->scale != scale))
+			{
+				t->position = position;
+				t->euler = rotation;
+				t->scale = scale;
 
-			ImGui::InputFloat3("Tr", &position.x, 3);
-			ImGui::InputFloat3("Rt", &rotation.x, 3);
-			ImGui::InputFloat3("Sc", &scale.x, 3);
-
-			t->position = position;
-			t->euler = rotation;
-			t->scale = scale;
+				t->set_orientation_from_euler_yxz(t->euler);
+			}
 
 			ImGuizmo::RecomposeMatrixFromComponents(&position.x, &rotation.x, &scale.x, (float*)&t->model);
 
@@ -494,8 +540,6 @@ namespace nimble
 				if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD))
 					mCurrentGizmoMode = ImGuizmo::WORLD;
 			}
-			//if (ImGui::IsKeyPressed(83))
-			//    useSnap = !useSnap;
 			ImGui::Checkbox("", &useSnap);
 			ImGui::SameLine();
 
@@ -515,10 +559,13 @@ namespace nimble
 			ImGuiIO& io = ImGui::GetIO();
 			ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 			ImGuizmo::Manipulate(cameraView, cameraProjection, mCurrentGizmoOperation, mCurrentGizmoMode, (float*)&t->model, NULL, useSnap ? &snap[0] : NULL);
-			glm::mat4 m = glm::mat4(1.0f);
-			ImGuizmo::DecomposeMatrixToComponents((float*)&t->model, &t->position.x, &t->euler.x, &t->scale.x);
 
-			t->orientation = glm::quat_cast(t->model);
+			if (ImGuizmo::IsUsing())
+			{
+				glm::mat4 m = glm::mat4(1.0f);
+				ImGuizmo::DecomposeMatrixToComponents((float*)&t->model, &t->position.x, &t->euler.x, &t->scale.x);
+				t->orientation = glm::quat_cast(t->model);
+			}
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
