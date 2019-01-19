@@ -1,5 +1,6 @@
 #include "application.h"
-#include "imgui_impl_glfw_gl3.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 #include "utility.h"
 #include "resource_manager.h"
 #include "shader_cache.h"
@@ -103,7 +104,10 @@ namespace nimble
         glfwWindowHint(GLFW_SAMPLES, 8);
         
 #if __APPLE__
+		const char* glsl_version = "#version 150";
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#else
+		const char* glsl_version = "#version 130";
 #endif
         
         m_window = glfwCreateWindow(m_width, m_height, m_title.c_str(), nullptr, nullptr);
@@ -129,9 +133,19 @@ namespace nimble
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 			return false;
 	
+		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-        ImGui_ImplGlfwGL3_Init(m_window, false);
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+
+		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
+		//ImGui::StyleColorsClassic();
+
+		// Setup Platform/Renderer bindings
+		ImGui_ImplGlfw_InitForOpenGL(m_window, true);
+		ImGui_ImplOpenGL3_Init(glsl_version);
 
         int display_w, display_h;
         glfwGetFramebufferSize(m_window, &display_w, &display_h);
@@ -172,7 +186,8 @@ namespace nimble
 		m_debug_draw.shutdown();
 
 		// Shutdown ImGui.
-		ImGui_ImplGlfwGL3_Shutdown();
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 
 		// Shutdown GLFW.
@@ -191,7 +206,10 @@ namespace nimble
         m_timer.start();
         
         glfwPollEvents();
-        ImGui_ImplGlfwGL3_NewFrame();
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
         
         m_mouse_delta_x = m_mouse_x - m_last_mouse_x;
         m_mouse_delta_y = m_mouse_y - m_last_mouse_y;
@@ -204,8 +222,9 @@ namespace nimble
     
     void Application::end_frame()
     {
-        ImGui::Render();
-		ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(m_window);
         
         m_timer.stop();
@@ -351,7 +370,6 @@ namespace nimble
     
     void Application::key_callback_glfw(GLFWwindow* window, int key, int scancode, int action, int mode)
     {
-		ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mode);
         Application* app = (Application*)glfwGetWindowUserPointer(window);
         app->key_callback(window, key, scancode, action, mode);
     }
@@ -368,7 +386,6 @@ namespace nimble
     
     void Application::scroll_callback_glfw(GLFWwindow* window, double xoffset, double yoffset)
     {
-		ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
         Application* app = (Application*)glfwGetWindowUserPointer(window);
         app->scroll_callback(window, xoffset, yoffset);
     }
@@ -377,7 +394,6 @@ namespace nimble
     
     void Application::mouse_button_callback_glfw(GLFWwindow*window, int button, int action, int mods)
     {
-		ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
         Application* app = (Application*)glfwGetWindowUserPointer(window);
         app->mouse_button_callback(window, button, action, mods);
     }
@@ -386,7 +402,7 @@ namespace nimble
     
     void Application::char_callback_glfw(GLFWwindow* window, unsigned int c)
     {
-		ImGui_ImplGlfw_CharCallback(window, c);
+		
     }
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
