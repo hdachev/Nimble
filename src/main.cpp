@@ -13,7 +13,10 @@
 #include "external/nfd/nfd.h"
 #include "graphs/forward_render_graph.h"
 #include "profiler.h"
+#include "ImGuizmo.h"
 #include <random>
+
+#define NIMBLE_EDITOR
 
 namespace nimble
 {
@@ -60,9 +63,10 @@ namespace nimble
 
 			gui();
 
+#ifndef NIMBLE_EDITOR
 			if (m_scene)
 				m_scene->update();
-
+#endif
 			m_renderer.render();
 		}
 
@@ -142,7 +146,7 @@ namespace nimble
 		void mouse_pressed(int code) override
 		{
 			// Enable mouse look.
-			if (code == GLFW_MOUSE_BUTTON_LEFT)
+			if (code == GLFW_MOUSE_BUTTON_RIGHT)
 				m_mouse_look = true;
 		}
 
@@ -151,7 +155,7 @@ namespace nimble
 		void mouse_released(int code) override
 		{
 			// Disable mouse look.
-			if (code == GLFW_MOUSE_BUTTON_LEFT)
+			if (code == GLFW_MOUSE_BUTTON_RIGHT)
 				m_mouse_look = false;
 		}
 
@@ -224,6 +228,41 @@ namespace nimble
 			float cpu_time = 0.0f;
 			float gpu_time = 0.0f;
 
+			ImGuizmo::BeginFrame();
+
+			ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+			ImGui::SetNextWindowSize(ImVec2(m_width, m_height));
+
+			int flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse;
+
+			ImGui::SetNextWindowPos(ImVec2(0, 0));
+			ImGui::SetNextWindowSize(ImVec2(m_width, m_height));
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+
+			if (ImGui::Begin("Gizmo", (bool*)0, flags))
+				ImGuizmo::SetDrawlist();
+			ImGui::End();
+			ImGui::PopStyleVar();
+
+			if (ImGui::Begin("Inspector"))
+			{
+				Transform* t = nullptr;
+
+				if (m_selected_entity != UINT32_MAX)
+					t = &m_scene->lookup_entity(m_selected_entity).transform;
+				else if (m_selected_dir_light != UINT32_MAX)
+					t = &m_scene->lookup_directional_light(m_selected_dir_light).transform;
+				else if (m_selected_point_light != UINT32_MAX)
+					t = &m_scene->lookup_point_light(m_selected_point_light).transform;
+				else if (m_selected_spot_light != UINT32_MAX)
+					t = &m_scene->lookup_spot_light(m_selected_spot_light).transform;
+
+				if (t)
+					edit_transform((float*)&m_scene->camera()->m_view, (float*)&m_scene->camera()->m_projection, t);
+			}
+			ImGui::End();
+
 			if (ImGui::CollapsingHeader("Scene"))
 			{
 				if (m_scene)
@@ -275,7 +314,12 @@ namespace nimble
 					for (uint32_t i = 0; i < m_scene->entity_count(); i++)
 					{
 						if (ImGui::Selectable(entities[i].name.c_str(), m_selected_entity == entities[i].id))
+						{
 							m_selected_entity = entities[i].id;
+							m_selected_dir_light = UINT32_MAX;
+							m_selected_point_light = UINT32_MAX;
+							m_selected_spot_light = UINT32_MAX;
+						}
 					}
 				}
 			}
@@ -291,7 +335,12 @@ namespace nimble
 						std::string name = std::to_string(lights[i].id);
 
 						if (ImGui::Selectable(name.c_str(), m_selected_point_light == lights[i].id))
+						{
+							m_selected_entity = UINT32_MAX;
+							m_selected_dir_light = UINT32_MAX;
 							m_selected_point_light = lights[i].id;
+							m_selected_spot_light = UINT32_MAX;
+						}
 					}
 
 					ImGui::Separator();
@@ -326,7 +375,12 @@ namespace nimble
 						std::string name = std::to_string(lights[i].id);
 
 						if (ImGui::Selectable(name.c_str(), m_selected_spot_light == lights[i].id))
+						{
+							m_selected_entity = UINT32_MAX;
+							m_selected_dir_light = UINT32_MAX;
+							m_selected_point_light = UINT32_MAX;
 							m_selected_spot_light = lights[i].id;
+						}
 					}
 
 					ImGui::Separator();
@@ -361,14 +415,19 @@ namespace nimble
 						std::string name = std::to_string(lights[i].id);
 
 						if (ImGui::Selectable(name.c_str(), m_selected_dir_light == lights[i].id))
+						{
+							m_selected_entity = UINT32_MAX;
 							m_selected_dir_light = lights[i].id;
+							m_selected_point_light = UINT32_MAX;
+							m_selected_spot_light = UINT32_MAX;
+						}
 					}
 
 					ImGui::Separator();
 
 					ImGui::PushID(3);
 					if (ImGui::Button("Create"))
-						m_scene->create_directional_light(glm::vec3(0.0f), glm::vec3(1.0f), 1.0f);
+						m_scene->create_directional_light(glm::vec3(0.0f), glm::vec3(1.0f), 10.0f);
 
 					if (m_selected_dir_light != UINT32_MAX)
 					{
@@ -384,6 +443,82 @@ namespace nimble
 					ImGui::PopID();
 				}
 			}
+		}
+
+		// -----------------------------------------------------------------------------------------------------------------------------------
+
+		void edit_transform(const float* cameraView, float* cameraProjection, Transform* t)
+		{
+			static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
+			static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
+			static bool useSnap = false;
+			static float snap[3] = { 1.f, 1.f, 1.f };
+
+			//if (ImGui::IsKeyPressed(90))
+			//    mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+			//if (ImGui::IsKeyPressed(69))
+			//    mCurrentGizmoOperation = ImGuizmo::ROTATE;
+			//if (ImGui::IsKeyPressed(82)) // r Key
+			//    mCurrentGizmoOperation = ImGuizmo::SCALE;
+			if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
+				mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+			ImGui::SameLine();
+			if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE))
+				mCurrentGizmoOperation = ImGuizmo::ROTATE;
+			ImGui::SameLine();
+			if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE))
+				mCurrentGizmoOperation = ImGuizmo::SCALE;
+
+
+			glm::vec3 position; 
+			glm::vec3 rotation;
+			glm::vec3 scale;
+
+			ImGuizmo::DecomposeMatrixToComponents((float*)&t->model, &position.x, &rotation.x, &scale.x);
+
+			ImGui::InputFloat3("Tr", &position.x, 3);
+			ImGui::InputFloat3("Rt", &rotation.x, 3);
+			ImGui::InputFloat3("Sc", &scale.x, 3);
+
+			t->position = position;
+			t->euler = rotation;
+			t->scale = scale;
+
+			ImGuizmo::RecomposeMatrixFromComponents(&position.x, &rotation.x, &scale.x, (float*)&t->model);
+
+			if (mCurrentGizmoOperation != ImGuizmo::SCALE)
+			{
+				if (ImGui::RadioButton("Local", mCurrentGizmoMode == ImGuizmo::LOCAL))
+					mCurrentGizmoMode = ImGuizmo::LOCAL;
+				ImGui::SameLine();
+				if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD))
+					mCurrentGizmoMode = ImGuizmo::WORLD;
+			}
+			//if (ImGui::IsKeyPressed(83))
+			//    useSnap = !useSnap;
+			ImGui::Checkbox("", &useSnap);
+			ImGui::SameLine();
+
+			switch (mCurrentGizmoOperation)
+			{
+			case ImGuizmo::TRANSLATE:
+				ImGui::InputFloat3("Snap", &snap[0]);
+				break;
+			case ImGuizmo::ROTATE:
+				ImGui::InputFloat("Angle Snap", &snap[0]);
+				break;
+			case ImGuizmo::SCALE:
+				ImGui::InputFloat("Scale Snap", &snap[0]);
+				break;
+			}
+
+			ImGuiIO& io = ImGui::GetIO();
+			ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+			ImGuizmo::Manipulate(cameraView, cameraProjection, mCurrentGizmoOperation, mCurrentGizmoMode, (float*)&t->model, NULL, useSnap ? &snap[0] : NULL);
+			glm::mat4 m = glm::mat4(1.0f);
+			ImGuizmo::DecomposeMatrixToComponents((float*)&t->model, &t->position.x, &t->euler.x, &t->scale.x);
+
+			t->orientation = glm::quat_cast(t->model);
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
