@@ -63,9 +63,15 @@ namespace nimble
 
 			gui();
 
-			if (m_scene)
-				m_scene->update();
-
+#ifdef NIMBLE_EDITOR
+			if (!m_edit_mode)
+			{
+#endif
+				if (m_scene)
+					m_scene->update();
+#ifdef NIMBLE_EDITOR
+			}
+#endif
 			m_renderer.render();
 
 			if (m_scene)
@@ -247,240 +253,251 @@ namespace nimble
 			ImGui::End();
 			ImGui::PopStyleVar();
 
-			if (ImGui::Begin("Inspector"))
+			if (m_edit_mode)
 			{
-				Transform* t = nullptr;
-
-				if (m_selected_entity != UINT32_MAX)
+				if (ImGui::Begin("Inspector"))
 				{
-					t = &m_scene->lookup_entity(m_selected_entity).transform;
-					edit_transform((float*)&m_scene->camera()->m_view, (float*)&m_scene->camera()->m_projection, t);
+					Transform* t = nullptr;
+
+					if (m_selected_entity != UINT32_MAX)
+					{
+						t = &m_scene->lookup_entity(m_selected_entity).transform;
+						edit_transform((float*)&m_scene->camera()->m_view, (float*)&m_scene->camera()->m_projection, t);
+					}
+					else if (m_selected_dir_light != UINT32_MAX)
+					{
+						DirectionalLight& light = m_scene->lookup_directional_light(m_selected_dir_light);
+
+						t = &light.transform;
+						edit_transform((float*)&m_scene->camera()->m_view, (float*)&m_scene->camera()->m_projection, t, false, true, false);
+
+						ImGui::Separator();
+
+						ImGui::InputFloat("Intensity", &light.intensity);
+						ImGui::ColorPicker3("Color", &light.color.x);
+					}
+					else if (m_selected_point_light != UINT32_MAX)
+					{
+						PointLight& light = m_scene->lookup_point_light(m_selected_point_light);
+
+
+						t = &light.transform;
+						edit_transform((float*)&m_scene->camera()->m_view, (float*)&m_scene->camera()->m_projection, t, true, false, false);
+
+						ImGui::Separator();
+
+						ImGui::InputFloat("Intensity", &light.intensity);
+						ImGui::InputFloat("Range", &light.range);
+						ImGui::ColorPicker3("Color", &light.color.x);
+
+						m_debug_draw.sphere(light.range, light.transform.position, light.color);
+					}
+					else if (m_selected_spot_light != UINT32_MAX)
+					{
+						SpotLight& light = m_scene->lookup_spot_light(m_selected_spot_light);
+
+						t = &light.transform;
+						edit_transform((float*)&m_scene->camera()->m_view, (float*)&m_scene->camera()->m_projection, t, true, true, false);
+
+						ImGui::Separator();
+
+						ImGui::InputFloat("Intensity", &light.intensity);
+						ImGui::InputFloat("Range", &light.range);
+						ImGui::InputFloat("Cone Angle", &light.cone_angle);
+						ImGui::ColorPicker3("Color", &light.color.x);
+					}
 				}
-				else if (m_selected_dir_light != UINT32_MAX)
+				ImGui::End();
+			}
+
+			if (ImGui::Begin("Editor"))
+			{
+				ImGui::Checkbox("Edit Mode", &m_edit_mode);
+
+				ImGui::Separator();
+
+				if (ImGui::CollapsingHeader("Scene"))
 				{
-					DirectionalLight& light = m_scene->lookup_directional_light(m_selected_dir_light);
+					if (m_scene)
+						ImGui::Text("Current Scene: %s", m_scene->name().c_str());
+					else
+						ImGui::Text("Current Scene: -");
 
-					t = &light.transform;
-					edit_transform((float*)&m_scene->camera()->m_view, (float*)&m_scene->camera()->m_projection, t, false, true, false);
+					if (ImGui::Button("Load"))
+					{
+						if (load_scene_from_dialog())
+						{
+							create_camera();
+							m_renderer.set_scene(m_scene);
+						}
+					}
 
-					ImGui::Separator();
-
-					ImGui::InputFloat("Intensity", &light.intensity);
-					ImGui::ColorPicker3("Color", &light.color.x);
+					if (m_scene)
+					{
+						if (ImGui::Button("Unload"))
+						{
+							m_scene = nullptr;
+							m_resource_manager.shutdown();
+						}
+					}
 				}
-				else if (m_selected_point_light != UINT32_MAX)
+
+				if (ImGui::CollapsingHeader("Profiler"))
 				{
-					PointLight& light = m_scene->lookup_point_light(m_selected_point_light);
+					Profiler::cpu_result(PROFILER_FRUSTUM_CULLING, cpu_time);
 
+					ImGui::Text("Frustum Culling: %f(CPU), 0.0(GPU)", cpu_time);
 
-					t = &light.transform;
-					edit_transform((float*)&m_scene->camera()->m_view, (float*)&m_scene->camera()->m_projection, t, true, false, false);
+					for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
+					{
+						std::shared_ptr<RenderNode> node = m_forward_graph->node(i);
 
-					ImGui::Separator();
+						node->timing_total(cpu_time, gpu_time);
 
-					ImGui::InputFloat("Intensity", &light.intensity);
-					ImGui::InputFloat("Range", &light.range);
-					ImGui::ColorPicker3("Color", &light.color.x);
-
-					m_debug_draw.sphere(light.range, light.transform.position, light.color);
+						ImGui::Text("%s: %f(CPU), %f(GPU)", node->name().c_str(), cpu_time, gpu_time);
+					}
 				}
-				else if (m_selected_spot_light != UINT32_MAX)
+
+				if (ImGui::CollapsingHeader("Entities"))
 				{
-					SpotLight& light = m_scene->lookup_spot_light(m_selected_spot_light);
+					if (m_scene)
+					{
+						Entity* entities = m_scene->entities();
 
-					t = &light.transform;
-					edit_transform((float*)&m_scene->camera()->m_view, (float*)&m_scene->camera()->m_projection, t, true, true, false);
+						for (uint32_t i = 0; i < m_scene->entity_count(); i++)
+						{
+							if (ImGui::Selectable(entities[i].name.c_str(), m_selected_entity == entities[i].id))
+							{
+								m_selected_entity = entities[i].id;
+								m_selected_dir_light = UINT32_MAX;
+								m_selected_point_light = UINT32_MAX;
+								m_selected_spot_light = UINT32_MAX;
+							}
+						}
+					}
+				}
 
-					ImGui::Separator();
+				if (ImGui::CollapsingHeader("Point Lights"))
+				{
+					if (m_scene)
+					{
+						PointLight* lights = m_scene->point_lights();
 
-					ImGui::InputFloat("Intensity", &light.intensity);
-					ImGui::InputFloat("Range", &light.range);
-					ImGui::InputFloat("Cone Angle", &light.cone_angle);
-					ImGui::ColorPicker3("Color", &light.color.x);
-				}	
+						for (uint32_t i = 0; i < m_scene->point_light_count(); i++)
+						{
+							std::string name = std::to_string(lights[i].id);
+
+							if (ImGui::Selectable(name.c_str(), m_selected_point_light == lights[i].id))
+							{
+								m_selected_entity = UINT32_MAX;
+								m_selected_dir_light = UINT32_MAX;
+								m_selected_point_light = lights[i].id;
+								m_selected_spot_light = UINT32_MAX;
+							}
+						}
+
+						ImGui::Separator();
+
+						ImGui::PushID(1);
+						if (ImGui::Button("Create"))
+							m_scene->create_point_light(glm::vec3(0.0f), glm::vec3(1.0f), 100.0f, 1.0f);
+
+						if (m_selected_point_light != UINT32_MAX)
+						{
+							ImGui::SameLine();
+
+							if (ImGui::Button("Remove"))
+							{
+								m_scene->destroy_point_light(m_selected_point_light);
+								m_selected_point_light = UINT32_MAX;
+							}
+						}
+
+						ImGui::PopID();
+					}
+				}
+
+				if (ImGui::CollapsingHeader("Spot Lights"))
+				{
+					if (m_scene)
+					{
+						SpotLight* lights = m_scene->spot_lights();
+
+						for (uint32_t i = 0; i < m_scene->spot_light_count(); i++)
+						{
+							std::string name = std::to_string(lights[i].id);
+
+							if (ImGui::Selectable(name.c_str(), m_selected_spot_light == lights[i].id))
+							{
+								m_selected_entity = UINT32_MAX;
+								m_selected_dir_light = UINT32_MAX;
+								m_selected_point_light = UINT32_MAX;
+								m_selected_spot_light = lights[i].id;
+							}
+						}
+
+						ImGui::Separator();
+
+						ImGui::PushID(2);
+						if (ImGui::Button("Create"))
+							m_scene->create_spot_light(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 45.0f, 100.0f, 1.0f);
+
+						if (m_selected_spot_light != UINT32_MAX)
+						{
+							ImGui::SameLine();
+
+							if (ImGui::Button("Remove"))
+							{
+								m_scene->destroy_spot_light(m_selected_spot_light);
+								m_selected_spot_light = UINT32_MAX;
+							}
+						}
+
+						ImGui::PopID();
+					}
+				}
+
+				if (ImGui::CollapsingHeader("Directional Lights"))
+				{
+					if (m_scene)
+					{
+						DirectionalLight* lights = m_scene->directional_lights();
+
+						for (uint32_t i = 0; i < m_scene->directional_light_count(); i++)
+						{
+							std::string name = std::to_string(lights[i].id);
+
+							if (ImGui::Selectable(name.c_str(), m_selected_dir_light == lights[i].id))
+							{
+								m_selected_entity = UINT32_MAX;
+								m_selected_dir_light = lights[i].id;
+								m_selected_point_light = UINT32_MAX;
+								m_selected_spot_light = UINT32_MAX;
+							}
+						}
+
+						ImGui::Separator();
+
+						ImGui::PushID(3);
+						if (ImGui::Button("Create"))
+							m_scene->create_directional_light(glm::vec3(0.0f), glm::vec3(1.0f), 10.0f);
+
+						if (m_selected_dir_light != UINT32_MAX)
+						{
+							ImGui::SameLine();
+
+							if (ImGui::Button("Remove"))
+							{
+								m_scene->destroy_directional_light(m_selected_dir_light);
+								m_selected_dir_light = UINT32_MAX;
+							}
+						}
+
+						ImGui::PopID();
+					}
+				}
 			}
 			ImGui::End();
-
-			if (ImGui::CollapsingHeader("Scene"))
-			{
-				if (m_scene)
-					ImGui::Text("Current Scene: %s", m_scene->name().c_str());
-				else
-					ImGui::Text("Current Scene: -");
-				
-				if (ImGui::Button("Load"))
-				{
-					if (load_scene_from_dialog())
-					{
-						create_camera();
-						m_renderer.set_scene(m_scene);
-					}
-				}
-
-				if (m_scene)
-				{
-					if (ImGui::Button("Unload"))
-					{
-						m_scene = nullptr;
-						m_resource_manager.shutdown();
-					}
-				}
-			}
-			
-			if (ImGui::CollapsingHeader("Profiler"))
-			{
-				Profiler::cpu_result(PROFILER_FRUSTUM_CULLING, cpu_time);
-
-				ImGui::Text("Frustum Culling: %f(CPU), 0.0(GPU)", cpu_time);
-
-				for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
-				{
-					std::shared_ptr<RenderNode> node = m_forward_graph->node(i);
-
-					node->timing_total(cpu_time, gpu_time);
-
-					ImGui::Text("%s: %f(CPU), %f(GPU)", node->name().c_str(), cpu_time, gpu_time);
-				}
-			}
-
-			if (ImGui::CollapsingHeader("Entities"))
-			{
-				if (m_scene)
-				{
-					Entity* entities = m_scene->entities();
-
-					for (uint32_t i = 0; i < m_scene->entity_count(); i++)
-					{
-						if (ImGui::Selectable(entities[i].name.c_str(), m_selected_entity == entities[i].id))
-						{
-							m_selected_entity = entities[i].id;
-							m_selected_dir_light = UINT32_MAX;
-							m_selected_point_light = UINT32_MAX;
-							m_selected_spot_light = UINT32_MAX;
-						}
-					}
-				}
-			}
-
-			if (ImGui::CollapsingHeader("Point Lights"))
-			{
-				if (m_scene)
-				{
-					PointLight* lights = m_scene->point_lights();
-
-					for (uint32_t i = 0; i < m_scene->point_light_count(); i++)
-					{
-						std::string name = std::to_string(lights[i].id);
-
-						if (ImGui::Selectable(name.c_str(), m_selected_point_light == lights[i].id))
-						{
-							m_selected_entity = UINT32_MAX;
-							m_selected_dir_light = UINT32_MAX;
-							m_selected_point_light = lights[i].id;
-							m_selected_spot_light = UINT32_MAX;
-						}
-					}
-
-					ImGui::Separator();
-
-					ImGui::PushID(1);
-					if (ImGui::Button("Create"))
-						m_scene->create_point_light(glm::vec3(0.0f), glm::vec3(1.0f), 100.0f, 1.0f);
-
-					if (m_selected_point_light != UINT32_MAX)
-					{
-						ImGui::SameLine();
-
-						if (ImGui::Button("Remove"))
-						{
-							m_scene->destroy_point_light(m_selected_point_light);
-							m_selected_point_light = UINT32_MAX;
-						}
-					}
-
-					ImGui::PopID();
-				}
-			}
-	
-			if (ImGui::CollapsingHeader("Spot Lights"))
-			{
-				if (m_scene)
-				{
-					SpotLight* lights = m_scene->spot_lights();
-
-					for (uint32_t i = 0; i < m_scene->spot_light_count(); i++)
-					{
-						std::string name = std::to_string(lights[i].id);
-
-						if (ImGui::Selectable(name.c_str(), m_selected_spot_light == lights[i].id))
-						{
-							m_selected_entity = UINT32_MAX;
-							m_selected_dir_light = UINT32_MAX;
-							m_selected_point_light = UINT32_MAX;
-							m_selected_spot_light = lights[i].id;
-						}
-					}
-
-					ImGui::Separator();
-
-					ImGui::PushID(2);
-					if (ImGui::Button("Create"))
-						m_scene->create_spot_light(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 45.0f, 100.0f, 1.0f);
-
-					if (m_selected_spot_light != UINT32_MAX)
-					{
-						ImGui::SameLine();
-
-						if (ImGui::Button("Remove"))
-						{
-							m_scene->destroy_spot_light(m_selected_spot_light);
-							m_selected_spot_light = UINT32_MAX;
-						}
-					}
-
-					ImGui::PopID();
-				}
-			}
-		
-			if (ImGui::CollapsingHeader("Directional Lights"))
-			{
-				if (m_scene)
-				{
-					DirectionalLight* lights = m_scene->directional_lights();
-
-					for (uint32_t i = 0; i < m_scene->directional_light_count(); i++)
-					{
-						std::string name = std::to_string(lights[i].id);
-
-						if (ImGui::Selectable(name.c_str(), m_selected_dir_light == lights[i].id))
-						{
-							m_selected_entity = UINT32_MAX;
-							m_selected_dir_light = lights[i].id;
-							m_selected_point_light = UINT32_MAX;
-							m_selected_spot_light = UINT32_MAX;
-						}
-					}
-
-					ImGui::Separator();
-
-					ImGui::PushID(3);
-					if (ImGui::Button("Create"))
-						m_scene->create_directional_light(glm::vec3(0.0f), glm::vec3(1.0f), 10.0f);
-
-					if (m_selected_dir_light != UINT32_MAX)
-					{
-						ImGui::SameLine();
-
-						if (ImGui::Button("Remove"))
-						{
-							m_scene->destroy_directional_light(m_selected_dir_light);
-							m_selected_dir_light = UINT32_MAX;
-						}
-					}
-
-					ImGui::PopID();
-				}
-			}
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -510,9 +527,11 @@ namespace nimble
 					mCurrentGizmoOperation = ImGuizmo::SCALE;
 			}
 
-			glm::vec3 position = t->position; 
-			glm::vec3 rotation = t->euler;
-			glm::vec3 scale = t->scale;
+			glm::vec3 position; 
+			glm::vec3 rotation;
+			glm::vec3 scale;
+
+			ImGuizmo::DecomposeMatrixToComponents(&t->model[0][0], &position.x, &rotation.x, &scale.x);
 
 			if (show_translate)
 				ImGui::InputFloat3("Tr", &position.x, 3);
@@ -520,15 +539,6 @@ namespace nimble
 				ImGui::InputFloat3("Rt", &rotation.x, 3);
 			if (show_scale)
 				ImGui::InputFloat3("Sc", &scale.x, 3);
-
-			if (!ImGuizmo::IsUsing() && (position != t->position || rotation != t->euler || t->scale != scale))
-			{
-				t->position = position;
-				t->euler = rotation;
-				t->scale = scale;
-
-				t->set_orientation_from_euler_yxz(t->euler);
-			}
 
 			ImGuizmo::RecomposeMatrixFromComponents(&position.x, &rotation.x, &scale.x, (float*)&t->model);
 
@@ -560,12 +570,9 @@ namespace nimble
 			ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 			ImGuizmo::Manipulate(cameraView, cameraProjection, mCurrentGizmoOperation, mCurrentGizmoMode, (float*)&t->model, NULL, useSnap ? &snap[0] : NULL);
 
-			if (ImGuizmo::IsUsing())
-			{
-				glm::mat4 m = glm::mat4(1.0f);
-				ImGuizmo::DecomposeMatrixToComponents((float*)&t->model, &t->position.x, &t->euler.x, &t->scale.x);
-				t->orientation = glm::quat_cast(t->model);
-			}
+			glm::vec3 temp;
+			ImGuizmo::DecomposeMatrixToComponents((float*)&t->model, &t->position.x, &temp.x, &t->scale.x);
+			t->orientation = glm::quat(glm::radians(temp));
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -639,6 +646,7 @@ namespace nimble
 	private:
 		// Camera controls.
 		bool m_mouse_look = false;
+		bool m_edit_mode = true;
 		bool m_debug_mode = false;
 		bool m_debug_gui = false;
 		bool m_move_entities = false;

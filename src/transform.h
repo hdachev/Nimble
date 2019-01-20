@@ -9,7 +9,6 @@ namespace
 	struct Transform
 	{
 		glm::vec3 position;
-		glm::vec3 euler;
 		glm::quat orientation;
 		glm::vec3 scale;
 		glm::mat4 model;
@@ -21,8 +20,7 @@ namespace
 		{
 			position = glm::vec3(0.0f);
 			scale = glm::vec3(1.0f);
-			euler = glm::vec3(0.0f);
-			orientation = glm::quat(glm::radians(euler));
+			orientation = glm::quat(glm::radians(glm::vec3(0.0f)));
 			model = glm::mat4(1.0f);
 			prev_model = glm::mat4(1.0f);
 		}
@@ -57,7 +55,6 @@ namespace
 			glm::quat roll = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(e.z)));
 
 			orientation = yaw * pitch * roll;
-			euler = e;
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -69,41 +66,36 @@ namespace
 			glm::quat roll = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(e.z)));
 
 			orientation = pitch * yaw * roll;
-			euler = e;
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
 
 		inline void rotate_euler_yxz(const glm::vec3& e)
 		{
-			euler += e;
+			glm::quat pitch = glm::quat(glm::vec3(glm::radians(e.x), glm::radians(0.0f), glm::radians(0.0f)));
+			glm::quat yaw = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(e.y), glm::radians(0.0f)));
+			glm::quat roll = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(e.z)));
 
-			glm::quat pitch = glm::quat(glm::vec3(glm::radians(euler.x), glm::radians(0.0f), glm::radians(0.0f)));
-			glm::quat yaw = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(euler.y), glm::radians(0.0f)));
-			glm::quat roll = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(euler.z)));
-
-			orientation = yaw * pitch * roll;
+			glm::quat delta = yaw * pitch * roll;
+			orientation = orientation * delta;
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
 
 		inline void rotate_euler_xyz(const glm::vec3& e)
 		{
-			euler += e;
+			glm::quat pitch = glm::quat(glm::vec3(glm::radians(e.x), glm::radians(0.0f), glm::radians(0.0f)));
+			glm::quat yaw = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(e.y), glm::radians(0.0f)));
+			glm::quat roll = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(e.z)));
 
-			glm::quat pitch = glm::quat(glm::vec3(glm::radians(euler.x), glm::radians(0.0f), glm::radians(0.0f)));
-			glm::quat yaw = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(euler.y), glm::radians(0.0f)));
-			glm::quat roll = glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(euler.z)));
-
-			orientation = pitch * yaw * roll;
+			glm::quat delta = pitch * yaw * roll;
+			orientation = orientation * delta;
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
 
 		inline void update()
 		{
-			prev_model = model;
-
 			glm::mat4 R = glm::mat4_cast(orientation);
 			glm::mat4 S = glm::scale(glm::mat4(1.0f), scale);
 			glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
