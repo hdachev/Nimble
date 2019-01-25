@@ -44,6 +44,7 @@ namespace nimble
 		void set_scene(std::shared_ptr<Scene> scene);
 		void register_render_graph(std::shared_ptr<RenderGraph> graph);
 		void set_scene_render_graph(std::shared_ptr<RenderGraph> graph);
+		void set_shadow_map_render_graph(std::shared_ptr<RenderGraph> graph);
 		void queue_view(View view);
 		void push_directional_light_views(View& dependent_view);
 		void push_spot_light_views();

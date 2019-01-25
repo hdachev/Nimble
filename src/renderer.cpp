@@ -212,6 +212,14 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	void Renderer::set_shadow_map_render_graph(std::shared_ptr<RenderGraph> graph)
+	{
+		if (graph)
+			m_shadow_map_render_graph = graph;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	void Renderer::queue_view(View view)
 	{
 		if (m_num_active_views == MAX_VIEWS)
