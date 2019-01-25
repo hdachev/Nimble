@@ -273,6 +273,7 @@ namespace nimble
 
 						ImGui::Separator();
 
+						ImGui::Checkbox("Casts Shadows", &light.casts_shadow);
 						ImGui::InputFloat("Intensity", &light.intensity);
 						ImGui::ColorPicker3("Color", &light.color.x);
 					}
@@ -286,6 +287,7 @@ namespace nimble
 
 						ImGui::Separator();
 
+						ImGui::Checkbox("Casts Shadows", &light.casts_shadow);
 						ImGui::InputFloat("Intensity", &light.intensity);
 						ImGui::InputFloat("Range", &light.range);
 						ImGui::ColorPicker3("Color", &light.color.x);
@@ -301,6 +303,7 @@ namespace nimble
 
 						ImGui::Separator();
 
+						ImGui::Checkbox("Casts Shadows", &light.casts_shadow);
 						ImGui::InputFloat("Intensity", &light.intensity);
 						ImGui::InputFloat("Range", &light.range);
 						ImGui::InputFloat("Cone Angle", &light.cone_angle);

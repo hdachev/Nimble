@@ -387,9 +387,18 @@ namespace nimble
 
 		glViewport(params.x, params.y, params.w, params.h);
 
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
+		if (params.enable_depth)
+			glEnable(GL_DEPTH_TEST);
+		else
+			glDisable(GL_DEPTH_TEST);
+
+		if (params.cull_face == GL_NONE)
+			glDisable(GL_CULL_FACE);
+		else
+		{
+			glEnable(GL_CULL_FACE);
+			glCullFace(params.cull_face);
+		}
 
 		if (params.clear_flags != 0)
 		{

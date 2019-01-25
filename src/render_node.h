@@ -133,6 +133,8 @@ namespace nimble
 			uint32_t w;
 			uint32_t h;
 			GLenum clear_flags = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
+			GLenum cull_face = GL_BACK;
+			bool enable_depth = true;
 			uint32_t num_clear_colors = 0;
 			float clear_colors[8][4];
 			double clear_depth = 1;
