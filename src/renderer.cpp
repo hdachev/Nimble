@@ -55,9 +55,19 @@ namespace nimble
 		RenderTargetKey depth_key;
 	};
 
+	static glm::vec3 s_cube_view_params[6][2] = 
+	{
+		{ glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0) },
+		{ glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0) },
+		{ glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0) },
+		{ glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0) },
+		{ glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0) },
+		{ glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0) }
+	};
+
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Renderer::Renderer(Settings settings) : m_settings(settings) {}
+	Renderer::Renderer(Settings settings) : m_settings(settings) { }
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -340,13 +350,13 @@ namespace nimble
 						light_view.culling = true;
 						light_view.direction = light.transform.forward();
 						light_view.position = light.transform.position;
-						light_view.view_mat = glm::mat4(1.0f); // @TODO
-						light_view.projection_mat = glm::mat4(1.0f); // @TODO
-						light_view.vp_mat = glm::mat4(1.0f); // @TODO
-						light_view.prev_vp_mat = glm::mat4(1.0f); // @TODO
-						light_view.inv_view_mat = glm::mat4(1.0f); // @TODO
-						light_view.inv_projection_mat = glm::mat4(1.0f); // @TODO
-						light_view.inv_vp_mat = glm::mat4(1.0f); // @TODO
+						light_view.view_mat = glm::lookAt(light.transform.position, light.transform.position + s_cube_view_params[face_idx][0], s_cube_view_params[face_idx][1]);
+						light_view.projection_mat = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, light.range);
+						light_view.vp_mat = light_view.projection_mat * light_view.view_mat;
+						light_view.prev_vp_mat = glm::mat4(1.0f);
+						light_view.inv_view_mat = glm::inverse(light_view.view_mat);
+						light_view.inv_projection_mat = glm::inverse(light_view.projection_mat);
+						light_view.inv_vp_mat = glm::inverse(light_view.vp_mat);
 						light_view.jitter = glm::vec4(0.0);
 						light_view.dest_render_target_view = &m_point_light_rt_views[shadow_casting_light_idx * light_idx + face_idx];
 						light_view.graph = m_shadow_map_render_graph;
@@ -935,7 +945,8 @@ namespace nimble
 			scene_view.graph = m_scene_render_graph;
 			scene_view.scene = scene.get();
 
-			// @TODO: Create shadow views for scene views
+			// Queue shadow views
+			push_point_light_views();
 
 			// Finally queue the scene view
 			queue_view(scene_view);
