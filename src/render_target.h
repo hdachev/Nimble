@@ -43,7 +43,7 @@ namespace nimble
 
 		RenderTargetView(uint32_t _face, uint32_t _layer, uint32_t _mip_level, std::shared_ptr<Texture> _texture)
 		{
-			face = _texture->target() == GL_TEXTURE_CUBE_MAP ? _face : 0;
+			face = (_texture->target() == GL_TEXTURE_CUBE_MAP || _texture->target() == GL_TEXTURE_CUBE_MAP_ARRAY) ? _face : 0;
 			layer = _layer;
 			mip_level = _mip_level;
 			texture = _texture;

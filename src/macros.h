@@ -2,8 +2,8 @@
 
 #define HAS_BIT_FLAG(x, flag) ((x & flag) == flag) 
 #define BIT_FLAG(x) (1 << x)
-#define SET_BIT(number, n) number |= 1UL << n
-#define CLEAR_BIT(number, n) number &= ~(1UL << n)
+#define SET_BIT(number, n) (number |= (1 << n))
+#define CLEAR_BIT(number, n) (number &= ~(1 << n))
 #define BIT_MASK(n) ((1 << n) - 1)
 #define WRITE_BIT_RANGE_64(value, dst, offset, num_bits) (dst |= (static_cast<uint64_t>(value & BIT_MASK(num_bits)) << offset))
 #define READ_BIT_RANGE_64(src, offset, num_bits) ((src >> offset) & BIT_MASK(num_bits))

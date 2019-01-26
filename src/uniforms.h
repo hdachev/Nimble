@@ -56,7 +56,7 @@ namespace nimble
 		// Renderer settings.
 		int			 					 viewport_width;
 		int			 					 viewport_height;
-		uint8_t	  						 padding[212];
+		uint8_t							 padding[96];
 	};
 
 	struct PerEntityUniforms

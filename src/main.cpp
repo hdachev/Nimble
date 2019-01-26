@@ -364,6 +364,15 @@ namespace nimble
 
 						ImGui::Text("%s: %f(CPU), %f(GPU)", node->name().c_str(), cpu_time, gpu_time);
 					}
+
+					for (uint32_t i = 0; i < m_pcf_graph->node_count(); i++)
+					{
+						std::shared_ptr<RenderNode> node = m_pcf_graph->node(i);
+
+						node->timing_total(cpu_time, gpu_time);
+
+						ImGui::Text("%s: %f(CPU), %f(GPU)", node->name().c_str(), cpu_time, gpu_time);
+					}
 				}
 
 				if (ImGui::CollapsingHeader("Entities"))

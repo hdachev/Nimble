@@ -57,12 +57,12 @@ namespace nimble
 
 	static glm::vec3 s_cube_view_params[6][2] = 
 	{
-		{ glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0) },
-		{ glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0) },
+		{ glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0) },
+		{ glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0) },
 		{ glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0) },
 		{ glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0) },
-		{ glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0) },
-		{ glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0) }
+		{ glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, 1.0, 0.0) },
+		{ glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, 1.0, 0.0) }
 	};
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -85,8 +85,8 @@ namespace nimble
 		m_point_light_shadow_maps.reset();
 
 		// Create shadow maps
-		m_directional_light_shadow_maps = std::make_shared<Texture2D>(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
-		m_spot_light_shadow_maps = std::make_shared<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_SPOT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
+		m_directional_light_shadow_maps = std::make_shared<Texture2D>(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
+		m_spot_light_shadow_maps = std::make_shared<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_SPOT_LIGHTS, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
 		m_point_light_shadow_maps = std::make_shared<TextureCube>(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_POINT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
 
 		// Create shadow map Render Target Views
@@ -517,9 +517,9 @@ namespace nimble
 			{
 				if (num_render_targets == 0)
 				{
-					if (rt_views[0].texture->target() == GL_TEXTURE_2D)
+					if (rt_views[0].texture->target() == GL_TEXTURE_2D || rt_views[0].texture->target() == GL_TEXTURE_2D_ARRAY)
 						fbo->attach_render_target(0, rt_views[0].texture.get(), rt_views[0].layer, rt_views[0].mip_level);
-					else if (rt_views[0].texture->target() == GL_TEXTURE_CUBE_MAP)
+					else if (rt_views[0].texture->target() == GL_TEXTURE_CUBE_MAP || rt_views[0].texture->target() == GL_TEXTURE_CUBE_MAP_ARRAY)
 						fbo->attach_render_target(0, static_cast<TextureCube*>(rt_views[0].texture.get()), rt_views[0].face, rt_views[0].layer, rt_views[0].mip_level);
 				}
 				else
@@ -536,9 +536,9 @@ namespace nimble
 
 			if (depth_view)
 			{
-				if (depth_view->texture->target() == GL_TEXTURE_2D)
+				if (depth_view->texture->target() == GL_TEXTURE_2D || depth_view->texture->target() == GL_TEXTURE_2D_ARRAY)
 					fbo->attach_depth_stencil_target(depth_view->texture.get(), depth_view->layer, depth_view->mip_level);
-				else if (depth_view->texture->target() == GL_TEXTURE_CUBE_MAP)
+				else if (depth_view->texture->target() == GL_TEXTURE_CUBE_MAP || depth_view->texture->target() == GL_TEXTURE_CUBE_MAP_ARRAY)
 					fbo->attach_depth_stencil_target(static_cast<TextureCube*>(depth_view->texture.get()), depth_view->face, depth_view->layer, depth_view->mip_level);
 			}
 
