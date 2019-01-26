@@ -12,7 +12,7 @@
 #include "imgui_helpers.h"
 #include "external/nfd/nfd.h"
 #include "graphs/forward_render_graph.h"
-#include "graphs/pcf_render_graph.h"
+#include "graphs/pcf_shadow_render_graph.h"
 #include "profiler.h"
 #include "ImGuizmo.h"
 #include <random>
@@ -47,7 +47,7 @@ namespace nimble
 			create_camera();
 
 			m_forward_graph = std::make_shared<ForwardRenderGraph>(&m_renderer);
-			m_pcf_graph = std::make_shared<PCFRenderGraph>(&m_renderer);
+			m_pcf_graph = std::make_shared<PCFShadowRenderGraph>(&m_renderer);
 
 			m_renderer.register_render_graph(m_forward_graph);
 			m_renderer.register_render_graph(m_pcf_graph);
@@ -674,7 +674,7 @@ namespace nimble
 
 		std::shared_ptr<Scene> m_scene;
 		std::shared_ptr<ForwardRenderGraph> m_forward_graph;
-		std::shared_ptr<PCFRenderGraph> m_pcf_graph;
+		std::shared_ptr<PCFShadowRenderGraph> m_pcf_graph;
 
 		Entity::ID m_selected_entity = UINT32_MAX;
 		PointLight::ID m_selected_point_light = UINT32_MAX;

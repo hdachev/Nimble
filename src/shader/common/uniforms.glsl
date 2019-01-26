@@ -102,4 +102,10 @@ layout (std140) uniform u_PerSkeleton
 	vec4 u_Emissive;
 #endif
 
+#ifdef SHADOW_MAPPING
+	uniform sampler2DArray   s_DirectionalLightShadowMaps;
+	uniform sampler2DArray   s_SpotLightShadowMaps;
+	uniform samplerCubeArray s_PointLightShadowMaps;
+#endif
+
 // ------------------------------------------------------------------

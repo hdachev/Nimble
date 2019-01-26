@@ -32,7 +32,7 @@ in vec2 PS_IN_TexCoord;
 
 #include <../common/helper.glsl>
 #include <../common/material.glsl>
-#include <../shadows/pcf.glsl>
+#include <../shadows/sampling/pcf.glsl>
 #include <../pbr/pbr.glsl>
 
 // ------------------------------------------------------------------

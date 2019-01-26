@@ -135,7 +135,7 @@ vec3 pbr_point_lights(in MaterialProperties m, in FragmentProperties f,  in PBRP
 		float frag_depth = f.FragDepth;
 
 #ifdef SHADOW_MAPPING
-		float shadow = point_light_shadows();
+		float shadow = point_light_shadows(-L, i);
 #else
 		float shadow = 1.0;
 #endif

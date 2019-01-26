@@ -41,4 +41,12 @@ namespace nimble
 		std::vector<std::shared_ptr<RenderNode>> m_nodes;
 		Renderer* m_renderer;
 	};
+
+	class ShadowRenderGraph : public RenderGraph
+	{
+	public:
+		ShadowRenderGraph(Renderer* renderer);
+
+		virtual std::string sampling_source() = 0;
+	};
 }

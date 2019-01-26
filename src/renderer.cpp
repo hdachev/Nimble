@@ -57,12 +57,12 @@ namespace nimble
 
 	static glm::vec3 s_cube_view_params[6][2] = 
 	{
-		{ glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0) },
-		{ glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0) },
+		{ glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0) },
+		{ glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0) },
 		{ glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0) },
 		{ glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0) },
-		{ glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, 1.0, 0.0) },
-		{ glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, 1.0, 0.0) }
+		{ glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0) },
+		{ glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0) }
 	};
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -212,7 +212,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void Renderer::set_shadow_map_render_graph(std::shared_ptr<RenderGraph> graph)
+	void Renderer::set_shadow_map_render_graph(std::shared_ptr<ShadowRenderGraph> graph)
 	{
 		if (graph)
 			m_shadow_map_render_graph = graph;

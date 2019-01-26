@@ -82,14 +82,14 @@ namespace nimble
 
 	std::string StandardDepthNode::vs_template_path()
 	{
-		return "shader/shadows/standard_depth_vs.glsl";
+		return "shader/shadows/shadow_map/standard_depth_vs.glsl";
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	std::string StandardDepthNode::fs_template_path()
 	{
-		return "shader/shadows/standard_depth_fs.glsl";
+		return "shader/shadows/shadow_map/standard_depth_fs.glsl";
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

@@ -1,25 +1,25 @@
-#include "pcf_render_graph.h"
+#include "pcf_shadow_render_graph.h"
 #include "../nodes/standard_depth_node.h"
 
 namespace nimble
 {
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	PCFRenderGraph::PCFRenderGraph(Renderer* renderer) : RenderGraph(renderer)
+	PCFShadowRenderGraph::PCFShadowRenderGraph(Renderer* renderer) : ShadowRenderGraph(renderer)
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::string PCFRenderGraph::name()
+	std::string PCFShadowRenderGraph::name()
 	{
-		return "PCF Render Graph";
+		return "PCF Shadow Render Graph";
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool PCFRenderGraph::build()
+	bool PCFShadowRenderGraph::build()
 	{
 		std::shared_ptr<StandardDepthNode> depth_node = std::make_shared<StandardDepthNode>(this);
 
@@ -28,9 +28,16 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void PCFRenderGraph::refresh()
+	void PCFShadowRenderGraph::refresh()
 	{
 
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	std::string PCFShadowRenderGraph::sampling_source()
+	{
+		return "shader/shadows/sampling/pcf.glsl";
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

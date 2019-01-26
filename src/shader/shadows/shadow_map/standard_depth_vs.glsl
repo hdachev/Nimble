@@ -1,5 +1,5 @@
-#include <../common/mesh_vertex_attribs.glsl>
-#include <../common/uniforms.glsl>
+#include <../../common/mesh_vertex_attribs.glsl>
+#include <../../common/uniforms.glsl>
 
 // ------------------------------------------------------------------
 // MAIN  ------------------------------------------------------------
