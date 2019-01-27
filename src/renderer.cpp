@@ -89,6 +89,10 @@ namespace nimble
 		m_spot_light_shadow_maps = std::make_shared<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_SPOT_LIGHTS, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
 		m_point_light_shadow_maps = std::make_shared<TextureCube>(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_POINT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
 
+		m_directional_light_shadow_maps->set_min_filter(GL_LINEAR);
+		m_spot_light_shadow_maps->set_min_filter(GL_LINEAR);
+		m_point_light_shadow_maps->set_min_filter(GL_LINEAR);
+
 		// Create shadow map Render Target Views
 		for (uint32_t i = 0; i < MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS; i++)
 		{
@@ -379,7 +383,7 @@ namespace nimble
 						light_view.direction = light.transform.forward();
 						light_view.position = light.transform.position;
 						light_view.view_mat = glm::lookAt(light.transform.position, light.transform.position + s_cube_view_params[face_idx][0], s_cube_view_params[face_idx][1]);
-						light_view.projection_mat = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, light.range);
+						light_view.projection_mat = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, light.range);
 						light_view.vp_mat = light_view.projection_mat * light_view.view_mat;
 						light_view.prev_vp_mat = glm::mat4(1.0f);
 						light_view.inv_view_mat = glm::inverse(light_view.view_mat);

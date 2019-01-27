@@ -378,6 +378,13 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	void SceneRenderNode::set_shader_uniforms(const View* view, Program* program, int32_t& tex_unit)
+	{
+
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	void SceneRenderNode::render_scene(const Params& params)
 	{
 		if (params.rt_views || params.depth_views)
@@ -496,6 +503,8 @@ namespace nimble
 
 							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_OBJECT_UBO))
 								m_graph->renderer()->per_entity_ubo()->bind_range(1, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));
+
+							set_shader_uniforms(params.view, program, tex_unit);
 
 							glDrawElementsBaseVertex(GL_TRIANGLES, s.index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * s.base_index), s.base_vertex);
 

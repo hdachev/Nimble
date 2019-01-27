@@ -14,7 +14,7 @@ float point_light_shadows(vec3 frag_to_light, int idx)
     float bias = 0.05; 
     float shadow = current_depth -  bias > closest_depth ? 1.0 : 0.0;
 
-    return shadow;
+    return 1.0 - shadow;
 }
 
 // ------------------------------------------------------------------

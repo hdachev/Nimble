@@ -152,6 +152,7 @@ namespace nimble
 
 	protected:
 		virtual void execute_internal(const View& view) = 0;
+		virtual void set_shader_uniforms(const View* view, Program* program, int32_t& tex_unit);
 		void render_scene(const Params& params);
 
 	private:

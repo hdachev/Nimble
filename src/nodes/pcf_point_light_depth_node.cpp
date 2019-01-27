@@ -73,6 +73,13 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
+	void PCFPointLightDepthNode::set_shader_uniforms(const View* view, Program* program, int32_t& tex_unit)
+	{
+		program->set_uniform("u_LightIdx", static_cast<int32_t>(view->light_index));
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
 	std::string PCFPointLightDepthNode::name()
 	{
 		return "PCF Point Light Depth Node";
