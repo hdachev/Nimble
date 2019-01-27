@@ -4,13 +4,13 @@
 
 namespace nimble
 {
-	class PCFShadowRenderGraph : public ShadowRenderGraph
+	class PCFPointLightRenderGraph : public ShadowRenderGraph
 	{
 	public:
-		PCFShadowRenderGraph(Renderer* renderer);
+		PCFPointLightRenderGraph(Renderer* renderer);
 		std::string name() override;
 		bool build() override;
 		void refresh() override;
-		std::string sampling_source() override;
+		std::string sampling_source_path() override;
 	};
 }

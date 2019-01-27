@@ -11,6 +11,14 @@ namespace nimble
 	class RenderGraph;
 	class Scene;
 
+	enum ViewType
+	{
+		VIEW_STANDARD,
+		VIEW_DIRECTIONAL_LIGHT,
+		VIEW_SPOT_LIGHT,
+		VIEW_POINT_LIGHT
+	};
+
 	struct View
 	{
 		bool enabled;
@@ -30,5 +38,9 @@ namespace nimble
 		Scene* scene;
 		std::shared_ptr<RenderGraph> graph;
 		RenderTargetView* dest_render_target_view;
+		ViewType type;
+
+		// Optional payload
+		uint32_t light_index;
 	};
 } // namespace nimble

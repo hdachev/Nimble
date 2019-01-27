@@ -2,6 +2,8 @@
 #include "utility.h"
 #include "logger.h"
 #include "render_node.h"
+#include "renderer.h"
+#include "render_graph.h"
 
 namespace nimble
 {
@@ -104,7 +106,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	Program* ShaderLibrary::create_program(const MeshType& type, const uint32_t& flags, const std::shared_ptr<Material>& material)
+	Program* ShaderLibrary::create_program(const MeshType& type, const uint32_t& flags, const std::shared_ptr<Material>& material, std::shared_ptr<ShadowRenderGraph> directional_light_render_graph, std::shared_ptr<ShadowRenderGraph> spot_light_render_graph, std::shared_ptr<ShadowRenderGraph> point_light_render_graph)
 	{
 		std::string vs_template = m_vs_template_source;
 		std::string fs_template = m_fs_template_source;
@@ -149,11 +151,20 @@ namespace nimble
 			vs_defines.push_back("#define DIRECTIONAL_LIGHTS");
 			fs_defines.push_back("#define DIRECTIONAL_LIGHTS");
 		}
-		if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING))
+		if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && directional_light_render_graph)
 		{
-			// @NOTE: Temporarily disable shadow mapping
-			//vs_defines.push_back("#define SHADOW_MAPPING");
-			//fs_defines.push_back("#define SHADOW_MAPPING");
+			vs_defines.push_back("#define DIRECTIONAL_LIGHT_SHADOW_MAPPING");
+			fs_defines.push_back("#define DIRECTIONAL_LIGHT_SHADOW_MAPPING");
+		}
+		if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && spot_light_render_graph)
+		{
+			vs_defines.push_back("#define SPOT_LIGHT_SHADOW_MAPPING");
+			fs_defines.push_back("#define SPOT_LIGHT_SHADOW_MAPPING");
+		}
+		if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && point_light_render_graph)
+		{
+			vs_defines.push_back("#define POINT_LIGHT_SHADOW_MAPPING");
+			fs_defines.push_back("#define POINT_LIGHT_SHADOW_MAPPING");
 		}
 
 		// Normal Texture
@@ -240,8 +251,36 @@ namespace nimble
 			// Fragment Func
 			source += m_fs_template_defines;
 			source += "\n\n";
+
+			if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && directional_light_render_graph)
+				source += "float directional_light_shadows(float frag_depth, vec3 position, vec3 n, vec3 l);\n";
+			
+			if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && spot_light_render_graph)
+				source += "float spot_light_shadows();\n";
+
+			if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && point_light_render_graph)
+				source += "float point_light_shadows(vec3 frag_to_light, int idx);\n";
+
 			source += m_fs_template_includes;
 			source += "\n\n";
+
+			if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && directional_light_render_graph)
+			{
+				source += directional_light_render_graph->sampling_source();
+				source += "\n\n";
+			}
+
+			if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && spot_light_render_graph)
+			{
+				source += spot_light_render_graph->sampling_source();
+				source += "\n\n";
+			}
+
+			if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && point_light_render_graph)
+			{
+				source += point_light_render_graph->sampling_source();
+				source += "\n\n";
+			}
 
 			if (material->has_fragment_shader_func())
 			{

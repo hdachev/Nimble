@@ -73,16 +73,15 @@ vec3 pbr_directional_lights(in MaterialProperties m, in FragmentProperties f,  i
 
 		// Shadows ------------------------------------------------------------------
 		float frag_depth = f.FragDepth;
+		float visibility = 1.0;
 
-	#ifdef SHADOW_MAPPING
-		float shadow = directional_light_shadows(frag_depth, f.Position, f.Normal, L);
+	#ifdef DIRECTIONAL_LIGHT_SHADOW_MAPPING
+		if (directional_lights[i].casts_shadow == 1)
+			visibility = directional_light_shadows(frag_depth, f.Position, f.Normal, L);
 
 	#ifdef CSM_DEBUG
 		shadow_debug += debug_color(frag_depth);
 	#endif
-
-	#else
-		float shadow = 1.0;
 	#endif
 
 		// Radiance -----------------------------------------------------------------
@@ -103,7 +102,7 @@ vec3 pbr_directional_lights(in MaterialProperties m, in FragmentProperties f,  i
 		vec3 diffuse = m.albedo.xyz / kPI;
 		// --------------------------------------------------------------------------
 
-		Lo += shadow * (pbr.kD * m.albedo.xyz / kPI + specular) * Li * NdotL;
+		Lo += visibility * (pbr.kD * m.albedo.xyz / kPI + specular) * Li * NdotL;
 	}
 
 #endif
@@ -122,6 +121,7 @@ vec3 pbr_point_lights(in MaterialProperties m, in FragmentProperties f,  in PBRP
 	vec3 Lo = vec3(0.0);
 
 #ifdef POINT_LIGHTS
+	int shadow_casting_light_idx = 0;
 
 	for (int i = 0; i < point_light_count; i++)
 	{
@@ -133,11 +133,14 @@ vec3 pbr_point_lights(in MaterialProperties m, in FragmentProperties f,  in PBRP
 
 		// Shadows ------------------------------------------------------------------
 		float frag_depth = f.FragDepth;
+		float visibility = 1.0;
 
-#ifdef SHADOW_MAPPING
-		float shadow = point_light_shadows(-L, i);
-#else
-		float shadow = 1.0;
+#ifdef POINT_LIGHT_SHADOW_MAPPING
+		if (point_lights[i].casts_shadow == 1)
+		{
+			visibility = point_light_shadows(f.Position - point_lights[i].position_range.xyz, shadow_casting_light_idx);	
+			shadow_casting_light_idx++;
+		}
 #endif
 
 		// Radiance -----------------------------------------------------------------
@@ -161,7 +164,7 @@ vec3 pbr_point_lights(in MaterialProperties m, in FragmentProperties f,  in PBRP
 		// --------------------------------------------------------------------------
 
 		// Combination --------------------------------------------------------------
-		Lo += shadow * (pbr.kD * m.albedo.xyz / kPI + specular) * Li * NdotL;
+		Lo += visibility * (pbr.kD * m.albedo.xyz / kPI + specular) * Li * NdotL;
 		// --------------------------------------------------------------------------
 	}
 
@@ -190,8 +193,8 @@ vec3 pbr_spot_lights(in MaterialProperties m, in FragmentProperties f,  in PBRPr
 		// Shadows ------------------------------------------------------------------
 		float frag_depth = f.FragDepth;
 
-#ifdef SHADOW_MAPPING
-		float shadow = point_light_shadows();
+#ifdef SPOT_LIGHT_SHADOW_MAPPING
+		float shadow = spot_light_shadows();
 #else
 		float shadow = 1.0;
 #endif

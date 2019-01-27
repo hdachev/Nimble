@@ -1,5 +1,7 @@
 #include "render_graph.h"
 #include "renderer.h"
+#include "utility.h"
+#include "logger.h"
 
 namespace nimble
 {
@@ -7,7 +9,7 @@ namespace nimble
 
 	RenderGraph::RenderGraph(Renderer* renderer) : m_renderer(renderer)
 	{
-		
+
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -28,6 +30,13 @@ namespace nimble
 		}
 
 		return true;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	RenderGraphType RenderGraph::type()
+	{
+		return RENDER_GRAPH_STANDARD;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -93,6 +102,31 @@ namespace nimble
 	ShadowRenderGraph::ShadowRenderGraph(Renderer* renderer) : RenderGraph(renderer)
 	{
 
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	bool ShadowRenderGraph::initialize()
+	{
+		bool result = RenderGraph::initialize();
+
+		std::string includes;
+		std::string defines;
+
+		if (!utility::read_shader_separate(utility::path_for_resource("assets/" + sampling_source_path()), includes, m_sampling_source, defines))
+		{
+			NIMBLE_LOG_ERROR("Failed load Sampling Source: " + sampling_source_path());
+			return false;
+		}
+
+		return true;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	RenderGraphType ShadowRenderGraph::type()
+	{
+		return RENDER_GRAPH_SHADOW;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

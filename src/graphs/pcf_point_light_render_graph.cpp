@@ -1,43 +1,43 @@
-#include "pcf_shadow_render_graph.h"
-#include "../nodes/standard_depth_node.h"
+#include "pcf_point_light_render_graph.h"
+#include "../nodes/pcf_point_light_depth_node.h"
 
 namespace nimble
 {
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	PCFShadowRenderGraph::PCFShadowRenderGraph(Renderer* renderer) : ShadowRenderGraph(renderer)
+	PCFPointLightRenderGraph::PCFPointLightRenderGraph(Renderer* renderer) : ShadowRenderGraph(renderer)
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::string PCFShadowRenderGraph::name()
+	std::string PCFPointLightRenderGraph::name()
 	{
-		return "PCF Shadow Render Graph";
+		return "PCF Point Light Shadow Render Graph";
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool PCFShadowRenderGraph::build()
+	bool PCFPointLightRenderGraph::build()
 	{
-		std::shared_ptr<StandardDepthNode> depth_node = std::make_shared<StandardDepthNode>(this);
+		std::shared_ptr<PCFPointLightDepthNode> depth_node = std::make_shared<PCFPointLightDepthNode>(this);
 
 		return attach_and_initialize_node(depth_node);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void PCFShadowRenderGraph::refresh()
+	void PCFPointLightRenderGraph::refresh()
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::string PCFShadowRenderGraph::sampling_source()
+	std::string PCFPointLightRenderGraph::sampling_source_path()
 	{
-		return "shader/shadows/sampling/pcf.glsl";
+		return "shader/shadows/point_light/sampling/pcf_point_light.glsl";
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

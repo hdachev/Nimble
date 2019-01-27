@@ -7,16 +7,21 @@ namespace nimble
 {
 	class Renderer;
 
+	enum RenderGraphType : uint32_t
+	{
+		RENDER_GRAPH_STANDARD,
+		RENDER_GRAPH_SHADOW
+	};
+
 	class RenderGraph
 	{
 	public:
 		RenderGraph(Renderer* renderer);
 		~RenderGraph();
 
-		bool initialize();
+		void execute(const View& view);
 		void shutdown();
 		void clear();
-		void execute(const View& view);
 		bool attach_and_initialize_node(std::shared_ptr<RenderNode> node);
 		std::shared_ptr<RenderNode> node_by_name(const std::string& name);
 		void on_window_resized(const uint32_t& w, const uint32_t& h);
@@ -30,7 +35,9 @@ namespace nimble
 		inline virtual uint32_t actual_viewport_height() { return window_height(); }
 		inline virtual uint32_t rendered_viewport_width() { return actual_viewport_width(); }
 		inline virtual uint32_t rendered_viewport_height() { return actual_viewport_height(); }
-		
+
+		virtual bool initialize();
+		virtual RenderGraphType type();
 		virtual std::string name() = 0;
 		virtual bool build() = 0;
 		virtual void refresh() = 0;
@@ -47,6 +54,15 @@ namespace nimble
 	public:
 		ShadowRenderGraph(Renderer* renderer);
 
-		virtual std::string sampling_source() = 0;
+		bool initialize() override;
+
+		RenderGraphType type() override;
+
+		inline std::string sampling_source() { return m_sampling_source; }
+
+		virtual std::string sampling_source_path() = 0;
+
+	private:
+		std::string m_sampling_source;
 	};
 }

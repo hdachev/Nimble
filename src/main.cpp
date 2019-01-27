@@ -12,7 +12,7 @@
 #include "imgui_helpers.h"
 #include "external/nfd/nfd.h"
 #include "graphs/forward_render_graph.h"
-#include "graphs/pcf_shadow_render_graph.h"
+#include "graphs/pcf_point_light_render_graph.h"
 #include "profiler.h"
 #include "ImGuizmo.h"
 #include <random>
@@ -47,14 +47,14 @@ namespace nimble
 			create_camera();
 
 			m_forward_graph = std::make_shared<ForwardRenderGraph>(&m_renderer);
-			m_pcf_graph = std::make_shared<PCFShadowRenderGraph>(&m_renderer);
+			m_pcf_point_light_graph = std::make_shared<PCFPointLightRenderGraph>(&m_renderer);
 
 			m_renderer.register_render_graph(m_forward_graph);
-			m_renderer.register_render_graph(m_pcf_graph);
+			m_renderer.register_render_graph(m_pcf_point_light_graph);
 
 			m_renderer.set_scene(m_scene);
 			m_renderer.set_scene_render_graph(m_forward_graph);
-			m_renderer.set_shadow_map_render_graph(m_pcf_graph);
+			m_renderer.set_point_light_render_graph(m_pcf_point_light_graph);
 
 			return true;
 		}
@@ -365,9 +365,9 @@ namespace nimble
 						ImGui::Text("%s: %f(CPU), %f(GPU)", node->name().c_str(), cpu_time, gpu_time);
 					}
 
-					for (uint32_t i = 0; i < m_pcf_graph->node_count(); i++)
+					for (uint32_t i = 0; i < m_pcf_point_light_graph->node_count(); i++)
 					{
-						std::shared_ptr<RenderNode> node = m_pcf_graph->node(i);
+						std::shared_ptr<RenderNode> node = m_pcf_point_light_graph->node(i);
 
 						node->timing_total(cpu_time, gpu_time);
 
@@ -674,7 +674,7 @@ namespace nimble
 
 		std::shared_ptr<Scene> m_scene;
 		std::shared_ptr<ForwardRenderGraph> m_forward_graph;
-		std::shared_ptr<PCFShadowRenderGraph> m_pcf_graph;
+		std::shared_ptr<PCFPointLightRenderGraph> m_pcf_point_light_graph;
 
 		Entity::ID m_selected_entity = UINT32_MAX;
 		PointLight::ID m_selected_point_light = UINT32_MAX;

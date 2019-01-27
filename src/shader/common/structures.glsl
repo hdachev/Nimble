@@ -29,7 +29,7 @@ struct PointLightData
 {
 	vec4 position_range;
 	vec4 color_intensity;
-	int	 shadow_map_idx;
+	int	 casts_shadow;
 };
 
 // ------------------------------------------------------------------
@@ -39,7 +39,7 @@ struct SpotLightData
 	vec4 position_cone_angle;
 	vec4 direction_range;
 	vec4 color_intensity;
-	int	 shadow_map_idx;
+	int	 casts_shadow;
 };
 
 // ------------------------------------------------------------------
@@ -48,7 +48,7 @@ struct DirectionalLightData
 {
 	vec4 direction;
 	vec4 color_intensity;
-	int	 shadow_map_idx;
+	int	 casts_shadow;
 };
 
 // ------------------------------------------------------------------

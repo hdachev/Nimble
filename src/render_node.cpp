@@ -462,7 +462,14 @@ namespace nimble
 							Program* program = m_library->lookup_program(key);
 
 							if (!program)
-								program = m_library->create_program(e.mesh->type(), flags(), s.material);
+							{
+								program = m_library->create_program(e.mesh->type(), 
+																	flags(), 
+																	s.material, 
+																	m_graph->type() == RENDER_GRAPH_STANDARD ? m_graph->renderer()->directional_light_render_graph() : nullptr,
+																	m_graph->type() == RENDER_GRAPH_STANDARD ? m_graph->renderer()->spot_light_render_graph() : nullptr,
+																	m_graph->type() == RENDER_GRAPH_STANDARD ? m_graph->renderer()->point_light_render_graph() : nullptr);
+							}
 
 							program->use();
 
@@ -477,6 +484,15 @@ namespace nimble
 								program->set_uniform("u_MetalRough", glm::vec4(s.material->uniform_metallic(), s.material->uniform_roughness(), 0.0f, 0.0f));
 
 							s.material->bind(program, tex_unit);
+
+							if ((HAS_BIT_FLAG(flags(), NODE_USAGE_SHADOW_MAPPING)) && program->set_uniform("s_DirectionalLightShadowMaps", tex_unit))
+								m_graph->renderer()->directional_light_shadow_maps()->bind(tex_unit++);
+
+							if ((HAS_BIT_FLAG(flags(), NODE_USAGE_SHADOW_MAPPING)) && program->set_uniform("s_SpotLightShadowMaps", tex_unit))
+								m_graph->renderer()->spot_light_shadow_maps()->bind(tex_unit++);
+
+							if ((HAS_BIT_FLAG(flags(), NODE_USAGE_SHADOW_MAPPING)) && program->set_uniform("s_PointLightShadowMaps", tex_unit))
+								m_graph->renderer()->point_light_shadow_maps()->bind(tex_unit++);
 
 							if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_OBJECT_UBO))
 								m_graph->renderer()->per_entity_ubo()->bind_range(1, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));

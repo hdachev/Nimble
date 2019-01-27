@@ -46,7 +46,9 @@ namespace nimble
 		void set_scene(std::shared_ptr<Scene> scene);
 		void register_render_graph(std::shared_ptr<RenderGraph> graph);
 		void set_scene_render_graph(std::shared_ptr<RenderGraph> graph);
-		void set_shadow_map_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
+		void set_directional_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
+		void set_spot_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
+		void set_point_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
 		void queue_view(View view);
 		void push_directional_light_views(View& dependent_view);
 		void push_spot_light_views();
@@ -66,6 +68,9 @@ namespace nimble
 		inline std::weak_ptr<Scene> scene() { return m_scene; }
 		inline Settings settings() { return m_settings; }
 		inline std::shared_ptr<RenderGraph> scene_render_graph() { return m_scene_render_graph; }
+		inline std::shared_ptr<ShadowRenderGraph> directional_light_render_graph() { return m_directional_light_render_graph; }
+		inline std::shared_ptr<ShadowRenderGraph> spot_light_render_graph() { return m_spot_light_render_graph; }
+		inline std::shared_ptr<ShadowRenderGraph> point_light_render_graph() { return m_point_light_render_graph; }
 		inline std::shared_ptr<Texture> directional_light_shadow_maps() { return m_directional_light_shadow_maps; }
 		inline std::shared_ptr<Texture> spot_light_shadow_maps() { return m_spot_light_shadow_maps; }
 		inline std::shared_ptr<Texture> point_light_shadow_maps() { return m_point_light_shadow_maps; }
@@ -108,7 +113,9 @@ namespace nimble
 		std::array<Frustum, MAX_VIEWS> m_active_frustums;
 		std::weak_ptr<Scene> m_scene;
 		std::shared_ptr<RenderGraph> m_scene_render_graph = nullptr;
-		std::shared_ptr<RenderGraph> m_shadow_map_render_graph = nullptr;
+		std::shared_ptr<ShadowRenderGraph> m_directional_light_render_graph = nullptr;
+		std::shared_ptr<ShadowRenderGraph> m_spot_light_render_graph = nullptr;
+		std::shared_ptr<ShadowRenderGraph> m_point_light_render_graph = nullptr;
 		std::vector<std::shared_ptr<RenderGraph>> m_registered_render_graphs;
 		std::array<PerViewUniforms, MAX_VIEWS> m_per_view_uniforms;
 		std::array<PerEntityUniforms, MAX_ENTITIES> m_per_entity_uniforms;

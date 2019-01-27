@@ -1,25 +1,25 @@
-#include "standard_depth_node.h"
+#include "pcf_point_light_depth_node.h"
 #include "../render_graph.h"
 
 namespace nimble
 {
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	StandardDepthNode::StandardDepthNode(RenderGraph* graph) : SceneRenderNode(graph)
+	PCFPointLightDepthNode::PCFPointLightDepthNode(RenderGraph* graph) : SceneRenderNode(graph)
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	StandardDepthNode::~StandardDepthNode()
+	PCFPointLightDepthNode::~PCFPointLightDepthNode()
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void StandardDepthNode::execute_internal(const View& view)
+	void PCFPointLightDepthNode::execute_internal(const View& view)
 	{
 		Params params;
 
@@ -52,44 +52,44 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool StandardDepthNode::register_resources()
+	bool PCFPointLightDepthNode::register_resources()
 	{
 		return true;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool StandardDepthNode::initialize()
+	bool PCFPointLightDepthNode::initialize()
 	{
 		return true;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void StandardDepthNode::shutdown()
+	void PCFPointLightDepthNode::shutdown()
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::string StandardDepthNode::name()
+	std::string PCFPointLightDepthNode::name()
 	{
-		return "Standard Depth Node";
+		return "PCF Point Light Depth Node";
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::string StandardDepthNode::vs_template_path()
+	std::string PCFPointLightDepthNode::vs_template_path()
 	{
-		return "shader/shadows/shadow_map/standard_depth_vs.glsl";
+		return "shader/shadows/point_light/shadow_map/point_light_depth_vs.glsl";
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::string StandardDepthNode::fs_template_path()
+	std::string PCFPointLightDepthNode::fs_template_path()
 	{
-		return "shader/shadows/shadow_map/standard_depth_fs.glsl";
+		return "shader/shadows/point_light/shadow_map/point_light_depth_fs.glsl";
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

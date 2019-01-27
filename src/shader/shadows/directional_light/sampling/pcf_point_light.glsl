@@ -1,5 +1,3 @@
-#ifdef PCF_SOFT_SHADOWS
-
 // ------------------------------------------------------------------
 // PCF  -------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -7,6 +5,29 @@
 float depth_compare(float a, float b, float bias)
 {
     return a - bias > b ? 1.0 : 0.0;
+}
+
+// ------------------------------------------------------------------
+
+vec3 debug_color(float frag_depth)
+{
+	int index = 0;
+
+	// Find shadow cascade.
+	for (int i = 0; i < num_cascades - 1; i++)
+	{
+		if (frag_depth > shadow_frustums[i].far_plane)
+			index = i + 1;
+	}
+
+	if (index == 0)
+		return vec3(1.0, 0.0, 0.0);
+	else if (index == 1)
+		return vec3(0.0, 1.0, 0.0);
+	else if (index == 2)
+		return vec3(0.0, 0.0, 1.0);
+	else
+		return vec3(1.0, 1.0, 0.0);
 }
 
 // ------------------------------------------------------------------
@@ -73,7 +94,7 @@ float directional_light_shadows(float frag_depth, vec3 position, vec3 n, vec3 l)
 float point_light_shadows(vec3 frag_to_light, int idx)
 {
     // use the light to fragment vector to sample from the depth map    
-    float closest_depth = texture(s_PointLightShadowMaps, vec4(frag_to_light, (float)idx)).r;
+    float closest_depth = texture(s_PointLightShadowMaps, vec4(frag_to_light, float(idx))).r;
     // it is currently in linear range between [0,1]. Re-transform back to original value
     closest_depth *= point_lights[idx].position_range.w;
     // now get current linear depth as the length between the fragment and light position
@@ -93,28 +114,3 @@ float spot_light_shadows()
 }
 
 // ------------------------------------------------------------------
-
-vec3 debug_color(float frag_depth)
-{
-	int index = 0;
-
-	// Find shadow cascade.
-	for (int i = 0; i < num_cascades - 1; i++)
-	{
-		if (frag_depth > shadow_frustums[i].far_plane)
-			index = i + 1;
-	}
-
-	if (index == 0)
-		return vec3(1.0, 0.0, 0.0);
-	else if (index == 1)
-		return vec3(0.0, 1.0, 0.0);
-	else if (index == 2)
-		return vec3(0.0, 0.0, 1.0);
-	else
-		return vec3(1.0, 1.0, 0.0);
-}
-
-// ------------------------------------------------------------------
-
-#endif

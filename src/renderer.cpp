@@ -212,10 +212,26 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void Renderer::set_shadow_map_render_graph(std::shared_ptr<ShadowRenderGraph> graph)
+	void Renderer::set_directional_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph)
 	{
 		if (graph)
-			m_shadow_map_render_graph = graph;
+			m_directional_light_render_graph = graph;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Renderer::set_spot_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph)
+	{
+		if (graph)
+			m_spot_light_render_graph = graph;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Renderer::set_point_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph)
+	{
+		if (graph)
+			m_point_light_render_graph = graph;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -270,8 +286,10 @@ namespace nimble
 						light_view.inv_vp_mat = glm::mat4(1.0f); // @TODO
 						light_view.jitter = glm::vec4(0.0);
 						light_view.dest_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
-						light_view.graph = m_shadow_map_render_graph;
+						light_view.graph = m_directional_light_render_graph;
 						light_view.scene = scene.get();
+						light_view.type = VIEW_DIRECTIONAL_LIGHT;
+						light_view.light_index = light_idx;
 
 						queue_view(light_view);
 					}
@@ -318,8 +336,10 @@ namespace nimble
 					light_view.inv_vp_mat = glm::mat4(1.0f); // @TODO
 					light_view.jitter = glm::vec4(0.0);
 					light_view.dest_render_target_view = &m_spot_light_rt_views[shadow_casting_light_idx];
-					light_view.graph = m_shadow_map_render_graph;
+					light_view.graph = m_spot_light_render_graph;
 					light_view.scene = scene.get();
+					light_view.type = VIEW_SPOT_LIGHT;
+					light_view.light_index = light_idx;
 
 					queue_view(light_view);
 
@@ -367,8 +387,10 @@ namespace nimble
 						light_view.inv_vp_mat = glm::inverse(light_view.vp_mat);
 						light_view.jitter = glm::vec4(0.0);
 						light_view.dest_render_target_view = &m_point_light_rt_views[shadow_casting_light_idx * light_idx + face_idx];
-						light_view.graph = m_shadow_map_render_graph;
+						light_view.graph = m_point_light_render_graph;
 						light_view.scene = scene.get();
+						light_view.type = VIEW_POINT_LIGHT;
+						light_view.light_index = light_idx;
 
 						queue_view(light_view);
 					}
@@ -952,6 +974,7 @@ namespace nimble
 			scene_view.dest_render_target_view = nullptr;
 			scene_view.graph = m_scene_render_graph;
 			scene_view.scene = scene.get();
+			scene_view.type = VIEW_STANDARD;
 
 			// Queue shadow views
 			push_point_light_views();

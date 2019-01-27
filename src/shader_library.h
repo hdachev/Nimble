@@ -10,6 +10,8 @@ namespace nimble
 #define MAX_SHADER_CACHE_SIZE 10000
 #define MAX_PROGRAM_CACHE_SIZE 10000
 
+	class ShadowRenderGraph;
+
 	class ShaderLibrary
 	{
 	public:
@@ -17,7 +19,7 @@ namespace nimble
 		~ShaderLibrary();
 
 		Program* lookup_program(const ProgramKey& key);
-		Program* create_program(const MeshType& type, const uint32_t& flags, const std::shared_ptr<Material>& material);
+		Program* create_program(const MeshType& type, const uint32_t& flags, const std::shared_ptr<Material>& material, std::shared_ptr<ShadowRenderGraph> directional_light_render_graph, std::shared_ptr<ShadowRenderGraph> spot_light_render_graph, std::shared_ptr<ShadowRenderGraph> point_light_render_graph);
 
 	private:
 		StaticHashMap<uint64_t, Program*, MAX_PROGRAM_CACHE_SIZE> m_program_cache;

@@ -4,11 +4,11 @@
 
 namespace nimble
 {
-	class StandardDepthNode : public SceneRenderNode
+	class PCFPointLightDepthNode : public SceneRenderNode
 	{
 	public:
-		StandardDepthNode(RenderGraph* graph);
-		~StandardDepthNode();
+		PCFPointLightDepthNode(RenderGraph* graph);
+		~PCFPointLightDepthNode();
 
 		bool register_resources() override;
 		bool initialize() override;
