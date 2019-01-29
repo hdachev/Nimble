@@ -390,7 +390,7 @@ namespace nimble
 						light_view.inv_projection_mat = glm::inverse(light_view.projection_mat);
 						light_view.inv_vp_mat = glm::inverse(light_view.vp_mat);
 						light_view.jitter = glm::vec4(0.0);
-						light_view.dest_render_target_view = &m_point_light_rt_views[shadow_casting_light_idx * light_idx + face_idx];
+						light_view.dest_render_target_view = &m_point_light_rt_views[shadow_casting_light_idx * 6 + face_idx];
 						light_view.graph = m_point_light_render_graph;
 						light_view.scene = scene.get();
 						light_view.type = VIEW_POINT_LIGHT;
