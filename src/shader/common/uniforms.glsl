@@ -42,6 +42,7 @@ layout(std430, binding = 2) buffer u_PerScene
 	PointLightData 		 point_lights[MAX_POINT_LIGHTS];
 	SpotLightData 		 spot_lights[MAX_SPOT_LIGHTS];
 	DirectionalLightData directional_lights[MAX_DIRECTIONAL_LIGHTS];
+	mat4 				 spot_light_shadow_matrix[MAX_SHADOW_CASTING_SPOT_LIGHTS];
 	int			   		 point_light_count;
 	int		      		 spot_light_count;
 	int		    		 directional_light_count;

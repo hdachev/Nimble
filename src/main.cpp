@@ -13,6 +13,7 @@
 #include "external/nfd/nfd.h"
 #include "graphs/forward_render_graph.h"
 #include "graphs/pcf_point_light_render_graph.h"
+#include "graphs/pcf_spot_light_render_graph.h"
 #include "profiler.h"
 #include "ImGuizmo.h"
 #include <random>
@@ -48,13 +49,16 @@ namespace nimble
 
 			m_forward_graph = std::make_shared<ForwardRenderGraph>(&m_renderer);
 			m_pcf_point_light_graph = std::make_shared<PCFPointLightRenderGraph>(&m_renderer);
+			m_pcf_spot_light_graph = std::make_shared<PCFSpotLightRenderGraph>(&m_renderer);
 
 			m_renderer.register_render_graph(m_forward_graph);
 			m_renderer.register_render_graph(m_pcf_point_light_graph);
+			m_renderer.register_render_graph(m_pcf_spot_light_graph);
 
 			m_renderer.set_scene(m_scene);
 			m_renderer.set_scene_render_graph(m_forward_graph);
 			m_renderer.set_point_light_render_graph(m_pcf_point_light_graph);
+			m_renderer.set_spot_light_render_graph(m_pcf_spot_light_graph);
 
 			return true;
 		}
@@ -675,6 +679,7 @@ namespace nimble
 		std::shared_ptr<Scene> m_scene;
 		std::shared_ptr<ForwardRenderGraph> m_forward_graph;
 		std::shared_ptr<PCFPointLightRenderGraph> m_pcf_point_light_graph;
+		std::shared_ptr<PCFSpotLightRenderGraph> m_pcf_spot_light_graph;
 
 		Entity::ID m_selected_entity = UINT32_MAX;
 		PointLight::ID m_selected_point_light = UINT32_MAX;

@@ -181,6 +181,7 @@ vec3 pbr_spot_lights(in MaterialProperties m, in FragmentProperties f,  in PBRPr
 	vec3 Lo = vec3(0.0);
 
 #ifdef SPOT_LIGHTS
+	int shadow_casting_light_idx = 0;
 
 	for (int i = 0; i < spot_light_count; i++)
 	{
@@ -192,11 +193,14 @@ vec3 pbr_spot_lights(in MaterialProperties m, in FragmentProperties f,  in PBRPr
 
 		// Shadows ------------------------------------------------------------------
 		float frag_depth = f.FragDepth;
+		float visibility = 1.0;
 
 #ifdef SPOT_LIGHT_SHADOW_MAPPING
-		float shadow = spot_light_shadows();
-#else
-		float shadow = 1.0;
+		if (spot_lights[i].casts_shadow == 1)
+		{
+			visibility = spot_light_shadows(f.Position, shadow_casting_light_idx);	
+			shadow_casting_light_idx++;
+		}
 #endif
 
 		// Radiance -----------------------------------------------------------------
@@ -204,7 +208,7 @@ vec3 pbr_spot_lights(in MaterialProperties m, in FragmentProperties f,  in PBRPr
 		float distance = length(spot_lights[i].position_cone_angle.xyz - f.Position);
 		float outer_cut_off = 0.54;
 		float epsilon = spot_lights[i].position_cone_angle.w - outer_cut_off;
-		float attenuation = smoothstep(spot_lights[i].direction_range.w, 0, distance) * clamp((theta - outer_cut_off) / epsilon, 0.0, 1.0);
+		float attenuation = smoothstep(spot_lights[i].direction_range.w, 0, distance) * clamp((theta - outer_cut_off) / epsilon, 0.0, 1.0) * visibility;
 		vec3 Li = spot_lights[i].color_intensity.xyz * spot_lights[i].color_intensity.w * attenuation;
 		// --------------------------------------------------------------------------
 
@@ -223,7 +227,7 @@ vec3 pbr_spot_lights(in MaterialProperties m, in FragmentProperties f,  in PBRPr
 		// --------------------------------------------------------------------------
 
 		// Combination --------------------------------------------------------------
-		Lo += shadow * (pbr.kD * m.albedo.xyz / kPI + specular) * Li * NdotL;
+		Lo += (pbr.kD * m.albedo.xyz / kPI + specular) * Li * NdotL;
 		// --------------------------------------------------------------------------
 	}
 

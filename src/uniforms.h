@@ -72,6 +72,7 @@ namespace nimble
 		PointLightData 		 point_lights[MAX_POINT_LIGHTS];
 		SpotLightData		 spot_lights[MAX_SPOT_LIGHTS];
 		DirectionalLightData directional_lights[MAX_DIRECTIONAL_LIGHTS];
+		glm::mat4			 spot_light_shadow_matrix[MAX_SHADOW_CASTING_SPOT_LIGHTS];
 		int32_t			     point_light_count;
 		int32_t			     spot_light_count;
 		int32_t			     directional_light_count;

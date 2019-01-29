@@ -331,9 +331,9 @@ namespace nimble
 					light_view.culling = true;
 					light_view.direction = light.transform.forward();
 					light_view.position = light.transform.position;
-					light_view.view_mat = glm::mat4(1.0f); // @TODO
-					light_view.projection_mat = glm::mat4(1.0f); // @TODO
-					light_view.vp_mat = glm::mat4(1.0f); // @TODO
+					light_view.view_mat = glm::lookAt(light_view.position, light_view.position + light_view.direction, glm::vec3(0.0f, 1.0f, 0.0f));
+					light_view.projection_mat = glm::perspective(glm::radians(2.0f * light.cone_angle), 1.0f, 1.0f, light.range);
+					light_view.vp_mat = light_view.projection_mat * light_view.view_mat;
 					light_view.prev_vp_mat = glm::mat4(1.0f); // @TODO
 					light_view.inv_view_mat = glm::mat4(1.0f); // @TODO
 					light_view.inv_projection_mat = glm::mat4(1.0f); // @TODO
@@ -344,6 +344,8 @@ namespace nimble
 					light_view.scene = scene.get();
 					light_view.type = VIEW_SPOT_LIGHT;
 					light_view.light_index = light_idx;
+
+					m_per_scene_uniforms.spot_light_shadow_matrix[shadow_casting_light_idx] = light_view.vp_mat;
 
 					queue_view(light_view);
 
@@ -981,6 +983,7 @@ namespace nimble
 			scene_view.type = VIEW_STANDARD;
 
 			// Queue shadow views
+			push_spot_light_views();
 			push_point_light_views();
 
 			// Finally queue the scene view
