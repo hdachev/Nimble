@@ -206,8 +206,9 @@ vec3 pbr_spot_lights(in MaterialProperties m, in FragmentProperties f,  in PBRPr
 		// Radiance -----------------------------------------------------------------
 		float theta = dot(L, normalize(-spot_lights[i].direction_range.xyz));
 		float distance = length(spot_lights[i].position_cone_angle.xyz - f.Position);
-		float outer_cut_off = 0.54;
-		float epsilon = spot_lights[i].position_cone_angle.w - outer_cut_off;
+		float outer_cut_off = spot_lights[i].position_cone_angle.w;
+		float inner_cut_off = 0.766;
+		float epsilon = inner_cut_off - outer_cut_off;
 		float attenuation = smoothstep(spot_lights[i].direction_range.w, 0, distance) * clamp((theta - outer_cut_off) / epsilon, 0.0, 1.0) * visibility;
 		vec3 Li = spot_lights[i].color_intensity.xyz * spot_lights[i].color_intensity.w * attenuation;
 		// --------------------------------------------------------------------------

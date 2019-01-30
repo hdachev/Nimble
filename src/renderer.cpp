@@ -334,10 +334,10 @@ namespace nimble
 					light_view.view_mat = glm::lookAt(light_view.position, light_view.position + light_view.direction, glm::vec3(0.0f, 1.0f, 0.0f));
 					light_view.projection_mat = glm::perspective(glm::radians(2.0f * light.cone_angle), 1.0f, 1.0f, light.range);
 					light_view.vp_mat = light_view.projection_mat * light_view.view_mat;
-					light_view.prev_vp_mat = glm::mat4(1.0f); // @TODO
-					light_view.inv_view_mat = glm::mat4(1.0f); // @TODO
-					light_view.inv_projection_mat = glm::mat4(1.0f); // @TODO
-					light_view.inv_vp_mat = glm::mat4(1.0f); // @TODO
+					light_view.prev_vp_mat = glm::mat4(1.0f);
+					light_view.inv_view_mat = glm::mat4(1.0f);
+					light_view.inv_projection_mat = glm::mat4(1.0f);
+					light_view.inv_vp_mat = glm::mat4(1.0f);
 					light_view.jitter = glm::vec4(0.0);
 					light_view.dest_render_target_view = &m_spot_light_rt_views[shadow_casting_light_idx];
 					light_view.graph = m_spot_light_render_graph;
@@ -846,6 +846,8 @@ namespace nimble
 				m_per_view_uniforms[i].inv_view = view.inv_view_mat;
 				m_per_view_uniforms[i].inv_view_proj = view.inv_vp_mat;
 				m_per_view_uniforms[i].view_pos = glm::vec4(view.position, 0.0f);
+				m_per_view_uniforms[i].near_plane = view.near_plane;
+				m_per_view_uniforms[i].far_plane = view.far_plane;
 			}
 
 			ptr = m_per_view->map(GL_WRITE_ONLY);
@@ -981,6 +983,8 @@ namespace nimble
 			scene_view.graph = m_scene_render_graph;
 			scene_view.scene = scene.get();
 			scene_view.type = VIEW_STANDARD;
+			scene_view.near_plane = camera->m_near;
+			scene_view.far_plane = camera->m_far;
 
 			// Queue shadow views
 			push_spot_light_views();

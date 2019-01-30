@@ -34,6 +34,8 @@ namespace nimble
 		glm::mat4 inv_projection_mat;
 		glm::mat4 inv_vp_mat;
 		glm::vec4 jitter;
+		float far_plane;
+		float near_plane;
 		ShadowFrustum shadow_frustums[MAX_SHADOW_MAP_CASCADES * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS];
 		Scene* scene;
 		std::shared_ptr<RenderGraph> graph;

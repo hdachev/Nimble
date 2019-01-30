@@ -15,6 +15,7 @@ float spot_light_shadows(vec3 position, int light_idx)
     // get depth of current fragment from light's perspective
     float current_depth = proj_coords.z;
     // check whether current frag pos is in shadow
+    //float bias = 0.0005;
     float shadow = current_depth > closest_depth  ? 1.0 : 0.0;
 
     return 1.0 - shadow;
