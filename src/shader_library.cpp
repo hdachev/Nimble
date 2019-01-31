@@ -256,10 +256,10 @@ namespace nimble
 				source += "float directional_light_shadows(float frag_depth, vec3 position, vec3 n, vec3 l);\n";
 			
 			if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && spot_light_render_graph)
-				source += "float spot_light_shadows(vec3 position, int light_idx);\n";
+				source += "float spot_light_shadows(vec3 position, int shadow_map_idx, int light_idx);\n";
 
 			if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && point_light_render_graph)
-				source += "float point_light_shadows(vec3 frag_to_light, int idx);\n";
+				source += "float point_light_shadows(vec3 frag_to_light, int shadow_map_idx, int idx);\n";
 
 			source += m_fs_template_includes;
 			source += "\n\n";

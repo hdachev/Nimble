@@ -138,7 +138,7 @@ vec3 pbr_point_lights(in MaterialProperties m, in FragmentProperties f,  in PBRP
 #ifdef POINT_LIGHT_SHADOW_MAPPING
 		if (point_lights[i].casts_shadow == 1)
 		{
-			visibility = point_light_shadows(f.Position - point_lights[i].position_range.xyz, shadow_casting_light_idx);	
+			visibility = point_light_shadows(f.Position - point_lights[i].position_range.xyz, shadow_casting_light_idx, i);	
 			shadow_casting_light_idx++;
 		}
 #endif
@@ -198,7 +198,7 @@ vec3 pbr_spot_lights(in MaterialProperties m, in FragmentProperties f,  in PBRPr
 #ifdef SPOT_LIGHT_SHADOW_MAPPING
 		if (spot_lights[i].casts_shadow == 1)
 		{
-			visibility = spot_light_shadows(f.Position, shadow_casting_light_idx);	
+			visibility = spot_light_shadows(f.Position, shadow_casting_light_idx, i);	
 			shadow_casting_light_idx++;
 		}
 #endif
