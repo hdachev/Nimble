@@ -41,10 +41,40 @@ float get_linear_depth(sampler2D depth_sampler, vec2 tex_coord, float far, float
 
 // Take exponential depth and convert into linear depth.
 
-float exp_to_linear_depth(float exp_depth, float near, float far)
+float depth_exp_to_view(mat4 inverse_proj, float exp_depth)
 {
-    float z = (2 * near) / (far + near - exp_depth * (far - near));
-    return z;
+    exp_depth = exp_depth * 2.0 - 1.0;
+    float w = inverse_proj[2][3] * exp_depth + inverse_proj[3][3];
+    return (1.0 / w);
+}
+
+// ------------------------------------------------------------------
+
+float depth_exp_to_view(float near, float far, float exp_depth)
+{
+   return (2.0 * near * far) / (far + near - exp_depth * (far - near));
+}
+
+// ------------------------------------------------------------------
+
+float depth_view_to_linear_01(float near, float far, float depth)
+{
+	return (depth - near) / (far - near);
+}
+
+// ------------------------------------------------------------------
+
+float depth_linear_01_to_view(float near, float far, float depth)
+{
+	return near + depth * (far - near);
+}
+
+// ------------------------------------------------------------------
+
+float depth_exp_to_linear_01(float near, float far, float depth)
+{
+    float view_depth = depth_exp_to_view(near, far, depth);
+    return depth_view_to_linear_01(near, far, view_depth);
 }
 
 // ------------------------------------------------------------------
