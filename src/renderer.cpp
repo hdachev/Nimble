@@ -284,10 +284,10 @@ namespace nimble
 						light_view.view_mat = glm::mat4(1.0f); // @TODO
 						light_view.projection_mat = glm::mat4(1.0f); // @TODO
 						light_view.vp_mat = glm::mat4(1.0f); // @TODO
-						light_view.prev_vp_mat = glm::mat4(1.0f); // @TODO
-						light_view.inv_view_mat = glm::mat4(1.0f); // @TODO
-						light_view.inv_projection_mat = glm::mat4(1.0f); // @TODO
-						light_view.inv_vp_mat = glm::mat4(1.0f); // @TODO
+						light_view.prev_vp_mat = glm::mat4(1.0f);
+						light_view.inv_view_mat = glm::mat4(1.0f);
+						light_view.inv_projection_mat = glm::mat4(1.0f);
+						light_view.inv_vp_mat = glm::mat4(1.0f);
 						light_view.jitter = glm::vec4(0.0);
 						light_view.dest_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
 						light_view.graph = m_directional_light_render_graph;
