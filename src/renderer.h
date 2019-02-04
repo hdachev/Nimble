@@ -32,7 +32,8 @@ namespace nimble
 		{
 			ShadowMapQuality shadow_map_quality = SHADOW_MAP_QUALITY_HIGH;
 			uint32_t		 cascade_count = 4;
-			uint32_t		 multisampling = 1;
+			uint32_t		 sample_count = 1;
+			bool			 per_cascade_culling = true;
 		};
 
 		Renderer(Settings settings = Settings());

@@ -36,13 +36,25 @@ namespace nimble
 		glm::vec4 jitter;
 		float far_plane;
 		float near_plane;
-		ShadowFrustum shadow_frustums[MAX_SHADOW_MAP_CASCADES * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS];
 		Scene* scene;
 		std::shared_ptr<RenderGraph> graph;
 		RenderTargetView* dest_render_target_view;
 		ViewType type;
 
+		// Directional Light related payload
+		ShadowFrustum shadow_frustums[MAX_SHADOW_MAP_CASCADES * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS];
+		View* cascade_views[MAX_SHADOW_MAP_CASCADES];
+
 		// Optional payload
 		uint32_t light_index;
+
+		View()
+		{
+			scene = nullptr;
+			dest_render_target_view = nullptr;
+
+			for (uint32_t i = 0; i < MAX_SHADOW_MAP_CASCADES; i++)
+				cascade_views[i] = nullptr;
+		}
 	};
 } // namespace nimble
