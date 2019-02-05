@@ -50,8 +50,9 @@ namespace nimble
 		void set_directional_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
 		void set_spot_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
 		void set_point_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
-		void queue_view(View view);
-		void push_directional_light_views(View& dependent_view);
+		View* allocate_view();
+		void queue_view(View* view);
+		void push_directional_light_views(View* dependent_view);
 		void push_spot_light_views();
 		void push_point_light_views();
 		void clear_all_views();
@@ -110,7 +111,9 @@ namespace nimble
 
 		// Current scene.
 		uint32_t m_num_active_views = 0;
-		std::array<View, MAX_VIEWS> m_active_views;
+		uint32_t m_num_allocated_views = 0;
+		std::array<View, MAX_VIEWS> m_view_pool;
+		std::array<View*, MAX_VIEWS> m_active_views;
 		std::array<Frustum, MAX_VIEWS> m_active_frustums;
 		std::weak_ptr<Scene> m_scene;
 		std::shared_ptr<RenderGraph> m_scene_render_graph = nullptr;

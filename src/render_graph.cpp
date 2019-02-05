@@ -58,7 +58,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void RenderGraph::execute(const View& view)
+	void RenderGraph::execute(const View* view)
 	{
 		for (auto& node : m_nodes)
 			node->execute(view);

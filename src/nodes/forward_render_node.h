@@ -18,7 +18,7 @@ namespace nimble
 		std::string fs_template_path() override;
 
 	protected:
-		void execute_internal(const View& view) override;
+		void execute_internal(const View* view) override;
 
 	private:
 		std::shared_ptr<RenderTarget> m_color_rt;

@@ -18,6 +18,6 @@ namespace nimble
 		std::string fs_template_path() override;
 
 	protected:
-		void execute_internal(const View& view) override;
+		void execute_internal(const View* view) override;
 	};
 }

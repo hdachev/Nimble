@@ -88,7 +88,7 @@ namespace nimble
 		virtual bool register_resources();
 		virtual void passthrough();
 		virtual uint32_t flags();
-		virtual void execute(const View& view) = 0;
+		virtual void execute(const View* view) = 0;
 		virtual bool initialize() = 0;
 		virtual void shutdown() = 0;
 		virtual std::string name() = 0;
@@ -146,12 +146,12 @@ namespace nimble
 		~SceneRenderNode();
 
 		bool initialize_internal() override;
-		void execute(const View& view) override;
+		void execute(const View* view) override;
 		virtual std::string vs_template_path() = 0;
 		virtual std::string fs_template_path() = 0;
 
 	protected:
-		virtual void execute_internal(const View& view) = 0;
+		virtual void execute_internal(const View* view) = 0;
 		virtual void set_shader_uniforms(const View* view, Program* program, int32_t& tex_unit);
 		void render_scene(const Params& params);
 
@@ -165,7 +165,7 @@ namespace nimble
 		MultiPassRenderNode(RenderNodeType type, RenderGraph* graph);
 		~MultiPassRenderNode();
 
-		void execute(const View& view) override;
+		void execute(const View* view) override;
 		void timing_sub_pass(const uint32_t& index, std::string& name, float& cpu_time, float& gpu_time);
 
 		// Inline getters

@@ -19,7 +19,7 @@ namespace nimble
 		RenderGraph(Renderer* renderer);
 		~RenderGraph();
 
-		void execute(const View& view);
+		void execute(const View* view);
 		void shutdown();
 		void clear();
 		bool attach_and_initialize_node(std::shared_ptr<RenderNode> node);

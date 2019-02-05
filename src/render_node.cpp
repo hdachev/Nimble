@@ -360,7 +360,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void SceneRenderNode::execute(const View& view)
+	void SceneRenderNode::execute(const View* view)
 	{
 		float cpu_time, gpu_time;
 
@@ -533,7 +533,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void MultiPassRenderNode::execute(const View& view)
+	void MultiPassRenderNode::execute(const View* view)
 	{
 		float cpu_time, gpu_time;
 

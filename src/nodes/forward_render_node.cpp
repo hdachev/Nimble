@@ -19,7 +19,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void ForwardRenderNode::execute_internal(const View& view)
+	void ForwardRenderNode::execute_internal(const View* view)
 	{
 		//RenderTargetView views[] = { m_color_rtv, m_velocity_rtv };
 
@@ -29,7 +29,7 @@ namespace nimble
 		params.y = 0;
 		params.w = m_graph->window_width();
 		params.h = m_graph->window_height();
-		params.view = &view;
+		params.view = view;
 		params.num_rt_views = 0;
 		params.rt_views = nullptr;
 		params.depth_views = nullptr;

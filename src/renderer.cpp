@@ -240,7 +240,20 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void Renderer::queue_view(View view)
+	View* Renderer::allocate_view()
+	{
+		if (m_num_allocated_views == MAX_VIEWS)
+			NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
+		else
+		{
+			uint32_t idx = m_num_allocated_views++;
+			return &m_view_pool[idx];
+		}
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void Renderer::queue_view(View* view)
 	{
 		if (m_num_active_views == MAX_VIEWS)
 			NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
@@ -249,7 +262,7 @@ namespace nimble
 			uint32_t idx = m_num_active_views++;
 
 			Frustum frustum;
-			frustum_from_matrix(frustum, view.vp_mat);
+			frustum_from_matrix(frustum, view->vp_mat);
 
 			m_active_views[idx] = view;
 			m_active_frustums[idx] = frustum;
@@ -258,13 +271,14 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void Renderer::push_directional_light_views(View& dependent_view)
+	void Renderer::push_directional_light_views(View* dependent_view)
 	{
 		if (!m_scene.expired())
 		{
 			auto scene = m_scene.lock();
 
 			uint32_t shadow_casting_light_idx = 0;
+			uint32_t i = 0;
 			DirectionalLight* lights = scene->directional_lights();
 
 			for (uint32_t light_idx = 0; light_idx < scene->directional_light_count(); light_idx++)
@@ -275,27 +289,27 @@ namespace nimble
 				{
 					for (uint32_t cascade_idx = 0; cascade_idx < m_settings.cascade_count; cascade_idx++)
 					{
-						View light_view;
+						View* light_view = allocate_view();
 
-						light_view.enabled = true;
-						light_view.culling = true;
-						light_view.direction = light.transform.forward();
-						light_view.position = light.transform.position;
-						light_view.view_mat = glm::mat4(1.0f); // @TODO
-						light_view.projection_mat = glm::mat4(1.0f); // @TODO
-						light_view.vp_mat = glm::mat4(1.0f); // @TODO
-						light_view.prev_vp_mat = glm::mat4(1.0f);
-						light_view.inv_view_mat = glm::mat4(1.0f);
-						light_view.inv_projection_mat = glm::mat4(1.0f);
-						light_view.inv_vp_mat = glm::mat4(1.0f);
-						light_view.jitter = glm::vec4(0.0);
-						light_view.dest_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
-						light_view.graph = m_directional_light_render_graph;
-						light_view.scene = scene.get();
-						light_view.type = VIEW_DIRECTIONAL_LIGHT;
-						light_view.light_index = light_idx;
+						light_view->enabled = true;
+						light_view->culling = true;
+						light_view->direction = light.transform.forward();
+						light_view->position = light.transform.position;
+						light_view->view_mat = glm::mat4(1.0f); // @TODO
+						light_view->projection_mat = glm::mat4(1.0f); // @TODO
+						light_view->vp_mat = glm::mat4(1.0f); // @TODO
+						light_view->prev_vp_mat = glm::mat4(1.0f);
+						light_view->inv_view_mat = glm::mat4(1.0f);
+						light_view->inv_projection_mat = glm::mat4(1.0f);
+						light_view->inv_vp_mat = glm::mat4(1.0f);
+						light_view->jitter = glm::vec4(0.0);
+						light_view->dest_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
+						light_view->graph = m_directional_light_render_graph;
+						light_view->scene = scene.get();
+						light_view->type = VIEW_DIRECTIONAL_LIGHT;
+						light_view->light_index = light_idx;
 
-						queue_view(light_view);
+						dependent_view->cascade_views[i++] = light_view;
 					}
 
 					shadow_casting_light_idx++;
@@ -325,27 +339,27 @@ namespace nimble
 
 				if (light.casts_shadow)
 				{
-					View light_view;
+					View* light_view = allocate_view();
 
-					light_view.enabled = true;
-					light_view.culling = true;
-					light_view.direction = light.transform.forward();
-					light_view.position = light.transform.position;
-					light_view.view_mat = glm::lookAt(light_view.position, light_view.position + light_view.direction, glm::vec3(0.0f, 1.0f, 0.0f));
-					light_view.projection_mat = glm::perspective(glm::radians(2.0f * light.cone_angle), 1.0f, 1.0f, light.range);
-					light_view.vp_mat = light_view.projection_mat * light_view.view_mat;
-					light_view.prev_vp_mat = glm::mat4(1.0f);
-					light_view.inv_view_mat = glm::mat4(1.0f);
-					light_view.inv_projection_mat = glm::mat4(1.0f);
-					light_view.inv_vp_mat = glm::mat4(1.0f);
-					light_view.jitter = glm::vec4(0.0);
-					light_view.dest_render_target_view = &m_spot_light_rt_views[shadow_casting_light_idx];
-					light_view.graph = m_spot_light_render_graph;
-					light_view.scene = scene.get();
-					light_view.type = VIEW_SPOT_LIGHT;
-					light_view.light_index = light_idx;
+					light_view->enabled = true;
+					light_view->culling = true;
+					light_view->direction = light.transform.forward();
+					light_view->position = light.transform.position;
+					light_view->view_mat = glm::lookAt(light_view->position, light_view->position + light_view->direction, glm::vec3(0.0f, 1.0f, 0.0f));
+					light_view->projection_mat = glm::perspective(glm::radians(2.0f * light.cone_angle), 1.0f, 1.0f, light.range);
+					light_view->vp_mat = light_view->projection_mat * light_view->view_mat;
+					light_view->prev_vp_mat = glm::mat4(1.0f);
+					light_view->inv_view_mat = glm::mat4(1.0f);
+					light_view->inv_projection_mat = glm::mat4(1.0f);
+					light_view->inv_vp_mat = glm::mat4(1.0f);
+					light_view->jitter = glm::vec4(0.0);
+					light_view->dest_render_target_view = &m_spot_light_rt_views[shadow_casting_light_idx];
+					light_view->graph = m_spot_light_render_graph;
+					light_view->scene = scene.get();
+					light_view->type = VIEW_SPOT_LIGHT;
+					light_view->light_index = light_idx;
 
-					m_per_scene_uniforms.spot_light_shadow_matrix[shadow_casting_light_idx] = light_view.vp_mat;
+					m_per_scene_uniforms.spot_light_shadow_matrix[shadow_casting_light_idx] = light_view->vp_mat;
 
 					queue_view(light_view);
 
@@ -378,25 +392,25 @@ namespace nimble
 				{
 					for (uint32_t face_idx = 0; face_idx < 6; face_idx++)
 					{
-						View light_view;
+						View* light_view = allocate_view();
 
-						light_view.enabled = true;
-						light_view.culling = true;
-						light_view.direction = light.transform.forward();
-						light_view.position = light.transform.position;
-						light_view.view_mat = glm::lookAt(light.transform.position, light.transform.position + s_cube_view_params[face_idx][0], s_cube_view_params[face_idx][1]);
-						light_view.projection_mat = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, light.range);
-						light_view.vp_mat = light_view.projection_mat * light_view.view_mat;
-						light_view.prev_vp_mat = glm::mat4(1.0f);
-						light_view.inv_view_mat = glm::inverse(light_view.view_mat);
-						light_view.inv_projection_mat = glm::inverse(light_view.projection_mat);
-						light_view.inv_vp_mat = glm::inverse(light_view.vp_mat);
-						light_view.jitter = glm::vec4(0.0);
-						light_view.dest_render_target_view = &m_point_light_rt_views[shadow_casting_light_idx * 6 + face_idx];
-						light_view.graph = m_point_light_render_graph;
-						light_view.scene = scene.get();
-						light_view.type = VIEW_POINT_LIGHT;
-						light_view.light_index = light_idx;
+						light_view->enabled = true;
+						light_view->culling = true;
+						light_view->direction = light.transform.forward();
+						light_view->position = light.transform.position;
+						light_view->view_mat = glm::lookAt(light.transform.position, light.transform.position + s_cube_view_params[face_idx][0], s_cube_view_params[face_idx][1]);
+						light_view->projection_mat = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, light.range);
+						light_view->vp_mat = light_view->projection_mat * light_view->view_mat;
+						light_view->prev_vp_mat = glm::mat4(1.0f);
+						light_view->inv_view_mat = glm::inverse(light_view->view_mat);
+						light_view->inv_projection_mat = glm::inverse(light_view->projection_mat);
+						light_view->inv_vp_mat = glm::inverse(light_view->vp_mat);
+						light_view->jitter = glm::vec4(0.0);
+						light_view->dest_render_target_view = &m_point_light_rt_views[shadow_casting_light_idx * 6 + face_idx];
+						light_view->graph = m_point_light_render_graph;
+						light_view->scene = scene.get();
+						light_view->type = VIEW_POINT_LIGHT;
+						light_view->light_index = light_idx;
 
 						queue_view(light_view);
 					}
@@ -416,6 +430,7 @@ namespace nimble
 	void Renderer::clear_all_views()
 	{
 		m_num_active_views = 0;
+		m_num_allocated_views = 0;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -836,18 +851,18 @@ namespace nimble
 			// Update per view uniforms
 			for (uint32_t i = 0; i < m_num_active_views; i++)
 			{
-				View& view = m_active_views[i];
+				View* view = m_active_views[i];
 
-				m_per_view_uniforms[i].view_mat = view.view_mat;
-				m_per_view_uniforms[i].proj_mat = view.projection_mat;
-				m_per_view_uniforms[i].view_proj= view.vp_mat;
-				m_per_view_uniforms[i].last_view_proj = view.prev_vp_mat;
-				m_per_view_uniforms[i].inv_proj = view.inv_projection_mat;
-				m_per_view_uniforms[i].inv_view = view.inv_view_mat;
-				m_per_view_uniforms[i].inv_view_proj = view.inv_vp_mat;
-				m_per_view_uniforms[i].view_pos = glm::vec4(view.position, 0.0f);
-				m_per_view_uniforms[i].near_plane = view.near_plane;
-				m_per_view_uniforms[i].far_plane = view.far_plane;
+				m_per_view_uniforms[i].view_mat = view->view_mat;
+				m_per_view_uniforms[i].proj_mat = view->projection_mat;
+				m_per_view_uniforms[i].view_proj= view->vp_mat;
+				m_per_view_uniforms[i].last_view_proj = view->prev_vp_mat;
+				m_per_view_uniforms[i].inv_proj = view->inv_projection_mat;
+				m_per_view_uniforms[i].inv_view = view->inv_view_mat;
+				m_per_view_uniforms[i].inv_view_proj = view->inv_vp_mat;
+				m_per_view_uniforms[i].view_pos = glm::vec4(view->position, 0.0f);
+				m_per_view_uniforms[i].near_plane = view->near_plane;
+				m_per_view_uniforms[i].far_plane = view->far_plane;
 			}
 
 			ptr = m_per_view->map(GL_WRITE_ONLY);
@@ -922,7 +937,7 @@ namespace nimble
 				
 				for (uint32_t j = 0; j < m_num_active_views; j++)
 				{
-					if (m_active_views[j].culling)
+					if (m_active_views[j]->culling)
 					{
 						if (intersects(m_active_frustums[j], entity.obb))
 						{
@@ -965,26 +980,26 @@ namespace nimble
 
 			// Allocate view for scene camera
 			auto camera = scene->camera();
-			View scene_view;
+			View* scene_view = allocate_view();
 
-			scene_view.enabled = true;
-			scene_view.culling = true;
-			scene_view.direction = camera->m_forward;
-			scene_view.position = camera->m_position;
-			scene_view.view_mat = camera->m_view;
-			scene_view.projection_mat = camera->m_projection;
-			scene_view.vp_mat = camera->m_view_projection;
-			scene_view.prev_vp_mat = camera->m_prev_view_projection;
-			scene_view.inv_view_mat = glm::inverse(camera->m_view);
-			scene_view.inv_projection_mat = glm::inverse(camera->m_projection);
-			scene_view.inv_vp_mat = glm::inverse(camera->m_view_projection);
-			scene_view.jitter = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
-			scene_view.dest_render_target_view = nullptr;
-			scene_view.graph = m_scene_render_graph;
-			scene_view.scene = scene.get();
-			scene_view.type = VIEW_STANDARD;
-			scene_view.near_plane = camera->m_near;
-			scene_view.far_plane = camera->m_far;
+			scene_view->enabled = true;
+			scene_view->culling = true;
+			scene_view->direction = camera->m_forward;
+			scene_view->position = camera->m_position;
+			scene_view->view_mat = camera->m_view;
+			scene_view->projection_mat = camera->m_projection;
+			scene_view->vp_mat = camera->m_view_projection;
+			scene_view->prev_vp_mat = camera->m_prev_view_projection;
+			scene_view->inv_view_mat = glm::inverse(camera->m_view);
+			scene_view->inv_projection_mat = glm::inverse(camera->m_projection);
+			scene_view->inv_vp_mat = glm::inverse(camera->m_view_projection);
+			scene_view->jitter = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
+			scene_view->dest_render_target_view = nullptr;
+			scene_view->graph = m_scene_render_graph;
+			scene_view->scene = scene.get();
+			scene_view->type = VIEW_STANDARD;
+			scene_view->near_plane = camera->m_near;
+			scene_view->far_plane = camera->m_far;
 
 			// Queue shadow views
 			push_spot_light_views();
@@ -1003,14 +1018,14 @@ namespace nimble
 		{
 			for (uint32_t i = 0; i < m_num_active_views; i++)
 			{
-				View& view = m_active_views[i];
+				View* view = m_active_views[i];
 
-				if (view.enabled)
+				if (view->enabled)
 				{
-					view.id = i;
+					view->id = i;
 
-					if (view.graph)
-						view.graph->execute(view);
+					if (view->graph)
+						view->graph->execute(view);
 					else
 						NIMBLE_LOG_ERROR("Render Graph not assigned for View!");
 				}

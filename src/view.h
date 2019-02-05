@@ -43,7 +43,7 @@ namespace nimble
 
 		// Directional Light related payload
 		ShadowFrustum shadow_frustums[MAX_SHADOW_MAP_CASCADES * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS];
-		View* cascade_views[MAX_SHADOW_MAP_CASCADES];
+		View* cascade_views[MAX_SHADOW_MAP_CASCADES * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS];
 
 		// Optional payload
 		uint32_t light_index;
