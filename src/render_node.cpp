@@ -27,10 +27,10 @@ namespace nimble
 
 	std::shared_ptr<RenderTarget> RenderNode::find_output_render_target(const std::string& name)
 	{
-		for (auto& pair : m_output_rts)
+		for (auto& output : m_output_rts)
 		{
-			if (pair.first == name)
-				return pair.second;
+			if (output.slot_name == name)
+				return output.render_target;
 		}
 
 		return nullptr;
@@ -40,10 +40,10 @@ namespace nimble
 
 	std::shared_ptr<RenderTarget> RenderNode::find_intermediate_render_target(const std::string& name)
 	{
-		for (auto& pair : m_intermediate_rts)
+		for (auto& output : m_intermediate_rts)
 		{
-			if (pair.first == name)
-				return pair.second;
+			if (output.slot_name == name)
+				return output.render_target;
 		}
 
 		return nullptr;
@@ -53,10 +53,10 @@ namespace nimble
 
 	std::shared_ptr<RenderTarget> RenderNode::find_input_render_target(const std::string& name)
 	{
-		for (auto& pair : m_input_rts)
+		for (auto& input : m_input_rts)
 		{
-			if (pair.first == name)
-				return pair.second;
+			if (input.slot_name == name)
+				return input.output_slot->render_target;
 		}
 
 		return nullptr;
@@ -64,12 +64,12 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::shared_ptr<Buffer> RenderNode::find_input_buffer(const std::string& name)
+	std::shared_ptr<ShaderStorageBuffer> RenderNode::find_output_buffer(const std::string& name)
 	{
-		for (auto& pair : m_input_buffers)
+		for (auto& output : m_output_buffers)
 		{
-			if (pair.first == name)
-				return pair.second;
+			if (output.slot_name == name)
+				return output.buffer;
 		}
 
 		return nullptr;
@@ -77,13 +77,26 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void RenderNode::set_input(const std::string& name, std::shared_ptr<RenderTarget> rt)
+	std::shared_ptr<ShaderStorageBuffer> RenderNode::find_input_buffer(const std::string& name)
 	{
-		for (auto& pair : m_input_rts)
+		for (auto& input : m_input_buffers)
 		{
-			if (pair.first == name)
+			if (input.slot_name == name)
+				return input.output_slot->buffer;
+		}
+
+		return nullptr;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void RenderNode::set_input(const std::string& name, OutputRenderTarget* rt)
+	{
+		for (auto& input : m_input_rts)
+		{
+			if (input.slot_name == name)
 			{
-				pair.second = rt;
+				input.output_slot= rt;
 				return;
 			}
 		}
@@ -93,13 +106,13 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void RenderNode::set_input(const std::string& name, std::shared_ptr<Buffer> buffer)
+	void RenderNode::set_input(const std::string& name, OutputBuffer* buffer)
 	{
-		for (auto& pair : m_input_buffers)
+		for (auto& input : m_input_buffers)
 		{
-			if (pair.first == name)
+			if (input.slot_name == name)
 			{
-				pair.second = buffer;
+				input.output_slot = buffer;
 				return;
 			}
 		}
@@ -157,9 +170,9 @@ namespace nimble
 
 	void RenderNode::register_input_render_target(const std::string& name)
 	{
-		for (auto& pair : m_input_rts)
+		for (auto& input : m_input_rts)
 		{
-			if (pair.first == name)
+			if (input.slot_name == name)
 			{
 				NIMBLE_LOG_ERROR("Input render target slot already registered: " + name);
 				return;
@@ -173,9 +186,9 @@ namespace nimble
 
 	void RenderNode::register_input_buffer(const std::string& name)
 	{
-		for (auto& pair : m_input_buffers)
+		for (auto& input : m_input_buffers)
 		{
-			if (pair.first == name)
+			if (input.slot_name == name)
 			{
 				NIMBLE_LOG_ERROR("Input buffer slot already registered: " + name);
 				return;
@@ -189,9 +202,9 @@ namespace nimble
 
 	std::shared_ptr<RenderTarget> RenderNode::register_output_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
 	{
-		for (auto& pair : m_output_rts)
+		for (auto& output : m_output_rts)
 		{
-			if (pair.first == name)
+			if (output.slot_name == name)
 			{
 				NIMBLE_LOG_ERROR("Output render target already registered: " + name);
 				return nullptr;
@@ -212,7 +225,7 @@ namespace nimble
 		rt->array_size = array_size;
 		rt->mip_levels = mip_levels;
 
-		m_output_rts.push_back({ name, rt });
+		m_output_rts.push_back({ name, rt, this });
 
 		return rt;
 	}
@@ -221,9 +234,9 @@ namespace nimble
 
 	std::shared_ptr<RenderTarget> RenderNode::register_scaled_output_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
 	{
-		for (auto& pair : m_output_rts)
+		for (auto& output : m_output_rts)
 		{
-			if (pair.first == name)
+			if (output.slot_name == name)
 			{
 				NIMBLE_LOG_ERROR("Output render target already registered: " + name);
 				return nullptr;
@@ -244,7 +257,7 @@ namespace nimble
 		rt->array_size = array_size;
 		rt->mip_levels = mip_levels;
 
-		m_output_rts.push_back({ name, rt });
+		m_output_rts.push_back({ name, rt, this });
 
 		return rt;
 	}
@@ -253,9 +266,9 @@ namespace nimble
 
 	std::shared_ptr<RenderTarget> RenderNode::register_intermediate_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
 	{
-		for (auto& pair : m_intermediate_rts)
+		for (auto& output : m_intermediate_rts)
 		{
-			if (pair.first == name)
+			if (output.slot_name == name)
 			{
 				NIMBLE_LOG_ERROR("Intermediate render target already registered: " + name);
 				return nullptr;
@@ -276,7 +289,7 @@ namespace nimble
 		rt->array_size = array_size;
 		rt->mip_levels = mip_levels;
 
-		m_intermediate_rts.push_back({ name, rt });
+		m_intermediate_rts.push_back({ name, rt, this });
 
 		return rt;
 	}
@@ -285,9 +298,9 @@ namespace nimble
 
 	std::shared_ptr<RenderTarget> RenderNode::register_scaled_intermediate_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
 	{
-		for (auto& pair : m_intermediate_rts)
+		for (auto& output : m_intermediate_rts)
 		{
-			if (pair.first == name)
+			if (output.slot_name == name)
 			{
 				NIMBLE_LOG_ERROR("Intermediate render target already registered: " + name);
 				return nullptr;
@@ -308,7 +321,7 @@ namespace nimble
 		rt->array_size = array_size;
 		rt->mip_levels = mip_levels;
 
-		m_intermediate_rts.push_back({ name, rt });
+		m_intermediate_rts.push_back({ name, rt, this });
 
 		return rt;
 	}

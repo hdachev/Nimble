@@ -58,24 +58,51 @@ namespace nimble
 	class RenderNode
 	{
 	public:
+		struct OutputRenderTarget
+		{
+			std::string slot_name;
+			std::shared_ptr<RenderTarget> render_target;
+			RenderNode* node;
+		};
+
+		struct InputRenderTarget
+		{
+			std::string slot_name;
+			OutputRenderTarget* output_slot;
+		};
+
+		struct OutputBuffer
+		{
+			std::string slot_name;
+			std::shared_ptr<ShaderStorageBuffer> buffer;
+			RenderNode* node;
+		};
+
+		struct InputBuffer
+		{
+			std::string slot_name;
+			OutputBuffer* output_slot;
+		};
+
 		RenderNode(RenderNodeType type, RenderGraph* graph);
 		~RenderNode();
 
 		std::shared_ptr<RenderTarget> find_output_render_target(const std::string& name);
 		std::shared_ptr<RenderTarget> find_intermediate_render_target(const std::string& name);
 		std::shared_ptr<RenderTarget> find_input_render_target(const std::string& name);
-		std::shared_ptr<Buffer> find_input_buffer(const std::string& name);
-		void set_input(const std::string& name, std::shared_ptr<RenderTarget> rt);
-		void set_input(const std::string& name, std::shared_ptr<Buffer> buffer);
+		std::shared_ptr<ShaderStorageBuffer> find_output_buffer(const std::string& name);
+		std::shared_ptr<ShaderStorageBuffer> find_input_buffer(const std::string& name);
+		void set_input(const std::string& name, OutputRenderTarget* render_target);
+		void set_input(const std::string& name, OutputBuffer* buffer);
 		void timing_total(float& cpu_time, float& gpu_time);
 
 		// Inline getters
 		inline uint32_t output_render_target_count() { return m_output_rts.size(); }
-		inline std::shared_ptr<RenderTarget> output_render_target(const uint32_t& idx) { return m_output_rts[idx].second; }
-		inline uint32_t input_render_target_count() { return m_input_rts.size(); }
-		inline std::shared_ptr<RenderTarget> input_render_target(const uint32_t& idx) { return m_input_rts[idx].second; }
+		inline std::shared_ptr<RenderTarget> output_render_target(const uint32_t& idx) { return m_output_rts[idx].render_target; }
 		inline uint32_t intermediate_render_target_count() { return m_intermediate_rts.size(); }
-		inline std::shared_ptr<RenderTarget> intermediate_render_target(const uint32_t& idx) { return m_intermediate_rts[idx].second; }
+		inline std::shared_ptr<RenderTarget> intermediate_render_target(const uint32_t& idx) { return m_intermediate_rts[idx].render_target; }
+		inline uint32_t input_render_target_count() { return m_input_rts.size(); }
+		inline std::shared_ptr<RenderTarget> input_render_target(const uint32_t& idx) { return m_input_rts[idx].output_slot->render_target; }
 		inline RenderNodeType type() { return m_render_node_type; }
 		inline bool is_enabled() { return m_enabled; }
 
@@ -113,10 +140,11 @@ namespace nimble
 	private:
 		bool m_enabled;
 		RenderNodeType m_render_node_type;
-		std::vector<std::pair<std::string, std::shared_ptr<RenderTarget>>> m_output_rts;
-		std::vector<std::pair<std::string, std::shared_ptr<RenderTarget>>> m_intermediate_rts;
-		std::vector<std::pair<std::string, std::shared_ptr<RenderTarget>>> m_input_rts;
-		std::vector<std::pair<std::string, std::shared_ptr<Buffer>>> m_input_buffers;
+		std::vector<OutputRenderTarget> m_output_rts;
+		std::vector<OutputRenderTarget> m_intermediate_rts;
+		std::vector<InputRenderTarget> m_input_rts;
+		std::vector<OutputBuffer> m_output_buffers;
+		std::vector<InputBuffer> m_input_buffers;
 	};
 
 	class SceneRenderNode : public RenderNode
