@@ -92,6 +92,10 @@ namespace nimble
 		std::shared_ptr<RenderTarget> find_input_render_target(const std::string& name);
 		std::shared_ptr<ShaderStorageBuffer> find_output_buffer(const std::string& name);
 		std::shared_ptr<ShaderStorageBuffer> find_input_buffer(const std::string& name);
+		OutputRenderTarget* find_output_render_target_slot(const std::string& name);
+		InputRenderTarget* find_input_render_target_slot(const std::string& name);
+		OutputBuffer* find_output_buffer_slot(const std::string& name);
+		InputBuffer* find_input_buffer_slot(const std::string& name);
 		void set_input(const std::string& name, OutputRenderTarget* render_target);
 		void set_input(const std::string& name, OutputBuffer* buffer);
 		void timing_total(float& cpu_time, float& gpu_time);
@@ -100,7 +104,7 @@ namespace nimble
 		inline uint32_t output_render_target_count() { return m_output_rts.size(); }
 		inline std::shared_ptr<RenderTarget> output_render_target(const uint32_t& idx) { return m_output_rts[idx].render_target; }
 		inline uint32_t intermediate_render_target_count() { return m_intermediate_rts.size(); }
-		inline std::shared_ptr<RenderTarget> intermediate_render_target(const uint32_t& idx) { return m_intermediate_rts[idx].render_target; }
+		inline std::shared_ptr<RenderTarget> intermediate_render_target(const uint32_t& idx) { return m_intermediate_rts[idx].second; }
 		inline uint32_t input_render_target_count() { return m_input_rts.size(); }
 		inline std::shared_ptr<RenderTarget> input_render_target(const uint32_t& idx) { return m_input_rts[idx].output_slot->render_target; }
 		inline RenderNodeType type() { return m_render_node_type; }
@@ -141,7 +145,7 @@ namespace nimble
 		bool m_enabled;
 		RenderNodeType m_render_node_type;
 		std::vector<OutputRenderTarget> m_output_rts;
-		std::vector<OutputRenderTarget> m_intermediate_rts;
+		std::vector<std::pair<std::string, std::shared_ptr<RenderTarget>>> m_intermediate_rts;
 		std::vector<InputRenderTarget> m_input_rts;
 		std::vector<OutputBuffer> m_output_buffers;
 		std::vector<InputBuffer> m_input_buffers;

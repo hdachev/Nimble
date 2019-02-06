@@ -40,10 +40,10 @@ namespace nimble
 
 	std::shared_ptr<RenderTarget> RenderNode::find_intermediate_render_target(const std::string& name)
 	{
-		for (auto& output : m_intermediate_rts)
+		for (auto& rt : m_intermediate_rts)
 		{
-			if (output.slot_name == name)
-				return output.render_target;
+			if (rt.first == name)
+				return rt.second;
 		}
 
 		return nullptr;
@@ -53,11 +53,10 @@ namespace nimble
 
 	std::shared_ptr<RenderTarget> RenderNode::find_input_render_target(const std::string& name)
 	{
-		for (auto& input : m_input_rts)
-		{
-			if (input.slot_name == name)
-				return input.output_slot->render_target;
-		}
+		InputRenderTarget* rt = find_input_render_target_slot(name);
+
+		if (rt && rt->output_slot)
+			return rt->output_slot->render_target;
 
 		return nullptr;
 	}
@@ -66,11 +65,10 @@ namespace nimble
 
 	std::shared_ptr<ShaderStorageBuffer> RenderNode::find_output_buffer(const std::string& name)
 	{
-		for (auto& output : m_output_buffers)
-		{
-			if (output.slot_name == name)
-				return output.buffer;
-		}
+		OutputBuffer* buffer = find_output_buffer_slot(name);
+
+		if (buffer)
+			return buffer->buffer;
 
 		return nullptr;
 	}
@@ -79,10 +77,61 @@ namespace nimble
 
 	std::shared_ptr<ShaderStorageBuffer> RenderNode::find_input_buffer(const std::string& name)
 	{
+		InputBuffer* buffer = find_input_buffer_slot(name);
+
+		if (buffer && buffer->output_slot)
+			return buffer->output_slot->buffer;
+
+		return nullptr;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	RenderNode::OutputRenderTarget* RenderNode::find_output_render_target_slot(const std::string& name)
+	{
+		for (auto& output : m_output_rts)
+		{
+			if (output.slot_name == name)
+				return &output;
+		}
+
+		return nullptr;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	RenderNode::InputRenderTarget* RenderNode::find_input_render_target_slot(const std::string& name)
+	{
+		for (auto& input : m_input_rts)
+		{
+			if (input.slot_name == name)
+				return &input;
+		}
+
+		return nullptr;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	RenderNode::OutputBuffer* RenderNode::find_output_buffer_slot(const std::string& name)
+	{
+		for (auto& output : m_output_buffers)
+		{
+			if (output.slot_name == name)
+				return &output;
+		}
+
+		return nullptr;
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	RenderNode::InputBuffer* RenderNode::find_input_buffer_slot(const std::string& name)
+	{
 		for (auto& input : m_input_buffers)
 		{
 			if (input.slot_name == name)
-				return input.output_slot->buffer;
+				return &input;
 		}
 
 		return nullptr;
@@ -268,7 +317,7 @@ namespace nimble
 	{
 		for (auto& output : m_intermediate_rts)
 		{
-			if (output.slot_name == name)
+			if (output.first == name)
 			{
 				NIMBLE_LOG_ERROR("Intermediate render target already registered: " + name);
 				return nullptr;
@@ -289,7 +338,7 @@ namespace nimble
 		rt->array_size = array_size;
 		rt->mip_levels = mip_levels;
 
-		m_intermediate_rts.push_back({ name, rt, this });
+		m_intermediate_rts.push_back({ name, rt });
 
 		return rt;
 	}
@@ -300,7 +349,7 @@ namespace nimble
 	{
 		for (auto& output : m_intermediate_rts)
 		{
-			if (output.slot_name == name)
+			if (output.first == name)
 			{
 				NIMBLE_LOG_ERROR("Intermediate render target already registered: " + name);
 				return nullptr;
@@ -321,7 +370,7 @@ namespace nimble
 		rt->array_size = array_size;
 		rt->mip_levels = mip_levels;
 
-		m_intermediate_rts.push_back({ name, rt, this });
+		m_intermediate_rts.push_back({ name, rt });
 
 		return rt;
 	}
