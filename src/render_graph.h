@@ -26,6 +26,8 @@ namespace nimble
 		std::shared_ptr<RenderNode> node_by_name(const std::string& name);
 		void on_window_resized(const uint32_t& w, const uint32_t& h);
 
+		inline void set_name(const std::string& name) { m_name = name; }
+		inline std::string name() { return m_name; }
 		inline uint32_t node_count() { return m_nodes.size(); }
 		inline std::shared_ptr<RenderNode> node(const uint32_t& idx) { return m_nodes[idx]; }
 		inline uint32_t window_width() { return m_window_width; }
@@ -38,11 +40,11 @@ namespace nimble
 
 		virtual bool initialize();
 		virtual RenderGraphType type();
-		virtual std::string name() = 0;
 		virtual bool build() = 0;
 		virtual void refresh() = 0;
 
 	private:
+		std::string m_name;
 		uint32_t m_window_width;
 		uint32_t m_window_height;
 		std::vector<std::shared_ptr<RenderNode>> m_nodes;
