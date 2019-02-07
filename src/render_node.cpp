@@ -55,8 +55,8 @@ namespace nimble
 	{
 		InputRenderTarget* rt = find_input_render_target_slot(name);
 
-		if (rt && rt->output_slot)
-			return rt->output_slot->render_target;
+		if (rt)
+			return rt->prev_render_target;
 
 		return nullptr;
 	}
@@ -79,8 +79,8 @@ namespace nimble
 	{
 		InputBuffer* buffer = find_input_buffer_slot(name);
 
-		if (buffer && buffer->output_slot)
-			return buffer->output_slot->buffer;
+		if (buffer)
+			return buffer->prev_buffer;
 
 		return nullptr;
 	}
@@ -139,13 +139,15 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void RenderNode::set_input(const std::string& name, OutputRenderTarget* rt)
+	void RenderNode::set_input(const std::string& name, OutputRenderTarget* rt, std::shared_ptr<RenderNode> owner)
 	{
 		for (auto& input : m_input_rts)
 		{
 			if (input.slot_name == name)
 			{
-				input.output_slot= rt;
+				input.prev_slot_name = rt->slot_name;
+				input.prev_render_target = rt->render_target;
+				input.prev_node = owner;
 				return;
 			}
 		}
@@ -155,13 +157,15 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void RenderNode::set_input(const std::string& name, OutputBuffer* buffer)
+	void RenderNode::set_input(const std::string& name, OutputBuffer* buffer, std::shared_ptr<RenderNode> owner)
 	{
 		for (auto& input : m_input_buffers)
 		{
 			if (input.slot_name == name)
 			{
-				input.output_slot = buffer;
+				input.prev_slot_name = buffer->slot_name;
+				input.prev_buffer = buffer->buffer;
+				input.prev_node = owner;
 				return;
 			}
 		}
@@ -274,7 +278,7 @@ namespace nimble
 		rt->array_size = array_size;
 		rt->mip_levels = mip_levels;
 
-		m_output_rts.push_back({ name, rt, this });
+		m_output_rts.push_back({ name, rt });
 
 		return rt;
 	}
@@ -306,7 +310,7 @@ namespace nimble
 		rt->array_size = array_size;
 		rt->mip_levels = mip_levels;
 
-		m_output_rts.push_back({ name, rt, this });
+		m_output_rts.push_back({ name, rt });
 
 		return rt;
 	}

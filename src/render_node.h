@@ -62,26 +62,28 @@ namespace nimble
 		{
 			std::string slot_name;
 			std::shared_ptr<RenderTarget> render_target;
-			RenderNode* node;
 		};
 
 		struct InputRenderTarget
 		{
 			std::string slot_name;
-			OutputRenderTarget* output_slot;
+			std::string prev_slot_name;
+			std::shared_ptr<RenderTarget> prev_render_target;
+			std::shared_ptr<RenderNode> prev_node;
 		};
 
 		struct OutputBuffer
 		{
 			std::string slot_name;
 			std::shared_ptr<ShaderStorageBuffer> buffer;
-			RenderNode* node;
 		};
 
 		struct InputBuffer
 		{
 			std::string slot_name;
-			OutputBuffer* output_slot;
+			std::string prev_slot_name;
+			std::shared_ptr<ShaderStorageBuffer> prev_buffer;
+			std::shared_ptr<RenderNode> prev_node;
 		};
 
 		RenderNode(RenderNodeType type, RenderGraph* graph);
@@ -96,17 +98,21 @@ namespace nimble
 		InputRenderTarget* find_input_render_target_slot(const std::string& name);
 		OutputBuffer* find_output_buffer_slot(const std::string& name);
 		InputBuffer* find_input_buffer_slot(const std::string& name);
-		void set_input(const std::string& name, OutputRenderTarget* render_target);
-		void set_input(const std::string& name, OutputBuffer* buffer);
+		void set_input(const std::string& name, OutputRenderTarget* render_target, std::shared_ptr<RenderNode> owner);
+		void set_input(const std::string& name, OutputBuffer* buffer, std::shared_ptr<RenderNode> owner);
 		void timing_total(float& cpu_time, float& gpu_time);
 
 		// Inline getters
+		inline std::vector<InputRenderTarget>& input_render_targets() { return m_input_rts; }
+		inline std::vector<OutputRenderTarget>& output_render_targets() { return m_output_rts; }
+		inline std::vector<InputBuffer>& input_buffers() { return m_input_buffers; }
+		inline std::vector<OutputBuffer>& output_buffer() { return m_output_buffers; }
 		inline uint32_t output_render_target_count() { return m_output_rts.size(); }
 		inline std::shared_ptr<RenderTarget> output_render_target(const uint32_t& idx) { return m_output_rts[idx].render_target; }
 		inline uint32_t intermediate_render_target_count() { return m_intermediate_rts.size(); }
 		inline std::shared_ptr<RenderTarget> intermediate_render_target(const uint32_t& idx) { return m_intermediate_rts[idx].second; }
 		inline uint32_t input_render_target_count() { return m_input_rts.size(); }
-		inline std::shared_ptr<RenderTarget> input_render_target(const uint32_t& idx) { return m_input_rts[idx].output_slot->render_target; }
+		inline std::shared_ptr<RenderTarget> input_render_target(const uint32_t& idx) { return m_input_rts[idx].prev_render_target; }
 		inline RenderNodeType type() { return m_render_node_type; }
 		inline bool is_enabled() { return m_enabled; }
 

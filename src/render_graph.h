@@ -19,17 +19,17 @@ namespace nimble
 		RenderGraph(Renderer* renderer);
 		~RenderGraph();
 
+		void build(std::shared_ptr<RenderNode> end_node);
 		void execute(const View* view);
 		void shutdown();
 		void clear();
-		bool attach_and_initialize_node(std::shared_ptr<RenderNode> node);
 		std::shared_ptr<RenderNode> node_by_name(const std::string& name);
 		void on_window_resized(const uint32_t& w, const uint32_t& h);
 
 		inline void set_name(const std::string& name) { m_name = name; }
 		inline std::string name() { return m_name; }
-		inline uint32_t node_count() { return m_nodes.size(); }
-		inline std::shared_ptr<RenderNode> node(const uint32_t& idx) { return m_nodes[idx]; }
+		inline uint32_t node_count() { return m_flattened_graph.size(); }
+		inline std::shared_ptr<RenderNode> node(const uint32_t& idx) { return m_flattened_graph[idx]; }
 		inline uint32_t window_width() { return m_window_width; }
 		inline uint32_t window_height() { return m_window_height; }
 		inline Renderer* renderer() { return m_renderer; }
@@ -40,14 +40,18 @@ namespace nimble
 
 		virtual bool initialize();
 		virtual RenderGraphType type();
-		virtual bool build() = 0;
-		virtual void refresh() = 0;
+
+	private:
+		void flatten_graph();
+		void traverse_and_push_node(std::shared_ptr<RenderNode> node);
+		bool is_node_pushed(std::shared_ptr<RenderNode> node);
 
 	private:
 		std::string m_name;
 		uint32_t m_window_width;
 		uint32_t m_window_height;
-		std::vector<std::shared_ptr<RenderNode>> m_nodes;
+		std::shared_ptr<RenderNode> m_end_node;
+		std::vector<std::shared_ptr<RenderNode>> m_flattened_graph;
 		Renderer* m_renderer;
 	};
 
