@@ -165,9 +165,9 @@ namespace nimble
 		std::string includes;
 		std::string defines;
 
-		if (!utility::read_shader_separate(utility::path_for_resource("assets/" + sampling_source_path()), includes, m_sampling_source, defines))
+		if (!utility::read_shader_separate(utility::path_for_resource("assets/" + m_sampling_source_path), includes, m_sampling_source, defines))
 		{
-			NIMBLE_LOG_ERROR("Failed load Sampling Source: " + sampling_source_path());
+			NIMBLE_LOG_ERROR("Failed load Sampling Source: " + m_sampling_source_path);
 			return false;
 		}
 

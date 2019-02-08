@@ -66,9 +66,10 @@ namespace nimble
 
 		inline std::string sampling_source() { return m_sampling_source; }
 
-		virtual std::string sampling_source_path() = 0;
+		inline void set_sampling_source_path(const std::string& path) { m_sampling_source_path = path; }
 
 	private:
+		std::string m_sampling_source_path;
 		std::string m_sampling_source;
 	};
 }

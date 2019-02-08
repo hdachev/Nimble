@@ -4,11 +4,11 @@
 
 namespace nimble
 {
-	class ForwardRenderNode : public SceneRenderNode
+	class ForwardNode : public SceneRenderNode
 	{
 	public:
-		ForwardRenderNode(RenderGraph* graph);
-		~ForwardRenderNode();
+		ForwardNode(RenderGraph* graph);
+		~ForwardNode();
 
 		bool register_resources() override;
 		bool initialize() override;

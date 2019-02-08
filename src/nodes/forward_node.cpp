@@ -1,25 +1,25 @@
-#include "forward_render_node.h"
+#include "forward_node.h"
 #include "../render_graph.h"
 
 namespace nimble
 {
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	ForwardRenderNode::ForwardRenderNode(RenderGraph* graph) : SceneRenderNode(graph)
+	ForwardNode::ForwardNode(RenderGraph* graph) : SceneRenderNode(graph)
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	ForwardRenderNode::~ForwardRenderNode()
+	ForwardNode::~ForwardNode()
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void ForwardRenderNode::execute_internal(const View* view)
+	void ForwardNode::execute_internal(const View* view)
 	{
 		//RenderTargetView views[] = { m_color_rtv, m_velocity_rtv };
 
@@ -40,7 +40,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool ForwardRenderNode::register_resources()
+	bool ForwardNode::register_resources()
 	{
 		//m_color_rt = register_render_target("Color", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 		//m_depth_rt = register_render_target("Depth", 1.0f, 1.0f, GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
@@ -51,7 +51,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool ForwardRenderNode::initialize()
+	bool ForwardNode::initialize()
 	{		
 		//m_color_rtv = RenderTargetView(0, 0, 0, m_color_rt.get());
 		//m_velocity_rtv = RenderTargetView(0, 0, 0, m_velocity_rt.get());
@@ -62,28 +62,28 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void ForwardRenderNode::shutdown()
+	void ForwardNode::shutdown()
 	{
 
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::string ForwardRenderNode::name()
+	std::string ForwardNode::name()
 	{
-		return "Forward Render Node";
+		return "Forward";
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::string ForwardRenderNode::vs_template_path()
+	std::string ForwardNode::vs_template_path()
 	{
 		return "shader/forward/forward_vs.glsl";
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::string ForwardRenderNode::fs_template_path()
+	std::string ForwardNode::fs_template_path()
 	{
 		return "shader/forward/forward_fs.glsl";
 	}

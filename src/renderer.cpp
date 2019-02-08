@@ -202,8 +202,7 @@ namespace nimble
 			}
 		}
 
-		if (graph->build())
-			m_registered_render_graphs.push_back(graph);
+		m_registered_render_graphs.push_back(graph);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

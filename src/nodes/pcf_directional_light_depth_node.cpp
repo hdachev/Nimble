@@ -75,7 +75,7 @@ namespace nimble
 
 	std::string PCFDirectionalLightDepthNode::name()
 	{
-		return "PCF Directional Light Depth Node";
+		return "PCF Directional Light Depth";
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------

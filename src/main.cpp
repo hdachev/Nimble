@@ -8,12 +8,13 @@
 #include "utility.h"
 #include "material.h"
 #include "macros.h"
+#include "render_graph.h"
+#include "nodes/forward_node.h"
+#include "nodes/pcf_point_light_depth_node.h"
+#include "nodes/pcf_directional_light_depth_node.h"
 #include "debug_draw.h"
 #include "imgui_helpers.h"
 #include "external/nfd/nfd.h"
-#include "graphs/forward_render_graph.h"
-#include "graphs/pcf_point_light_render_graph.h"
-#include "graphs/pcf_spot_light_render_graph.h"
 #include "profiler.h"
 #include "ImGuizmo.h"
 #include <random>
@@ -47,18 +48,7 @@ namespace nimble
 			// Create camera.
 			create_camera();
 
-			m_forward_graph = std::make_shared<ForwardRenderGraph>(&m_renderer);
-			m_pcf_point_light_graph = std::make_shared<PCFPointLightRenderGraph>(&m_renderer);
-			m_pcf_spot_light_graph = std::make_shared<PCFSpotLightRenderGraph>(&m_renderer);
-
-			m_renderer.register_render_graph(m_forward_graph);
-			m_renderer.register_render_graph(m_pcf_point_light_graph);
-			m_renderer.register_render_graph(m_pcf_spot_light_graph);
-
-			m_renderer.set_scene(m_scene);
-			m_renderer.set_scene_render_graph(m_forward_graph);
-			m_renderer.set_point_light_render_graph(m_pcf_point_light_graph);
-			m_renderer.set_spot_light_render_graph(m_pcf_spot_light_graph);
+			create_render_graphs();
 
 			return true;
 		}
@@ -188,6 +178,48 @@ namespace nimble
 			m_scene->camera()->m_height = m_height;
 			m_scene->camera()->m_half_pixel_jitter = false;
 			m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
+		}
+
+		// -----------------------------------------------------------------------------------------------------------------------------------
+
+		void create_render_graphs()
+		{
+			// Create Forward render graph
+			m_forward_graph = std::make_shared<RenderGraph>(&m_renderer);
+
+			auto forward_node = std::make_shared<ForwardNode>(m_forward_graph.get());
+
+			m_forward_graph->set_name("Forward Render");
+			m_forward_graph->build(forward_node);
+
+			// Create Point Light render graph
+			m_pcf_point_light_graph = std::make_shared<ShadowRenderGraph>(&m_renderer);
+
+			auto point_light_depth_node = std::make_shared<PCFPointLightDepthNode>(m_pcf_point_light_graph.get());
+
+			m_pcf_point_light_graph->set_name("Point Light Render");
+			m_pcf_point_light_graph->set_sampling_source_path("shader/shadows/point_light/sampling/pcf_point_light.glsl");
+			m_pcf_point_light_graph->build(point_light_depth_node);
+
+			// Create Spot Light render graph
+			m_pcf_spot_light_graph = std::make_shared<ShadowRenderGraph>(&m_renderer);
+
+			auto dir_light_depth_node = std::make_shared<PCFDirectionalLightDepthNode>(m_pcf_point_light_graph.get());
+
+			m_pcf_spot_light_graph->set_name("Spot Light Render");
+			m_pcf_spot_light_graph->set_sampling_source_path("shader/shadows/spot_light/sampling/pcf_spot_light.glsl");
+			m_pcf_spot_light_graph->build(dir_light_depth_node);
+
+			// Register graphs with renderer
+			m_renderer.register_render_graph(m_forward_graph);
+			m_renderer.register_render_graph(m_pcf_point_light_graph);
+			m_renderer.register_render_graph(m_pcf_spot_light_graph);
+
+			// Set the graphs as the active graphs
+			m_renderer.set_scene(m_scene);
+			m_renderer.set_scene_render_graph(m_forward_graph);
+			m_renderer.set_point_light_render_graph(m_pcf_point_light_graph);
+			m_renderer.set_spot_light_render_graph(m_pcf_spot_light_graph);
 		}
 
 		// -----------------------------------------------------------------------------------------------------------------------------------
@@ -677,9 +709,9 @@ namespace nimble
 		float m_camera_speed = 0.1f;
 
 		std::shared_ptr<Scene> m_scene;
-		std::shared_ptr<ForwardRenderGraph> m_forward_graph;
-		std::shared_ptr<PCFPointLightRenderGraph> m_pcf_point_light_graph;
-		std::shared_ptr<PCFSpotLightRenderGraph> m_pcf_spot_light_graph;
+		std::shared_ptr<RenderGraph> m_forward_graph;
+		std::shared_ptr<ShadowRenderGraph> m_pcf_point_light_graph;
+		std::shared_ptr<ShadowRenderGraph> m_pcf_spot_light_graph;
 
 		Entity::ID m_selected_entity = UINT32_MAX;
 		PointLight::ID m_selected_point_light = UINT32_MAX;
