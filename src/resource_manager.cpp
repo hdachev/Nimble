@@ -6,6 +6,9 @@
 #include "scene.h"
 #include "utility.h"
 #include "shader_key.h"
+#include "render_graph.h"
+#include <fstream>
+#include <json.hpp>
 #include <runtime/loader.h>
 #include <gtc/matrix_transform.hpp>
 
@@ -528,6 +531,20 @@ namespace nimble
 				return nullptr;
 			}
 		}
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::string& path, const bool& absolute)
+	{
+		std::ifstream i(absolute ? path : utility::path_for_resource("assets/" + path));
+
+		nlohmann::json j;
+		i >> j;
+
+		std::shared_ptr<RenderGraph> graph;
+
+		return graph;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
