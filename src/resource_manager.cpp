@@ -542,7 +542,13 @@ namespace nimble
 		nlohmann::json j;
 		i >> j;
 
-		std::shared_ptr<RenderGraph> graph;
+		std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>();
+
+		if (j.find("name") != j.end())
+		{
+			std::string name = j["name"];
+			graph->set_name(name);
+		}
 
 		return graph;
 	}
