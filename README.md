@@ -3,8 +3,6 @@
 # Nimble
 A simple and lightweight OpenGL rendering engine built on top of dwSampleFramework.
 
-### NOTE: Broken at the moment. Will be fixed soon.
-
 ## Features
 * Forward and Deferred rendering paths.
 * Physically Based Shading
