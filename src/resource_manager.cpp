@@ -7,6 +7,7 @@
 #include "utility.h"
 #include "shader_key.h"
 #include "render_graph.h"
+#include "renderer.h"
 #include <fstream>
 #include <json.hpp>
 #include <runtime/loader.h>
@@ -535,14 +536,14 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::string& path, const bool& absolute)
+	std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::string& path, Renderer* renderer, const bool& absolute)
 	{
 		std::ifstream i(absolute ? path : utility::path_for_resource("assets/" + path));
 
 		nlohmann::json j;
 		i >> j;
 
-		std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>();
+		std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>(renderer);
 
 		if (j.find("name") != j.end())
 		{
