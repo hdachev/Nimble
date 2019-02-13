@@ -1,6 +1,6 @@
 #pragma once
 
-#define HAS_BIT_FLAG(x, flag) ((x & flag) == flag) 
+#define HAS_BIT_FLAG(x, flag) ((x & flag) == flag)
 #define BIT_FLAG(x) (1 << x)
 #define SET_BIT(number, n) (number |= (1 << n))
 #define CLEAR_BIT(number, n) (number &= ~(1 << n))
@@ -15,14 +15,24 @@
 #define READ_BIT_RANGE_64(src, offset, num_bits) ((src >> offset) & BIT_MASK(num_bits))
 
 #if defined(_MSC_VER)
-#define NIMBLE_ALIGNED(x) __declspec(align(x))
+#    define NIMBLE_ALIGNED(x) __declspec(align(x))
 #else
-#if defined(__GNUC__) || defined(__clang__)
-#define NIMBLE_ALIGNED(x) __attribute__ ((aligned(x)))
-#endif
+#    if defined(__GNUC__) || defined(__clang__)
+#        define NIMBLE_ALIGNED(x) __attribute__((aligned(x)))
+#    endif
 #endif
 
 #define NIMBLE_ZERO_MEMORY(x) memset(&x, 0, sizeof(x))
 
-#define NIMBLE_SAFE_DELETE(x) if(x) { delete x; x = nullptr; }
-#define NIMBLE_SAFE_DELETE_ARRAY(x) if(x) { delete[] x; x = nullptr; }
+#define NIMBLE_SAFE_DELETE(x) \
+    if (x)                    \
+    {                         \
+        delete x;             \
+        x = nullptr;          \
+    }
+#define NIMBLE_SAFE_DELETE_ARRAY(x) \
+    if (x)                          \
+    {                               \
+        delete[] x;                 \
+        x = nullptr;                \
+    }

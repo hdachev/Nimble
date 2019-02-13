@@ -4,22 +4,22 @@
 
 namespace nimble
 {
-	class PCFDirectionalLightDepthNode : public SceneRenderNode
-	{
-	public:
-		PCFDirectionalLightDepthNode(RenderGraph* graph);
-		~PCFDirectionalLightDepthNode();
+class PCFDirectionalLightDepthNode : public SceneRenderNode
+{
+public:
+    PCFDirectionalLightDepthNode(RenderGraph* graph);
+    ~PCFDirectionalLightDepthNode();
 
-		bool register_resources() override;
-		bool initialize() override;
-		void shutdown() override;
-		std::string name() override;
-		std::string vs_template_path() override;
-		std::string fs_template_path() override;
+    bool        register_resources() override;
+    bool        initialize() override;
+    void        shutdown() override;
+    std::string name() override;
+    std::string vs_template_path() override;
+    std::string fs_template_path() override;
 
-	protected:
-		void execute_internal(const View* view) override;
-	};
+protected:
+    void execute_internal(const View* view) override;
+};
 
-	DECLARE_RENDER_NODE_FACTORY(PCFDirectionalLightDepthNode);
-}
+DECLARE_RENDER_NODE_FACTORY(PCFDirectionalLightDepthNode);
+} // namespace nimble

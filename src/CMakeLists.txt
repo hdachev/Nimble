@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+find_program(CLANG_FORMAT_EXE NAMES "clang-format" DOC "Path to clang-format executable")
+
 file(GLOB_RECURSE NIMBLE_HEADERS ${PROJECT_SOURCE_DIR}/src/*.h)
 
 file(GLOB_RECURSE NIMBLE_SOURCE ${PROJECT_SOURCE_DIR}/src/*.cpp)
@@ -35,4 +37,8 @@ if (APPLE)
     add_custom_command(TARGET Nimble POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/src/shader $<TARGET_FILE_DIR:Nimble>/Nimble.app/Contents/Resources/assets/shader)
 else()
     add_custom_command(TARGET Nimble POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/src/shader $<TARGET_FILE_DIR:Nimble>/assets/shader)
+endif()
+
+if(CLANG_FORMAT_EXE)
+    add_custom_target(clang-format-project-files COMMAND ${CLANG_FORMAT_EXE} -i -style=file ${NIMBLE_HEADERS} ${NIMBLE_SOURCE})
 endif()
