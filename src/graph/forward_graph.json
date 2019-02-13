@@ -1,0 +1,11 @@
+{
+    "name" : "Forward",
+    "type" : "RENDER_GRAPH_STANDARD",
+    "nodes" : [
+        {
+            "name" : "ForwardNode",
+            "defines" : [],
+            "inputs" : []
+        }
+    ]
+}
