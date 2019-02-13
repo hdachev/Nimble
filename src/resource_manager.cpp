@@ -550,10 +550,10 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
             return nullptr;
     }
 
-	std::shared_ptr<RenderGraph> graph;
+    std::shared_ptr<RenderGraph> graph;
 
-	if (type == RENDER_GRAPH_STANDARD)
-		graph = std::make_shared<RenderGraph>(renderer);
+    if (type == RENDER_GRAPH_STANDARD)
+        graph = std::make_shared<RenderGraph>(renderer);
     if (type == RENDER_GRAPH_SHADOW)
     {
         std::shared_ptr<ShadowRenderGraph> shadow_graph = std::make_shared<ShadowRenderGraph>(renderer);
@@ -564,7 +564,7 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
             shadow_graph->set_sampling_source_path(sampling_source);
         }
 
-		graph = shadow_graph;
+        graph = shadow_graph;
     }
 
     if (j.find("name") != j.end())

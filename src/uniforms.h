@@ -73,10 +73,10 @@ struct PerViewUniforms
     int num_cascades;
     NIMBLE_ALIGNED(16)
     ShadowFrustum shadow_frustums[MAX_SHADOW_MAP_CASCADES];
-    float tan_half_fov;
-    float aspect_ratio;
-    float near_plane;
-    float far_plane;
+    float         tan_half_fov;
+    float         aspect_ratio;
+    float         near_plane;
+    float         far_plane;
     // Renderer settings.
     int     viewport_width;
     int     viewport_height;
@@ -91,7 +91,7 @@ struct PerEntityUniforms
     glm::mat4 last_model_mat;
     NIMBLE_ALIGNED(16)
     glm::vec4 world_pos;
-    uint8_t padding[112];
+    uint8_t   padding[112];
 };
 
 struct PerSceneUniforms

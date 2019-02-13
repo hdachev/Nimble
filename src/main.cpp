@@ -188,7 +188,7 @@ private:
         REGISTER_RENDER_NODE(PCFDirectionalLightDepthNode, m_resource_manager);
 
         // Create Forward render graph
-		m_forward_graph = m_resource_manager.load_render_graph("graph/forward_graph.json", &m_renderer);
+        m_forward_graph = m_resource_manager.load_render_graph("graph/forward_graph.json", &m_renderer);
 
         // Create Point Light render graph
         m_pcf_point_light_graph = std::dynamic_pointer_cast<ShadowRenderGraph>(m_resource_manager.load_render_graph("graph/pcf_point_light_graph.json", &m_renderer));
