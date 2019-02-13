@@ -21,4 +21,6 @@ namespace nimble
 	protected:
 		void execute_internal(const View* view) override;
 	};
+
+	DECLARE_RENDER_NODE_FACTORY(PCFPointLightDepthNode);
 }

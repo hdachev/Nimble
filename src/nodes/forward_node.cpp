@@ -3,6 +3,8 @@
 
 namespace nimble
 {
+	DEFINE_RENDER_NODE_FACTORY(ForwardNode)
+
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	ForwardNode::ForwardNode(RenderGraph* graph) : SceneRenderNode(graph)

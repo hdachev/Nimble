@@ -144,9 +144,9 @@ namespace nimble
 							kFormatTable[image.components - 1],
 							kTypeTable[type]);
 
-						for (uint32_t i = 0; i < image.array_slices; i++)
+						for (int32_t i = 0; i < image.array_slices; i++)
 						{
-							for (uint32_t j = 0; j < image.mip_slices; j++)
+							for (int32_t j = 0; j < image.mip_slices; j++)
 								texture->set_data(i, 0, j, image.data[i][j].data);
 						}
 
@@ -171,9 +171,9 @@ namespace nimble
 							kTypeTable[type],
 							true);
 
-						for (uint32_t i = 0; i < image.array_slices; i++)
+						for (int32_t i = 0; i < image.array_slices; i++)
 						{
-							for (uint32_t j = 0; j < image.mip_slices; j++)
+							for (int32_t j = 0; j < image.mip_slices; j++)
 								texture->set_compressed_data(i, 0, j, image.data[i][j].size, image.data[i][j].data);
 						}
 
@@ -207,9 +207,9 @@ namespace nimble
 							kFormatTable[image.components - 1],
 							kTypeTable[type]);
 
-						for (uint32_t i = 0; i < image.array_slices; i++)
+						for (int32_t i = 0; i < image.array_slices; i++)
 						{
-							for (uint32_t j = 0; j < image.mip_slices; j++)
+							for (int32_t j = 0; j < image.mip_slices; j++)
 								texture->set_data(i, j, image.data[i][j].data);
 						}
 
@@ -229,9 +229,9 @@ namespace nimble
 							kTypeTable[type],
 							true);
 
-						for (uint32_t i = 0; i < image.array_slices; i++)
+						for (int32_t i = 0; i < image.array_slices; i++)
 						{
-							for (uint32_t j = 0; j < image.mip_slices; j++)
+							for (int32_t j = 0; j < image.mip_slices; j++)
 								texture->set_compressed_data(i, j, image.data[i][j].size, image.data[i][j].data);
 						}
 
@@ -593,7 +593,7 @@ namespace nimble
 
 					if (m_render_node_factory_map.find(node_name) != m_render_node_factory_map.end())
 					{
-						std::shared_ptr<RenderNode> new_node = m_render_node_factory_map[node_name](renderer);
+						std::shared_ptr<RenderNode> new_node = m_render_node_factory_map[node_name](graph.get());
 
 						map[node_name] = new_node;
 
@@ -669,6 +669,9 @@ namespace nimble
 					}
 				}
 			}
+
+			graph->build(nodes[nodes.size() - 1]);
+			renderer->register_render_graph(graph);
 		}
 
 		return graph;
@@ -717,7 +720,7 @@ namespace nimble
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void ResourceManager::register_render_node_factory(const std::string& path, std::function<std::shared_ptr<RenderNode>(Renderer*)> func)
+	void ResourceManager::register_render_node_factory(const std::string& path, std::function<std::shared_ptr<RenderNode>(RenderGraph*)> func)
 	{
 		m_render_node_factory_map[path] = func;
 	}

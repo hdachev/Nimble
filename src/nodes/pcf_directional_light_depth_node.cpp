@@ -3,6 +3,8 @@
 
 namespace nimble
 {
+	DEFINE_RENDER_NODE_FACTORY(PCFDirectionalLightDepthNode)
+
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	PCFDirectionalLightDepthNode::PCFDirectionalLightDepthNode(RenderGraph* graph) : SceneRenderNode(graph)

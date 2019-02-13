@@ -184,6 +184,10 @@ namespace nimble
 
 		void create_render_graphs()
 		{
+			REGISTER_RENDER_NODE(ForwardNode, m_resource_manager);
+			REGISTER_RENDER_NODE(PCFPointLightDepthNode, m_resource_manager);
+			REGISTER_RENDER_NODE(PCFDirectionalLightDepthNode, m_resource_manager);
+	
 			// Create Forward render graph
 			m_forward_graph = std::make_shared<RenderGraph>(&m_renderer);
 

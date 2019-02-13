@@ -1,10 +1,18 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 #include "render_target.h"
 #include "view.h"
 #include "macros.h"
+
+#define REGISTER_RENDER_NODE(class_name, resource_manager) resource_manager.register_render_node_factory(#class_name, create_render_node_##class_name)
+#define DECLARE_RENDER_NODE_FACTORY(class_name) extern std::shared_ptr<RenderNode> create_render_node_##class_name(RenderGraph* graph)
+#define DEFINE_RENDER_NODE_FACTORY(class_name) std::shared_ptr<RenderNode> create_render_node_##class_name(RenderGraph* graph) \
+											   {																			   \
+													return std::make_shared<class_name>(graph);								   \
+											   }
 
 namespace nimble
 {
@@ -109,9 +117,9 @@ namespace nimble
 		inline std::vector<OutputRenderTarget>& output_render_targets() { return m_output_rts; }
 		inline std::vector<InputBuffer>& input_buffers() { return m_input_buffers; }
 		inline std::vector<OutputBuffer>& output_buffer() { return m_output_buffers; }
-		inline uint32_t output_render_target_count() { return m_output_rts.size(); }
+		inline uint32_t output_render_target_count() { return (uint32_t)m_output_rts.size(); }
 		inline std::shared_ptr<RenderTarget> output_render_target(const uint32_t& idx) { return m_output_rts[idx].render_target; }
-		inline uint32_t intermediate_render_target_count() { return m_intermediate_rts.size(); }
+		inline uint32_t intermediate_render_target_count() { return (uint32_t)m_intermediate_rts.size(); }
 		inline std::shared_ptr<RenderTarget> intermediate_render_target(const uint32_t& idx) { return m_intermediate_rts[idx].second; }
 		inline uint32_t input_render_target_count() { return m_input_rts.size(); }
 		inline std::shared_ptr<RenderTarget> input_render_target(const uint32_t& idx) { return m_input_rts[idx].prev_render_target; }
@@ -210,7 +218,7 @@ namespace nimble
 		void timing_sub_pass(const uint32_t& index, std::string& name, float& cpu_time, float& gpu_time);
 
 		// Inline getters
-		inline uint32_t sub_pass_count() { return m_sub_passes.size(); }
+		inline uint32_t sub_pass_count() { return (uint32_t)m_sub_passes.size(); }
 
 	protected:
 		void attach_sub_pass(const std::string& node_name, std::function<void(void)> function);

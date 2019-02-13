@@ -28,7 +28,7 @@ namespace nimble
 
 		inline void set_name(const std::string& name) { m_name = name; }
 		inline std::string name() { return m_name; }
-		inline uint32_t node_count() { return m_flattened_graph.size(); }
+		inline uint32_t node_count() { return (uint32_t)m_flattened_graph.size(); }
 		inline std::shared_ptr<RenderNode> node(const uint32_t& idx) { return m_flattened_graph[idx]; }
 		inline uint32_t window_width() { return m_window_width; }
 		inline uint32_t window_height() { return m_window_height; }

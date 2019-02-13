@@ -28,4 +28,6 @@ namespace nimble
 		RenderTargetView m_velocity_rtv;
 		RenderTargetView m_depth_rtv;
 	};
+
+	DECLARE_RENDER_NODE_FACTORY(ForwardNode);
 }
