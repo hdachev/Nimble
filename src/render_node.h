@@ -103,6 +103,8 @@ namespace nimble
 		void timing_total(float& cpu_time, float& gpu_time);
 
 		// Inline getters
+		inline void push_define(const std::string& define) { m_defines.push_back(define); }
+		inline std::vector<std::string> defines() { return m_defines; }
 		inline std::vector<InputRenderTarget>& input_render_targets() { return m_input_rts; }
 		inline std::vector<OutputRenderTarget>& output_render_targets() { return m_output_rts; }
 		inline std::vector<InputBuffer>& input_buffers() { return m_input_buffers; }
@@ -155,6 +157,7 @@ namespace nimble
 		std::vector<InputRenderTarget> m_input_rts;
 		std::vector<OutputBuffer> m_output_buffers;
 		std::vector<InputBuffer> m_input_buffers;
+		std::vector<std::string> m_defines;
 	};
 
 	class SceneRenderNode : public RenderNode

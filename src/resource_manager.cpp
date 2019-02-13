@@ -7,6 +7,7 @@
 #include "utility.h"
 #include "shader_key.h"
 #include "render_graph.h"
+#include "render_node.h"
 #include "renderer.h"
 #include <fstream>
 #include <json.hpp>
@@ -543,12 +544,131 @@ namespace nimble
 		nlohmann::json j;
 		i >> j;
 
+		RenderGraphType type;
+
+		if (j.find("type") != j.end())
+		{
+			std::string type_str = j["type"];
+			
+			if (type_str == "RENDER_GRAPH_STANDARD")
+				type = RENDER_GRAPH_STANDARD;
+			else if (type_str == "RENDER_GRAPH_SHADOW")
+				type = RENDER_GRAPH_SHADOW;
+			else
+				return nullptr;
+		}
+
 		std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>(renderer);
 
 		if (j.find("name") != j.end())
 		{
 			std::string name = j["name"];
 			graph->set_name(name);
+		}
+
+		if (type == RENDER_GRAPH_SHADOW)
+		{
+			std::shared_ptr<ShadowRenderGraph> shadow_graph = std::dynamic_pointer_cast<ShadowRenderGraph>(graph);
+
+			if (j.find("sampling_source") != j.end())
+			{
+				std::string sampling_source = j["sampling_source"];
+				shadow_graph->set_sampling_source_path(sampling_source);
+			}
+		}
+
+		if (j.find("nodes") != j.end())
+		{
+			auto json_nodes = j["nodes"];
+
+			std::vector<std::shared_ptr<RenderNode>> nodes;
+			std::unordered_map<std::string, std::shared_ptr<RenderNode>> map;
+			nodes.reserve(json_nodes.size());
+
+			for (auto& node : json_nodes)
+			{
+				if (node.find("name") != node.end())
+				{
+					std::string node_name = node["name"];
+
+					if (m_render_node_factory_map.find(node_name) != m_render_node_factory_map.end())
+					{
+						std::shared_ptr<RenderNode> new_node = m_render_node_factory_map[node_name](renderer);
+
+						map[node_name] = new_node;
+
+						if (node.find("defines") != node.end())
+						{
+							auto node_defines = node["defines"];
+
+							for (auto& define : node_defines)
+								new_node->push_define(define);
+						}
+
+						nodes.push_back(new_node);
+					}
+				}
+			}
+
+			// Iterate over nodes a second time 
+
+			for (auto& node : json_nodes)
+			{
+				if (node.find("name") != node.end())
+				{
+					std::string node_name = node["name"];
+
+					std::shared_ptr<RenderNode> current_node = map[node_name];
+
+					if (node.find("inputs") != node.end())
+					{
+						auto inputs = node["inputs"];
+
+						for (auto& input : inputs)
+						{
+							if (input.find("type") != input.end() &&
+								input.find("slot_name") != input.end() &&
+								input.find("prev_node_name") != input.end() &&
+								input.find("prev_output_name") != input.end())
+							{
+								std::string output_type = input["type"];
+								std::string slot_name = input["slot_name"];
+								std::string prev_node_name = input["prev_node_name"];
+								std::string prev_output_name = input["prev_output_name"];
+
+								if (output_type == "RENDER_TARGET")
+								{
+									if (map.find(prev_node_name) != map.end())
+									{
+										auto prev_node = map[prev_node_name];
+										auto output = prev_node->find_output_render_target_slot(slot_name);
+
+										current_node->set_input(slot_name, output, prev_node);
+									}
+									else
+									{
+										NIMBLE_LOG_ERROR("Cannot find node with name = " + prev_output_name);
+									}
+								}
+								else if (output_type == "BUFFER")
+								{
+									if (map.find(prev_node_name) != map.end())
+									{
+										auto prev_node = map[prev_node_name];
+										auto output = prev_node->find_output_buffer_slot(slot_name);
+
+										current_node->set_input(slot_name, output, prev_node);
+									}
+									else
+									{
+										NIMBLE_LOG_ERROR("Cannot find node with name = " + prev_output_name);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 
 		return graph;
@@ -593,6 +713,13 @@ namespace nimble
 				return shader;
 			}
 		}
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void ResourceManager::register_render_node_factory(const std::string& path, std::function<std::shared_ptr<RenderNode>(Renderer*)> func)
+	{
+		m_render_node_factory_map[path] = func;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
