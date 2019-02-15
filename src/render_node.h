@@ -122,7 +122,7 @@ public:
     inline std::shared_ptr<RenderTarget>    output_render_target(const uint32_t& idx) { return m_output_rts[idx].render_target; }
     inline uint32_t                         intermediate_render_target_count() { return (uint32_t)m_intermediate_rts.size(); }
     inline std::shared_ptr<RenderTarget>    intermediate_render_target(const uint32_t& idx) { return m_intermediate_rts[idx].second; }
-    inline uint32_t                         input_render_target_count() { return m_input_rts.size(); }
+    inline uint32_t                         input_render_target_count() { return (uint32_t)m_input_rts.size(); }
     inline std::shared_ptr<RenderTarget>    input_render_target(const uint32_t& idx) { return m_input_rts[idx].prev_render_target; }
     inline RenderNodeType                   type() { return m_render_node_type; }
     inline bool                             is_enabled() { return m_enabled; }
@@ -145,6 +145,7 @@ public:
     virtual void on_window_resized(const uint32_t& w, const uint32_t& h);
 
 protected:
+	void						  trigger_directional_light_update(const View* view);
     void                          register_input_render_target(const std::string& name);
     void                          register_input_buffer(const std::string& name);
     std::shared_ptr<RenderTarget> register_output_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
@@ -269,4 +270,5 @@ protected:
     std::unordered_map<std::string, Buffer*> m_output_buffers;
     std::unordered_map<std::string, Buffer*> m_intermediate_buffers;
 };
+
 } // namespace nimble

@@ -218,6 +218,24 @@ void RenderNode::on_window_resized(const uint32_t& w, const uint32_t& h)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+void RenderNode::trigger_directional_light_update(const View* view)
+{
+	for (uint32_t i = 0; i < view->num_cascade_views; i++)
+	{
+		View* light_view = view->cascade_views[i];
+
+		if (light_view)
+		{
+			 if (light_view->graph)
+				light_view->graph->execute(light_view);
+             else
+				NIMBLE_LOG_ERROR("Render Graph not assigned for View!");
+		}
+	}
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void RenderNode::register_input_render_target(const std::string& name)
 {
     for (auto& input : m_input_rts)

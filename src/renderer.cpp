@@ -150,7 +150,7 @@ void Renderer::shutdown()
     m_cube_vbo.reset();
 
     // Delete framebuffer
-    for (int i = 0; i < m_fbo_cache.size(); i++)
+    for (uint32_t i = 0; i < m_fbo_cache.size(); i++)
     {
         NIMBLE_SAFE_DELETE(m_fbo_cache.m_value[i]);
         m_fbo_cache.remove(m_fbo_cache.m_key[i]);
@@ -238,8 +238,11 @@ void Renderer::set_point_light_render_graph(std::shared_ptr<ShadowRenderGraph> g
 
 View* Renderer::allocate_view()
 {
-    if (m_num_allocated_views == MAX_VIEWS)
-        NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
+	if (m_num_allocated_views == MAX_VIEWS)
+	{
+		NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
+		return nullptr;
+	}
     else
     {
         uint32_t idx = m_num_allocated_views++;
@@ -251,18 +254,8 @@ View* Renderer::allocate_view()
 
 void Renderer::queue_view(View* view)
 {
-    if (m_num_active_views == MAX_VIEWS)
-        NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
-    else
-    {
-        uint32_t idx = m_num_active_views++;
-
-        Frustum frustum;
-        frustum_from_matrix(frustum, view->vp_mat);
-
-        m_active_views[idx]    = view;
-        m_active_frustums[idx] = frustum;
-    }
+	if (queue_culled_view(view))
+		queue_rendered_view(view);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -306,6 +299,8 @@ void Renderer::push_directional_light_views(View* dependent_view)
                     light_view->light_index             = light_idx;
 
                     dependent_view->cascade_views[i++] = light_view;
+
+					queue_culled_view(light_view);
                 }
 
                 shadow_casting_light_idx++;
@@ -315,6 +310,8 @@ void Renderer::push_directional_light_views(View* dependent_view)
             if (shadow_casting_light_idx == (MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS - 1))
                 break;
         }
+
+		dependent_view->num_cascade_views = i;
     }
 }
 
@@ -425,7 +422,8 @@ void Renderer::push_point_light_views()
 
 void Renderer::clear_all_views()
 {
-    m_num_active_views    = 0;
+    m_num_culled_views    = 0;
+	m_num_rendered_views  = 0;
     m_num_allocated_views = 0;
 }
 
@@ -440,8 +438,8 @@ void Renderer::on_window_resized(const uint32_t& w, const uint32_t& h)
     {
         if (desc.rt->is_scaled() && desc.rt->target == GL_TEXTURE_2D)
         {
-            uint32_t width  = float(w) * desc.rt->scale_w;
-            uint32_t height = float(h) * desc.rt->scale_h;
+            uint32_t width  = uint32_t(float(w) * desc.rt->scale_w);
+            uint32_t height = uint32_t(float(h) * desc.rt->scale_h);
 
             Texture2D* texture = (Texture2D*)desc.rt->texture.get();
             texture->resize(width, height);
@@ -527,7 +525,7 @@ Framebuffer* Renderer::framebuffer_for_render_targets(const uint32_t& num_render
 
     if (rt_views)
     {
-        for (int i = 0; i < num_render_targets; i++)
+        for (uint32_t i = 0; i < num_render_targets; i++)
         {
             key.rt_keys[i].face      = rt_views[i].face;
             key.rt_keys[i].layer     = rt_views[i].layer;
@@ -566,7 +564,7 @@ Framebuffer* Renderer::framebuffer_for_render_targets(const uint32_t& num_render
             {
                 Texture* textures[8];
 
-                for (int i = 0; i < num_render_targets; i++)
+                for (uint32_t i = 0; i < num_render_targets; i++)
                     textures[i] = rt_views[i].texture.get();
 
                 fbo->attach_multiple_render_targets(num_render_targets, textures);
@@ -1095,9 +1093,9 @@ void Renderer::update_uniforms()
         m_per_entity->unmap();
 
         // Update per view uniforms
-        for (uint32_t i = 0; i < m_num_active_views; i++)
+        for (uint32_t i = 0; i < m_num_culled_views; i++)
         {
-            View* view = m_active_views[i];
+            View* view = m_culled_views[i];
 
             m_per_view_uniforms[i].view_mat       = view->view_mat;
             m_per_view_uniforms[i].proj_mat       = view->projection_mat;
@@ -1112,7 +1110,7 @@ void Renderer::update_uniforms()
         }
 
         ptr = m_per_view->map(GL_WRITE_ONLY);
-        memcpy(ptr, &m_per_view_uniforms[0], sizeof(PerViewUniforms) * m_num_active_views);
+        memcpy(ptr, &m_per_view_uniforms[0], sizeof(PerViewUniforms) * m_num_culled_views);
         m_per_view->unmap();
 
         // Update per scene uniforms
@@ -1120,7 +1118,7 @@ void Renderer::update_uniforms()
 
         m_per_scene_uniforms.directional_light_count = scene->directional_light_count();
 
-        for (uint32_t light_idx = 0; light_idx < m_per_scene_uniforms.directional_light_count; light_idx++)
+        for (int32_t light_idx = 0; light_idx < m_per_scene_uniforms.directional_light_count; light_idx++)
         {
             DirectionalLight& light = dir_lights[light_idx];
 
@@ -1133,7 +1131,7 @@ void Renderer::update_uniforms()
 
         m_per_scene_uniforms.spot_light_count = scene->spot_light_count();
 
-        for (uint32_t light_idx = 0; light_idx < m_per_scene_uniforms.spot_light_count; light_idx++)
+        for (int32_t light_idx = 0; light_idx < m_per_scene_uniforms.spot_light_count; light_idx++)
         {
             SpotLight& light = spot_lights[light_idx];
 
@@ -1147,7 +1145,7 @@ void Renderer::update_uniforms()
 
         m_per_scene_uniforms.point_light_count = scene->point_light_count();
 
-        for (uint32_t light_idx = 0; light_idx < m_per_scene_uniforms.point_light_count; light_idx++)
+        for (int32_t light_idx = 0; light_idx < m_per_scene_uniforms.point_light_count; light_idx++)
         {
             PointLight& light = point_lights[light_idx];
 
@@ -1181,9 +1179,9 @@ void Renderer::cull_scene()
             entity.obb.position    = entity.transform.position;
             entity.obb.orientation = glm::mat3(entity.transform.model);
 
-            for (uint32_t j = 0; j < m_num_active_views; j++)
+            for (uint32_t j = 0; j < m_num_culled_views; j++)
             {
-                if (m_active_views[j]->culling)
+                if (m_culled_views[j]->culling)
                 {
                     if (intersects(m_active_frustums[j], entity.obb))
                     {
@@ -1214,6 +1212,49 @@ void Renderer::cull_scene()
     }
 
     Profiler::end_cpu_sample(PROFILER_FRUSTUM_CULLING);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+bool Renderer::queue_rendered_view(View* view)
+{
+	if (m_num_rendered_views == MAX_VIEWS)
+	{
+		NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
+		return false;
+	}
+    else
+    {
+        uint32_t rendered_idx = m_num_rendered_views++;
+        m_rendered_views[rendered_idx]    = view;
+	
+		return true;
+    }
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+bool Renderer::queue_culled_view(View* view)
+{
+	if (m_num_culled_views == MAX_VIEWS)
+	{
+		NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
+		return false;
+	}
+    else
+    {
+		uint32_t culled_idx = m_num_culled_views++;
+
+        Frustum frustum;
+        frustum_from_matrix(frustum, view->vp_mat);
+
+        m_active_frustums[culled_idx] = frustum;
+		m_culled_views[culled_idx]    = view;
+
+		view->id = culled_idx;
+
+		return true;
+    }
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -1260,16 +1301,14 @@ void Renderer::queue_default_views()
 
 void Renderer::render_all_views()
 {
-    if (m_num_active_views > 0)
+    if (m_num_rendered_views > 0)
     {
-        for (uint32_t i = 0; i < m_num_active_views; i++)
+        for (uint32_t i = 0; i < m_num_rendered_views; i++)
         {
-            View* view = m_active_views[i];
+            View* view = m_rendered_views[i];
 
             if (view->enabled)
             {
-                view->id = i;
-
                 if (view->graph)
                     view->graph->execute(view);
                 else

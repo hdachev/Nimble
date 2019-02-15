@@ -97,6 +97,8 @@ private:
     void    bake_render_graphs();
     void    update_uniforms();
     void    cull_scene();
+	bool	queue_rendered_view(View* view);
+	bool	queue_culled_view(View* view);
     void    queue_default_views();
     void    render_all_views();
 
@@ -110,10 +112,12 @@ private:
     uint32_t                                                m_window_height;
 
     // Current scene.
-    uint32_t                                    m_num_active_views    = 0;
+    uint32_t                                    m_num_culled_views    = 0;
+	uint32_t                                    m_num_rendered_views    = 0;
     uint32_t                                    m_num_allocated_views = 0;
     std::array<View, MAX_VIEWS>                 m_view_pool;
-    std::array<View*, MAX_VIEWS>                m_active_views;
+    std::array<View*, MAX_VIEWS>                m_culled_views;
+	std::array<View*, MAX_VIEWS>                m_rendered_views;
     std::array<Frustum, MAX_VIEWS>              m_active_frustums;
     std::weak_ptr<Scene>                        m_scene;
     std::shared_ptr<RenderGraph>                m_scene_render_graph             = nullptr;

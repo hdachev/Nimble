@@ -5,7 +5,7 @@
 
 namespace nimble
 {
-#define NIMBLE_HASH(x) murmur_hash_64(x, strlen(x), 0)
+#define NIMBLE_HASH(x) murmur_hash_64(x, (uint32_t)strlen(x), 0)
 
 inline uint64_t murmur_hash_64(const void* key, uint32_t len, uint64_t seed)
 {
