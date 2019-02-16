@@ -230,8 +230,8 @@ SpotLight::ID Scene::create_spot_light(const glm::vec3& position, const glm::vec
     p.color              = color;
     p.range              = range;
     p.intensity          = intensity;
-    p.inner_cone_angle         = inner_cone_angle;
-	p.outer_cone_angle         = outer_cone_angle;
+    p.inner_cone_angle   = inner_cone_angle;
+    p.outer_cone_angle   = outer_cone_angle;
     p.enabled            = true;
     p.casts_shadow       = casts_shadows;
     p.transform.set_orientation_from_euler_yxz(rotation);

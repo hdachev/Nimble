@@ -87,23 +87,23 @@ struct PerEntityUniforms
     glm::mat4 modal_mat;
     NIMBLE_ALIGNED(16)
     glm::mat4 last_model_mat;
-	uint8_t	padding[128];
+    uint8_t   padding[128];
 };
 
 struct PerSceneUniforms
 {
-	glm::mat4 spot_light_shadow_matrix[MAX_SHADOW_CASTING_SPOT_LIGHTS];
+    glm::mat4 spot_light_shadow_matrix[MAX_SHADOW_CASTING_SPOT_LIGHTS];
     glm::vec4 point_light_position_range[MAX_POINT_LIGHTS];
     glm::vec4 point_light_color_intensity[MAX_POINT_LIGHTS];
     glm::vec4 spot_light_position[MAX_SPOT_LIGHTS];
-	glm::vec4 spot_light_cutoff_inner_outer[MAX_SPOT_LIGHTS];
+    glm::vec4 spot_light_cutoff_inner_outer[MAX_SPOT_LIGHTS];
     glm::vec4 spot_light_direction_range[MAX_SPOT_LIGHTS];
     glm::vec4 spot_light_color_intensity[MAX_SPOT_LIGHTS];
     glm::vec4 directional_light_direction[MAX_DIRECTIONAL_LIGHTS];
     glm::vec4 directional_light_color_intensity[MAX_DIRECTIONAL_LIGHTS];
-	int32_t point_light_casts_shadow[MAX_POINT_LIGHTS];
-	int32_t spot_light_casts_shadow[MAX_SPOT_LIGHTS];
-    int32_t directional_light_casts_shadow[MAX_DIRECTIONAL_LIGHTS];
+    int32_t   point_light_casts_shadow[MAX_POINT_LIGHTS];
+    int32_t   spot_light_casts_shadow[MAX_SPOT_LIGHTS];
+    int32_t   directional_light_casts_shadow[MAX_DIRECTIONAL_LIGHTS];
     int32_t   point_light_count;
     int32_t   spot_light_count;
     int32_t   directional_light_count;

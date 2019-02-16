@@ -36,6 +36,6 @@ struct SpotLight : public Light
     ID    id;
     float range;
     float inner_cone_angle;
-	float outer_cone_angle;
+    float outer_cone_angle;
 };
 } // namespace nimble

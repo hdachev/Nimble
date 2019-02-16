@@ -328,7 +328,7 @@ private:
                     ImGui::InputFloat("Intensity", &light.intensity);
                     ImGui::InputFloat("Range", &light.range);
                     ImGui::InputFloat("Inner Cone Angle", &light.inner_cone_angle);
-					ImGui::InputFloat("Outer Cone Angle", &light.outer_cone_angle);
+                    ImGui::InputFloat("Outer Cone Angle", &light.outer_cone_angle);
                     ImGui::ColorPicker3("Color", &light.color.x);
                 }
             }

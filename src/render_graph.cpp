@@ -8,7 +8,7 @@ namespace nimble
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 RenderGraph::RenderGraph(Renderer* renderer) :
-    m_renderer(renderer)
+    m_renderer(renderer), m_num_cascade_views(0), m_manual_cascade_rendering(false), m_per_cascade_culling(true)
 {
 }
 
@@ -68,8 +68,29 @@ void RenderGraph::build(std::shared_ptr<RenderNode> end_node)
 
 void RenderGraph::execute(const View* view)
 {
-    for (auto& node : m_flattened_graph)
-        node->execute(view);
+	for (auto& node : m_flattened_graph)
+	{
+		node->execute(view);
+
+		if (m_num_cascade_views > 0)
+		{
+			for (uint32_t i = 0; i < m_num_cascade_views; i++)
+			{
+				View* light_view = m_cascade_views[i];
+
+				if (light_view)
+				{
+					if (light_view->graph)
+						light_view->graph->execute(light_view);
+					else
+						NIMBLE_LOG_ERROR("Render Graph not assigned for View!");
+				}
+			}
+
+			m_num_cascade_views = 0;
+
+		}
+	}
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -83,6 +104,16 @@ std::shared_ptr<RenderNode> RenderGraph::node_by_name(const std::string& name)
     }
 
     return nullptr;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderGraph::trigger_cascade_view_render(const View* view)
+{
+	m_num_cascade_views = view->num_cascade_views;
+
+	for (uint32_t i = 0; i < m_num_cascade_views; i++)
+		m_cascade_views[i] = view->cascade_views[i];
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

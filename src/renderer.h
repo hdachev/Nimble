@@ -34,6 +34,9 @@ public:
         uint32_t         cascade_count       = 4;
         uint32_t         sample_count        = 1;
         bool             per_cascade_culling = true;
+		bool             pssm				 = false;
+		float			 csm_near_offset	 = 0.0f;
+		float			 csm_lambda			 = 0.5f;
     };
 
     Renderer(Settings settings = Settings());
@@ -90,6 +93,7 @@ private:
         TextureLifetimes              lifetimes;
     };
 
+	void	setup_cascade_views(DirectionalLight& dir_light, View* dependent_view, View** cascade_views, View* parent = nullptr);
     void    create_cube();
     int32_t find_render_target_last_usage(std::shared_ptr<RenderTarget> rt);
     bool    is_aliasing_candidate(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node, const RenderTargetDesc& rt_desc);

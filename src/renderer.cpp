@@ -25,17 +25,27 @@ static const uint32_t kDirectionalLightShadowMapSizes[] = {
 };
 
 static const uint32_t kSpotLightShadowMapSizes[] = {
-    512,
-    1024,
-    2048,
-    4096
-};
-
-static const uint32_t kPointShadowMapSizes[] = {
     256,
     512,
     1024,
     2048
+};
+
+static const uint32_t kPointShadowMapSizes[] = {
+    128,
+    256,
+    512,
+    1024
+};
+
+struct FrustumSplit
+{
+	float near_plane;
+	float far_plane;
+	float ratio;
+	float fov;
+	glm::vec3 center;
+	glm::vec3 corners[8];
 };
 
 struct RenderTargetKey
@@ -276,32 +286,33 @@ void Renderer::push_directional_light_views(View* dependent_view)
 
             if (light.casts_shadow)
             {
+				View* cascade_views[MAX_SHADOW_MAP_CASCADES];
+				View* parent = nullptr;
+
                 for (uint32_t cascade_idx = 0; cascade_idx < m_settings.cascade_count; cascade_idx++)
                 {
                     View* light_view = allocate_view();
-
-                    light_view->enabled                 = true;
-                    light_view->culling                 = true;
-                    light_view->direction               = light.transform.forward();
-                    light_view->position                = light.transform.position;
-                    light_view->view_mat                = glm::mat4(1.0f); // @TODO
-                    light_view->projection_mat          = glm::mat4(1.0f); // @TODO
-                    light_view->vp_mat                  = glm::mat4(1.0f); // @TODO
-                    light_view->prev_vp_mat             = glm::mat4(1.0f);
-                    light_view->inv_view_mat            = glm::mat4(1.0f);
-                    light_view->inv_projection_mat      = glm::mat4(1.0f);
-                    light_view->inv_vp_mat              = glm::mat4(1.0f);
-                    light_view->jitter                  = glm::vec4(0.0);
-                    light_view->dest_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
-                    light_view->graph                   = m_directional_light_render_graph;
-                    light_view->scene                   = scene.get();
-                    light_view->type                    = VIEW_DIRECTIONAL_LIGHT;
-                    light_view->light_index             = light_idx;
-
-                    dependent_view->cascade_views[i++] = light_view;
-
-                    queue_culled_view(light_view);
+					cascade_views[cascade_idx] = light_view;				
                 }
+
+				if (dependent_view->graph->per_cascade_culling())
+					parent = allocate_view();
+
+				setup_cascade_views(light, dependent_view, cascade_views, parent);
+
+				if (dependent_view->graph->per_cascade_culling())
+					queue_culled_view(parent);
+
+				for (uint32_t cascade_idx = 0; cascade_idx < m_settings.cascade_count; cascade_idx++)
+				{
+					if (dependent_view->graph->per_cascade_culling())
+						queue_culled_view(cascade_views[cascade_idx]);
+
+					if (dependent_view->graph->is_manual_cascade_rendering())
+						dependent_view->cascade_views[i++] = cascade_views[cascade_idx];
+					else
+						queue_rendered_view(cascade_views[cascade_idx]);	
+				}
 
                 shadow_casting_light_idx++;
             }
@@ -311,7 +322,8 @@ void Renderer::push_directional_light_views(View* dependent_view)
                 break;
         }
 
-        dependent_view->num_cascade_views = i;
+		if (dependent_view->graph->is_manual_cascade_rendering())
+			dependent_view->num_cascade_views = i;
     }
 }
 
@@ -593,6 +605,284 @@ void Renderer::bind_render_targets(const uint32_t& num_render_targets, const Ren
 
     if (fbo)
         fbo->bind();
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::setup_cascade_views(DirectionalLight& dir_light, View* dependent_view, View** cascade_views, View* parent)
+{
+	FrustumSplit splits[MAX_SHADOW_MAP_CASCADES];
+	glm::mat4 proj_matrices[MAX_SHADOW_MAP_CASCADES];
+	glm::mat4 crop[MAX_SHADOW_MAP_CASCADES];
+
+	glm::mat4 bias = glm::mat4(0.5f, 0.0f, 0.0f, 0.0f,
+							   0.0f, 0.5f, 0.0f, 0.0f,
+							   0.0f, 0.0f, 0.5f, 0.0f,
+							   0.5f, 0.5f, 0.5f, 1.0f);
+
+	int count = m_settings.cascade_count;
+
+	if (parent)
+		count++;
+
+	for (int i = 0; i < count; i++)
+	{
+		splits[i].fov = dependent_view->fov;
+		splits[i].ratio = dependent_view->ratio;
+	}
+
+	glm::vec3 dir = dir_light.transform.forward();
+	glm::vec3 center = dependent_view->position + dependent_view->direction * 50.0f;
+	glm::vec3 light_pos = center - dir * ((dependent_view->far_plane - dependent_view->near_plane) / 2.0f);
+	glm::vec3 right = glm::cross(dir, glm::vec3(0.0f, 1.0f, 0.0f));
+
+	glm::vec3 up = m_settings.pssm ? dependent_view->up : dependent_view->right;
+
+	glm::mat4 modelview = glm::lookAt(light_pos, center, up);
+
+	// Update splits
+
+	{
+		float nd = dependent_view->near_plane;
+		float fd = dependent_view->far_plane;
+
+		float lambda = m_settings.csm_lambda;
+		float ratio = fd / nd;
+		splits[0].near_plane = nd;
+
+		for (int i = 1; i < count; i++)
+		{
+			float si = i / float(m_settings.cascade_count);
+
+			// Practical Split Scheme: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
+			float t_near = lambda * (nd * pow(ratio, si)) + (1 - lambda) * (nd + (fd - nd) * si);
+			float t_far = t_near * 1.005;
+			splits[i].near_plane = t_near;
+			splits[i - 1].far_plane = t_far;
+		}
+
+		splits[m_settings.cascade_count - 1].far_plane = fd;
+	}
+
+	// Update frustum corners
+
+	{
+		glm::vec3 center = dependent_view->position;
+		glm::vec3 view_dir = dependent_view->direction;
+
+		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+		glm::vec3 right = glm::cross(view_dir, up);
+
+		for (int i = 0; i < m_settings.cascade_count; i++)
+		{
+			glm::vec3 fc = center + view_dir * splits[i].far_plane;
+			glm::vec3 nc = center + view_dir * splits[i].near_plane;
+
+			right = glm::normalize(right);
+			up = glm::normalize(glm::cross(right, view_dir));
+
+			// these heights and widths are half the heights and widths of
+			// the near and far plane rectangles
+			float near_height = tan(splits[i].fov / 2.0f) * splits[i].near_plane;
+			float near_width = near_height * splits[i].ratio;
+			float far_height = tan(splits[i].fov / 2.0f) * splits[i].far_plane;
+			float far_width = far_height * splits[i].ratio;
+
+			splits[i].corners[0] = nc - up * near_height - right * near_width; // near-bottom-left
+			splits[i].corners[1] = nc + up * near_height - right * near_width; // near-top-left
+			splits[i].corners[2] = nc + up * near_height + right * near_width; // near-top-right
+			splits[i].corners[3] = nc - up * near_height + right * near_width; // near-bottom-right
+
+			splits[i].corners[4] = fc - up * far_height - right * far_width; // far-bottom-left
+			splits[i].corners[5] = fc + up * far_height - right * far_width; // far-top-left
+			splits[i].corners[6] = fc + up * far_height + right * far_width; // far-top-right
+			splits[i].corners[7] = fc - up * far_height + right * far_width; // far-bottom-right
+		}
+
+		if (parent)
+		{
+			splits[m_settings.cascade_count].corners[0] = splits[0].corners[0]; // near-bottom-left
+			splits[m_settings.cascade_count].corners[1] = splits[0].corners[1]; // near-top-left
+			splits[m_settings.cascade_count].corners[2] = splits[0].corners[2]; // near-top-right
+			splits[m_settings.cascade_count].corners[3] = splits[0].corners[3]; // near-bottom-right
+			   
+			splits[m_settings.cascade_count].corners[4] = splits[m_settings.cascade_count - 1].corners[4]; // far-bottom-left
+			splits[m_settings.cascade_count].corners[5] = splits[m_settings.cascade_count - 1].corners[5]; // far-top-left
+			splits[m_settings.cascade_count].corners[6] = splits[m_settings.cascade_count - 1].corners[6]; // far-top-right
+			splits[m_settings.cascade_count].corners[7] = splits[m_settings.cascade_count - 1].corners[7]; // far-bottom-right
+		}
+	}
+
+	// Update crop matrices
+
+	{
+		glm::mat4 t_projection;
+
+		for (int i = 0; i < count; i++) 
+		{
+			glm::vec3 tmax = glm::vec3(-INFINITY, -INFINITY, -INFINITY);
+			glm::vec3 tmin = glm::vec3(INFINITY, INFINITY, INFINITY);
+
+			// find the z-range of the current frustum as seen from the light
+			// in order to increase precision
+
+			// note that only the z-component is need and thus
+			// the multiplication can be simplified
+			// transf.z = shad_modelview[2] * f.point[0].x + shad_modelview[6] * f.point[0].y + shad_modelview[10] * f.point[0].z + shad_modelview[14];
+			glm::vec4 t_transf = modelview * glm::vec4(splits[i].corners[0], 1.0);
+
+			tmin.z = t_transf.z;
+			tmax.z = t_transf.z;
+
+			for (int j = 1; j < 8; j++) 
+			{
+				t_transf = modelview * glm::vec4(splits[i].corners[j], 1.0);
+				if (t_transf.z > tmax.z) 
+				{ 
+					tmax.z = t_transf.z; 
+				}
+				if (t_transf.z < tmin.z) 
+				{ 
+					tmin.z = t_transf.z; 
+				}
+			}
+
+			//tmax.z += 50; // TODO: This solves the dissapearing shadow problem. but how to fix?
+
+			// Calculate frustum split center
+			splits[i].center = glm::vec3(0.0, 0.0, 0.0);
+
+			for (int j = 0; j < 8; j++)
+				splits[i].center += splits[i].corners[j];
+
+			splits[i].center /= 8.0;
+
+			if (m_settings.pssm)
+			{
+				// Calculate bounding sphere radius
+				float radius = 0.0;
+
+				for (int j = 0; j < 8; j++)
+				{
+					float l = length(splits[i].corners[j] - splits[i].center);
+					radius = std::max(radius, l);
+				}
+
+				radius = ceil(radius * 16.0) / 16.0;
+
+				// Find bounding box that fits the sphere
+				glm::vec3 radius3 = glm::vec3(radius, radius, radius);
+
+				glm::vec3 max = radius3;
+				glm::vec3 min = -radius3;
+
+				glm::vec3 cascade_extents = max - min;
+
+				// Push the light position back along the light direction by the near offset.
+				glm::vec3 shadow_camera_pos = splits[i].center - dir * m_settings.csm_near_offset;
+
+				// Add the near offset to the Z value of the cascade extents to make sure the orthographic frustum captures the entire frustum split (else it will exhibit cut-off issues).
+				glm::mat4 ortho = glm::ortho(min.x, max.x, min.y, max.y, -m_settings.csm_near_offset, m_settings.csm_near_offset + cascade_extents.z);
+				glm::mat4 view = glm::lookAt(shadow_camera_pos, splits[i].center, dependent_view->up);
+
+				proj_matrices[i] = ortho;
+				crop[i] = ortho * view;
+
+				glm::vec4 shadow_origin = glm::vec4(0.0, 0.0, 0.0, 1.0);
+				shadow_origin = crop[i] * shadow_origin;
+				shadow_origin = shadow_origin * (kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality] / 2.0f);
+
+				glm::vec4 rounded_origin = round(shadow_origin);
+				glm::vec4 round_offset = rounded_origin - shadow_origin;
+				round_offset = round_offset * (2.0f / kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality]);
+				round_offset.z = 0.0;
+				round_offset.w = 0.0;
+
+				glm::mat4 shadow_proj = proj_matrices[i];
+
+				shadow_proj[3][0] += round_offset.x;
+				shadow_proj[3][1] += round_offset.y;
+				shadow_proj[3][2] += round_offset.z;
+				shadow_proj[3][3] += round_offset.w;
+
+				if (!parent)
+				{
+					cascade_views[i]->view_mat = view;
+					cascade_views[i]->projection_mat = shadow_proj;
+					cascade_views[i]->vp_mat = shadow_proj * view;
+				}
+				else
+				{
+					parent->view_mat = view;
+					parent->projection_mat = shadow_proj;
+					parent->vp_mat = shadow_proj * view;
+				}
+			}
+			else
+			{
+				glm::mat4 t_ortho = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -m_settings.csm_near_offset, -tmin.z);
+				glm::mat4 t_shad_mvp = t_ortho * modelview;
+
+				// find the extends of the frustum slice as projected in light's homogeneous coordinates
+				for (int j = 0; j < 8; j++)
+				{
+					t_transf = t_shad_mvp * glm::vec4(splits[i].corners[j], 1.0);
+
+					t_transf.x /= t_transf.w;
+					t_transf.y /= t_transf.w;
+
+					if (t_transf.x > tmax.x) { tmax.x = t_transf.x; }
+					if (t_transf.x < tmin.x) { tmin.x = t_transf.x; }
+					if (t_transf.y > tmax.y) { tmax.y = t_transf.y; }
+					if (t_transf.y < tmin.y) { tmin.y = t_transf.y; }
+				}
+
+				glm::vec2 tscale = glm::vec2(2.0 / (tmax.x - tmin.x), 2.0 / (tmax.y - tmin.y));
+				glm::vec2 toffset = glm::vec2(-0.5 * (tmax.x + tmin.x) * tscale.x, -0.5 * (tmax.y + tmin.y) * tscale.y);
+
+				glm::mat4 t_shad_crop = glm::mat4(1.0);
+				t_shad_crop[0][0] = tscale.x;
+				t_shad_crop[1][1] = tscale.y;
+				t_shad_crop[0][3] = toffset.x;
+				t_shad_crop[1][3] = toffset.y;
+				t_shad_crop = glm::transpose(t_shad_crop);
+
+				t_projection = t_shad_crop * t_ortho;
+
+				// Store the projection matrix
+				proj_matrices[i] = t_projection;
+
+				if (!parent)
+				{
+					cascade_views[i]->view_mat = modelview;
+					cascade_views[i]->projection_mat = t_projection;
+					cascade_views[i]->vp_mat = t_projection * modelview;
+				}
+				else
+				{
+					parent->view_mat = modelview;
+					parent->projection_mat = t_projection;
+					parent->vp_mat = t_projection * modelview;
+				}
+			}
+		}
+
+		// Update texture matrices
+
+		for (int i = 0; i < m_settings.cascade_count; i++)
+		{
+			dependent_view->shadow_frustums[i].shadow_matrix = bias * crop[i];
+
+			// f[i].fard is originally in eye space - tell's us how far we can see.
+			// Here we compute it in camera homogeneous coordinates. Basically, we calculate
+			// cam_proj * (0, 0, f[i].fard, 1)^t and then normalize to [0; 1]
+        
+			glm::vec4 pos = dependent_view->projection_mat * glm::vec4(0.0, 0.0, -splits[i].far_plane, 1.0);
+			glm::vec4 ndc = pos / pos.w;
+
+			dependent_view->shadow_frustums[i].far_plane = ndc.z * 0.5 + 0.5;
+		}
+	}
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -1134,11 +1424,11 @@ void Renderer::update_uniforms()
         {
             SpotLight& light = spot_lights[light_idx];
 
-            m_per_scene_uniforms.spot_light_direction_range[light_idx]     = glm::vec4(light.transform.forward(), light.range);
-            m_per_scene_uniforms.spot_light_color_intensity[light_idx]     = glm::vec4(light.color, light.intensity);
-            m_per_scene_uniforms.spot_light_position[light_idx] = glm::vec4(light.transform.position, 0.0f);
-            m_per_scene_uniforms.spot_light_casts_shadow[light_idx]        = light.casts_shadow ? 1 : 0;
-			m_per_scene_uniforms.spot_light_cutoff_inner_outer[light_idx] = glm::vec4(cosf(glm::radians(light.inner_cone_angle)), cosf(glm::radians(light.outer_cone_angle)), 0.0f, 0.0f);
+            m_per_scene_uniforms.spot_light_direction_range[light_idx]    = glm::vec4(light.transform.forward(), light.range);
+            m_per_scene_uniforms.spot_light_color_intensity[light_idx]    = glm::vec4(light.color, light.intensity);
+            m_per_scene_uniforms.spot_light_position[light_idx]           = glm::vec4(light.transform.position, 0.0f);
+            m_per_scene_uniforms.spot_light_casts_shadow[light_idx]       = light.casts_shadow ? 1 : 0;
+            m_per_scene_uniforms.spot_light_cutoff_inner_outer[light_idx] = glm::vec4(cosf(glm::radians(light.inner_cone_angle)), cosf(glm::radians(light.outer_cone_angle)), 0.0f, 0.0f);
         }
 
         PointLight* point_lights = scene->point_lights();
@@ -1285,6 +1575,8 @@ void Renderer::queue_default_views()
         scene_view->graph                   = m_scene_render_graph;
         scene_view->scene                   = scene.get();
         scene_view->type                    = VIEW_STANDARD;
+		scene_view->fov						= camera->m_fov;
+		scene_view->ratio					= camera->m_aspect_ratio;
         scene_view->near_plane              = camera->m_near;
         scene_view->far_plane               = camera->m_far;
 

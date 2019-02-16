@@ -145,7 +145,7 @@ public:
     virtual void on_window_resized(const uint32_t& w, const uint32_t& h);
 
 protected:
-    void                          trigger_directional_light_update(const View* view);
+    void                          trigger_cascade_view_render(const View* view);
     void                          register_input_render_target(const std::string& name);
     void                          register_input_buffer(const std::string& name);
     std::shared_ptr<RenderTarget> register_output_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
