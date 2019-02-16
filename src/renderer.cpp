@@ -107,7 +107,7 @@ bool Renderer::initialize(const uint32_t& w, const uint32_t& h)
     }
 
     // Common resources
-    m_per_view   = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, MAX_VIEWS * sizeof(PerViewUniforms));
+    m_per_view   = std::make_unique<ShaderStorageBuffer>(GL_DYNAMIC_DRAW, MAX_VIEWS * sizeof(PerViewUniforms));
     m_per_entity = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, MAX_ENTITIES * sizeof(PerEntityUniforms));
     m_per_scene  = std::make_unique<ShaderStorageBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
 
@@ -1085,7 +1085,6 @@ void Renderer::update_uniforms()
 
             m_per_entity_uniforms[i].modal_mat      = entity.transform.model;
             m_per_entity_uniforms[i].last_model_mat = entity.transform.prev_model;
-            m_per_entity_uniforms[i].world_pos      = glm::vec4(entity.transform.position, 0.0f);
         }
 
         void* ptr = m_per_entity->map(GL_WRITE_ONLY);

@@ -307,7 +307,6 @@ Program* ShaderLibrary::create_program(const MeshType& type, const uint32_t& fla
     {
         Program* program = new Program(2, shaders);
 
-        program->uniform_block_binding("u_PerView", 0);
         program->uniform_block_binding("u_PerEntity", 1);
 
         m_program_cache.set(program_key.key, program);

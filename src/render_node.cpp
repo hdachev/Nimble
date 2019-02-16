@@ -516,7 +516,7 @@ void SceneRenderNode::render_scene(const Params& params)
 
         // Bind buffers
         if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
-            m_graph->renderer()->per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->id, sizeof(PerViewUniforms));
+            m_graph->renderer()->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * params.view->id, sizeof(PerViewUniforms));
 
         if (HAS_BIT_FLAG(flags(), NODE_USAGE_POINT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_SPOT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_DIRECTIONAL_LIGHTS))
             m_graph->renderer()->per_scene_ssbo()->bind_base(2);
@@ -745,7 +745,7 @@ void FullscreenRenderNode::render_triangle(const Params& params)
         glClear(params.clear_flags);
     }
 
-    m_graph->renderer()->per_view_ubo()->bind_range(0, sizeof(PerViewUniforms) * params.view->id, sizeof(PerViewUniforms));
+    m_graph->renderer()->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * params.view->id, sizeof(PerViewUniforms));
 
     // Render fullscreen triangle
     glDrawArrays(GL_TRIANGLES, 0, 3);

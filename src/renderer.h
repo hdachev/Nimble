@@ -76,7 +76,7 @@ public:
     inline std::shared_ptr<Texture>           directional_light_shadow_maps() { return m_directional_light_shadow_maps; }
     inline std::shared_ptr<Texture>           spot_light_shadow_maps() { return m_spot_light_shadow_maps; }
     inline std::shared_ptr<Texture>           point_light_shadow_maps() { return m_point_light_shadow_maps; }
-    inline UniformBuffer*                     per_view_ubo() { return m_per_view.get(); }
+    inline ShaderStorageBuffer*               per_view_ssbo() { return m_per_view.get(); }
     inline UniformBuffer*                     per_entity_ubo() { return m_per_entity.get(); }
     inline ShaderStorageBuffer*               per_scene_ssbo() { return m_per_scene.get(); }
     inline std::shared_ptr<VertexArray>       cube_vao() { return m_cube_vao; }
@@ -130,7 +130,7 @@ private:
     PerSceneUniforms                            m_per_scene_uniforms;
 
     // Uniform buffers
-    std::unique_ptr<UniformBuffer>       m_per_view;
+    std::unique_ptr<ShaderStorageBuffer> m_per_view;
     std::unique_ptr<UniformBuffer>       m_per_entity;
     std::unique_ptr<ShaderStorageBuffer> m_per_scene;
 

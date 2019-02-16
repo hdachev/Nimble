@@ -4,7 +4,7 @@
 // COMMON UNIFORM BUFFERS -------------------------------------------
 // ------------------------------------------------------------------
 
-layout (std140) uniform u_PerView
+layout(std430, binding = 0) buffer u_PerView
 { 
 	mat4	 	  last_view_proj;
 	mat4	 	  view_proj;
@@ -17,7 +17,7 @@ layout (std140) uniform u_PerView
 	vec4	 	  view_dir;
 	vec4	 	  current_prev_jitter;
 	int			  num_cascades;
-	ShadowFrustum shadow_frustums[MAX_SHADOW_MAP_CASCADES];
+	ShadowFrustum shadow_frustums[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
 	float		  tan_half_fov;
 	float		  aspect_ratio;
 	float		  near_plane;
@@ -32,7 +32,6 @@ layout (std140) uniform u_PerEntity
 {
 	mat4 model_mat;
 	mat4 last_model_mat;
-	vec4 world_pos;
 };
 
 // ------------------------------------------------------------------
