@@ -219,7 +219,7 @@ void Scene::destroy_point_light(const PointLight::ID& id)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-SpotLight::ID Scene::create_spot_light(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color, const float& cone_angle, const float& range, const float& intensity, const bool& casts_shadows)
+SpotLight::ID Scene::create_spot_light(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color, const float& inner_cone_angle, const float& outer_cone_angle, const float& range, const float& intensity, const bool& casts_shadows)
 {
     SpotLight::ID id = m_spot_lights.add();
 
@@ -230,7 +230,8 @@ SpotLight::ID Scene::create_spot_light(const glm::vec3& position, const glm::vec
     p.color              = color;
     p.range              = range;
     p.intensity          = intensity;
-    p.cone_angle         = cone_angle;
+    p.inner_cone_angle         = inner_cone_angle;
+	p.outer_cone_angle         = outer_cone_angle;
     p.enabled            = true;
     p.casts_shadow       = casts_shadows;
     p.transform.set_orientation_from_euler_yxz(rotation);

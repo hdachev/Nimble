@@ -18,8 +18,8 @@ in vec3 PS_IN_FragPos;
 
 void main()
 {
-    vec3 light_pos = point_lights[u_LightIdx].position_range.xyz;
-    float far_plane = point_lights[u_LightIdx].position_range.w;
+    vec3 light_pos = point_light_position_range[u_LightIdx].xyz;
+    float far_plane = point_light_position_range[u_LightIdx].w;
 
     float light_distance = length(PS_IN_FragPos - light_pos);
     

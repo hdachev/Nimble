@@ -61,7 +61,7 @@ public:
     PointLight::ID       create_point_light(const glm::vec3& position, const glm::vec3& color, const float& range, const float& intensity, const bool& casts_shadows = false);
     PointLight&          lookup_point_light(const PointLight::ID& id);
     void                 destroy_point_light(const PointLight::ID& id);
-    SpotLight::ID        create_spot_light(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color, const float& cone_angle, const float& range, const float& intensity, const bool& casts_shadows = false);
+    SpotLight::ID        create_spot_light(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color, const float& inner_cone_angle, const float& outer_cone_angle, const float& range, const float& intensity, const bool& casts_shadows = false);
     SpotLight&           lookup_spot_light(const SpotLight::ID& id);
     void                 destroy_spot_light(const SpotLight::ID& id);
     DirectionalLight::ID create_directional_light(const glm::vec3& rotation, const glm::vec3& color, const float& intensity, const bool& casts_shadows = false);

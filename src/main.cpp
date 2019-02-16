@@ -196,11 +196,6 @@ private:
         // Create Spot Light render graph
         m_pcf_spot_light_graph = std::dynamic_pointer_cast<ShadowRenderGraph>(m_resource_manager.load_render_graph("graph/pcf_spot_light_graph.json", &m_renderer));
 
-        // Register graphs with renderer
-        m_renderer.register_render_graph(m_forward_graph);
-        m_renderer.register_render_graph(m_pcf_point_light_graph);
-        m_renderer.register_render_graph(m_pcf_spot_light_graph);
-
         // Set the graphs as the active graphs
         m_renderer.set_scene(m_scene);
         m_renderer.set_scene_render_graph(m_forward_graph);
@@ -230,7 +225,7 @@ private:
         std::uniform_real_distribution<float> dis_yaw(0.0f, 360.0f);
 
         for (int n = 0; n < num_lights; n++)
-            m_scene->create_spot_light(glm::vec3(dis_x(rd), dis_y(rd), dis_z(rd)), glm::vec3(dis_pitch(rd), dis_yaw(rd), 0.0f), glm::vec3(dis(rd), dis(rd), dis(rd)), 45.0f, 1000.0f, 10.0f);
+            m_scene->create_spot_light(glm::vec3(dis_x(rd), dis_y(rd), dis_z(rd)), glm::vec3(dis_pitch(rd), dis_yaw(rd), 0.0f), glm::vec3(dis(rd), dis(rd), dis(rd)), 35.0f, 45.0f, 1000.0f, 10.0f);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -332,7 +327,8 @@ private:
                     ImGui::Checkbox("Casts Shadows", &light.casts_shadow);
                     ImGui::InputFloat("Intensity", &light.intensity);
                     ImGui::InputFloat("Range", &light.range);
-                    ImGui::InputFloat("Cone Angle", &light.cone_angle);
+                    ImGui::InputFloat("Inner Cone Angle", &light.inner_cone_angle);
+					ImGui::InputFloat("Outer Cone Angle", &light.outer_cone_angle);
                     ImGui::ColorPicker3("Color", &light.color.x);
                 }
             }
@@ -478,7 +474,7 @@ private:
 
                     ImGui::PushID(2);
                     if (ImGui::Button("Create"))
-                        m_scene->create_spot_light(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 45.0f, 100.0f, 1.0f);
+                        m_scene->create_spot_light(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 35.0f, 45.0f, 100.0f, 1.0f);
 
                     if (m_selected_spot_light != UINT32_MAX)
                     {

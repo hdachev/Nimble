@@ -211,7 +211,7 @@ Program* ShaderLibrary::create_program(const MeshType& type, const uint32_t& fla
 
         source = defines_str + source;
 
-        vs = new Shader(GL_VERTEX_SHADER, source.c_str());
+		vs = new Shader(GL_VERTEX_SHADER, source.c_str());
 
         m_vs_cache[vs_key.key] = vs;
     }

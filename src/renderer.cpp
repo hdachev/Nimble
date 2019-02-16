@@ -339,7 +339,7 @@ void Renderer::push_spot_light_views()
                 light_view->direction               = light.transform.forward();
                 light_view->position                = light.transform.position;
                 light_view->view_mat                = glm::lookAt(light_view->position, light_view->position + light_view->direction, glm::vec3(0.0f, 1.0f, 0.0f));
-                light_view->projection_mat          = glm::perspective(glm::radians(2.0f * light.cone_angle), 1.0f, 1.0f, light.range);
+                light_view->projection_mat          = glm::perspective(glm::radians(2.0f * light.outer_cone_angle), 1.0f, 1.0f, light.range);
                 light_view->vp_mat                  = light_view->projection_mat * light_view->view_mat;
                 light_view->prev_vp_mat             = glm::mat4(1.0f);
                 light_view->inv_view_mat            = glm::mat4(1.0f);
@@ -1121,9 +1121,9 @@ void Renderer::update_uniforms()
         {
             DirectionalLight& light = dir_lights[light_idx];
 
-            m_per_scene_uniforms.directional_lights[light_idx].direction       = glm::vec4(light.transform.forward(), 0.0f);
-            m_per_scene_uniforms.directional_lights[light_idx].color_intensity = glm::vec4(light.color, light.intensity);
-            m_per_scene_uniforms.directional_lights[light_idx].casts_shadow    = light.casts_shadow ? 1 : 0;
+            m_per_scene_uniforms.directional_light_direction[light_idx]       = glm::vec4(light.transform.forward(), 0.0f);
+            m_per_scene_uniforms.directional_light_color_intensity[light_idx] = glm::vec4(light.color, light.intensity);
+            m_per_scene_uniforms.directional_light_casts_shadow[light_idx]    = light.casts_shadow ? 1 : 0;
         }
 
         SpotLight* spot_lights = scene->spot_lights();
@@ -1134,10 +1134,11 @@ void Renderer::update_uniforms()
         {
             SpotLight& light = spot_lights[light_idx];
 
-            m_per_scene_uniforms.spot_lights[light_idx].direction_range     = glm::vec4(light.transform.forward(), light.range);
-            m_per_scene_uniforms.spot_lights[light_idx].color_intensity     = glm::vec4(light.color, light.intensity);
-            m_per_scene_uniforms.spot_lights[light_idx].position_cone_angle = glm::vec4(light.transform.position, cosf(glm::radians(light.cone_angle)));
-            m_per_scene_uniforms.spot_lights[light_idx].casts_shadow        = light.casts_shadow ? 1 : 0;
+            m_per_scene_uniforms.spot_light_direction_range[light_idx]     = glm::vec4(light.transform.forward(), light.range);
+            m_per_scene_uniforms.spot_light_color_intensity[light_idx]     = glm::vec4(light.color, light.intensity);
+            m_per_scene_uniforms.spot_light_position[light_idx] = glm::vec4(light.transform.position, 0.0f);
+            m_per_scene_uniforms.spot_light_casts_shadow[light_idx]        = light.casts_shadow ? 1 : 0;
+			m_per_scene_uniforms.spot_light_cutoff_inner_outer[light_idx] = glm::vec4(cosf(glm::radians(light.inner_cone_angle)), cosf(glm::radians(light.outer_cone_angle)), 0.0f, 0.0f);
         }
 
         PointLight* point_lights = scene->point_lights();
@@ -1148,9 +1149,9 @@ void Renderer::update_uniforms()
         {
             PointLight& light = point_lights[light_idx];
 
-            m_per_scene_uniforms.point_lights[light_idx].position_range  = glm::vec4(light.transform.position, light.range);
-            m_per_scene_uniforms.point_lights[light_idx].color_intensity = glm::vec4(light.color, light.intensity);
-            m_per_scene_uniforms.point_lights[light_idx].casts_shadow    = light.casts_shadow ? 1 : 0;
+            m_per_scene_uniforms.point_light_position_range[light_idx]  = glm::vec4(light.transform.position, light.range);
+            m_per_scene_uniforms.point_light_color_intensity[light_idx] = glm::vec4(light.color, light.intensity);
+            m_per_scene_uniforms.point_light_casts_shadow[light_idx]    = light.casts_shadow ? 1 : 0;
         }
 
         ptr = m_per_scene->map(GL_WRITE_ONLY);

@@ -65,7 +65,7 @@ vec3 pbr_directional_lights(in MaterialProperties m, in FragmentProperties f,  i
 
 	for (int i = 0; i < directional_light_count; i++)
 	{
-		vec3 L = normalize(-directional_lights[i].direction.xyz); // FragPos -> LightPos vector
+		vec3 L = normalize(-directional_light_direction[i].xyz); // FragPos -> LightPos vector
 		vec3 H = normalize(pbr.V + L);
 		float HdotV = clamp(dot(H, pbr.V), 0.0, 1.0);
 		float NdotH = max(dot(pbr.N, H), 0.0);
@@ -76,7 +76,7 @@ vec3 pbr_directional_lights(in MaterialProperties m, in FragmentProperties f,  i
 		float visibility = 1.0;
 
 	#ifdef DIRECTIONAL_LIGHT_SHADOW_MAPPING
-		if (directional_lights[i].casts_shadow == 1)
+		if (directional_light_casts_shadow[i] == 1)
 			visibility = directional_light_shadows(frag_depth, f.Position, f.Normal, L);
 
 	#ifdef CSM_DEBUG
@@ -85,7 +85,7 @@ vec3 pbr_directional_lights(in MaterialProperties m, in FragmentProperties f,  i
 	#endif
 
 		// Radiance -----------------------------------------------------------------
-		vec3 Li = directional_lights[i].color_intensity.xyz * directional_lights[i].color_intensity.w;
+		vec3 Li = directional_light_color_intensity[i].xyz * directional_light_color_intensity[i].w;
 		// --------------------------------------------------------------------------
 
 		// Specular Term ------------------------------------------------------------
@@ -125,7 +125,7 @@ vec3 pbr_point_lights(in MaterialProperties m, in FragmentProperties f,  in PBRP
 
 	for (int i = 0; i < point_light_count; i++)
 	{
-		vec3 L = normalize(point_lights[i].position_range.xyz - f.Position); // FragPos -> LightPos vector
+		vec3 L = normalize(point_light_position_range[i].xyz - f.Position); // FragPos -> LightPos vector
 		vec3 H = normalize(pbr.V + L);
 		float HdotV = clamp(dot(H, pbr.V), 0.0, 1.0);
 		float NdotH = max(dot(pbr.N, H), 0.0);
@@ -136,17 +136,17 @@ vec3 pbr_point_lights(in MaterialProperties m, in FragmentProperties f,  in PBRP
 		float visibility = 1.0;
 
 #ifdef POINT_LIGHT_SHADOW_MAPPING
-		if (point_lights[i].casts_shadow == 1)
+		if (point_light_casts_shadow[i] == 1)
 		{
-			visibility = point_light_shadows(f.Position - point_lights[i].position_range.xyz, shadow_casting_light_idx, i);	
+			visibility = point_light_shadows(f.Position - point_light_position_range[i].xyz, shadow_casting_light_idx, i);	
 			shadow_casting_light_idx++;
 		}
 #endif
 
 		// Radiance -----------------------------------------------------------------
-		float distance = length(point_lights[i].position_range.xyz - f.Position);
-		float attenuation = smoothstep(point_lights[i].position_range.w, 0, distance);
-		vec3 Li = point_lights[i].color_intensity.xyz * point_lights[i].color_intensity.w * attenuation;
+		float distance = length(point_light_position_range[i].xyz - f.Position);
+		float attenuation = smoothstep(point_light_position_range[i].w, 0, distance);
+		vec3 Li = point_light_color_intensity[i].xyz * point_light_color_intensity[i].w * attenuation;
 		// --------------------------------------------------------------------------
 
 		// Specular Term ------------------------------------------------------------
@@ -185,7 +185,7 @@ vec3 pbr_spot_lights(in MaterialProperties m, in FragmentProperties f,  in PBRPr
 
 	for (int i = 0; i < spot_light_count; i++)
 	{
-		vec3 L = normalize(spot_lights[i].position_cone_angle.xyz - f.Position); // FragPos -> LightPos vector
+		vec3 L = normalize(spot_light_position[i].xyz - f.Position); // FragPos -> LightPos vector
 		vec3 H = normalize(pbr.V + L);
 		float HdotV = clamp(dot(H, pbr.V), 0.0, 1.0);
 		float NdotH = max(dot(pbr.N, H), 0.0);
@@ -196,7 +196,7 @@ vec3 pbr_spot_lights(in MaterialProperties m, in FragmentProperties f,  in PBRPr
 		float visibility = 1.0;
 
 #ifdef SPOT_LIGHT_SHADOW_MAPPING
-		if (spot_lights[i].casts_shadow == 1)
+		if (spot_light_casts_shadow[i] == 1)
 		{
 			visibility = spot_light_shadows(f.Position, shadow_casting_light_idx, i);	
 			shadow_casting_light_idx++;
@@ -204,13 +204,13 @@ vec3 pbr_spot_lights(in MaterialProperties m, in FragmentProperties f,  in PBRPr
 #endif
 
 		// Radiance -----------------------------------------------------------------
-		float theta = dot(L, normalize(-spot_lights[i].direction_range.xyz));
-		float distance = length(spot_lights[i].position_cone_angle.xyz - f.Position);
-		float outer_cut_off = spot_lights[i].position_cone_angle.w;
-		float inner_cut_off = 0.766;
+		float theta = dot(L, normalize(-spot_light_direction_range[i].xyz));
+		float distance = length(spot_light_position[i].xyz - f.Position);
+		float inner_cut_off = spot_light_cutoff_inner_outer[i].x;
+		float outer_cut_off = spot_light_cutoff_inner_outer[i].y;
 		float epsilon = inner_cut_off - outer_cut_off;
-		float attenuation = smoothstep(spot_lights[i].direction_range.w, 0, distance) * clamp((theta - outer_cut_off) / epsilon, 0.0, 1.0) * visibility;
-		vec3 Li = spot_lights[i].color_intensity.xyz * spot_lights[i].color_intensity.w * attenuation;
+		float attenuation = smoothstep(spot_light_direction_range[i].w, 0, distance) * clamp((theta - outer_cut_off) / epsilon, 0.0, 1.0) * visibility;
+		vec3 Li = spot_light_color_intensity[i].xyz * spot_light_color_intensity[i].w * attenuation;
 		// --------------------------------------------------------------------------
 
 		// Specular Term ------------------------------------------------------------

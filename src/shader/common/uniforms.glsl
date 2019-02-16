@@ -38,13 +38,21 @@ layout (std140) uniform u_PerEntity
 
 layout(std430, binding = 2) buffer u_PerScene
 {
-	PointLightData 		 point_lights[MAX_POINT_LIGHTS];
-	SpotLightData 		 spot_lights[MAX_SPOT_LIGHTS];
-	DirectionalLightData directional_lights[MAX_DIRECTIONAL_LIGHTS];
-	mat4 				 spot_light_shadow_matrix[MAX_SHADOW_CASTING_SPOT_LIGHTS];
-	int			   		 point_light_count;
-	int		      		 spot_light_count;
-	int		    		 directional_light_count;
+	mat4 spot_light_shadow_matrix[MAX_SHADOW_CASTING_SPOT_LIGHTS];
+    vec4 point_light_position_range[MAX_POINT_LIGHTS];
+    vec4 point_light_color_intensity[MAX_POINT_LIGHTS];
+    vec4 spot_light_position[MAX_SPOT_LIGHTS];
+	vec4 spot_light_cutoff_inner_outer[MAX_SPOT_LIGHTS];
+    vec4 spot_light_direction_range[MAX_SPOT_LIGHTS];
+    vec4 spot_light_color_intensity[MAX_SPOT_LIGHTS];
+    vec4 directional_light_direction[MAX_DIRECTIONAL_LIGHTS];
+    vec4 directional_light_color_intensity[MAX_DIRECTIONAL_LIGHTS];
+	int  point_light_casts_shadow[MAX_POINT_LIGHTS];
+	int  spot_light_casts_shadow[MAX_SPOT_LIGHTS];
+    int  directional_light_casts_shadow[MAX_DIRECTIONAL_LIGHTS];
+    int  point_light_count;
+    int  spot_light_count;
+    int  directional_light_count;
 };
 
 // ------------------------------------------------------------------
