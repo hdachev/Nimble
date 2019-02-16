@@ -78,8 +78,8 @@ struct PerViewUniforms
     float         near_plane;
     float         far_plane;
     // Renderer settings.
-    int     viewport_width;
-    int     viewport_height;
+    int viewport_width;
+    int viewport_height;
     //uint8_t padding[96];
 };
 

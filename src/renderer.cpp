@@ -238,11 +238,11 @@ void Renderer::set_point_light_render_graph(std::shared_ptr<ShadowRenderGraph> g
 
 View* Renderer::allocate_view()
 {
-	if (m_num_allocated_views == MAX_VIEWS)
-	{
-		NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
-		return nullptr;
-	}
+    if (m_num_allocated_views == MAX_VIEWS)
+    {
+        NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
+        return nullptr;
+    }
     else
     {
         uint32_t idx = m_num_allocated_views++;
@@ -254,8 +254,8 @@ View* Renderer::allocate_view()
 
 void Renderer::queue_view(View* view)
 {
-	if (queue_culled_view(view))
-		queue_rendered_view(view);
+    if (queue_culled_view(view))
+        queue_rendered_view(view);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -300,7 +300,7 @@ void Renderer::push_directional_light_views(View* dependent_view)
 
                     dependent_view->cascade_views[i++] = light_view;
 
-					queue_culled_view(light_view);
+                    queue_culled_view(light_view);
                 }
 
                 shadow_casting_light_idx++;
@@ -311,7 +311,7 @@ void Renderer::push_directional_light_views(View* dependent_view)
                 break;
         }
 
-		dependent_view->num_cascade_views = i;
+        dependent_view->num_cascade_views = i;
     }
 }
 
@@ -423,7 +423,7 @@ void Renderer::push_point_light_views()
 void Renderer::clear_all_views()
 {
     m_num_culled_views    = 0;
-	m_num_rendered_views  = 0;
+    m_num_rendered_views  = 0;
     m_num_allocated_views = 0;
 }
 
@@ -1217,17 +1217,17 @@ void Renderer::cull_scene()
 
 bool Renderer::queue_rendered_view(View* view)
 {
-	if (m_num_rendered_views == MAX_VIEWS)
-	{
-		NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
-		return false;
-	}
+    if (m_num_rendered_views == MAX_VIEWS)
+    {
+        NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
+        return false;
+    }
     else
     {
-        uint32_t rendered_idx = m_num_rendered_views++;
-        m_rendered_views[rendered_idx]    = view;
-	
-		return true;
+        uint32_t rendered_idx          = m_num_rendered_views++;
+        m_rendered_views[rendered_idx] = view;
+
+        return true;
     }
 }
 
@@ -1235,24 +1235,24 @@ bool Renderer::queue_rendered_view(View* view)
 
 bool Renderer::queue_culled_view(View* view)
 {
-	if (m_num_culled_views == MAX_VIEWS)
-	{
-		NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
-		return false;
-	}
+    if (m_num_culled_views == MAX_VIEWS)
+    {
+        NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
+        return false;
+    }
     else
     {
-		uint32_t culled_idx = m_num_culled_views++;
+        uint32_t culled_idx = m_num_culled_views++;
 
         Frustum frustum;
         frustum_from_matrix(frustum, view->vp_mat);
 
         m_active_frustums[culled_idx] = frustum;
-		m_culled_views[culled_idx]    = view;
+        m_culled_views[culled_idx]    = view;
 
-		view->id = culled_idx;
+        view->id = culled_idx;
 
-		return true;
+        return true;
     }
 }
 

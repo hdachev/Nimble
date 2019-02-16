@@ -42,7 +42,7 @@ struct View
     ViewType                     type;
 
     // Directional Light related payload
-	uint32_t	  num_cascade_views;
+    uint32_t      num_cascade_views;
     ShadowFrustum shadow_frustums[MAX_SHADOW_MAP_CASCADES * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS];
     View*         cascade_views[MAX_SHADOW_MAP_CASCADES * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS];
 
