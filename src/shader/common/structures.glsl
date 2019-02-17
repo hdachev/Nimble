@@ -109,6 +109,7 @@ struct PBRProperties
 
 #ifdef DIRECTIONAL_LIGHT_SHADOW_MAPPING
 	float directional_light_shadows(in FragmentProperties f, int shadow_map_idx, int light_idx);
+	vec3 csm_debug_color(float frag_depth, int shadow_map_idx);
 #endif
 
 #ifdef SPOT_LIGHT_SHADOW_MAPPING

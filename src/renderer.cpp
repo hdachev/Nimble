@@ -96,7 +96,9 @@ bool Renderer::initialize(const uint32_t& w, const uint32_t& h)
     m_spot_light_shadow_maps        = std::make_shared<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_SPOT_LIGHTS, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
     m_point_light_shadow_maps       = std::make_shared<TextureCube>(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_POINT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
 
-    m_directional_light_shadow_maps->set_min_filter(GL_LINEAR);
+	m_directional_light_shadow_maps->set_min_filter(GL_NEAREST);
+    m_directional_light_shadow_maps->set_mag_filter(GL_NEAREST);
+    m_directional_light_shadow_maps->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
     m_spot_light_shadow_maps->set_min_filter(GL_LINEAR);
     m_point_light_shadow_maps->set_min_filter(GL_LINEAR);
 
@@ -261,6 +263,7 @@ View* Renderer::allocate_view()
 
 		view->scene                   = nullptr;
         view->dest_render_target_view = nullptr;
+		view->num_cascade_frustums = 0;
 		view->num_cascade_views = 0;
 
         return view;
@@ -296,6 +299,7 @@ void Renderer::push_directional_light_views(View* dependent_view)
         uint32_t          shadow_casting_light_idx = 0;
         uint32_t          i                        = 0;
         DirectionalLight* lights                   = scene->directional_lights();
+		dependent_view->num_cascade_frustums = 0;
 
         for (uint32_t light_idx = 0; light_idx < scene->directional_light_count(); light_idx++)
         {
@@ -329,6 +333,8 @@ void Renderer::push_directional_light_views(View* dependent_view)
 					light_view->light_index             = light_idx;
 
                     cascade_views[cascade_idx] = light_view;
+
+					dependent_view->num_cascade_frustums++;
                 }
 
 				// If per cascade culling is disabled, assign parent View
@@ -830,10 +836,10 @@ void Renderer::setup_cascade_views(DirectionalLight& dir_light, View* dependent_
                 glm::vec3 cascade_extents = max - min;
 
                 // Push the light position back along the light direction by the near offset.
-                glm::vec3 shadow_camera_pos = splits[i].center - dir * m_settings.csm_near_offset;
+                glm::vec3 shadow_camera_pos = splits[i].center - dir * dependent_view->far_plane;
 
                 // Add the near offset to the Z value of the cascade extents to make sure the orthographic frustum captures the entire frustum split (else it will exhibit cut-off issues).
-                glm::mat4 ortho = glm::ortho(min.x, max.x, min.y, max.y, -m_settings.csm_near_offset, m_settings.csm_near_offset + cascade_extents.z);
+                glm::mat4 ortho = glm::ortho(min.x, max.x, min.y, max.y, -dependent_view->far_plane, dependent_view->far_plane + cascade_extents.z);
                 glm::mat4 view  = glm::lookAt(shadow_camera_pos, splits[i].center, dependent_view->up);
 
                 proj_matrices[i] = ortho;
@@ -871,13 +877,13 @@ void Renderer::setup_cascade_views(DirectionalLight& dir_light, View* dependent_
             }
             else
             {
-                glm::mat4 t_ortho    = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -m_settings.csm_near_offset, -tmin.z);
+                glm::mat4 t_ortho    = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -dependent_view->far_plane, -tmin.z);
                 glm::mat4 t_shad_mvp = t_ortho * modelview;
 
                 // find the extends of the frustum slice as projected in light's homogeneous coordinates
                 for (int j = 0; j < 8; j++)
                 {
-                    t_transf = t_shad_mvp * glm::vec4(splits[i].corners[j], 1.0);
+					t_transf = t_shad_mvp * glm::vec4(splits[i].corners[j], 1.0);
 
                     t_transf.x /= t_transf.w;
                     t_transf.y /= t_transf.w;
@@ -1452,13 +1458,10 @@ void Renderer::update_uniforms()
 			m_per_view_uniforms[i].viewport_width = m_window_width;
 			m_per_view_uniforms[i].viewport_height = m_window_height;
 
-			if (view->num_cascade_views > 0)
+			for (uint32_t j = 0; j < view->num_cascade_frustums; j++)
 			{
-				for (uint32_t j = 0; j < view->num_cascade_views; j++)
-				{
-					m_per_view_uniforms[i].cascade_matrix[j] = view->cascade_matrix[j];
-					m_per_view_uniforms[i].cascade_far_plane[j] = view->cascade_far_plane[j];
-				}
+				m_per_view_uniforms[i].cascade_matrix[j] = view->cascade_matrix[j];
+				m_per_view_uniforms[i].cascade_far_plane[j] = view->cascade_far_plane[j];
 			}
         }
 

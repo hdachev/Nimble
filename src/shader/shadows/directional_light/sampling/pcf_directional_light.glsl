@@ -9,12 +9,15 @@ float depth_compare(float a, float b, float bias)
 
 // ------------------------------------------------------------------
 
-vec3 debug_color(float frag_depth)
+vec3 csm_debug_color(float frag_depth, int shadow_map_idx)
 {
+	int start_idx = shadow_map_idx * num_cascades; // Starting from this value
+	int end_idx = start_idx + num_cascades; // Less that this value
+
 	int index = 0;
 
 	// Find shadow cascade.
-	for (int i = 0; i < num_cascades - 1; i++)
+	for (int i = 0; i < (num_cascades - 1); i++)
 	{
 		if (frag_depth > cascade_far_plane[i])
 			index = i + 1;
@@ -26,8 +29,10 @@ vec3 debug_color(float frag_depth)
 		return vec3(0.0, 1.0, 0.0);
 	else if (index == 2)
 		return vec3(0.0, 0.0, 1.0);
-	else
+	else if (index == 3)
 		return vec3(1.0, 1.0, 0.0);
+	else
+		return vec3(1.0, 0.0, 1.0);
 }
 
 // ------------------------------------------------------------------

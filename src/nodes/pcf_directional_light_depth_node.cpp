@@ -47,6 +47,7 @@ void PCFDirectionalLightDepthNode::execute_internal(const View* view)
     params.rt_views         = nullptr;
     params.depth_views      = view->dest_render_target_view;
     params.num_clear_colors = 1;
+	params.cull_face = GL_NONE;
 
     render_scene(params);
 }

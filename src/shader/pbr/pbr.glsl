@@ -83,7 +83,7 @@ vec3 pbr_directional_lights(in MaterialProperties m, in FragmentProperties f,  i
 			shadow_casting_light_idx++;
 		}
 	#ifdef CSM_DEBUG
-		shadow_debug += debug_color(frag_depth);
+		shadow_debug += csm_debug_color(frag_depth, shadow_casting_light_idx);
 	#endif
 	#endif
 

@@ -35,7 +35,6 @@ public:
         uint32_t         sample_count        = 1;
         bool             per_cascade_culling = true;
         bool             pssm                = false;
-        float            csm_near_offset     = 250.0f;
         float            csm_lambda          = 0.5f;
     };
 
