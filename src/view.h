@@ -48,7 +48,8 @@ struct View
 
     // Directional Light related payload
     uint32_t      num_cascade_views;
-    ShadowFrustum shadow_frustums[MAX_SHADOW_MAP_CASCADES * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS];
+    glm::mat4 cascade_matrix[MAX_SHADOW_MAP_CASCADES * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS];
+	float cascade_far_plane[MAX_SHADOW_MAP_CASCADES * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS];
     View*         cascade_views[MAX_SHADOW_MAP_CASCADES * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS];
 
     // Optional payload
@@ -58,6 +59,7 @@ struct View
     {
         scene                   = nullptr;
         dest_render_target_view = nullptr;
+		num_cascade_views = 0;
 
         for (uint32_t i = 0; i < MAX_SHADOW_MAP_CASCADES; i++)
             cascade_views[i] = nullptr;

@@ -13,15 +13,16 @@ layout(std430, binding = 0) buffer u_PerView
 	mat4	 	  inv_view;
 	mat4	 	  proj_mat;
 	mat4	 	  view_mat;
+	mat4 		  cascade_matrix[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
 	vec4	 	  view_pos;
 	vec4	 	  view_dir;
 	vec4	 	  current_prev_jitter;
-	int			  num_cascades;
-	ShadowFrustum shadow_frustums[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
+	float 		  cascade_far_plane[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
 	float		  tan_half_fov;
 	float		  aspect_ratio;
 	float		  near_plane;
 	float		  far_plane;
+	int			  num_cascades;
 	int			  viewport_width;
 	int			  viewport_height;
 };

@@ -38,47 +38,28 @@ struct DirectionalLightData
     int32_t casts_shadow;
 };
 
-struct ShadowFrustum
-{
-    NIMBLE_ALIGNED(16)
-    glm::mat4 shadow_matrix;
-    NIMBLE_ALIGNED(16)
-    float far_plane;
-};
-
 struct PerViewUniforms
 {
-    NIMBLE_ALIGNED(16)
     glm::mat4 last_view_proj;
-    NIMBLE_ALIGNED(16)
     glm::mat4 view_proj;
-    NIMBLE_ALIGNED(16)
     glm::mat4 inv_view_proj;
-    NIMBLE_ALIGNED(16)
     glm::mat4 inv_proj;
-    NIMBLE_ALIGNED(16)
     glm::mat4 inv_view;
-    NIMBLE_ALIGNED(16)
     glm::mat4 proj_mat;
-    NIMBLE_ALIGNED(16)
     glm::mat4 view_mat;
-    NIMBLE_ALIGNED(16)
+	glm::mat4 cascade_matrix[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
     glm::vec4 view_pos;
-    NIMBLE_ALIGNED(16)
     glm::vec4 view_dir;
-    NIMBLE_ALIGNED(16)
     glm::vec4 current_prev_jitter;
-    NIMBLE_ALIGNED(16)
-    int num_cascades;
-    NIMBLE_ALIGNED(16)
-    ShadowFrustum shadow_frustums[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
-    float         tan_half_fov;
-    float         aspect_ratio;
-    float         near_plane;
-    float         far_plane;
-    // Renderer settings.
-    int viewport_width;
-    int viewport_height;
+	float cascade_far_plane[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
+    float tan_half_fov;
+    float aspect_ratio;
+    float near_plane;
+    float far_plane;
+	int32_t num_cascades;
+    int32_t viewport_width;
+    int32_t viewport_height;
+	uint8_t   padding[20];
 };
 
 struct PerEntityUniforms

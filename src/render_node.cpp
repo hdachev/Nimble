@@ -503,6 +503,8 @@ void SceneRenderNode::render_scene(const Params& params)
         Scene*  scene    = params.view->scene;
         Entity* entities = scene->entities();
 
+		printf("%d\n", int(sizeof(PerViewUniforms)) * params.view->uniform_idx);
+
         // Bind buffers
         if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
             m_graph->renderer()->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * params.view->uniform_idx, sizeof(PerViewUniforms));
