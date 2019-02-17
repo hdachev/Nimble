@@ -161,19 +161,27 @@ Program* ShaderLibrary::create_program(const MeshType& type, const uint32_t& fla
         fs_defines.push_back("#define POINT_LIGHT_SHADOW_MAPPING");
     }
 
-    // Normal Texture
-    if (material->surface_texture(TEXTURE_TYPE_NORMAL) && HAS_BIT_FLAG(flags, NODE_USAGE_MATERIAL_NORMAL))
+	// Surface textures
+    for (uint32_t i = 0; i < 6; i++)
     {
-        vs_defines.push_back(kSurfaceTextureLUT[TEXTURE_TYPE_NORMAL]);
-        fs_defines.push_back(kSurfaceTextureLUT[TEXTURE_TYPE_NORMAL]);
+		if (material->surface_texture(i) && HAS_BIT_FLAG(flags, kRenderNodeFlags[i]))
+		{
+			vs_defines.push_back(kSurfaceTextureLUT[i]);
+			fs_defines.push_back(kSurfaceTextureLUT[i]);
+		}
+		else if (!material->surface_texture(i) && HAS_BIT_FLAG(flags, kRenderNodeFlags[i]))
+		{
+			vs_defines.push_back(kMaterialUniformLUT[i]);
+			fs_defines.push_back(kMaterialUniformLUT[i]);
+		}
     }
 
-    // Displacement
-    if (material->surface_texture(TEXTURE_TYPE_DISPLACEMENT) && HAS_BIT_FLAG(flags, NODE_USAGE_MATERIAL_DISPLACEMENT))
-    {
-        vs_defines.push_back(kDisplacementTypeLUT[type]);
-        fs_defines.push_back(kDisplacementTypeLUT[type]);
-    }
+    // Custom Textures
+	for (uint32_t i = 0; i < material->custom_texture_count(); i++)
+	{
+		vs_defines.push_back(kCustomTextureLUT[i]);
+		fs_defines.push_back(kCustomTextureLUT[i]);
+	}
 
     // VERTEX SHADER
     if (m_vs_cache.find(vs_key.key) != m_vs_cache.end())
@@ -228,19 +236,6 @@ Program* ShaderLibrary::create_program(const MeshType& type, const uint32_t& fla
 
         if (!material->is_metallic_workflow())
             fs_defines.push_back("#define SPECULAR_WORKFLOW");
-
-        // Surface textures
-        for (uint32_t i = 0; i < 6; i++)
-        {
-            if (material->surface_texture(i) && HAS_BIT_FLAG(flags, kRenderNodeFlags[i]))
-                fs_defines.push_back(kSurfaceTextureLUT[i]);
-            else if (!material->surface_texture(i) && HAS_BIT_FLAG(flags, kRenderNodeFlags[i]))
-                fs_defines.push_back(kMaterialUniformLUT[i]);
-        }
-
-        // Custom Textures
-        for (uint32_t i = 0; i < material->custom_texture_count(); i++)
-            fs_defines.push_back(kCustomTextureLUT[i]);
 
         // Fragment Func
         source += m_fs_template_defines;
@@ -298,7 +293,7 @@ Program* ShaderLibrary::create_program(const MeshType& type, const uint32_t& fla
 
         fs = new Shader(GL_FRAGMENT_SHADER, source.c_str());
 
-        m_fs_cache[fs_key.key] = fs;
+		m_fs_cache[fs_key.key] = fs;
     }
 
     Shader* shaders[] = { vs, fs };
