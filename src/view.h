@@ -23,7 +23,8 @@ struct View
 {
     bool                         enabled;
     bool                         culling;
-    uint32_t                     id;
+    uint32_t                     cull_idx;
+	uint32_t                     uniform_idx;
     glm::vec3                    direction;
 	glm::vec3                    up;
 	glm::vec3                    right;

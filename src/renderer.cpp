@@ -264,7 +264,10 @@ View* Renderer::allocate_view()
 
 void Renderer::queue_view(View* view)
 {
-    if (queue_culled_view(view))
+	Frustum f;
+	frustum_from_matrix(f, view->vp_mat);
+
+    if (queue_culled_view(f) != UINT32_MAX && queue_update_view(view) != UINT32_MAX)
         queue_rendered_view(view);
 }
 
@@ -287,7 +290,9 @@ void Renderer::push_directional_light_views(View* dependent_view)
             if (light.casts_shadow)
             {
 				View* cascade_views[MAX_SHADOW_MAP_CASCADES];
+				View temp;
 				View* parent = nullptr;
+				uint32_t cull_idx;
 
                 for (uint32_t cascade_idx = 0; cascade_idx < m_settings.cascade_count; cascade_idx++)
                 {
@@ -296,17 +301,30 @@ void Renderer::push_directional_light_views(View* dependent_view)
                 }
 
 				if (dependent_view->graph->per_cascade_culling())
-					parent = allocate_view();
+					parent = &temp;
 
 				setup_cascade_views(light, dependent_view, cascade_views, parent);
 
 				if (dependent_view->graph->per_cascade_culling())
-					queue_culled_view(parent);
+				{
+					Frustum f;
+					frustum_from_matrix(f, parent->vp_mat);
+					cull_idx = queue_culled_view(f);
+				}
 
 				for (uint32_t cascade_idx = 0; cascade_idx < m_settings.cascade_count; cascade_idx++)
 				{
 					if (dependent_view->graph->per_cascade_culling())
-						queue_culled_view(cascade_views[cascade_idx]);
+					{
+						Frustum f;
+						frustum_from_matrix(f, parent->vp_mat);
+						cull_idx = queue_culled_view(f);
+					}
+
+					cascade_views[cascade_idx]->cull_idx = cull_idx;
+
+					uint32_t uniform_idx = queue_update_view(cascade_views[cascade_idx]);
+					cascade_views[cascade_idx]->uniform_idx = uniform_idx;
 
 					if (dependent_view->graph->is_manual_cascade_rendering())
 						dependent_view->cascade_views[i++] = cascade_views[cascade_idx];
@@ -434,7 +452,8 @@ void Renderer::push_point_light_views()
 
 void Renderer::clear_all_views()
 {
-    m_num_culled_views    = 0;
+    m_num_cull_views    = 0;
+	m_num_update_views = 0;
     m_num_rendered_views  = 0;
     m_num_allocated_views = 0;
 }
@@ -1382,9 +1401,9 @@ void Renderer::update_uniforms()
         m_per_entity->unmap();
 
         // Update per view uniforms
-        for (uint32_t i = 0; i < m_num_culled_views; i++)
+        for (uint32_t i = 0; i < m_num_update_views; i++)
         {
-            View* view = m_culled_views[i];
+            View* view = m_update_views[i];
 
             m_per_view_uniforms[i].view_mat       = view->view_mat;
             m_per_view_uniforms[i].proj_mat       = view->projection_mat;
@@ -1399,7 +1418,7 @@ void Renderer::update_uniforms()
         }
 
         ptr = m_per_view->map(GL_WRITE_ONLY);
-        memcpy(ptr, &m_per_view_uniforms[0], sizeof(PerViewUniforms) * m_num_culled_views);
+        memcpy(ptr, &m_per_view_uniforms[0], sizeof(PerViewUniforms) * m_num_update_views);
         m_per_view->unmap();
 
         // Update per scene uniforms
@@ -1469,34 +1488,29 @@ void Renderer::cull_scene()
             entity.obb.position    = entity.transform.position;
             entity.obb.orientation = glm::mat3(entity.transform.model);
 
-            for (uint32_t j = 0; j < m_num_culled_views; j++)
+            for (uint32_t j = 0; j < m_num_cull_views; j++)
             {
-                if (m_culled_views[j]->culling)
+				if (intersects(m_active_frustums[j], entity.obb))
                 {
-                    if (intersects(m_active_frustums[j], entity.obb))
-                    {
-                        entity.set_visible(j);
+					entity.set_visible(j);
 
 #ifdef ENABLE_SUBMESH_CULLING
-                        for (uint32_t k = 0; k < entity.mesh->submesh_count(); k++)
-                        {
-                            SubMesh&  submesh = entity.mesh->submesh(k);
-                            glm::vec3 center  = (submesh.min_extents + submesh.max_extents) / 2.0f;
+					for (uint32_t k = 0; k < entity.mesh->submesh_count(); k++)
+					{
+					    SubMesh&  submesh = entity.mesh->submesh(k);
+					    glm::vec3 center  = (submesh.min_extents + submesh.max_extents) / 2.0f;
 
-                            entity.submesh_spheres[k].position = center + entity.transform.position;
+					    entity.submesh_spheres[k].position = center + entity.transform.position;
 
-                            if (intersects(m_active_frustums[j], entity.submesh_spheres[k]))
-                                entity.set_submesh_visible(k, j);
-                            else
-                                entity.set_submesh_invisible(k, j);
-                        }
+					    if (intersects(m_active_frustums[j], entity.submesh_spheres[k]))
+					        entity.set_submesh_visible(k, j);
+					    else
+					        entity.set_submesh_invisible(k, j);
+					}
 #endif
-                    }
-                    else
-                        entity.set_invisible(j);
                 }
                 else
-                    entity.set_visible(j);
+					entity.set_invisible(j);
             }
         }
     }
@@ -1524,26 +1538,37 @@ bool Renderer::queue_rendered_view(View* view)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool Renderer::queue_culled_view(View* view)
+uint32_t Renderer::queue_update_view(View* view)
 {
-    if (m_num_culled_views == MAX_VIEWS)
+	if (m_num_update_views == MAX_VIEWS)
     {
         NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
-        return false;
+		return UINT32_MAX;
     }
     else
     {
-        uint32_t culled_idx = m_num_culled_views++;
+        uint32_t update_idx          = m_num_update_views++;
+        m_update_views[update_idx] = view;
 
-        Frustum frustum;
-        frustum_from_matrix(frustum, view->vp_mat);
+        return update_idx;
+    }
+}
 
-        m_active_frustums[culled_idx] = frustum;
-        m_culled_views[culled_idx]    = view;
+// -----------------------------------------------------------------------------------------------------------------------------------
 
-        view->id = culled_idx;
+ uint32_t Renderer::queue_culled_view(Frustum f)
+{
+    if (m_num_cull_views == MAX_VIEWS)
+    {
+        NIMBLE_LOG_ERROR("Maximum number of Views reached (64)");
+        return UINT32_MAX;
+    }
+    else
+    {
+        uint32_t culled_idx = m_num_cull_views++;
+        m_active_frustums[culled_idx] = f;
 
-        return true;
+        return culled_idx;
     }
 }
 

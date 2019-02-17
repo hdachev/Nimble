@@ -102,7 +102,8 @@ private:
     void    update_uniforms();
     void    cull_scene();
     bool    queue_rendered_view(View* view);
-    bool    queue_culled_view(View* view);
+	uint32_t queue_update_view(View* view);
+    uint32_t queue_culled_view(Frustum f);
     void    queue_default_views();
     void    render_all_views();
 
@@ -116,11 +117,12 @@ private:
     uint32_t                                                m_window_height;
 
     // Current scene.
-    uint32_t                                    m_num_culled_views    = 0;
+	uint32_t                                    m_num_cull_views    = 0;
+    uint32_t                                    m_num_update_views    = 0;
     uint32_t                                    m_num_rendered_views  = 0;
     uint32_t                                    m_num_allocated_views = 0;
     std::array<View, MAX_VIEWS>                 m_view_pool;
-    std::array<View*, MAX_VIEWS>                m_culled_views;
+    std::array<View*, MAX_VIEWS>                m_update_views;
     std::array<View*, MAX_VIEWS>                m_rendered_views;
     std::array<Frustum, MAX_VIEWS>              m_active_frustums;
     std::weak_ptr<Scene>                        m_scene;
