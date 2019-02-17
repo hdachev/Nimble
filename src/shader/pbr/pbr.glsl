@@ -62,6 +62,7 @@ vec3 pbr_directional_lights(in MaterialProperties m, in FragmentProperties f,  i
 #endif
 
 #ifdef DIRECTIONAL_LIGHTS
+	int shadow_casting_light_idx = 0;
 
 	for (int i = 0; i < directional_light_count; i++)
 	{
@@ -77,8 +78,10 @@ vec3 pbr_directional_lights(in MaterialProperties m, in FragmentProperties f,  i
 
 	#ifdef DIRECTIONAL_LIGHT_SHADOW_MAPPING
 		if (directional_light_casts_shadow[i] == 1)
-			visibility = directional_light_shadows(frag_depth, f.Position, f.Normal, L);
-
+		{
+			visibility = directional_light_shadows(f, shadow_casting_light_idx, i);
+			shadow_casting_light_idx++;
+		}
 	#ifdef CSM_DEBUG
 		shadow_debug += debug_color(frag_depth);
 	#endif
@@ -138,7 +141,7 @@ vec3 pbr_point_lights(in MaterialProperties m, in FragmentProperties f,  in PBRP
 #ifdef POINT_LIGHT_SHADOW_MAPPING
 		if (point_light_casts_shadow[i] == 1)
 		{
-			visibility = point_light_shadows(f.Position - point_light_position_range[i].xyz, shadow_casting_light_idx, i);	
+			visibility = point_light_shadows(f, shadow_casting_light_idx, i);	
 			shadow_casting_light_idx++;
 		}
 #endif

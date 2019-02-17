@@ -115,4 +115,16 @@ struct PBRProperties
 	float NdotV;
 };
 
+#ifdef DIRECTIONAL_LIGHT_SHADOW_MAPPING
+	float directional_light_shadows(in FragmentProperties f, int shadow_map_idx, int light_idx);
+#endif
+
+#ifdef SPOT_LIGHT_SHADOW_MAPPING
+	float spot_light_shadows(in FragmentProperties f, int shadow_map_idx, int light_idx);
+#endif
+
+#ifdef POINT_LIGHT_SHADOW_MAPPING
+	float point_light_shadows(in FragmentProperties f, int shadow_map_idx, int light_idx);
+#endif
+
 // ------------------------------------------------------------------

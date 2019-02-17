@@ -34,9 +34,9 @@ public:
         uint32_t         cascade_count       = 4;
         uint32_t         sample_count        = 1;
         bool             per_cascade_culling = true;
-		bool             pssm				 = false;
-		float			 csm_near_offset	 = 0.0f;
-		float			 csm_lambda			 = 0.5f;
+        bool             pssm                = false;
+        float            csm_near_offset     = 0.0f;
+        float            csm_lambda          = 0.5f;
     };
 
     Renderer(Settings settings = Settings());
@@ -93,19 +93,19 @@ private:
         TextureLifetimes              lifetimes;
     };
 
-	void	setup_cascade_views(DirectionalLight& dir_light, View* dependent_view, View** cascade_views, View* parent = nullptr);
-    void    create_cube();
-    int32_t find_render_target_last_usage(std::shared_ptr<RenderTarget> rt);
-    bool    is_aliasing_candidate(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node, const RenderTargetDesc& rt_desc);
-    void    create_texture_for_render_target(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node);
-    void    bake_render_graphs();
-    void    update_uniforms();
-    void    cull_scene();
-    bool    queue_rendered_view(View* view);
-	uint32_t queue_update_view(View* view);
+    void     setup_cascade_views(DirectionalLight& dir_light, View* dependent_view, View** cascade_views, View* parent = nullptr);
+    void     create_cube();
+    int32_t  find_render_target_last_usage(std::shared_ptr<RenderTarget> rt);
+    bool     is_aliasing_candidate(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node, const RenderTargetDesc& rt_desc);
+    void     create_texture_for_render_target(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node);
+    void     bake_render_graphs();
+    void     update_uniforms();
+    void     cull_scene();
+    bool     queue_rendered_view(View* view);
+    uint32_t queue_update_view(View* view);
     uint32_t queue_culled_view(Frustum f);
-    void    queue_default_views();
-    void    render_all_views();
+    void     queue_default_views();
+    void     render_all_views();
 
 private:
     // Resource caches
@@ -117,7 +117,7 @@ private:
     uint32_t                                                m_window_height;
 
     // Current scene.
-	uint32_t                                    m_num_cull_views    = 0;
+    uint32_t                                    m_num_cull_views      = 0;
     uint32_t                                    m_num_update_views    = 0;
     uint32_t                                    m_num_rendered_views  = 0;
     uint32_t                                    m_num_allocated_views = 0;

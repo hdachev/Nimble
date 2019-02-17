@@ -24,10 +24,10 @@ struct View
     bool                         enabled;
     bool                         culling;
     uint32_t                     cull_idx;
-	uint32_t                     uniform_idx;
+    uint32_t                     uniform_idx;
     glm::vec3                    direction;
-	glm::vec3                    up;
-	glm::vec3                    right;
+    glm::vec3                    up;
+    glm::vec3                    right;
     glm::vec3                    position;
     glm::mat4                    view_mat;
     glm::mat4                    projection_mat;
@@ -37,8 +37,8 @@ struct View
     glm::mat4                    inv_projection_mat;
     glm::mat4                    inv_vp_mat;
     glm::vec4                    jitter;
-	float						 fov;
-	float						 ratio;
+    float                        fov;
+    float                        ratio;
     float                        far_plane;
     float                        near_plane;
     Scene*                       scene;

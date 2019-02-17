@@ -220,7 +220,7 @@ void RenderNode::on_window_resized(const uint32_t& w, const uint32_t& h)
 
 void RenderNode::trigger_cascade_view_render(const View* view)
 {
-	m_graph->trigger_cascade_view_render(view);
+    m_graph->trigger_cascade_view_render(view);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -505,7 +505,7 @@ void SceneRenderNode::render_scene(const Params& params)
 
         // Bind buffers
         if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
-            m_graph->renderer()->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * params.view->id, sizeof(PerViewUniforms));
+            m_graph->renderer()->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * params.view->uniform_idx, sizeof(PerViewUniforms));
 
         if (HAS_BIT_FLAG(flags(), NODE_USAGE_POINT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_SPOT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_DIRECTIONAL_LIGHTS))
             m_graph->renderer()->per_scene_ssbo()->bind_base(2);
@@ -514,7 +514,7 @@ void SceneRenderNode::render_scene(const Params& params)
         {
             Entity& e = entities[i];
 
-            if (!params.view->culling || (params.view->culling && e.visibility(params.view->id)))
+            if (!params.view->culling || (params.view->culling && e.visibility(params.view->cull_idx)))
             {
                 // Bind mesh VAO
                 e.mesh->bind();
@@ -526,7 +526,7 @@ void SceneRenderNode::render_scene(const Params& params)
                     int32_t tex_unit = 0;
 
 #ifdef ENABLE_SUBMESH_CULLING
-                    if (!params.view->culling || (params.view->culling && e.submesh_visibility(j, params.view->id)))
+                    if (!params.view->culling || (params.view->culling && e.submesh_visibility(j, params.view->cull_idx)))
                     {
 #endif
                         ProgramKey& key = s.material->program_key();
@@ -734,7 +734,7 @@ void FullscreenRenderNode::render_triangle(const Params& params)
         glClear(params.clear_flags);
     }
 
-    m_graph->renderer()->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * params.view->id, sizeof(PerViewUniforms));
+    m_graph->renderer()->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * params.view->uniform_idx, sizeof(PerViewUniforms));
 
     // Render fullscreen triangle
     glDrawArrays(GL_TRIANGLES, 0, 3);

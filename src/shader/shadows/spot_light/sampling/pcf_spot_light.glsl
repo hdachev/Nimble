@@ -2,10 +2,10 @@
 // PCF  -------------------------------------------------------------
 // ------------------------------------------------------------------
 
-float spot_light_shadows(vec3 position, int shadow_map_idx, int light_idx)
+float spot_light_shadows(in FragmentProperties f, int shadow_map_idx, int light_idx)
 {
 	// Transform frag position into Light-space.
-	vec4 light_space_pos = spot_light_shadow_matrix[shadow_map_idx] * vec4(position, 1.0);
+	vec4 light_space_pos = spot_light_shadow_matrix[shadow_map_idx] * vec4(f.Position, 1.0);
 
 	 vec3 proj_coords = light_space_pos.xyz / light_space_pos.w;
     // transform to [0,1] range

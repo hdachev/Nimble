@@ -552,22 +552,22 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
 
     std::shared_ptr<RenderGraph> graph;
 
-	if (type == RENDER_GRAPH_STANDARD)
-	{
-		graph = std::make_shared<RenderGraph>(renderer);
+    if (type == RENDER_GRAPH_STANDARD)
+    {
+        graph = std::make_shared<RenderGraph>(renderer);
 
-		if (j.find("manual_cascade_rendering") != j.end())
+        if (j.find("manual_cascade_rendering") != j.end())
         {
             bool value = j["manual_cascade_rendering"];
-			graph->set_manual_cascade_rendering(value);
+            graph->set_manual_cascade_rendering(value);
         }
 
-		if (j.find("per_cascade_culling") != j.end())
+        if (j.find("per_cascade_culling") != j.end())
         {
             bool value = j["per_cascade_culling"];
-			graph->set_per_cascade_culling(value);
+            graph->set_per_cascade_culling(value);
         }
-	}
+    }
     if (type == RENDER_GRAPH_SHADOW)
     {
         std::shared_ptr<ShadowRenderGraph> shadow_graph = std::make_shared<ShadowRenderGraph>(renderer);
