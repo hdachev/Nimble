@@ -54,9 +54,9 @@ public:
     void  set_point_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
     View* allocate_view();
     void  queue_view(View* view);
-    void  push_directional_light_views(View* dependent_view);
-    void  push_spot_light_views();
-    void  push_point_light_views();
+    void  queue_directional_light_views(View* dependent_view);
+    void  queue_spot_light_views();
+    void  queue_point_light_views();
     void  clear_all_views();
     void  on_window_resized(const uint32_t& w, const uint32_t& h);
 

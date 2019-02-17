@@ -161,27 +161,27 @@ Program* ShaderLibrary::create_program(const MeshType& type, const uint32_t& fla
         fs_defines.push_back("#define POINT_LIGHT_SHADOW_MAPPING");
     }
 
-	// Surface textures
+    // Surface textures
     for (uint32_t i = 0; i < 6; i++)
     {
-		if (material->surface_texture(i) && HAS_BIT_FLAG(flags, kRenderNodeFlags[i]))
-		{
-			vs_defines.push_back(kSurfaceTextureLUT[i]);
-			fs_defines.push_back(kSurfaceTextureLUT[i]);
-		}
-		else if (!material->surface_texture(i) && HAS_BIT_FLAG(flags, kRenderNodeFlags[i]))
-		{
-			vs_defines.push_back(kMaterialUniformLUT[i]);
-			fs_defines.push_back(kMaterialUniformLUT[i]);
-		}
+        if (material->surface_texture(i) && HAS_BIT_FLAG(flags, kRenderNodeFlags[i]))
+        {
+            vs_defines.push_back(kSurfaceTextureLUT[i]);
+            fs_defines.push_back(kSurfaceTextureLUT[i]);
+        }
+        else if (!material->surface_texture(i) && HAS_BIT_FLAG(flags, kRenderNodeFlags[i]))
+        {
+            vs_defines.push_back(kMaterialUniformLUT[i]);
+            fs_defines.push_back(kMaterialUniformLUT[i]);
+        }
     }
 
     // Custom Textures
-	for (uint32_t i = 0; i < material->custom_texture_count(); i++)
-	{
-		vs_defines.push_back(kCustomTextureLUT[i]);
-		fs_defines.push_back(kCustomTextureLUT[i]);
-	}
+    for (uint32_t i = 0; i < material->custom_texture_count(); i++)
+    {
+        vs_defines.push_back(kCustomTextureLUT[i]);
+        fs_defines.push_back(kCustomTextureLUT[i]);
+    }
 
     // VERTEX SHADER
     if (m_vs_cache.find(vs_key.key) != m_vs_cache.end())
@@ -293,7 +293,7 @@ Program* ShaderLibrary::create_program(const MeshType& type, const uint32_t& fla
 
         fs = new Shader(GL_FRAGMENT_SHADER, source.c_str());
 
-		m_fs_cache[fs_key.key] = fs;
+        m_fs_cache[fs_key.key] = fs;
     }
 
     Shader* shaders[] = { vs, fs };
@@ -306,7 +306,7 @@ Program* ShaderLibrary::create_program(const MeshType& type, const uint32_t& fla
 
         m_program_cache.set(program_key.key, program);
 
-		return program;
+        return program;
     }
     else
         return false;

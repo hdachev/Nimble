@@ -96,7 +96,7 @@ bool Renderer::initialize(const uint32_t& w, const uint32_t& h)
     m_spot_light_shadow_maps        = std::make_shared<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_SPOT_LIGHTS, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
     m_point_light_shadow_maps       = std::make_shared<TextureCube>(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_POINT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
 
-	m_directional_light_shadow_maps->set_min_filter(GL_NEAREST);
+    m_directional_light_shadow_maps->set_min_filter(GL_NEAREST);
     m_directional_light_shadow_maps->set_mag_filter(GL_NEAREST);
     m_directional_light_shadow_maps->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
     m_spot_light_shadow_maps->set_min_filter(GL_LINEAR);
@@ -259,12 +259,12 @@ View* Renderer::allocate_view()
     {
         uint32_t idx = m_num_allocated_views++;
 
-		View* view = &m_view_pool[idx];
+        View* view = &m_view_pool[idx];
 
-		view->scene                   = nullptr;
+        view->scene                   = nullptr;
         view->dest_render_target_view = nullptr;
-		view->num_cascade_frustums = 0;
-		view->num_cascade_views = 0;
+        view->num_cascade_frustums    = 0;
+        view->num_cascade_views       = 0;
 
         return view;
     }
@@ -277,20 +277,20 @@ void Renderer::queue_view(View* view)
     Frustum f;
     frustum_from_matrix(f, view->vp_mat);
 
-	uint32_t cull_idx = queue_culled_view(f);
-	uint32_t uniform_idx = queue_update_view(view);
+    uint32_t cull_idx    = queue_culled_view(f);
+    uint32_t uniform_idx = queue_update_view(view);
 
-	if (cull_idx != UINT32_MAX && uniform_idx != UINT32_MAX)
-	{
-		view->cull_idx = cull_idx;
-		view->uniform_idx = uniform_idx;
-		queue_rendered_view(view);
-	}
+    if (cull_idx != UINT32_MAX && uniform_idx != UINT32_MAX)
+    {
+        view->cull_idx    = cull_idx;
+        view->uniform_idx = uniform_idx;
+        queue_rendered_view(view);
+    }
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::push_directional_light_views(View* dependent_view)
+void Renderer::queue_directional_light_views(View* dependent_view)
 {
     if (!m_scene.expired())
     {
@@ -299,7 +299,7 @@ void Renderer::push_directional_light_views(View* dependent_view)
         uint32_t          shadow_casting_light_idx = 0;
         uint32_t          i                        = 0;
         DirectionalLight* lights                   = scene->directional_lights();
-		dependent_view->num_cascade_frustums = 0;
+        dependent_view->num_cascade_frustums       = 0;
 
         for (uint32_t light_idx = 0; light_idx < scene->directional_light_count(); light_idx++)
         {
@@ -312,39 +312,39 @@ void Renderer::push_directional_light_views(View* dependent_view)
                 View*    parent = nullptr;
                 uint32_t cull_idx;
 
-				// Allocate Views for shadow cascades and fill out initial values
+                // Allocate Views for shadow cascades and fill out initial values
                 for (uint32_t cascade_idx = 0; cascade_idx < m_settings.cascade_count; cascade_idx++)
                 {
                     View* light_view = allocate_view();
 
-					light_view->enabled                 = true;
-					light_view->culling                 = true;
-					light_view->direction               = light.transform.forward();
-					light_view->position                = light.transform.position;
-					light_view->prev_vp_mat             = glm::mat4(1.0f);
-					light_view->inv_view_mat            = glm::mat4(1.0f);
-					light_view->inv_projection_mat      = glm::mat4(1.0f);
-					light_view->inv_vp_mat              = glm::mat4(1.0f);
-					light_view->jitter                  = glm::vec4(0.0);
-					light_view->dest_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
-					light_view->graph                   = m_directional_light_render_graph;
-					light_view->scene                   = scene.get();
-					light_view->type                    = VIEW_DIRECTIONAL_LIGHT;
-					light_view->light_index             = light_idx;
+                    light_view->enabled                 = true;
+                    light_view->culling                 = true;
+                    light_view->direction               = light.transform.forward();
+                    light_view->position                = light.transform.position;
+                    light_view->prev_vp_mat             = glm::mat4(1.0f);
+                    light_view->inv_view_mat            = glm::mat4(1.0f);
+                    light_view->inv_projection_mat      = glm::mat4(1.0f);
+                    light_view->inv_vp_mat              = glm::mat4(1.0f);
+                    light_view->jitter                  = glm::vec4(0.0);
+                    light_view->dest_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
+                    light_view->graph                   = m_directional_light_render_graph;
+                    light_view->scene                   = scene.get();
+                    light_view->type                    = VIEW_DIRECTIONAL_LIGHT;
+                    light_view->light_index             = light_idx;
 
                     cascade_views[cascade_idx] = light_view;
 
-					dependent_view->num_cascade_frustums++;
+                    dependent_view->num_cascade_frustums++;
                 }
 
-				// If per cascade culling is disabled, assign parent View
+                // If per cascade culling is disabled, assign parent View
                 if (!dependent_view->graph->per_cascade_culling())
                     parent = &temp;
 
-				// Calculate cascade matrices
+                // Calculate cascade matrices
                 setup_cascade_views(light, dependent_view, cascade_views, parent);
 
-				// If per cascade culling is disabled, queue up a culling View for the parent View
+                // If per cascade culling is disabled, queue up a culling View for the parent View
                 if (!dependent_view->graph->per_cascade_culling())
                 {
                     Frustum f;
@@ -354,7 +354,7 @@ void Renderer::push_directional_light_views(View* dependent_view)
 
                 for (uint32_t cascade_idx = 0; cascade_idx < m_settings.cascade_count; cascade_idx++)
                 {
-					// If per cascade culling is enabled, queue up culling views for each cascade
+                    // If per cascade culling is enabled, queue up culling views for each cascade
                     if (dependent_view->graph->per_cascade_culling())
                     {
                         Frustum f;
@@ -388,7 +388,7 @@ void Renderer::push_directional_light_views(View* dependent_view)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::push_spot_light_views()
+void Renderer::queue_spot_light_views()
 {
     if (!m_scene.expired())
     {
@@ -439,7 +439,7 @@ void Renderer::push_spot_light_views()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::push_point_light_views()
+void Renderer::queue_point_light_views()
 {
     if (!m_scene.expired())
     {
@@ -612,7 +612,6 @@ Framebuffer* Renderer::framebuffer_for_render_targets(const uint32_t& num_render
         key.depth_key.layer     = depth_view->layer;
         key.depth_key.mip_level = depth_view->mip_level;
         key.depth_key.gl_id     = depth_view->texture->id();
-        ;
     }
 
     uint64_t hash = murmur_hash_64(&key, sizeof(FramebufferKey), 5234);
@@ -883,7 +882,7 @@ void Renderer::setup_cascade_views(DirectionalLight& dir_light, View* dependent_
                 // find the extends of the frustum slice as projected in light's homogeneous coordinates
                 for (int j = 0; j < 8; j++)
                 {
-					t_transf = t_shad_mvp * glm::vec4(splits[i].corners[j], 1.0);
+                    t_transf = t_shad_mvp * glm::vec4(splits[i].corners[j], 1.0);
 
                     t_transf.x /= t_transf.w;
                     t_transf.y /= t_transf.w;
@@ -1443,26 +1442,26 @@ void Renderer::update_uniforms()
         {
             View* view = m_update_views[i];
 
-            m_per_view_uniforms[i].view_mat       = view->view_mat;
-            m_per_view_uniforms[i].proj_mat       = view->projection_mat;
-            m_per_view_uniforms[i].view_proj      = view->vp_mat;
-            m_per_view_uniforms[i].last_view_proj = view->prev_vp_mat;
-            m_per_view_uniforms[i].inv_proj       = view->inv_projection_mat;
-            m_per_view_uniforms[i].inv_view       = view->inv_view_mat;
-            m_per_view_uniforms[i].inv_view_proj  = view->inv_vp_mat;
-            m_per_view_uniforms[i].view_pos       = glm::vec4(view->position, 0.0f);
-			m_per_view_uniforms[i].view_dir       = glm::vec4(view->direction, 0.0f);
-            m_per_view_uniforms[i].near_plane     = view->near_plane;
-            m_per_view_uniforms[i].far_plane      = view->far_plane;
-			m_per_view_uniforms[i].num_cascades = m_settings.cascade_count;
-			m_per_view_uniforms[i].viewport_width = m_window_width;
-			m_per_view_uniforms[i].viewport_height = m_window_height;
+            m_per_view_uniforms[i].view_mat        = view->view_mat;
+            m_per_view_uniforms[i].proj_mat        = view->projection_mat;
+            m_per_view_uniforms[i].view_proj       = view->vp_mat;
+            m_per_view_uniforms[i].last_view_proj  = view->prev_vp_mat;
+            m_per_view_uniforms[i].inv_proj        = view->inv_projection_mat;
+            m_per_view_uniforms[i].inv_view        = view->inv_view_mat;
+            m_per_view_uniforms[i].inv_view_proj   = view->inv_vp_mat;
+            m_per_view_uniforms[i].view_pos        = glm::vec4(view->position, 0.0f);
+            m_per_view_uniforms[i].view_dir        = glm::vec4(view->direction, 0.0f);
+            m_per_view_uniforms[i].near_plane      = view->near_plane;
+            m_per_view_uniforms[i].far_plane       = view->far_plane;
+            m_per_view_uniforms[i].num_cascades    = m_settings.cascade_count;
+            m_per_view_uniforms[i].viewport_width  = m_window_width;
+            m_per_view_uniforms[i].viewport_height = m_window_height;
 
-			for (uint32_t j = 0; j < view->num_cascade_frustums; j++)
-			{
-				m_per_view_uniforms[i].cascade_matrix[j] = view->cascade_matrix[j];
-				m_per_view_uniforms[i].cascade_far_plane[j] = view->cascade_far_plane[j];
-			}
+            for (uint32_t j = 0; j < view->num_cascade_frustums; j++)
+            {
+                m_per_view_uniforms[i].cascade_matrix[j]    = view->cascade_matrix[j];
+                m_per_view_uniforms[i].cascade_far_plane[j] = view->cascade_far_plane[j];
+            }
         }
 
         ptr = m_per_view->map(GL_WRITE_ONLY);
@@ -1636,8 +1635,8 @@ void Renderer::queue_default_views()
         scene_view->culling                 = true;
         scene_view->direction               = camera->m_forward;
         scene_view->position                = camera->m_position;
-		scene_view->up = camera->m_up;
-		scene_view->right = camera->m_right;
+        scene_view->up                      = camera->m_up;
+        scene_view->right                   = camera->m_right;
         scene_view->view_mat                = camera->m_view;
         scene_view->projection_mat          = camera->m_projection;
         scene_view->vp_mat                  = camera->m_view_projection;
@@ -1656,9 +1655,9 @@ void Renderer::queue_default_views()
         scene_view->far_plane               = camera->m_far;
 
         // Queue shadow views
-        push_spot_light_views();
-        push_point_light_views();
-		push_directional_light_views(scene_view);
+        queue_spot_light_views();
+        queue_point_light_views();
+        queue_directional_light_views(scene_view);
 
         // Finally queue the scene view
         queue_view(scene_view);

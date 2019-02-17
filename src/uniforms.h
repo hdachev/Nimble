@@ -47,19 +47,19 @@ struct PerViewUniforms
     glm::mat4 inv_view;
     glm::mat4 proj_mat;
     glm::mat4 view_mat;
-	glm::mat4 cascade_matrix[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
+    glm::mat4 cascade_matrix[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
     glm::vec4 view_pos;
     glm::vec4 view_dir;
     glm::vec4 current_prev_jitter;
-	float cascade_far_plane[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
-    float tan_half_fov;
-    float aspect_ratio;
-    float near_plane;
-    float far_plane;
-	int32_t num_cascades;
-    int32_t viewport_width;
-    int32_t viewport_height;
-	uint8_t   padding[20];
+    float     cascade_far_plane[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
+    float     tan_half_fov;
+    float     aspect_ratio;
+    float     near_plane;
+    float     far_plane;
+    int32_t   num_cascades;
+    int32_t   viewport_width;
+    int32_t   viewport_height;
+    uint8_t   padding[20];
 };
 
 struct PerEntityUniforms
