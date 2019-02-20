@@ -16,6 +16,7 @@
 namespace nimble
 {
 class ShadowRenderGraph;
+class ResourceManager;
 
 enum ShadowMapQuality : uint32_t
 {
@@ -82,6 +83,8 @@ public:
     inline UniformBuffer*                     per_entity_ubo() { return m_per_entity.get(); }
     inline ShaderStorageBuffer*               per_scene_ssbo() { return m_per_scene.get(); }
     inline std::shared_ptr<VertexArray>       cube_vao() { return m_cube_vao; }
+	inline void								  set_resource_manager(ResourceManager* res_mgr) { m_resource_manager = res_mgr; }
+	inline ResourceManager*					  resource_manager() { return m_resource_manager; }
 
 private:
     using TextureLifetimes = std::vector<std::pair<uint32_t, uint32_t>>;
@@ -133,6 +136,7 @@ private:
     std::array<PerViewUniforms, MAX_VIEWS>      m_per_view_uniforms;
     std::array<PerEntityUniforms, MAX_ENTITIES> m_per_entity_uniforms;
     PerSceneUniforms                            m_per_scene_uniforms;
+	ResourceManager*							m_resource_manager = nullptr;
 
     // Uniform buffers
     std::unique_ptr<ShaderStorageBuffer> m_per_view;

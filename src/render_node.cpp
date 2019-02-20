@@ -624,7 +624,7 @@ void MultiPassRenderNode::execute(const View* view)
             Profiler::begin_sample(pass.first);
 
             // Execute subpass.
-            pass.second();
+            pass.second(view);
 
             Profiler::end_sample(pass.first);
         }
@@ -647,7 +647,7 @@ void MultiPassRenderNode::execute(const View* view)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void MultiPassRenderNode::attach_sub_pass(const std::string& node_name, std::function<void(void)> function)
+void MultiPassRenderNode::attach_sub_pass(const std::string& node_name, std::function<void(const View*)> function)
 {
     std::string formatted_name = name();
     formatted_name += "_";

@@ -224,10 +224,10 @@ public:
     inline uint32_t sub_pass_count() { return (uint32_t)m_sub_passes.size(); }
 
 protected:
-    void attach_sub_pass(const std::string& node_name, std::function<void(void)> function);
+    void attach_sub_pass(const std::string& node_name, std::function<void(const View*)> function);
 
 private:
-    std::vector<std::pair<std::string, std::function<void(void)>>> m_sub_passes;
+    std::vector<std::pair<std::string, std::function<void(const View*)>>> m_sub_passes;
     std::vector<std::pair<float, float>>                           m_sub_pass_timings;
 };
 
