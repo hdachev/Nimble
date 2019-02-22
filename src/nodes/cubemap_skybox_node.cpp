@@ -25,45 +25,40 @@ CubemapSkyboxNode::~CubemapSkyboxNode()
 
 void CubemapSkyboxNode::declare_connections()
 {
-    register_input_render_target("Scene");
+    register_input_render_target("Color");
     register_input_render_target("Depth");
+
+	m_color_rt = register_forwarded_output_render_target("Color");
+	m_depth_rt = register_forwarded_output_render_target("Depth");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 bool CubemapSkyboxNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-    InputRenderTarget* scene_rt = find_input_render_target_slot("Scene");
-    InputRenderTarget* depth_rt = find_input_render_target_slot("Depth");
+    m_scene_rtv = RenderTargetView(0, 0, 0, m_color_rt->texture);
+    m_depth_rtv = RenderTargetView(0, 0, 0, m_depth_rt->texture);
 
-    if (scene_rt && depth_rt)
+    m_vs = res_mgr->load_shader("shader/skybox/cubemap_skybox_vs.glsl", GL_VERTEX_SHADER);
+    m_fs = res_mgr->load_shader("shader/skybox/cubemap_skybox_fs.glsl", GL_FRAGMENT_SHADER);
+
+    if (m_vs && m_fs)
     {
-        m_scene_rtv = RenderTargetView(0, 0, 0, scene_rt->prev_render_target->texture);
-        m_depth_rtv = RenderTargetView(0, 0, 0, depth_rt->prev_render_target->texture);
+        m_program = renderer->create_program(m_vs, m_fs);
 
-        m_vs = res_mgr->load_shader("shader/skybox/cubemap_skybox_vs.glsl", GL_VERTEX_SHADER);
-        m_fs = res_mgr->load_shader("shader/skybox/cubemap_skybox_fs.glsl", GL_FRAGMENT_SHADER);
-
-        if (m_vs && m_fs)
-        {
-            m_program = renderer->create_program(m_vs, m_fs);
-
-            if (m_program)
-                return true;
-            else
-            {
-                NIMBLE_LOG_ERROR("Failed to create Program!");
-                return false;
-            }
-        }
+        if (m_program)
+            return true;
         else
         {
-            NIMBLE_LOG_ERROR("Failed to load Shaders!");
+            NIMBLE_LOG_ERROR("Failed to create Program!");
             return false;
         }
     }
     else
+    {
+        NIMBLE_LOG_ERROR("Failed to load Shaders!");
         return false;
+    }
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

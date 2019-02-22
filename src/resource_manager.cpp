@@ -489,13 +489,13 @@ std::shared_ptr<Scene> ResourceManager::load_scene(const std::string& path, cons
 
             // Load environment
             if (ast_scene.skybox.environment_map.size() > 0)
-                scene->set_environment_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.environment_map, false, true)));
+                scene->set_environment_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.environment_map, false, false, true)));
 
             if (ast_scene.skybox.diffuse_irradiance.size() > 0)
-                scene->set_irradiance_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.diffuse_irradiance, false, true)));
+                scene->set_irradiance_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.diffuse_irradiance, false, false, true)));
 
             if (ast_scene.skybox.specular_irradiance.size() > 0)
-                scene->set_prefiltered_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.specular_irradiance, false, true)));
+                scene->set_prefiltered_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.specular_irradiance, false, false, true)));
 
             // Load point lights
             for (const auto& l : ast_scene.point_lights)

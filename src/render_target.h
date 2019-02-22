@@ -19,6 +19,7 @@ struct RenderTarget
     uint32_t                 num_samples;
     uint32_t                 array_size;
     uint32_t                 mip_levels;
+	std::string				 forward_slot;
     std::shared_ptr<Texture> texture;
 
     RenderTarget();

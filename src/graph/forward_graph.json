@@ -6,6 +6,33 @@
             "name" : "ForwardNode",
             "defines" : [],
             "inputs" : []
+        },
+        {
+            "name" : "CubemapSkyboxNode",
+            "defines" : [],
+            "inputs" : [
+                {
+                    "slot_name" : "Color",
+                    "prev_node_name" : "ForwardNode",
+                    "prev_output_name" : "Color"
+                },
+                {
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "ForwardNode",
+                    "prev_output_name" : "Depth"
+                }
+            ]
+        },
+        {
+            "name" : "PresentNode",
+            "defines" : [],
+            "inputs" : [
+                {
+                    "slot_name" : "Color",
+                    "prev_node_name" : "CubemapSkyboxNode",
+                    "prev_output_name" : "Color"
+                }
+            ]
         }
     ]
 }

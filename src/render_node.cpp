@@ -272,6 +272,28 @@ std::shared_ptr<RenderTarget> RenderNode::register_output_render_target(const st
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+std::shared_ptr<RenderTarget> RenderNode::register_forwarded_output_render_target(const std::string& input)
+{
+	for (auto& output : m_output_rts)
+    {
+        if (output.slot_name == input)
+        {
+            NIMBLE_LOG_ERROR("Output render target already registered: " + input);
+            return nullptr;
+        }
+    }
+
+    std::shared_ptr<RenderTarget> rt = std::make_shared<RenderTarget>();
+
+	rt->forward_slot = input;
+
+    m_output_rts.push_back({ input, rt });
+
+    return rt;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 std::shared_ptr<RenderTarget> RenderNode::register_scaled_output_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples, uint32_t array_size, uint32_t mip_levels)
 {
     for (auto& output : m_output_rts)

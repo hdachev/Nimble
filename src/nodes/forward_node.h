@@ -21,8 +21,7 @@ private:
     std::shared_ptr<RenderTarget>  m_color_rt;
     std::shared_ptr<RenderTarget>  m_depth_rt;
     std::shared_ptr<RenderTarget>  m_velocity_rt;
-    RenderTargetView               m_color_rtv;
-    RenderTargetView               m_velocity_rtv;
+    RenderTargetView               m_color_rtv[2];
     RenderTargetView               m_depth_rtv;
 };
 

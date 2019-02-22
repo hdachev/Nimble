@@ -10,6 +10,7 @@
 #include "macros.h"
 #include "render_graph.h"
 #include "nodes/forward_node.h"
+#include "nodes/cubemap_skybox_node.h"
 #include "nodes/pcf_point_light_depth_node.h"
 #include "nodes/pcf_directional_light_depth_node.h"
 #include "debug_draw.h"
@@ -184,6 +185,7 @@ private:
     void create_render_graphs()
     {
         REGISTER_RENDER_NODE(ForwardNode, m_resource_manager);
+		REGISTER_RENDER_NODE(CubemapSkyboxNode, m_resource_manager);
         REGISTER_RENDER_NODE(PCFPointLightDepthNode, m_resource_manager);
         REGISTER_RENDER_NODE(PCFDirectionalLightDepthNode, m_resource_manager);
 
