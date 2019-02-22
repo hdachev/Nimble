@@ -7,8 +7,8 @@ namespace nimble
 {
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-RenderGraph::RenderGraph(Renderer* renderer) :
-    m_renderer(renderer), m_num_cascade_views(0), m_manual_cascade_rendering(false), m_per_cascade_culling(true)
+RenderGraph::RenderGraph() :
+    m_num_cascade_views(0), m_manual_cascade_rendering(false), m_per_cascade_culling(true)
 {
 }
 
@@ -20,11 +20,11 @@ RenderGraph::~RenderGraph()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool RenderGraph::initialize()
+bool RenderGraph::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     for (auto& node : m_flattened_graph)
     {
-        if (!node->initialize())
+        if (!node->initialize(renderer, res_mgr))
             return false;
     }
 
@@ -66,11 +66,11 @@ void RenderGraph::build(std::shared_ptr<RenderNode> end_node)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void RenderGraph::execute(const View* view)
+void RenderGraph::execute(Renderer* renderer, Scene* scene, View* view)
 {
     for (auto& node : m_flattened_graph)
     {
-        node->execute(view);
+        node->execute(renderer, scene, view);
 
         if (m_num_cascade_views > 0)
         {
@@ -81,7 +81,7 @@ void RenderGraph::execute(const View* view)
                 if (light_view)
                 {
                     if (light_view->graph)
-                        light_view->graph->execute(light_view);
+                        light_view->graph->execute(renderer, scene, light_view);
                     else
                         NIMBLE_LOG_ERROR("Render Graph not assigned for View!");
                 }
@@ -107,7 +107,7 @@ std::shared_ptr<RenderNode> RenderGraph::node_by_name(const std::string& name)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void RenderGraph::trigger_cascade_view_render(const View* view)
+void RenderGraph::trigger_cascade_view_render(View* view)
 {
     m_num_cascade_views = view->num_cascade_views;
 
@@ -159,8 +159,8 @@ void RenderGraph::traverse_and_push_node(std::shared_ptr<RenderNode> node)
     // If node hasn't been pushed already, push it
     if (!is_node_pushed(node))
     {
-        if (node->register_resources() && node->initialize_internal())
-            m_flattened_graph.push_back(node);
+		node->declare_connections();
+		m_flattened_graph.push_back(node);
     }
 }
 
@@ -179,16 +179,16 @@ bool RenderGraph::is_node_pushed(std::shared_ptr<RenderNode> node)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-ShadowRenderGraph::ShadowRenderGraph(Renderer* renderer) :
-    RenderGraph(renderer)
+ShadowRenderGraph::ShadowRenderGraph() :
+    RenderGraph()
 {
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool ShadowRenderGraph::initialize()
+bool ShadowRenderGraph::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-    if (!RenderGraph::initialize())
+    if (!RenderGraph::initialize(renderer, res_mgr))
         return false;
 
     std::string includes;

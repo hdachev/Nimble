@@ -554,7 +554,7 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
 
     if (type == RENDER_GRAPH_STANDARD)
     {
-        graph = std::make_shared<RenderGraph>(renderer);
+        graph = std::make_shared<RenderGraph>();
 
         if (j.find("manual_cascade_rendering") != j.end())
         {
@@ -570,7 +570,7 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
     }
     if (type == RENDER_GRAPH_SHADOW)
     {
-        std::shared_ptr<ShadowRenderGraph> shadow_graph = std::make_shared<ShadowRenderGraph>(renderer);
+        std::shared_ptr<ShadowRenderGraph> shadow_graph = std::make_shared<ShadowRenderGraph>();
 
         if (j.find("sampling_source") != j.end())
         {
@@ -607,13 +607,13 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
 
                     map[node_name] = new_node;
 
-                    if (node.find("defines") != node.end())
-                    {
-                        auto node_defines = node["defines"];
+                    //if (node.find("defines") != node.end())
+                    //{
+                    //    auto node_defines = node["defines"];
 
-                        for (auto& define : node_defines)
-                            new_node->push_define(define);
-                    }
+                    //    for (auto& define : node_defines)
+                    //        new_node->push_define(define);
+                    //}
 
                     nodes.push_back(new_node);
                 }

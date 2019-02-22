@@ -41,7 +41,6 @@ struct View
     float                        ratio;
     float                        far_plane;
     float                        near_plane;
-    Scene*                       scene;
     std::shared_ptr<RenderGraph> graph;
     RenderTargetView*            dest_render_target_view;
     ViewType                     type;
@@ -58,7 +57,6 @@ struct View
 
     View()
     {
-        scene                   = nullptr;
         dest_render_target_view = nullptr;
         num_cascade_frustums    = 0;
         num_cascade_views       = 0;

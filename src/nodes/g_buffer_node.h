@@ -1,24 +1,21 @@
 #pragma once
 
 #include "../render_node.h"
+#include "../shader_library.h"
 
 namespace nimble
 {
-class GBufferNode : public SceneRenderNode
+class GBufferNode : public RenderNode
 {
 public:
     GBufferNode(RenderGraph* graph);
     ~GBufferNode();
 
-    bool        register_resources() override;
-    bool        initialize() override;
+    void		declare_connections() override;
+    bool        initialize(Renderer* renderer, ResourceManager* res_mgr) override;
+	void		execute(Renderer* renderer, Scene* scene, View* view) override;
     void        shutdown() override;
     std::string name() override;
-    std::string vs_template_path() override;
-    std::string fs_template_path() override;
-
-protected:
-    void execute_internal(const View* view) override;
 
 private:
     std::shared_ptr<RenderTarget> m_gbuffer1_rt; // RGBA8 =  RGB: Albedo, A: -
@@ -26,6 +23,7 @@ private:
 	std::shared_ptr<RenderTarget> m_gbuffer3_rt; // RGBA8 = R: Metallic, G: Roughness, B: Displacement, A: -
     std::shared_ptr<RenderTarget> m_depth_rt;
     std::shared_ptr<RenderTarget> m_velocity_rt;
+	std::shared_ptr<ShaderLibrary> m_library;
     RenderTargetView              m_gbuffer1_rtv;
     RenderTargetView              m_gbuffer2_rtv;
 	RenderTargetView              m_gbuffer3_rtv;

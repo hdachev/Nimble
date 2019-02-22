@@ -11,8 +11,8 @@ namespace nimble
 {
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-RenderNode::RenderNode(RenderNodeType type, RenderGraph* graph) :
-    m_enabled(true), m_render_node_type(type), m_graph(graph), m_total_time_cpu(0.0f), m_total_time_gpu(0.0f)
+RenderNode::RenderNode(RenderGraph* graph) :
+    m_enabled(true), m_graph(graph), m_total_time_cpu(0.0f), m_total_time_gpu(0.0f)
 {
 }
 
@@ -182,25 +182,9 @@ void RenderNode::timing_total(float& cpu_time, float& gpu_time)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool RenderNode::initialize_internal()
+void RenderNode::declare_connections()
 {
-    m_passthrough_name = name();
-    m_passthrough_name += "_Passthrough";
-
-    return true;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-bool RenderNode::register_resources()
-{
-    return true;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void RenderNode::passthrough()
-{
+    
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -218,7 +202,7 @@ void RenderNode::on_window_resized(const uint32_t& w, const uint32_t& h)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void RenderNode::trigger_cascade_view_render(const View* view)
+void RenderNode::trigger_cascade_view_render(View* view)
 {
     m_graph->trigger_cascade_view_render(view);
 }
@@ -385,136 +369,24 @@ std::shared_ptr<RenderTarget> RenderNode::register_scaled_intermediate_render_ta
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-SceneRenderNode::Params::Params()
+void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, ShaderLibrary* library, std::function<void(View*, Program*, int32_t&)> function)
 {
-    view               = nullptr;
-    num_rt_views       = 1;
-    rt_views           = nullptr;
-    depth_views        = nullptr;
-    x                  = 0;
-    y                  = 0;
-    w                  = 0;
-    h                  = 0;
-    clear_flags        = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
-    num_clear_colors   = 0;
-    clear_colors[0][0] = 0.0f;
-    clear_colors[0][1] = 0.0f;
-    clear_colors[0][2] = 0.0f;
-    clear_colors[0][3] = 0.0f;
-    clear_depth        = 1;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-SceneRenderNode::SceneRenderNode(RenderGraph* graph) :
-    RenderNode(RENDER_NODE_SCENE, graph)
-{
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-SceneRenderNode::~SceneRenderNode()
-{
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-bool SceneRenderNode::initialize_internal()
-{
-    bool status = RenderNode::initialize_internal();
-    m_library   = m_graph->renderer()->shader_cache().load_library(vs_template_path(), fs_template_path());
-
-    return status && m_library != nullptr;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void SceneRenderNode::execute(const View* view)
-{
-    float cpu_time, gpu_time;
-
-    Profiler::result(name(), cpu_time, gpu_time);
-
-    m_total_time_cpu = cpu_time;
-    m_total_time_gpu = gpu_time;
-
-    Profiler::begin_sample(name());
-
-    execute_internal(view);
-
-    Profiler::end_sample(name());
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void SceneRenderNode::set_shader_uniforms(const View* view, Program* program, int32_t& tex_unit)
-{
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void SceneRenderNode::render_scene(const Params& params)
-{
-    if (params.rt_views || params.depth_views)
-        m_graph->renderer()->bind_render_targets(params.num_rt_views, params.rt_views, params.depth_views);
-    else
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    glViewport(params.x, params.y, params.w, params.h);
-
-    if (params.enable_depth)
-        glEnable(GL_DEPTH_TEST);
-    else
-        glDisable(GL_DEPTH_TEST);
-
-    if (params.cull_face == GL_NONE)
-        glDisable(GL_CULL_FACE);
-    else
+	if (scene)
     {
-        glEnable(GL_CULL_FACE);
-        glCullFace(params.cull_face);
-    }
-
-    if (params.clear_flags != 0)
-    {
-        if (params.rt_views || params.depth_views)
-        {
-            if (params.num_clear_colors == 1)
-                glClearColor(params.clear_colors[0][0], params.clear_colors[0][1], params.clear_colors[0][2], params.clear_colors[0][3]);
-            else
-            {
-                for (uint32_t i = 0; i < params.num_clear_colors; i++)
-                    glClearBufferfv(GL_COLOR, i, &params.clear_colors[i][0]);
-            }
-        }
-        else
-        {
-            if (params.num_clear_colors == 1)
-                glClearColor(params.clear_colors[0][0], params.clear_colors[0][1], params.clear_colors[0][2], params.clear_colors[0][3]);
-        }
-
-        glClearDepth(params.clear_depth);
-
-        glClear(params.clear_flags);
-    }
-
-    if (params.view->scene)
-    {
-        Scene*  scene    = params.view->scene;
         Entity* entities = scene->entities();
 
         // Bind buffers
         if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
-            m_graph->renderer()->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * params.view->uniform_idx, sizeof(PerViewUniforms));
+            renderer->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * view->uniform_idx, sizeof(PerViewUniforms));
 
         if (HAS_BIT_FLAG(flags(), NODE_USAGE_POINT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_SPOT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_DIRECTIONAL_LIGHTS))
-            m_graph->renderer()->per_scene_ssbo()->bind_base(2);
+            renderer->per_scene_ssbo()->bind_base(2);
 
         for (uint32_t i = 0; i < scene->entity_count(); i++)
         {
             Entity& e = entities[i];
 
-            if (!params.view->culling || (params.view->culling && e.visibility(params.view->cull_idx)))
+            if (!view->culling || (view->culling && e.visibility(view->cull_idx)))
             {
                 // Bind mesh VAO
                 e.mesh->bind();
@@ -526,7 +398,7 @@ void SceneRenderNode::render_scene(const Params& params)
                     int32_t tex_unit = 0;
 
 #ifdef ENABLE_SUBMESH_CULLING
-                    if (!params.view->culling || (params.view->culling && e.submesh_visibility(j, params.view->cull_idx)))
+                    if (!view->culling || (view->culling && e.submesh_visibility(j, view->cull_idx)))
                     {
 #endif
                         ProgramKey& key = s.material->program_key();
@@ -534,16 +406,16 @@ void SceneRenderNode::render_scene(const Params& params)
                         key.set_mesh_type(e.mesh->type());
 
                         // Lookup shader program from library
-                        Program* program = m_library->lookup_program(key);
+                        Program* program = library->lookup_program(key);
 
                         if (!program)
                         {
-                            program = m_library->create_program(e.mesh->type(),
+                            program = library->create_program(e.mesh->type(),
                                                                 flags(),
                                                                 s.material,
-                                                                m_graph->type() == RENDER_GRAPH_STANDARD ? m_graph->renderer()->directional_light_render_graph() : nullptr,
-                                                                m_graph->type() == RENDER_GRAPH_STANDARD ? m_graph->renderer()->spot_light_render_graph() : nullptr,
-                                                                m_graph->type() == RENDER_GRAPH_STANDARD ? m_graph->renderer()->point_light_render_graph() : nullptr);
+                                                                m_graph->type() == RENDER_GRAPH_STANDARD ? renderer->directional_light_render_graph() : nullptr,
+                                                                m_graph->type() == RENDER_GRAPH_STANDARD ? renderer->spot_light_render_graph() : nullptr,
+                                                                m_graph->type() == RENDER_GRAPH_STANDARD ? renderer->point_light_render_graph() : nullptr);
                         }
 
                         program->use();
@@ -561,18 +433,19 @@ void SceneRenderNode::render_scene(const Params& params)
                         s.material->bind(program, tex_unit);
 
                         if ((HAS_BIT_FLAG(flags(), NODE_USAGE_SHADOW_MAPPING)) && program->set_uniform("s_DirectionalLightShadowMaps", tex_unit))
-                            m_graph->renderer()->directional_light_shadow_maps()->bind(tex_unit++);
+                            renderer->directional_light_shadow_maps()->bind(tex_unit++);
 
                         if ((HAS_BIT_FLAG(flags(), NODE_USAGE_SHADOW_MAPPING)) && program->set_uniform("s_SpotLightShadowMaps", tex_unit))
-                            m_graph->renderer()->spot_light_shadow_maps()->bind(tex_unit++);
+                            renderer->spot_light_shadow_maps()->bind(tex_unit++);
 
                         if ((HAS_BIT_FLAG(flags(), NODE_USAGE_SHADOW_MAPPING)) && program->set_uniform("s_PointLightShadowMaps", tex_unit))
-                            m_graph->renderer()->point_light_shadow_maps()->bind(tex_unit++);
+                            renderer->point_light_shadow_maps()->bind(tex_unit++);
 
                         if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_OBJECT_UBO))
-                            m_graph->renderer()->per_entity_ubo()->bind_range(1, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));
+                            renderer->per_entity_ubo()->bind_range(1, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));
 
-                        set_shader_uniforms(params.view, program, tex_unit);
+						if (function)
+							function(view, program, tex_unit);
 
                         glDrawElementsBaseVertex(GL_TRIANGLES, s.index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * s.base_index), s.base_vertex);
 
@@ -587,190 +460,32 @@ void SceneRenderNode::render_scene(const Params& params)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-MultiPassRenderNode::MultiPassRenderNode(RenderNodeType type, RenderGraph* graph) :
-    RenderNode(type, graph)
+void RenderNode::render_fullscreen_triangle(Renderer* renderer, View* view)
 {
-}
+	// Bind buffers
+    if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
+        renderer->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * view->uniform_idx, sizeof(PerViewUniforms));
 
-// -----------------------------------------------------------------------------------------------------------------------------------
+    if (HAS_BIT_FLAG(flags(), NODE_USAGE_POINT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_SPOT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_DIRECTIONAL_LIGHTS))
+        renderer->per_scene_ssbo()->bind_base(1);
 
-MultiPassRenderNode::~MultiPassRenderNode()
-{
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void MultiPassRenderNode::execute(const View* view)
-{
-    float cpu_time, gpu_time;
-
-    m_total_time_cpu = 0;
-    m_total_time_gpu = 0;
-
-    if (is_enabled())
-    {
-        for (uint32_t i = 0; i < m_sub_passes.size(); i++)
-        {
-            const auto& pass = m_sub_passes[i];
-
-            Profiler::result(pass.first, cpu_time, gpu_time);
-
-            m_total_time_cpu += cpu_time;
-            m_total_time_gpu += gpu_time;
-
-            m_sub_pass_timings[i].first  = cpu_time;
-            m_sub_pass_timings[i].second = gpu_time;
-
-            Profiler::begin_sample(pass.first);
-
-            // Execute subpass.
-            pass.second(view);
-
-            Profiler::end_sample(pass.first);
-        }
-    }
-    else
-    {
-        Profiler::result(m_passthrough_name, cpu_time, gpu_time);
-
-        m_total_time_cpu += cpu_time;
-        m_total_time_gpu += gpu_time;
-
-        Profiler::begin_sample(m_passthrough_name);
-
-        // Execute passthrough.
-        passthrough();
-
-        Profiler::end_sample(m_passthrough_name);
-    }
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void MultiPassRenderNode::attach_sub_pass(const std::string& node_name, std::function<void(const View*)> function)
-{
-    std::string formatted_name = name();
-    formatted_name += "_";
-    formatted_name += node_name;
-
-    m_sub_passes.push_back({ formatted_name, function });
-    m_sub_pass_timings.push_back({ 0.0f, 0.0f });
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void MultiPassRenderNode::timing_sub_pass(const uint32_t& index, std::string& name, float& cpu_time, float& gpu_time)
-{
-    if (index < sub_pass_count())
-    {
-        name     = m_sub_passes[index].first;
-        cpu_time = m_sub_pass_timings[index].first;
-        gpu_time = m_sub_pass_timings[index].second;
-    }
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-FullscreenRenderNode::Params::Params()
-{
-    scene              = nullptr;
-    view               = nullptr;
-    num_rt_views       = 0;
-    rt_views           = nullptr;
-    x                  = 0;
-    y                  = 0;
-    w                  = 0;
-    h                  = 0;
-    clear_flags        = GL_COLOR_BUFFER_BIT;
-    num_clear_colors   = 0;
-    clear_colors[0][0] = 0.0f;
-    clear_colors[0][1] = 0.0f;
-    clear_colors[0][2] = 0.0f;
-    clear_colors[0][3] = 0.0f;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-FullscreenRenderNode::FullscreenRenderNode(RenderGraph* graph) :
-    MultiPassRenderNode(RENDER_NODE_FULLSCREEN, graph)
-{
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-FullscreenRenderNode::~FullscreenRenderNode()
-{
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void FullscreenRenderNode::render_triangle(const Params& params)
-{
-    if (params.rt_views)
-        m_graph->renderer()->bind_render_targets(params.num_rt_views, params.rt_views, nullptr);
-    else
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    glViewport(params.x, params.y, params.h, params.w);
-
-    if (params.clear_flags != 0)
-    {
-        if (params.rt_views)
-        {
-            if (params.num_clear_colors == 1)
-                glClearColor(params.clear_colors[0][0], params.clear_colors[0][1], params.clear_colors[0][2], params.clear_colors[0][3]);
-            else
-            {
-                for (uint32_t i = 0; i < params.num_clear_colors; i++)
-                    glClearBufferfv(GL_COLOR, i, &params.clear_colors[i][0]);
-            }
-        }
-        else
-        {
-            if (params.num_clear_colors == 1)
-                glClearColor(params.clear_colors[0][0], params.clear_colors[0][1], params.clear_colors[0][2], params.clear_colors[0][3]);
-        }
-
-        glClear(params.clear_flags);
-    }
-
-    m_graph->renderer()->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * params.view->uniform_idx, sizeof(PerViewUniforms));
-
-    // Render fullscreen triangle
+	// Render fullscreen triangle
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-ComputeRenderNode::ComputeRenderNode(RenderGraph* graph) :
-    MultiPassRenderNode(RENDER_NODE_COMPUTE, graph)
+void RenderNode::render_fullscreen_quad(Renderer* renderer, View* view)
 {
-}
+	// Bind buffers
+    if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
+        renderer->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * view->uniform_idx, sizeof(PerViewUniforms));
 
-// -----------------------------------------------------------------------------------------------------------------------------------
+    if (HAS_BIT_FLAG(flags(), NODE_USAGE_POINT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_SPOT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_DIRECTIONAL_LIGHTS))
+        renderer->per_scene_ssbo()->bind_base(1);
 
-ComputeRenderNode::~ComputeRenderNode()
-{
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-Buffer* ComputeRenderNode::find_output_buffer(const std::string& name)
-{
-    if (m_output_buffers.find(name) != m_output_buffers.end())
-        return m_output_buffers[name];
-    else
-        return nullptr;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-Buffer* ComputeRenderNode::find_intermediate_buffer(const std::string& name)
-{
-    if (m_intermediate_buffers.find(name) != m_intermediate_buffers.end())
-        return m_intermediate_buffers[name];
-    else
-        return nullptr;
+	// Render fullscreen triangle
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

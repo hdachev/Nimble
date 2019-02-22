@@ -82,7 +82,7 @@ Renderer::~Renderer() {}
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool Renderer::initialize(const uint32_t& w, const uint32_t& h)
+bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uint32_t& h)
 {
     m_window_width  = w;
     m_window_height = h;
@@ -131,7 +131,7 @@ bool Renderer::initialize(const uint32_t& w, const uint32_t& h)
     {
         current_graph->on_window_resized(m_window_width, m_window_height);
 
-        if (!current_graph->initialize())
+        if (!current_graph->initialize(this, res_mgr))
             return false;
     }
 
@@ -261,7 +261,6 @@ View* Renderer::allocate_view()
 
         View* view = &m_view_pool[idx];
 
-        view->scene                   = nullptr;
         view->dest_render_target_view = nullptr;
         view->num_cascade_frustums    = 0;
         view->num_cascade_views       = 0;
@@ -328,7 +327,6 @@ void Renderer::queue_directional_light_views(View* dependent_view)
                     light_view->jitter                  = glm::vec4(0.0);
                     light_view->dest_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
                     light_view->graph                   = m_directional_light_render_graph;
-                    light_view->scene                   = scene.get();
                     light_view->type                    = VIEW_DIRECTIONAL_LIGHT;
                     light_view->light_index             = light_idx;
 
@@ -419,7 +417,6 @@ void Renderer::queue_spot_light_views()
                 light_view->jitter                  = glm::vec4(0.0);
                 light_view->dest_render_target_view = &m_spot_light_rt_views[shadow_casting_light_idx];
                 light_view->graph                   = m_spot_light_render_graph;
-                light_view->scene                   = scene.get();
                 light_view->type                    = VIEW_SPOT_LIGHT;
                 light_view->light_index             = light_idx;
 
@@ -472,7 +469,6 @@ void Renderer::queue_point_light_views()
                     light_view->jitter                  = glm::vec4(0.0);
                     light_view->dest_render_target_view = &m_point_light_rt_views[shadow_casting_light_idx * 6 + face_idx];
                     light_view->graph                   = m_point_light_render_graph;
-                    light_view->scene                   = scene.get();
                     light_view->type                    = VIEW_POINT_LIGHT;
                     light_view->light_index             = light_idx;
 
@@ -1647,7 +1643,6 @@ void Renderer::queue_default_views()
         scene_view->jitter                  = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
         scene_view->dest_render_target_view = nullptr;
         scene_view->graph                   = m_scene_render_graph;
-        scene_view->scene                   = scene.get();
         scene_view->type                    = VIEW_STANDARD;
         scene_view->fov                     = camera->m_fov;
         scene_view->ratio                   = camera->m_aspect_ratio;
@@ -1670,6 +1665,8 @@ void Renderer::render_all_views()
 {
     if (m_num_rendered_views > 0)
     {
+		auto scene = m_scene.lock();
+
         for (uint32_t i = 0; i < m_num_rendered_views; i++)
         {
             View* view = m_rendered_views[i];
@@ -1677,7 +1674,7 @@ void Renderer::render_all_views()
             if (view->enabled)
             {
                 if (view->graph)
-                    view->graph->execute(view);
+                    view->graph->execute(this, scene.get(), view);
                 else
                     NIMBLE_LOG_ERROR("Render Graph not assigned for View!");
             }

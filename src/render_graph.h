@@ -6,6 +6,7 @@
 namespace nimble
 {
 class Renderer;
+class ResourceManager;
 
 enum RenderGraphType : uint32_t
 {
@@ -16,15 +17,15 @@ enum RenderGraphType : uint32_t
 class RenderGraph
 {
 public:
-    RenderGraph(Renderer* renderer);
+    RenderGraph();
     ~RenderGraph();
 
     void                        build(std::shared_ptr<RenderNode> end_node);
-    void                        execute(const View* view);
+    void                        execute(Renderer* renderer, Scene* scene, View* view);
     void                        shutdown();
     void                        clear();
     std::shared_ptr<RenderNode> node_by_name(const std::string& name);
-    void                        trigger_cascade_view_render(const View* view);
+    void                        trigger_cascade_view_render(View* view);
     void                        on_window_resized(const uint32_t& w, const uint32_t& h);
 
     inline void                        set_name(const std::string& name) { m_name = name; }
@@ -33,7 +34,6 @@ public:
     inline std::shared_ptr<RenderNode> node(const uint32_t& idx) { return m_flattened_graph[idx]; }
     inline uint32_t                    window_width() { return m_window_width; }
     inline uint32_t                    window_height() { return m_window_height; }
-    inline Renderer*                   renderer() { return m_renderer; }
     inline virtual uint32_t            actual_viewport_width() { return window_width(); }
     inline virtual uint32_t            actual_viewport_height() { return window_height(); }
     inline virtual uint32_t            rendered_viewport_width() { return actual_viewport_width(); }
@@ -43,7 +43,7 @@ public:
     inline void                        set_per_cascade_culling(bool value) { m_per_cascade_culling = value; }
     inline bool                        per_cascade_culling() { return m_per_cascade_culling; }
 
-    virtual bool            initialize();
+    virtual bool            initialize(Renderer* renderer, ResourceManager* res_mgr);
     virtual RenderGraphType type();
 
 private:
@@ -61,15 +61,14 @@ private:
     View*                                    m_cascade_views[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
     std::shared_ptr<RenderNode>              m_end_node;
     std::vector<std::shared_ptr<RenderNode>> m_flattened_graph;
-    Renderer*                                m_renderer;
 };
 
 class ShadowRenderGraph : public RenderGraph
 {
 public:
-    ShadowRenderGraph(Renderer* renderer);
+    ShadowRenderGraph();
 
-    bool initialize() override;
+    bool initialize(Renderer* renderer, ResourceManager* res_mgr) override;
 
     RenderGraphType type() override;
 

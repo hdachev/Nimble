@@ -4,23 +4,20 @@
 
 namespace nimble
 {
-class ForwardNode : public SceneRenderNode
+class ForwardNode : public RenderNode
 {
 public:
     ForwardNode(RenderGraph* graph);
     ~ForwardNode();
 
-    bool        register_resources() override;
-    bool        initialize() override;
+    void		declare_connections() override;
+    bool        initialize(Renderer* renderer, ResourceManager* res_mgr) override;
+	void		execute(Renderer* renderer, Scene* scene, View* view) override;
     void        shutdown() override;
     std::string name() override;
-    std::string vs_template_path() override;
-    std::string fs_template_path() override;
-
-protected:
-    void execute_internal(const View* view) override;
 
 private:
+	std::shared_ptr<ShaderLibrary> m_library;
     std::shared_ptr<RenderTarget> m_color_rt;
     std::shared_ptr<RenderTarget> m_depth_rt;
     std::shared_ptr<RenderTarget> m_velocity_rt;

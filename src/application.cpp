@@ -156,7 +156,7 @@ bool Application::init_base(int argc, const char* argv[])
     if (!init(argc, argv))
         return false;
 
-    m_renderer.initialize(m_width, m_height);
+    m_renderer.initialize(&m_resource_manager, m_width, m_height);
 
     return true;
 }

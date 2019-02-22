@@ -1,5 +1,6 @@
 #include "pcf_point_light_depth_node.h"
 #include "../render_graph.h"
+#include "../renderer.h"
 
 namespace nimble
 {
@@ -8,7 +9,7 @@ DEFINE_RENDER_NODE_FACTORY(PCFPointLightDepthNode)
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 PCFPointLightDepthNode::PCFPointLightDepthNode(RenderGraph* graph) :
-    SceneRenderNode(graph)
+    RenderNode(graph)
 {
 }
 
@@ -20,48 +21,51 @@ PCFPointLightDepthNode::~PCFPointLightDepthNode()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void PCFPointLightDepthNode::execute_internal(const View* view)
+void PCFPointLightDepthNode::execute(Renderer* renderer, Scene* scene, View* view)
 {
-    Params params;
-
-    params.x = 0;
-    params.y = 0;
+	int32_t w = 0;
+	int32_t h = 0;
 
     if (view->dest_render_target_view->texture->target() == GL_TEXTURE_2D)
     {
         Texture2D* texture = (Texture2D*)view->dest_render_target_view->texture.get();
 
-        params.w = texture->width();
-        params.h = texture->height();
+        w = texture->width();
+        h = texture->height();
     }
     else
     {
         TextureCube* texture = (TextureCube*)view->dest_render_target_view->texture.get();
 
-        params.w = texture->width();
-        params.h = texture->height();
+        w = texture->width();
+        h = texture->height();
     }
 
-    params.view             = view;
-    params.num_rt_views     = 0;
-    params.rt_views         = nullptr;
-    params.depth_views      = view->dest_render_target_view;
-    params.num_clear_colors = 1;
+	renderer->bind_render_targets(0, nullptr, view->dest_render_target_view);
 
-    render_scene(params);
+    glViewport(0, 0, w, h);
+
+    glEnable(GL_DEPTH_TEST);
+
+    glDisable(GL_CULL_FACE);
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	render_scene(renderer, scene, view, m_library.get(), std::bind(&PCFPointLightDepthNode::set_shader_uniforms, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool PCFPointLightDepthNode::register_resources()
+void PCFPointLightDepthNode::declare_connections()
 {
-    return true;
+    
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool PCFPointLightDepthNode::initialize()
+bool PCFPointLightDepthNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
+	m_library = renderer->shader_cache().load_library("shader/shadows/point_light/shadow_map/point_light_depth_vs.glsl", "shader/shadows/point_light/shadow_map/point_light_depth_fs.glsl");
     return true;
 }
 
@@ -73,7 +77,7 @@ void PCFPointLightDepthNode::shutdown()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void PCFPointLightDepthNode::set_shader_uniforms(const View* view, Program* program, int32_t& tex_unit)
+void PCFPointLightDepthNode::set_shader_uniforms(View* view, Program* program, int32_t& tex_unit)
 {
     program->set_uniform("u_LightIdx", static_cast<int32_t>(view->light_index));
 }
@@ -83,20 +87,6 @@ void PCFPointLightDepthNode::set_shader_uniforms(const View* view, Program* prog
 std::string PCFPointLightDepthNode::name()
 {
     return "PCF Point Light Depth";
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-std::string PCFPointLightDepthNode::vs_template_path()
-{
-    return "shader/shadows/point_light/shadow_map/point_light_depth_vs.glsl";
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-std::string PCFPointLightDepthNode::fs_template_path()
-{
-    return "shader/shadows/point_light/shadow_map/point_light_depth_fs.glsl";
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

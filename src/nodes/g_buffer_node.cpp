@@ -1,4 +1,5 @@
 #include "g_buffer_node.h"
+#include "../renderer.h"
 
 namespace nimble
 {
@@ -6,7 +7,7 @@ DEFINE_RENDER_NODE_FACTORY(GBufferNode)
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	GBufferNode::GBufferNode(RenderGraph* graph) : SceneRenderNode(graph)
+	GBufferNode::GBufferNode(RenderGraph* graph) : RenderNode(graph)
 	{
 
 	}
@@ -20,15 +21,17 @@ DEFINE_RENDER_NODE_FACTORY(GBufferNode)
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool GBufferNode::register_resources()
+	void GBufferNode::declare_connections()
 	{
-		return true;
+		
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool GBufferNode::initialize()
+	bool GBufferNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 	{
+		m_library = renderer->shader_cache().load_library("shader/g_buffer/g_buffer_vs.glsl", "shader/g_buffer/g_buffer_vs.glsl");
+
 		return true;
 	}
 		
@@ -45,24 +48,9 @@ DEFINE_RENDER_NODE_FACTORY(GBufferNode)
 	{
 		return "G-Buffer";
 	}
-
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::string GBufferNode::vs_template_path()
-	{
-		return "shader/g_buffer/g_buffer_vs.glsl"; 
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	std::string GBufferNode::fs_template_path()
-	{
-		return "shader/g_buffer/g_buffer_vs.glsl";
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void GBufferNode::execute_internal(const View* view)
+	void GBufferNode::execute(Renderer* renderer, Scene* scene, View* view)
 	{
 
 	}

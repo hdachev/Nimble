@@ -4,22 +4,21 @@
 
 namespace nimble
 {
-class PCFPointLightDepthNode : public SceneRenderNode
+class PCFPointLightDepthNode : public RenderNode
 {
 public:
     PCFPointLightDepthNode(RenderGraph* graph);
     ~PCFPointLightDepthNode();
 
-    bool        register_resources() override;
-    bool        initialize() override;
+    void		declare_connections() override;
+    bool        initialize(Renderer* renderer, ResourceManager* res_mgr) override;
+	void		execute(Renderer* renderer, Scene* scene, View* view) override;
     void        shutdown() override;
-    void        set_shader_uniforms(const View* view, Program* program, int32_t& tex_unit) override;
     std::string name() override;
-    std::string vs_template_path() override;
-    std::string fs_template_path() override;
+    void        set_shader_uniforms(View* view, Program* program, int32_t& tex_unit);
 
-protected:
-    void execute_internal(const View* view) override;
+private:
+	std::shared_ptr<ShaderLibrary> m_library;
 };
 
 DECLARE_RENDER_NODE_FACTORY(PCFPointLightDepthNode);
