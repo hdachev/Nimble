@@ -10,14 +10,14 @@ public:
     PCFDirectionalLightDepthNode(RenderGraph* graph);
     ~PCFDirectionalLightDepthNode();
 
-    void		declare_connections() override;
+    void        declare_connections() override;
     bool        initialize(Renderer* renderer, ResourceManager* res_mgr) override;
-	void		execute(Renderer* renderer, Scene* scene, View* view) override;
+    void        execute(Renderer* renderer, Scene* scene, View* view) override;
     void        shutdown() override;
     std::string name() override;
 
 private:
-	std::shared_ptr<ShaderLibrary> m_library;
+    std::shared_ptr<ShaderLibrary> m_library;
 };
 
 DECLARE_RENDER_NODE_FACTORY(PCFDirectionalLightDepthNode);

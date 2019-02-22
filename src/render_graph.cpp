@@ -159,8 +159,8 @@ void RenderGraph::traverse_and_push_node(std::shared_ptr<RenderNode> node)
     // If node hasn't been pushed already, push it
     if (!is_node_pushed(node))
     {
-		node->declare_connections();
-		m_flattened_graph.push_back(node);
+        node->declare_connections();
+        m_flattened_graph.push_back(node);
     }
 }
 

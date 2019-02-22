@@ -1665,7 +1665,7 @@ void Renderer::render_all_views()
 {
     if (m_num_rendered_views > 0)
     {
-		auto scene = m_scene.lock();
+        auto scene = m_scene.lock();
 
         for (uint32_t i = 0; i < m_num_rendered_views; i++)
         {

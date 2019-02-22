@@ -111,19 +111,19 @@ public:
     inline void disable() { m_enabled = false; }
 
     // Virtual methods
-	virtual uint32_t    flags();
+    virtual uint32_t    flags();
     virtual void        declare_connections();
-    virtual bool        initialize(Renderer* renderer, ResourceManager* res_mgr)					= 0;
-    virtual void        execute(Renderer* renderer, Scene* scene, View* view) = 0;
-    virtual void        shutdown()                = 0;
-    virtual std::string name()                    = 0;
+    virtual bool        initialize(Renderer* renderer, ResourceManager* res_mgr) = 0;
+    virtual void        execute(Renderer* renderer, Scene* scene, View* view)    = 0;
+    virtual void        shutdown()                                               = 0;
+    virtual std::string name()                                                   = 0;
 
     // Event callbacks
     virtual void on_window_resized(const uint32_t& w, const uint32_t& h);
 
 protected:
-	// Geometry render helpers
-	void render_scene(Renderer* renderer, Scene* scene, View* view, ShaderLibrary* library, std::function<void(View*, Program*, int32_t&)> function = nullptr);
+    // Geometry render helpers
+    void render_scene(Renderer* renderer, Scene* scene, View* view, ShaderLibrary* library, std::function<void(View*, Program*, int32_t&)> function = nullptr);
     void render_fullscreen_triangle(Renderer* renderer, View* view);
     void render_fullscreen_quad(Renderer* renderer, View* view);
 

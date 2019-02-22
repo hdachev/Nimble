@@ -184,7 +184,6 @@ void RenderNode::timing_total(float& cpu_time, float& gpu_time)
 
 void RenderNode::declare_connections()
 {
-    
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -371,7 +370,7 @@ std::shared_ptr<RenderTarget> RenderNode::register_scaled_intermediate_render_ta
 
 void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, ShaderLibrary* library, std::function<void(View*, Program*, int32_t&)> function)
 {
-	if (scene)
+    if (scene)
     {
         Entity* entities = scene->entities();
 
@@ -411,11 +410,11 @@ void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, Shad
                         if (!program)
                         {
                             program = library->create_program(e.mesh->type(),
-                                                                flags(),
-                                                                s.material,
-                                                                m_graph->type() == RENDER_GRAPH_STANDARD ? renderer->directional_light_render_graph() : nullptr,
-                                                                m_graph->type() == RENDER_GRAPH_STANDARD ? renderer->spot_light_render_graph() : nullptr,
-                                                                m_graph->type() == RENDER_GRAPH_STANDARD ? renderer->point_light_render_graph() : nullptr);
+                                                              flags(),
+                                                              s.material,
+                                                              m_graph->type() == RENDER_GRAPH_STANDARD ? renderer->directional_light_render_graph() : nullptr,
+                                                              m_graph->type() == RENDER_GRAPH_STANDARD ? renderer->spot_light_render_graph() : nullptr,
+                                                              m_graph->type() == RENDER_GRAPH_STANDARD ? renderer->point_light_render_graph() : nullptr);
                         }
 
                         program->use();
@@ -444,8 +443,8 @@ void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, Shad
                         if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_OBJECT_UBO))
                             renderer->per_entity_ubo()->bind_range(1, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));
 
-						if (function)
-							function(view, program, tex_unit);
+                        if (function)
+                            function(view, program, tex_unit);
 
                         glDrawElementsBaseVertex(GL_TRIANGLES, s.index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * s.base_index), s.base_vertex);
 
@@ -462,14 +461,14 @@ void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, Shad
 
 void RenderNode::render_fullscreen_triangle(Renderer* renderer, View* view)
 {
-	// Bind buffers
+    // Bind buffers
     if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
         renderer->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * view->uniform_idx, sizeof(PerViewUniforms));
 
     if (HAS_BIT_FLAG(flags(), NODE_USAGE_POINT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_SPOT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_DIRECTIONAL_LIGHTS))
         renderer->per_scene_ssbo()->bind_base(1);
 
-	// Render fullscreen triangle
+    // Render fullscreen triangle
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
@@ -477,14 +476,14 @@ void RenderNode::render_fullscreen_triangle(Renderer* renderer, View* view)
 
 void RenderNode::render_fullscreen_quad(Renderer* renderer, View* view)
 {
-	// Bind buffers
+    // Bind buffers
     if (HAS_BIT_FLAG(flags(), NODE_USAGE_PER_VIEW_UBO))
         renderer->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * view->uniform_idx, sizeof(PerViewUniforms));
 
     if (HAS_BIT_FLAG(flags(), NODE_USAGE_POINT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_SPOT_LIGHTS) || HAS_BIT_FLAG(flags(), NODE_USAGE_DIRECTIONAL_LIGHTS))
         renderer->per_scene_ssbo()->bind_base(1);
 
-	// Render fullscreen triangle
+    // Render fullscreen triangle
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 

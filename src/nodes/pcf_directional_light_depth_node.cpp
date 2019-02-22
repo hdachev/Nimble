@@ -23,14 +23,13 @@ PCFDirectionalLightDepthNode::~PCFDirectionalLightDepthNode()
 
 void PCFDirectionalLightDepthNode::declare_connections()
 {
-    
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 bool PCFDirectionalLightDepthNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-	m_library = renderer->shader_cache().load_library("shader/shadows/directional_light/shadow_map/directional_light_depth_vs.glsl", "shader/shadows/directional_light/shadow_map/directional_light_depth_fs.glsl");
+    m_library = renderer->shader_cache().load_library("shader/shadows/directional_light/shadow_map/directional_light_depth_vs.glsl", "shader/shadows/directional_light/shadow_map/directional_light_depth_fs.glsl");
     return true;
 }
 
@@ -39,7 +38,7 @@ bool PCFDirectionalLightDepthNode::initialize(Renderer* renderer, ResourceManage
 void PCFDirectionalLightDepthNode::execute(Renderer* renderer, Scene* scene, View* view)
 {
     int32_t w = 0;
-	int32_t h = 0;
+    int32_t h = 0;
 
     if (view->dest_render_target_view->texture->target() == GL_TEXTURE_2D)
     {
@@ -56,7 +55,7 @@ void PCFDirectionalLightDepthNode::execute(Renderer* renderer, Scene* scene, Vie
         h = texture->height();
     }
 
-	renderer->bind_render_targets(0, nullptr, view->dest_render_target_view);
+    renderer->bind_render_targets(0, nullptr, view->dest_render_target_view);
 
     glViewport(0, 0, h, h);
 
@@ -64,9 +63,9 @@ void PCFDirectionalLightDepthNode::execute(Renderer* renderer, Scene* scene, Vie
 
     glDisable(GL_CULL_FACE);
 
-	glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT);
 
-	render_scene(renderer, scene, view, m_library.get());
+    render_scene(renderer, scene, view, m_library.get());
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

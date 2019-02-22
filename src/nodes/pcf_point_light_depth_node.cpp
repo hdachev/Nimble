@@ -23,8 +23,8 @@ PCFPointLightDepthNode::~PCFPointLightDepthNode()
 
 void PCFPointLightDepthNode::execute(Renderer* renderer, Scene* scene, View* view)
 {
-	int32_t w = 0;
-	int32_t h = 0;
+    int32_t w = 0;
+    int32_t h = 0;
 
     if (view->dest_render_target_view->texture->target() == GL_TEXTURE_2D)
     {
@@ -41,7 +41,7 @@ void PCFPointLightDepthNode::execute(Renderer* renderer, Scene* scene, View* vie
         h = texture->height();
     }
 
-	renderer->bind_render_targets(0, nullptr, view->dest_render_target_view);
+    renderer->bind_render_targets(0, nullptr, view->dest_render_target_view);
 
     glViewport(0, 0, w, h);
 
@@ -49,23 +49,22 @@ void PCFPointLightDepthNode::execute(Renderer* renderer, Scene* scene, View* vie
 
     glDisable(GL_CULL_FACE);
 
-	glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT);
 
-	render_scene(renderer, scene, view, m_library.get(), std::bind(&PCFPointLightDepthNode::set_shader_uniforms, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    render_scene(renderer, scene, view, m_library.get(), std::bind(&PCFPointLightDepthNode::set_shader_uniforms, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void PCFPointLightDepthNode::declare_connections()
 {
-    
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 bool PCFPointLightDepthNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-	m_library = renderer->shader_cache().load_library("shader/shadows/point_light/shadow_map/point_light_depth_vs.glsl", "shader/shadows/point_light/shadow_map/point_light_depth_fs.glsl");
+    m_library = renderer->shader_cache().load_library("shader/shadows/point_light/shadow_map/point_light_depth_vs.glsl", "shader/shadows/point_light/shadow_map/point_light_depth_fs.glsl");
     return true;
 }
 
