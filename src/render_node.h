@@ -126,12 +126,12 @@ protected:
     void                          register_input_render_target(const std::string& name);
     void                          register_input_buffer(const std::string& name);
     std::shared_ptr<RenderTarget> register_output_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-	std::shared_ptr<RenderTarget> register_forwarded_output_render_target(const std::string& input);
+    std::shared_ptr<RenderTarget> register_forwarded_output_render_target(const std::string& input);
     std::shared_ptr<RenderTarget> register_scaled_output_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
     std::shared_ptr<RenderTarget> register_intermediate_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
     std::shared_ptr<RenderTarget> register_scaled_intermediate_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
 
-	// Geometry render helpers
+    // Geometry render helpers
     void render_scene(Renderer* renderer, Scene* scene, View* view, ShaderLibrary* library, std::function<void(View*, Program*, int32_t&)> function = nullptr);
     void render_fullscreen_triangle(Renderer* renderer, View* view);
     void render_fullscreen_quad(Renderer* renderer, View* view);

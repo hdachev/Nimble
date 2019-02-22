@@ -274,7 +274,7 @@ std::shared_ptr<RenderTarget> RenderNode::register_output_render_target(const st
 
 std::shared_ptr<RenderTarget> RenderNode::register_forwarded_output_render_target(const std::string& input)
 {
-	for (auto& output : m_output_rts)
+    for (auto& output : m_output_rts)
     {
         if (output.slot_name == input)
         {
@@ -285,7 +285,7 @@ std::shared_ptr<RenderTarget> RenderNode::register_forwarded_output_render_targe
 
     std::shared_ptr<RenderTarget> rt = std::make_shared<RenderTarget>();
 
-	rt->forward_slot = input;
+    rt->forward_slot = input;
 
     m_output_rts.push_back({ input, rt });
 

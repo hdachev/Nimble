@@ -25,11 +25,14 @@ CubemapSkyboxNode::~CubemapSkyboxNode()
 
 void CubemapSkyboxNode::declare_connections()
 {
+    // Declare the inputs to this render node
     register_input_render_target("Color");
     register_input_render_target("Depth");
 
-	m_color_rt = register_forwarded_output_render_target("Color");
-	m_depth_rt = register_forwarded_output_render_target("Depth");
+    // Since we're rendering to the render targets provided as input, we'll simply forward the input
+    // render targets as outputs.
+    m_color_rt = register_forwarded_output_render_target("Color");
+    m_depth_rt = register_forwarded_output_render_target("Depth");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

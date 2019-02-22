@@ -1359,52 +1359,52 @@ void Renderer::bake_render_graphs()
             {
                 std::shared_ptr<RenderTarget> rt = node->output_render_target(rt_idx);
 
-				if (rt->forward_slot == "")
-				{
-					// Find last usage of output
-					int32_t current_node_id = node_gid;
-					int32_t last_node_id    = find_render_target_last_usage(rt);
+                if (rt->forward_slot == "")
+                {
+                    // Find last usage of output
+                    int32_t current_node_id = node_gid;
+                    int32_t last_node_id    = find_render_target_last_usage(rt);
 
-					bool found_texture = false;
+                    bool found_texture = false;
 
-					// Try to find an already created texture that does not have an overlapping lifetime
-					for (auto& desc : m_rt_cache)
-					{
-						// Check if current Texture is suitable to be aliased
-						if (is_aliasing_candidate(rt, current_node_id, last_node_id, desc))
-						{
-							found_texture = true;
-							// Add the new lifetime to the existing texture
-							desc.lifetimes.push_back({ current_node_id, last_node_id });
-							rt->texture = desc.rt->texture;
-						}
-					}
+                    // Try to find an already created texture that does not have an overlapping lifetime
+                    for (auto& desc : m_rt_cache)
+                    {
+                        // Check if current Texture is suitable to be aliased
+                        if (is_aliasing_candidate(rt, current_node_id, last_node_id, desc))
+                        {
+                            found_texture = true;
+                            // Add the new lifetime to the existing texture
+                            desc.lifetimes.push_back({ current_node_id, last_node_id });
+                            rt->texture = desc.rt->texture;
+                        }
+                    }
 
-					if (!found_texture)
-						create_texture_for_render_target(rt, current_node_id, last_node_id);
-				}
-				else
-				{
-					// Forwarded render target
-					auto input_rt = node->find_input_render_target(rt->forward_slot);
+                    if (!found_texture)
+                        create_texture_for_render_target(rt, current_node_id, last_node_id);
+                }
+                else
+                {
+                    // Forwarded render target
+                    auto input_rt = node->find_input_render_target(rt->forward_slot);
 
-					if (input_rt)
-					{
-						rt->id = input_rt->id;
-						rt->scale_w = input_rt->scale_w;
-						rt->scale_h = input_rt->scale_h;
-						rt->w = input_rt->w;
-						rt->h = input_rt->h;
-						rt->target = input_rt->target;
-						rt->internal_format = input_rt->internal_format;
-						rt->format = input_rt->format;
-						rt->type = input_rt->type;
-						rt->num_samples = input_rt->num_samples;
-						rt->array_size = input_rt->array_size;
-						rt->mip_levels = input_rt->mip_levels;
-						rt->texture = input_rt->texture;
-					}
-				}
+                    if (input_rt)
+                    {
+                        rt->id              = input_rt->id;
+                        rt->scale_w         = input_rt->scale_w;
+                        rt->scale_h         = input_rt->scale_h;
+                        rt->w               = input_rt->w;
+                        rt->h               = input_rt->h;
+                        rt->target          = input_rt->target;
+                        rt->internal_format = input_rt->internal_format;
+                        rt->format          = input_rt->format;
+                        rt->type            = input_rt->type;
+                        rt->num_samples     = input_rt->num_samples;
+                        rt->array_size      = input_rt->array_size;
+                        rt->mip_levels      = input_rt->mip_levels;
+                        rt->texture         = input_rt->texture;
+                    }
+                }
             }
 
             for (uint32_t rt_idx = 0; rt_idx < node->intermediate_render_target_count(); rt_idx++)
