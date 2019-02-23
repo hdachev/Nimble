@@ -12,7 +12,9 @@
 #define DEFINE_RENDER_NODE_FACTORY(class_name)                                      \
     std::shared_ptr<RenderNode> create_render_node_##class_name(RenderGraph* graph) \
     {                                                                               \
-        return std::make_shared<class_name>(graph);                                 \
+        auto node = std::make_shared<class_name>(graph);                            \
+		node->declare_connections();												\
+		return node;																\
     }
 
 namespace nimble

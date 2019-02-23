@@ -219,7 +219,7 @@ void RenderNode::register_input_render_target(const std::string& name)
         }
     }
 
-    m_input_rts.push_back({ name, nullptr });
+    m_input_rts.push_back({ name, "", nullptr, nullptr });
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -235,7 +235,7 @@ void RenderNode::register_input_buffer(const std::string& name)
         }
     }
 
-    m_input_buffers.push_back({ name, nullptr });
+    m_input_buffers.push_back({ name, "", nullptr, nullptr });
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
