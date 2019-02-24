@@ -4,17 +4,18 @@
 
 namespace nimble
 {
-class PresentNode : public RenderNode
+class CopyNode : public RenderNode
 {
 public:
-    PresentNode(RenderGraph* graph);
-    ~PresentNode();
+    CopyNode(RenderGraph* graph);
+    ~CopyNode();
 
     void        declare_connections() override;
     bool        initialize(Renderer* renderer, ResourceManager* res_mgr) override;
     void        execute(Renderer* renderer, Scene* scene, View* view) override;
     void        shutdown() override;
     std::string name() override;
+	uint32_t	flags() override;
 
 private:
     std::shared_ptr<Shader>       m_vs;
@@ -23,5 +24,5 @@ private:
 	std::shared_ptr<RenderTarget> m_texture;
 };
 
-DECLARE_RENDER_NODE_FACTORY(PresentNode);
+DECLARE_RENDER_NODE_FACTORY(CopyNode);
 } // namespace nimble

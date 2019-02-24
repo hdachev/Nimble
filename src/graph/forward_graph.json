@@ -24,7 +24,7 @@
             ]
         },
         {
-            "name" : "PresentNode",
+            "name" : "CopyNode",
             "defines" : [],
             "inputs" : [
                 {

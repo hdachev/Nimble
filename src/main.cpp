@@ -13,7 +13,7 @@
 #include "nodes/cubemap_skybox_node.h"
 #include "nodes/pcf_point_light_depth_node.h"
 #include "nodes/pcf_directional_light_depth_node.h"
-#include "nodes/present_node.h"
+#include "nodes/copy_node.h"
 #include "debug_draw.h"
 #include "imgui_helpers.h"
 #include "external/nfd/nfd.h"
@@ -189,7 +189,7 @@ private:
         REGISTER_RENDER_NODE(CubemapSkyboxNode, m_resource_manager);
         REGISTER_RENDER_NODE(PCFPointLightDepthNode, m_resource_manager);
         REGISTER_RENDER_NODE(PCFDirectionalLightDepthNode, m_resource_manager);
-		REGISTER_RENDER_NODE(PresentNode, m_resource_manager);
+		REGISTER_RENDER_NODE(CopyNode, m_resource_manager);
 
         // Create Forward render graph
         m_forward_graph = m_resource_manager.load_render_graph("graph/forward_graph.json", &m_renderer);

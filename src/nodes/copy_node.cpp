@@ -1,4 +1,4 @@
-#include "present_node.h"
+#include "copy_node.h"
 #include "../render_graph.h"
 #include "../resource_manager.h"
 #include "../renderer.h"
@@ -6,24 +6,24 @@
 
 namespace nimble
 {
-DEFINE_RENDER_NODE_FACTORY(PresentNode)
+DEFINE_RENDER_NODE_FACTORY(CopyNode)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-PresentNode::PresentNode(RenderGraph* graph) :
+CopyNode::CopyNode(RenderGraph* graph) :
     RenderNode(graph)
 {
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-PresentNode::~PresentNode()
+CopyNode::~CopyNode()
 {
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void PresentNode::declare_connections()
+void CopyNode::declare_connections()
 {
     // Declare the inputs to this render node
     register_input_render_target("Color");
@@ -33,10 +33,10 @@ void PresentNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool PresentNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
+bool CopyNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-    m_vs = res_mgr->load_shader("shader/present/present_vs.glsl", GL_VERTEX_SHADER);
-    m_fs = res_mgr->load_shader("shader/present/present_fs.glsl", GL_FRAGMENT_SHADER);
+    m_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
+    m_fs = res_mgr->load_shader("shader/post_process/copy_fs.glsl", GL_FRAGMENT_SHADER);
 
     if (m_vs && m_fs)
     {
@@ -59,7 +59,7 @@ bool PresentNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void PresentNode::execute(Renderer* renderer, Scene* scene, View* view)
+void CopyNode::execute(Renderer* renderer, Scene* scene, View* view)
 {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
@@ -73,22 +73,29 @@ void PresentNode::execute(Renderer* renderer, Scene* scene, View* view)
     if (m_program->set_uniform("s_Texture", 0) && m_texture)
 		m_texture->texture->bind(0);
 
-    render_fullscreen_quad(renderer, view);
+    render_fullscreen_triangle(renderer, view);
 
     glDepthFunc(GL_LESS);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void PresentNode::shutdown()
+void CopyNode::shutdown()
 {
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-std::string PresentNode::name()
+std::string CopyNode::name()
 {
-    return "Present";
+    return "Copy";
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+uint32_t CopyNode::flags()
+{
+	return 0;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
