@@ -134,9 +134,9 @@ protected:
     std::shared_ptr<RenderTarget> register_scaled_intermediate_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
 
     // Geometry render helpers
-    void render_scene(Renderer* renderer, Scene* scene, View* view, ShaderLibrary* library, std::function<void(View*, Program*, int32_t&)> function = nullptr);
-    void render_fullscreen_triangle(Renderer* renderer, View* view);
-    void render_fullscreen_quad(Renderer* renderer, View* view);
+    void render_scene(Renderer* renderer, Scene* scene, View* view, ShaderLibrary* library, uint32_t flags = 0, std::function<void(View*, Program*, int32_t&)> function = nullptr);
+    void render_fullscreen_triangle(Renderer* renderer, View* view, uint32_t flags = 0);
+    void render_fullscreen_quad(Renderer* renderer, View* view, uint32_t flags = 0);
 
 protected:
     RenderGraph* m_graph;
