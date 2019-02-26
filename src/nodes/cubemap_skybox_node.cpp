@@ -80,7 +80,7 @@ void CubemapSkyboxNode::execute(Renderer* renderer, Scene* scene, View* view)
     if (m_program->set_uniform("s_Skybox", 0) && scene->env_map())
         scene->env_map()->bind(0);
 
-    render_fullscreen_quad(renderer, view);
+    render_fullscreen_quad(renderer, view, NODE_USAGE_PER_VIEW_UBO);
 
     glDepthFunc(GL_LESS);
 }

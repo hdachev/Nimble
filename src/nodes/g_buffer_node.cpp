@@ -61,7 +61,7 @@ void GBufferNode::execute(Renderer* renderer, Scene* scene, View* view)
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    render_scene(renderer, scene, view, m_library.get());
+    render_scene(renderer, scene, view, m_library.get(), NODE_USAGE_DEFAULT);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

@@ -15,7 +15,6 @@ public:
     void        execute(Renderer* renderer, Scene* scene, View* view) override;
     void        shutdown() override;
     std::string name() override;
-	uint32_t	flags() override;
 
 private:
     std::shared_ptr<Shader>       m_vs;

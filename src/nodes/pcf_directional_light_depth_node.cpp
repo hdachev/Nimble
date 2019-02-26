@@ -65,7 +65,7 @@ void PCFDirectionalLightDepthNode::execute(Renderer* renderer, Scene* scene, Vie
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    render_scene(renderer, scene, view, m_library.get());
+    render_scene(renderer, scene, view, m_library.get(), NODE_USAGE_SHADOW_MAP);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

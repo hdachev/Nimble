@@ -113,7 +113,6 @@ public:
     inline void disable() { m_enabled = false; }
 
     // Virtual methods
-    virtual uint32_t    flags();
     virtual void        declare_connections();
     virtual bool        initialize(Renderer* renderer, ResourceManager* res_mgr) = 0;
     virtual void        execute(Renderer* renderer, Scene* scene, View* view)    = 0;

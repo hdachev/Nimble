@@ -51,7 +51,7 @@ void PCFPointLightDepthNode::execute(Renderer* renderer, Scene* scene, View* vie
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    render_scene(renderer, scene, view, m_library.get(), std::bind(&PCFPointLightDepthNode::set_shader_uniforms, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    render_scene(renderer, scene, view, m_library.get(), NODE_USAGE_SHADOW_MAP, std::bind(&PCFPointLightDepthNode::set_shader_uniforms, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
