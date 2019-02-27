@@ -205,29 +205,29 @@ class Program
 public:
     Program(uint32_t count, Shader** shaders);
     ~Program();
-    void use();
-	int32_t num_active_uniform_blocks();
-    void uniform_block_binding(std::string name, int binding);
-    bool set_uniform(std::string name, int value);
-    bool set_uniform(std::string name, float value);
-    bool set_uniform(std::string name, glm::vec2 value);
-    bool set_uniform(std::string name, glm::vec3 value);
-    bool set_uniform(std::string name, glm::vec4 value);
-    bool set_uniform(std::string name, glm::mat2 value);
-    bool set_uniform(std::string name, glm::mat3 value);
-    bool set_uniform(std::string name, glm::mat4 value);
-    bool set_uniform(std::string name, int count, int* value);
-    bool set_uniform(std::string name, int count, float* value);
-    bool set_uniform(std::string name, int count, glm::vec2* value);
-    bool set_uniform(std::string name, int count, glm::vec3* value);
-    bool set_uniform(std::string name, int count, glm::vec4* value);
-    bool set_uniform(std::string name, int count, glm::mat2* value);
-    bool set_uniform(std::string name, int count, glm::mat3* value);
-    bool set_uniform(std::string name, int count, glm::mat4* value);
+    void    use();
+    int32_t num_active_uniform_blocks();
+    void    uniform_block_binding(std::string name, int binding);
+    bool    set_uniform(std::string name, int value);
+    bool    set_uniform(std::string name, float value);
+    bool    set_uniform(std::string name, glm::vec2 value);
+    bool    set_uniform(std::string name, glm::vec3 value);
+    bool    set_uniform(std::string name, glm::vec4 value);
+    bool    set_uniform(std::string name, glm::mat2 value);
+    bool    set_uniform(std::string name, glm::mat3 value);
+    bool    set_uniform(std::string name, glm::mat4 value);
+    bool    set_uniform(std::string name, int count, int* value);
+    bool    set_uniform(std::string name, int count, float* value);
+    bool    set_uniform(std::string name, int count, glm::vec2* value);
+    bool    set_uniform(std::string name, int count, glm::vec3* value);
+    bool    set_uniform(std::string name, int count, glm::vec4* value);
+    bool    set_uniform(std::string name, int count, glm::mat2* value);
+    bool    set_uniform(std::string name, int count, glm::mat3* value);
+    bool    set_uniform(std::string name, int count, glm::mat4* value);
 
 private:
     GLuint                                  m_gl_program;
-	int32_t									m_num_active_uniform_blocks;
+    int32_t                                 m_num_active_uniform_blocks;
     std::unordered_map<std::string, GLuint> m_location_map;
 };
 

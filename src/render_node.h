@@ -13,8 +13,8 @@
     std::shared_ptr<RenderNode> create_render_node_##class_name(RenderGraph* graph) \
     {                                                                               \
         auto node = std::make_shared<class_name>(graph);                            \
-		node->declare_connections();												\
-		return node;																\
+        node->declare_connections();                                                \
+        return node;                                                                \
     }
 
 namespace nimble

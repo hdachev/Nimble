@@ -541,12 +541,12 @@ std::shared_ptr<Program> Renderer::create_program(const std::shared_ptr<Shader>&
 
         m_program_cache[id] = program;
 
-		if (program->num_active_uniform_blocks() > 0)
-		{
-			program->uniform_block_binding("u_PerView", 0);
-			program->uniform_block_binding("u_PerScene", 1);
-			program->uniform_block_binding("u_PerEntity", 2);
-		}
+        if (program->num_active_uniform_blocks() > 0)
+        {
+            program->uniform_block_binding("u_PerView", 0);
+            program->uniform_block_binding("u_PerScene", 1);
+            program->uniform_block_binding("u_PerEntity", 2);
+        }
 
         return program;
     }
