@@ -541,9 +541,12 @@ std::shared_ptr<Program> Renderer::create_program(const std::shared_ptr<Shader>&
 
         m_program_cache[id] = program;
 
-        program->uniform_block_binding("u_PerView", 0);
-        program->uniform_block_binding("u_PerScene", 1);
-        program->uniform_block_binding("u_PerEntity", 2);
+		if (program->num_active_uniform_blocks() > 0)
+		{
+			program->uniform_block_binding("u_PerView", 0);
+			program->uniform_block_binding("u_PerScene", 1);
+			program->uniform_block_binding("u_PerEntity", 2);
+		}
 
         return program;
     }
@@ -790,13 +793,9 @@ void Renderer::setup_cascade_views(DirectionalLight& dir_light, View* dependent_
             {
                 t_transf = modelview * glm::vec4(splits[i].corners[j], 1.0f);
                 if (t_transf.z > tmax.z)
-                {
                     tmax.z = t_transf.z;
-                }
                 if (t_transf.z < tmin.z)
-                {
                     tmin.z = t_transf.z;
-                }
             }
 
             //tmax.z += 50; // TODO: This solves the dissapearing shadow problem. but how to fix?

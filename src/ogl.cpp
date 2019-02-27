@@ -1,4 +1,4 @@
-#include "ogl.h"
+﻿#include "ogl.h"
 #include "utility.h"
 #include "logger.h"
 #include <gtc/type_ptr.hpp>
@@ -1208,6 +1208,7 @@ Program::Program(uint32_t count, Shader** shaders)
         GL_CHECK_ERROR(glBindAttribLocation(m_gl_program, i, name));
     }
 #endif
+	glGetProgramiv(m_gl_program, GL_ACTIVE_UNIFORM_BLOCKS, &m_num_active_uniform_blocks);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -1222,6 +1223,13 @@ Program::~Program()
 void Program::use()
 {
     glUseProgram(m_gl_program);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+int32_t Program::num_active_uniform_blocks()
+{
+	return m_num_active_uniform_blocks;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

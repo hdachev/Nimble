@@ -206,6 +206,7 @@ public:
     Program(uint32_t count, Shader** shaders);
     ~Program();
     void use();
+	int32_t num_active_uniform_blocks();
     void uniform_block_binding(std::string name, int binding);
     bool set_uniform(std::string name, int value);
     bool set_uniform(std::string name, float value);
@@ -226,6 +227,7 @@ public:
 
 private:
     GLuint                                  m_gl_program;
+	int32_t									m_num_active_uniform_blocks;
     std::unordered_map<std::string, GLuint> m_location_map;
 };
 

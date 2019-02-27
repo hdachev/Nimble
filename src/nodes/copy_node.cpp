@@ -27,14 +27,14 @@ void CopyNode::declare_connections()
 {
     // Declare the inputs to this render node
     register_input_render_target("Color");
-
-	m_texture = find_input_render_target("Color");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 bool CopyNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
+	m_texture = find_input_render_target("Color");
+
     m_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
     m_fs = res_mgr->load_shader("shader/post_process/copy_fs.glsl", GL_FRAGMENT_SHADER);
 
@@ -61,21 +61,19 @@ bool CopyNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 void CopyNode::execute(Renderer* renderer, Scene* scene, View* view)
 {
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
+    glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
     m_program->use();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
 
     if (m_program->set_uniform("s_Texture", 0) && m_texture)
 		m_texture->texture->bind(0);
 
     render_fullscreen_triangle(renderer, view);
-
-    glDepthFunc(GL_LESS);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
