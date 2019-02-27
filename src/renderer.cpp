@@ -1333,6 +1333,10 @@ void Renderer::create_texture_for_render_target(std::shared_ptr<RenderTarget> rt
     else if (rt->target == GL_TEXTURE_CUBE_MAP)
         tex = std::make_shared<TextureCube>(rt->w, rt->h, rt->array_size, rt->mip_levels, rt->internal_format, rt->format, rt->type);
 
+	// Sensible defaults for filtering
+	if (rt->mip_levels == 1)
+		tex->set_min_filter(GL_LINEAR);
+
     // Assign it to the current output Render Target
     rt->texture = tex;
 
