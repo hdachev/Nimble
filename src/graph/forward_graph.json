@@ -8,28 +8,14 @@
             "inputs" : []
         },
         {
-            "name" : "CubemapSkyboxNode",
-            "defines" : [],
-            "inputs" : [
-                {
-                    "slot_name" : "Color",
-                    "prev_node_name" : "ForwardNode",
-                    "prev_output_name" : "Color"
-                },
-                {
-                    "slot_name" : "Depth",
-                    "prev_node_name" : "ForwardNode",
-                    "prev_output_name" : "Depth"
-                }
-            ]
-        },
-        {
             "name" : "CopyNode",
             "defines" : [],
-            "inputs" : [
+            "inputs" : 
+            [
                 {
+                    "type" : "RENDER_TARGET",
                     "slot_name" : "Color",
-                    "prev_node_name" : "CubemapSkyboxNode",
+                    "prev_node_name" : "ForwardNode",
                     "prev_output_name" : "Color"
                 }
             ]
