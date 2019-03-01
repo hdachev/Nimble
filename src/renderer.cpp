@@ -135,7 +135,7 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
             return false;
     }
 
-	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     return true;
 }

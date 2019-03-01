@@ -27,14 +27,14 @@ void DeferredNode::declare_connections()
 {
     // Declare the inputs to this render node
     register_input_render_target("G-Buffer1");
-	register_input_render_target("G-Buffer2");
-	register_input_render_target("G-Buffer3");
-	register_input_render_target("G-Buffer4");
+    register_input_render_target("G-Buffer2");
+    register_input_render_target("G-Buffer3");
+    register_input_render_target("G-Buffer4");
     register_input_render_target("Depth");
 
     // Since we're rendering to the render targets provided as input, we'll simply forward the input
     // render targets as outputs.
-	m_color_rt = register_scaled_output_render_target("Color", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT, 1, 1, 1);
+    m_color_rt = register_scaled_output_render_target("Color", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT, 1, 1, 1);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -74,40 +74,34 @@ void DeferredNode::execute(Renderer* renderer, Scene* scene, View* view)
 
     m_program->use();
 
-	renderer->bind_render_targets(4, &m_color_rtv, nullptr);
-	glClear(GL_COLOR_BUFFER_BIT);
+    renderer->bind_render_targets(4, &m_color_rtv, nullptr);
+    glClear(GL_COLOR_BUFFER_BIT);
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
 
-	int32_t tex_unit = 0;
+    int32_t tex_unit = 0;
 
     if (m_program->set_uniform("s_GBuffer1", tex_unit) && m_gbuffer1_rt)
-		m_gbuffer1_rt->texture->bind(tex_unit++);
+        m_gbuffer1_rt->texture->bind(tex_unit++);
 
-	if (m_program->set_uniform("s_GBuffer2", tex_unit) && m_gbuffer2_rt)
-		m_gbuffer2_rt->texture->bind(tex_unit++);
+    if (m_program->set_uniform("s_GBuffer2", tex_unit) && m_gbuffer2_rt)
+        m_gbuffer2_rt->texture->bind(tex_unit++);
 
-	if (m_program->set_uniform("s_GBuffer3", tex_unit) && m_gbuffer3_rt)
-		m_gbuffer3_rt->texture->bind(tex_unit++);
+    if (m_program->set_uniform("s_GBuffer3", tex_unit) && m_gbuffer3_rt)
+        m_gbuffer3_rt->texture->bind(tex_unit++);
 
-	if (m_program->set_uniform("s_GBuffer4", tex_unit) && m_gbuffer4_rt)
-		m_gbuffer4_rt->texture->bind(tex_unit++);
+    if (m_program->set_uniform("s_GBuffer4", tex_unit) && m_gbuffer4_rt)
+        m_gbuffer4_rt->texture->bind(tex_unit++);
 
-	if (m_program->set_uniform("s_Depth", tex_unit) && m_depth_rt)
-		m_depth_rt->texture->bind(tex_unit++);
+    if (m_program->set_uniform("s_Depth", tex_unit) && m_depth_rt)
+        m_depth_rt->texture->bind(tex_unit++);
 
-    render_fullscreen_triangle(renderer, view, m_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO | 
-																		  NODE_USAGE_POINT_LIGHTS | 
-																		  NODE_USAGE_SPOT_LIGHTS | 
-																		  NODE_USAGE_DIRECTIONAL_LIGHTS | 
-																		  NODE_USAGE_SHADOW_MAPPING | 
-																		  NODE_USAGE_STATIC_MESH | 
-																		  NODE_USAGE_SKELETAL_MESH);
-}																		         
-																		          
+    render_fullscreen_triangle(renderer, view, m_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS | NODE_USAGE_DIRECTIONAL_LIGHTS | NODE_USAGE_SHADOW_MAPPING | NODE_USAGE_STATIC_MESH | NODE_USAGE_SKELETAL_MESH);
+}
+
 // -----------------------------------------------------------------------------------------------------------------------------------
-																		       
-void DeferredNode::shutdown()											          
-{																		   
+
+void DeferredNode::shutdown()
+{
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

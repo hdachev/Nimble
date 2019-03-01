@@ -50,20 +50,20 @@ enum RenderNodeFlags
 
 struct BoolParameter
 {
-	bool* ptr;
-	std::string name;
+    bool*       ptr;
+    std::string name;
 };
 
 struct IntParameter
 {
-	int32_t* ptr;
-	std::string name;
+    int32_t*    ptr;
+    std::string name;
 };
 
 struct FloatParameter
 {
-	float* ptr;
-	std::string name;
+    float*      ptr;
+    std::string name;
 };
 
 class RenderNode
@@ -112,12 +112,12 @@ public:
     void                                 set_input(const std::string& name, OutputRenderTarget* render_target, std::shared_ptr<RenderNode> owner);
     void                                 set_input(const std::string& name, OutputBuffer* buffer, std::shared_ptr<RenderNode> owner);
     void                                 timing_total(float& cpu_time, float& gpu_time);
-	void								 set_bool_parameter(const std::string& name, bool value);
-	void								 set_int_parameter(const std::string& name, int32_t value);
-	void								 set_float_parameter(const std::string& name, float value);
-	BoolParameter*						 bool_parameters(int32_t& count);
-	IntParameter*						 int_parameters(int32_t& count);
-	FloatParameter*						 float_parameters(int32_t& count);
+    void                                 set_bool_parameter(const std::string& name, bool value);
+    void                                 set_int_parameter(const std::string& name, int32_t value);
+    void                                 set_float_parameter(const std::string& name, float value);
+    BoolParameter*                       bool_parameters(int32_t& count);
+    IntParameter*                        int_parameters(int32_t& count);
+    FloatParameter*                      float_parameters(int32_t& count);
 
     // Inline getters
     inline std::vector<InputRenderTarget>&  input_render_targets() { return m_input_rts; }
@@ -155,10 +155,10 @@ protected:
     std::shared_ptr<RenderTarget> register_scaled_output_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
     std::shared_ptr<RenderTarget> register_intermediate_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
     std::shared_ptr<RenderTarget> register_scaled_intermediate_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-	void						  register_bool_parameter(const std::string& name, bool& parameter);
-	void						  register_int_parameter(const std::string& name, int32_t& parameter);
-	void						  register_float_parameter(const std::string& name, float& parameter);
-	void						  bind_shadow_maps(Renderer* renderer, Program* program, int32_t tex_unit, uint32_t flags);
+    void                          register_bool_parameter(const std::string& name, bool& parameter);
+    void                          register_int_parameter(const std::string& name, int32_t& parameter);
+    void                          register_float_parameter(const std::string& name, float& parameter);
+    void                          bind_shadow_maps(Renderer* renderer, Program* program, int32_t tex_unit, uint32_t flags);
 
     // Geometry render helpers
     void render_scene(Renderer* renderer, Scene* scene, View* view, ShaderLibrary* library, uint32_t flags = 0, std::function<void(View*, Program*, int32_t&)> function = nullptr);
@@ -166,13 +166,13 @@ protected:
     void render_fullscreen_quad(Renderer* renderer, View* view, Program* program = nullptr, int32_t tex_unit = 0, uint32_t flags = 0);
 
 protected:
-    RenderGraph* m_graph;
-    float        m_total_time_cpu;
-    float        m_total_time_gpu;
-    std::string  m_passthrough_name;
-	std::vector<BoolParameter> m_bool_parameters;
-	std::vector<IntParameter> m_int_parameters;
-	std::vector<FloatParameter> m_float_parameters;
+    RenderGraph*                m_graph;
+    float                       m_total_time_cpu;
+    float                       m_total_time_gpu;
+    std::string                 m_passthrough_name;
+    std::vector<BoolParameter>  m_bool_parameters;
+    std::vector<IntParameter>   m_int_parameters;
+    std::vector<FloatParameter> m_float_parameters;
 
 private:
     bool                                                               m_enabled;

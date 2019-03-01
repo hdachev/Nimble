@@ -80,9 +80,9 @@ void CubemapSkyboxNode::execute(Renderer* renderer, Scene* scene, View* view)
     if (m_program->set_uniform("s_Skybox", 0) && scene->env_map())
         scene->env_map()->bind(0);
 
-	glm::mat4 inverse_vp = glm::inverse(view->projection_mat * glm::mat4(glm::mat3(view->view_mat)));
+    glm::mat4 inverse_vp = glm::inverse(view->projection_mat * glm::mat4(glm::mat3(view->view_mat)));
 
-	m_program->set_uniform("u_CubemapInverseVP", inverse_vp);
+    m_program->set_uniform("u_CubemapInverseVP", inverse_vp);
 
     render_fullscreen_quad(renderer, view);
 

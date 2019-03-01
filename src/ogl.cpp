@@ -200,10 +200,10 @@ Texture1D::Texture1D(uint32_t w, uint32_t array_size, int32_t mip_levels, GLenum
     set_wrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
     set_mag_filter(GL_LINEAR);
 
-	if (m_mip_levels > 1)
-		set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
-	else
-		set_min_filter(GL_LINEAR);
+    if (m_mip_levels > 1)
+        set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
+    else
+        set_min_filter(GL_LINEAR);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -356,10 +356,10 @@ Texture2D::Texture2D(uint32_t w, uint32_t h, uint32_t array_size, int32_t mip_le
     set_wrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
     set_mag_filter(GL_LINEAR);
 
-	if (m_mip_levels > 1)
-		set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
-	else
-		set_min_filter(GL_LINEAR);
+    if (m_mip_levels > 1)
+        set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
+    else
+        set_min_filter(GL_LINEAR);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -540,10 +540,10 @@ void Texture2D::resize(uint32_t w, uint32_t h)
     set_wrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
     set_mag_filter(GL_LINEAR);
 
-	if (m_mip_levels > 1)
-		set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
-	else
-		set_min_filter(GL_LINEAR);
+    if (m_mip_levels > 1)
+        set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
+    else
+        set_min_filter(GL_LINEAR);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -630,10 +630,10 @@ Texture3D::Texture3D(uint32_t w, uint32_t h, uint32_t d, int mip_levels, GLenum 
     set_wrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
     set_mag_filter(GL_LINEAR);
 
-	if (m_mip_levels > 1)
-		set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
-	else
-		set_min_filter(GL_LINEAR);
+    if (m_mip_levels > 1)
+        set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
+    else
+        set_min_filter(GL_LINEAR);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -762,10 +762,10 @@ TextureCube::TextureCube(uint32_t w, uint32_t h, uint32_t array_size, int32_t mi
     set_wrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
     set_mag_filter(GL_LINEAR);
 
-	if (m_mip_levels > 1)
-		set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
-	else
-		set_min_filter(GL_LINEAR);
+    if (m_mip_levels > 1)
+        set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
+    else
+        set_min_filter(GL_LINEAR);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
