@@ -39,7 +39,7 @@ in vec2 PS_IN_TexCoord;
 // ------------------------------------------------------------------
 
 layout (location = 0) out vec3 PS_OUT_Color;
-// layout (location = 1) out vec2 PS_OUT_Velocity;
+layout (location = 1) out vec2 PS_OUT_Velocity;
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
@@ -131,7 +131,7 @@ void main()
 	vec3 color = Lo;// + ambient;
 
     PS_OUT_Color = color;
-	// PS_OUT_Velocity = motion_vector(PS_IN_LastScreenPosition, PS_IN_ScreenPosition);
+	PS_OUT_Velocity = motion_vector(PS_IN_LastScreenPosition, PS_IN_ScreenPosition);
 }
 
 // ------------------------------------------------------------------

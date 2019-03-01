@@ -182,6 +182,110 @@ void RenderNode::timing_total(float& cpu_time, float& gpu_time)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+void RenderNode::set_bool_parameter(const std::string& name, bool value)
+{
+	for (auto& param : m_bool_parameters)
+	{
+		if (name == param.name && param.ptr)
+		{
+			*param.ptr = value;
+			return;
+		}
+	}
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderNode::set_int_parameter(const std::string& name, int32_t value)
+{
+	for (auto& param : m_int_parameters)
+	{
+		if (name == param.name && param.ptr)
+		{
+			*param.ptr = value;
+			return;
+		}
+	}
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderNode::set_float_parameter(const std::string& name, float value)
+{
+	for (auto& param : m_float_parameters)
+	{
+		if (name == param.name && param.ptr)
+		{
+			*param.ptr = value;
+			return;
+		}
+	}
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+BoolParameter* RenderNode::bool_parameters(int32_t& count)
+{
+	count = m_bool_parameters.size();
+	return &m_bool_parameters[0];
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+IntParameter* RenderNode::int_parameters(int32_t& count)
+{
+	count = m_int_parameters.size();
+	return &m_int_parameters[0];
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+FloatParameter*	RenderNode::float_parameters(int32_t& count)
+{
+	count = m_float_parameters.size();
+	return &m_float_parameters[0];
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderNode::register_bool_parameter(const std::string& name, bool& parameter)
+{
+	m_bool_parameters.push_back({ &parameter, name });
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderNode::register_int_parameter(const std::string& name, int32_t& parameter)
+{
+	m_int_parameters.push_back({ &parameter, name });
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderNode::register_float_parameter(const std::string& name, float& parameter)
+{
+	m_float_parameters.push_back({ &parameter, name });
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderNode::bind_shadow_maps(Renderer* renderer, Program* program, int32_t tex_unit, uint32_t flags)
+{
+	if (program)
+	{
+		if ((HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING)) && program->set_uniform("s_DirectionalLightShadowMaps", tex_unit))
+			renderer->directional_light_shadow_maps()->bind(tex_unit++);
+
+		if ((HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING)) && program->set_uniform("s_SpotLightShadowMaps", tex_unit))
+			renderer->spot_light_shadow_maps()->bind(tex_unit++);
+
+		if ((HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING)) && program->set_uniform("s_PointLightShadowMaps", tex_unit))
+			renderer->point_light_shadow_maps()->bind(tex_unit++);
+	}
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void RenderNode::declare_connections()
 {
 }
@@ -446,14 +550,7 @@ void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, Shad
 
                         s.material->bind(program, tex_unit);
 
-                        if ((HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING)) && program->set_uniform("s_DirectionalLightShadowMaps", tex_unit))
-                            renderer->directional_light_shadow_maps()->bind(tex_unit++);
-
-                        if ((HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING)) && program->set_uniform("s_SpotLightShadowMaps", tex_unit))
-                            renderer->spot_light_shadow_maps()->bind(tex_unit++);
-
-                        if ((HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING)) && program->set_uniform("s_PointLightShadowMaps", tex_unit))
-                            renderer->point_light_shadow_maps()->bind(tex_unit++);
+						bind_shadow_maps(renderer, program, tex_unit, flags);
 
                         if (HAS_BIT_FLAG(flags, NODE_USAGE_PER_OBJECT_UBO))
                             renderer->per_entity_ubo()->bind_range(1, sizeof(PerEntityUniforms) * i, sizeof(PerEntityUniforms));
@@ -474,7 +571,7 @@ void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, Shad
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void RenderNode::render_fullscreen_triangle(Renderer* renderer, View* view, uint32_t flags)
+void RenderNode::render_fullscreen_triangle(Renderer* renderer, View* view, Program* program, int32_t tex_unit, uint32_t flags)
 {
     // Bind buffers
     if (HAS_BIT_FLAG(flags, NODE_USAGE_PER_VIEW_UBO))
@@ -482,6 +579,8 @@ void RenderNode::render_fullscreen_triangle(Renderer* renderer, View* view, uint
 
     if (HAS_BIT_FLAG(flags, NODE_USAGE_POINT_LIGHTS) || HAS_BIT_FLAG(flags, NODE_USAGE_SPOT_LIGHTS) || HAS_BIT_FLAG(flags, NODE_USAGE_DIRECTIONAL_LIGHTS))
         renderer->per_scene_ssbo()->bind_base(1);
+
+	bind_shadow_maps(renderer, program, tex_unit, flags);
 
     // Render fullscreen triangle
     glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -489,7 +588,7 @@ void RenderNode::render_fullscreen_triangle(Renderer* renderer, View* view, uint
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void RenderNode::render_fullscreen_quad(Renderer* renderer, View* view, uint32_t flags)
+void RenderNode::render_fullscreen_quad(Renderer* renderer, View* view, Program* program, int32_t tex_unit, uint32_t flags)
 {
     // Bind buffers
     if (HAS_BIT_FLAG(flags, NODE_USAGE_PER_VIEW_UBO))
@@ -497,6 +596,8 @@ void RenderNode::render_fullscreen_quad(Renderer* renderer, View* view, uint32_t
 
     if (HAS_BIT_FLAG(flags, NODE_USAGE_POINT_LIGHTS) || HAS_BIT_FLAG(flags, NODE_USAGE_SPOT_LIGHTS) || HAS_BIT_FLAG(flags, NODE_USAGE_DIRECTIONAL_LIGHTS))
         renderer->per_scene_ssbo()->bind_base(1);
+
+	bind_shadow_maps(renderer, program, tex_unit, flags);
 
     // Render fullscreen triangle
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

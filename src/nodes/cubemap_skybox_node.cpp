@@ -84,7 +84,7 @@ void CubemapSkyboxNode::execute(Renderer* renderer, Scene* scene, View* view)
 
 	m_program->set_uniform("u_CubemapInverseVP", inverse_vp);
 
-    render_fullscreen_quad(renderer, view, 0);
+    render_fullscreen_quad(renderer, view);
 
     glDepthFunc(GL_LESS);
 }

@@ -23,6 +23,11 @@ GBufferNode::~GBufferNode()
 
 void GBufferNode::declare_connections()
 {
+	m_gbuffer1_rt = register_scaled_output_render_target("G-Buffer1", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	m_gbuffer2_rt = register_scaled_output_render_target("G-Buffer2", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+	m_gbuffer3_rt = register_scaled_output_render_target("G-Buffer3", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT);
+	m_gbuffer4_rt = register_scaled_output_render_target("G-Buffer4", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+    m_depth_rt    = register_scaled_output_render_target("Depth", 1.0f, 1.0f, GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -30,6 +35,12 @@ void GBufferNode::declare_connections()
 bool GBufferNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_library = renderer->shader_cache().load_library("shader/g_buffer/g_buffer_vs.glsl", "shader/g_buffer/g_buffer_vs.glsl");
+
+	m_gbuffer_rtv[0] = RenderTargetView(0, 0, 0, m_gbuffer1_rt->texture);
+    m_gbuffer_rtv[1] = RenderTargetView(0, 0, 0, m_gbuffer2_rt->texture);
+	m_gbuffer_rtv[2] = RenderTargetView(0, 0, 0, m_gbuffer3_rt->texture);
+	m_gbuffer_rtv[3] = RenderTargetView(0, 0, 0, m_gbuffer4_rt->texture);
+    m_depth_rtv    = RenderTargetView(0, 0, 0, m_depth_rt->texture);
 
     return true;
 }
@@ -50,7 +61,7 @@ std::string GBufferNode::name()
 
 void GBufferNode::execute(Renderer* renderer, Scene* scene, View* view)
 {
-    renderer->bind_render_targets(3, m_gbuffer_rtv, &m_depth_rtv);
+    renderer->bind_render_targets(4, m_gbuffer_rtv, &m_depth_rtv);
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
 
     glEnable(GL_DEPTH_TEST);
