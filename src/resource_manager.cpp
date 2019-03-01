@@ -133,7 +133,7 @@ std::shared_ptr<Texture> ResourceManager::load_texture(const std::string& path, 
 
                     std::shared_ptr<TextureCube> texture = std::make_shared<TextureCube>(image.data[0][0].width,
                                                                                          image.data[0][0].height,
-                                                                                         image.array_slices,
+                                                                                         1,
                                                                                          image.mip_slices,
                                                                                          internal_format,
                                                                                          kFormatTable[image.components - 1],

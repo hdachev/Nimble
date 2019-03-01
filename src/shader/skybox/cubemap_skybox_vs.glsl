@@ -10,6 +10,8 @@
 
 out vec3 PS_IN_TexCoord;
 
+uniform mat4 u_CubemapInverseVP;
+
 // ------------------------------------------------------------------
 // MAIN  ------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -23,7 +25,7 @@ void main(void)
 
 
     vec4 clip_pos = vec4(vertices[gl_VertexID].xy, -1.0, 1.0);
-    vec4 view_pos  = inv_view_proj * clip_pos;
+    vec4 view_pos  = u_CubemapInverseVP * clip_pos;
    
     vec3 dir = vec3(view_pos);
     dir = normalize(dir);

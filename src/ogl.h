@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <glm.hpp>
+
 //#define NIMBLE_ENABLE_GL_ERROR_CHECK
 // OpenGL error checking macro.
 #ifdef NIMBLE_ENABLE_GL_ERROR_CHECK

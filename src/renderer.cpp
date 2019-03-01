@@ -135,6 +135,8 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
             return false;
     }
 
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
     return true;
 }
 
@@ -542,11 +544,7 @@ std::shared_ptr<Program> Renderer::create_program(const std::shared_ptr<Shader>&
         m_program_cache[id] = program;
 
         if (program->num_active_uniform_blocks() > 0)
-        {
-            program->uniform_block_binding("u_PerView", 0);
-            program->uniform_block_binding("u_PerScene", 1);
-            program->uniform_block_binding("u_PerEntity", 2);
-        }
+            program->uniform_block_binding("u_PerEntity", 1);
 
         return program;
     }
@@ -1332,10 +1330,6 @@ void Renderer::create_texture_for_render_target(std::shared_ptr<RenderTarget> rt
         tex = std::make_shared<Texture2D>(rt->w, rt->h, rt->array_size, rt->mip_levels, rt->num_samples, rt->internal_format, rt->format, rt->type);
     else if (rt->target == GL_TEXTURE_CUBE_MAP)
         tex = std::make_shared<TextureCube>(rt->w, rt->h, rt->array_size, rt->mip_levels, rt->internal_format, rt->format, rt->type);
-
-	// Sensible defaults for filtering
-	if (rt->mip_levels == 1)
-		tex->set_min_filter(GL_LINEAR);
 
     // Assign it to the current output Render Target
     rt->texture = tex;
