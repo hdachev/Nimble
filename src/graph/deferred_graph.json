@@ -20,9 +20,9 @@
                 },
                 {
                     "type" : "RENDER_TARGET",
-                    "slot_name" : "GBuffer2",
+                    "slot_name" : "G-Buffer2",
                     "prev_node_name" : "GBufferNode",
-                    "prev_output_name" : "GBuffer2"
+                    "prev_output_name" : "G-Buffer2"
                 },
                 {
                     "type" : "RENDER_TARGET",

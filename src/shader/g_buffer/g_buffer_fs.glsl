@@ -22,15 +22,16 @@ in vec2 PS_IN_TexCoord;
 #endif
 
 #include <../common/helper.glsl>
+#include <../common/material.glsl>
 
 // ------------------------------------------------------------------
 // OUTPUT VARIABLES  ------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (location = 0) out vec4 PS_OUT_Albedo;
-layout (location = 1) out vec4 PS_OUT_Normal;
-layout (location = 2) out vec4 PS_OUT_Velocity;
-layout (location = 3) out vec4 PS_OUT_MetalRough;
+layout (location = 0) out vec4 FS_OUT_Albedo;
+layout (location = 1) out vec4 FS_OUT_Normal;
+layout (location = 2) out vec4 FS_OUT_Velocity;
+layout (location = 3) out vec4 FS_OUT_MetalRough;
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
@@ -90,10 +91,10 @@ void main()
 		discard;
 #endif
 
-	PS_OUT_Albedo = vec4(m.albedo, 0.0);
-	PS_OUT_Normal = vec4(m.normal, 0.0);
-	PS_OUT_MetalRough = vec4(m.metallic, m.roughness, 0.0, 0.0);
-	PS_OUT_Velocity = vec4(motion_vector(PS_IN_LastScreenPosition, PS_IN_ScreenPosition), 0.0, 0.0);
+	FS_OUT_Albedo = m.albedo;
+	FS_OUT_Normal = vec4(m.normal, 0.0);
+	FS_OUT_MetalRough = vec4(m.metallic, m.roughness, 0.0, 0.0);
+	FS_OUT_Velocity = vec4(motion_vector(PS_IN_LastScreenPosition, PS_IN_ScreenPosition), 0.0, 0.0);
 }
 
 // ------------------------------------------------------------------

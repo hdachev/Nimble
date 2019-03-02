@@ -74,10 +74,6 @@ void fill_fragment_properties(inout FragmentProperties f)
 {
 	f.FragDepth = unpack_depth();
 	f.Position = world_position_from_depth(FS_IN_TexCoord, f.FragDepth);
-	f.Tangent = vec3(0.0);
-	f.Bitangent = vec3(0.0);
-	f.TangentViewPos = vec3(0.0);
-	f.TangentFragPos = vec3(0.0);
 	f.TexCoords = FS_IN_TexCoord;
 }
 
@@ -87,7 +83,7 @@ void fragment_func(inout MaterialProperties m)
 {
 	m.albedo = unpack_albedo();
 	m.normal = unpack_normal();
-	m.metallic = unpack_metallic();
+	m.metallic = unpack_metalness();
 	m.roughness = unpack_roughness();
 }
 
@@ -104,7 +100,7 @@ void main()
 	MaterialProperties m;
 
 	// Set material properties
-	fragment_func(m, f);
+	fragment_func(m);
 
 	PBRProperties pbr;
 
@@ -137,7 +133,7 @@ void main()
 	// vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
 	vec3 color = Lo;// + ambient;
 
-    PS_OUT_Color = color;
+    FS_OUT_Color = color;
 }
 
 // ------------------------------------------------------------------
