@@ -74,7 +74,7 @@ void DeferredNode::execute(Renderer* renderer, Scene* scene, View* view)
 
     m_program->use();
 
-    renderer->bind_render_targets(4, &m_color_rtv, nullptr);
+    renderer->bind_render_targets(1, &m_color_rtv, nullptr);
     glClear(GL_COLOR_BUFFER_BIT);
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
 

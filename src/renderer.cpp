@@ -54,6 +54,7 @@ struct RenderTargetKey
     uint32_t layer     = UINT32_MAX;
     uint32_t mip_level = UINT32_MAX;
     uint32_t gl_id     = UINT32_MAX;
+	uint32_t version   = UINT32_MAX;
 };
 
 struct FramebufferKey
@@ -600,6 +601,7 @@ Framebuffer* Renderer::framebuffer_for_render_targets(const uint32_t& num_render
             key.rt_keys[i].layer     = rt_views[i].layer;
             key.rt_keys[i].mip_level = rt_views[i].mip_level;
             key.rt_keys[i].gl_id     = rt_views[i].texture->id();
+			key.rt_keys[i].version = rt_views[i].texture->version();
         }
     }
 
@@ -609,6 +611,7 @@ Framebuffer* Renderer::framebuffer_for_render_targets(const uint32_t& num_render
         key.depth_key.layer     = depth_view->layer;
         key.depth_key.mip_level = depth_view->mip_level;
         key.depth_key.gl_id     = depth_view->texture->id();
+		key.depth_key.version = depth_view->texture->version();
     }
 
     uint64_t hash = murmur_hash_64(&key, sizeof(FramebufferKey), 5234);

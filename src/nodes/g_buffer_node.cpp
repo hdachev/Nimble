@@ -24,7 +24,7 @@ GBufferNode::~GBufferNode()
 void GBufferNode::declare_connections()
 {
     m_gbuffer1_rt = register_scaled_output_render_target("G-Buffer1", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-    m_gbuffer2_rt = register_scaled_output_render_target("G-Buffer2", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+    m_gbuffer2_rt = register_scaled_output_render_target("G-Buffer2", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT);
     m_gbuffer3_rt = register_scaled_output_render_target("G-Buffer3", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT);
     m_gbuffer4_rt = register_scaled_output_render_target("G-Buffer4", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
     m_depth_rt    = register_scaled_output_render_target("Depth", 1.0f, 1.0f, GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);

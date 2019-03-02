@@ -67,6 +67,13 @@ uint32_t Texture::array_size()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+uint32_t Texture::version()
+{
+	return m_version;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void Texture::set_wrapping(GLenum s, GLenum t, GLenum r)
 {
     GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
@@ -176,8 +183,6 @@ Texture1D::Texture1D(uint32_t w, uint32_t array_size, int32_t mip_levels, GLenum
             GL_CHECK_ERROR(glTexImage2D(m_target, i, m_internal_format, width, m_array_size, 0, m_format, m_type, NULL));
             width = std::max(1, (width / 2));
         }
-
-        GL_CHECK_ERROR(glBindTexture(m_target, 0));
     }
     else
     {
@@ -192,8 +197,6 @@ Texture1D::Texture1D(uint32_t w, uint32_t array_size, int32_t mip_levels, GLenum
             GL_CHECK_ERROR(glTexImage1D(m_target, i, m_internal_format, width, 0, m_format, m_type, NULL));
             width = std::max(1, (width / 2));
         }
-
-        GL_CHECK_ERROR(glBindTexture(m_target, 0));
     }
 
     // Default sampling options.
@@ -204,6 +207,9 @@ Texture1D::Texture1D(uint32_t w, uint32_t array_size, int32_t mip_levels, GLenum
         set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
     else
         set_min_filter(GL_LINEAR);
+
+	
+    GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -311,8 +317,6 @@ Texture2D::Texture2D(uint32_t w, uint32_t h, uint32_t array_size, int32_t mip_le
                     height = std::max(1, (height / 2));
                 }
             }
-
-            GL_CHECK_ERROR(glBindTexture(m_target, 0));
         }
     }
     else
@@ -347,8 +351,6 @@ Texture2D::Texture2D(uint32_t w, uint32_t h, uint32_t array_size, int32_t mip_le
                     height = std::max(1, (height / 2));
                 }
             }
-
-            GL_CHECK_ERROR(glBindTexture(m_target, 0));
         }
     }
 
@@ -360,6 +362,8 @@ Texture2D::Texture2D(uint32_t w, uint32_t h, uint32_t array_size, int32_t mip_le
         set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
     else
         set_min_filter(GL_LINEAR);
+
+	GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -443,6 +447,9 @@ void Texture2D::resize(uint32_t w, uint32_t h)
         GL_CHECK_ERROR(glDeleteTextures(1, &m_gl_tex));
     }
 
+	GL_CHECK_ERROR(glGenTextures(1, &m_gl_tex));
+
+	m_version++;
     m_width  = w;
     m_height = h;
 
@@ -495,8 +502,6 @@ void Texture2D::resize(uint32_t w, uint32_t h)
                     height = std::max(1, (height / 2));
                 }
             }
-
-            GL_CHECK_ERROR(glBindTexture(m_target, 0));
         }
     }
     else
@@ -531,8 +536,6 @@ void Texture2D::resize(uint32_t w, uint32_t h)
                     height = std::max(1, (height / 2));
                 }
             }
-
-            GL_CHECK_ERROR(glBindTexture(m_target, 0));
         }
     }
 
@@ -544,6 +547,8 @@ void Texture2D::resize(uint32_t w, uint32_t h)
         set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
     else
         set_min_filter(GL_LINEAR);
+
+	 GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -624,8 +629,6 @@ Texture3D::Texture3D(uint32_t w, uint32_t h, uint32_t d, int mip_levels, GLenum 
         depth  = std::max(1, (depth / 2));
     }
 
-    GL_CHECK_ERROR(glBindTexture(m_target, 0));
-
     // Default sampling options.
     set_wrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
     set_mag_filter(GL_LINEAR);
@@ -634,6 +637,8 @@ Texture3D::Texture3D(uint32_t w, uint32_t h, uint32_t d, int mip_levels, GLenum 
         set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
     else
         set_min_filter(GL_LINEAR);
+
+	GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -733,8 +738,6 @@ TextureCube::TextureCube(uint32_t w, uint32_t h, uint32_t array_size, int32_t mi
             width  = std::max(1, (width / 2));
             height = std::max(1, (height / 2));
         }
-
-        GL_CHECK_ERROR(glBindTexture(m_target, 0));
     }
     else
     {
@@ -754,8 +757,6 @@ TextureCube::TextureCube(uint32_t w, uint32_t h, uint32_t array_size, int32_t mi
         {
             GL_CHECK_ERROR(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
         }
-
-        GL_CHECK_ERROR(glBindTexture(m_target, 0));
     }
 
     // Default sampling options.
@@ -766,6 +767,9 @@ TextureCube::TextureCube(uint32_t w, uint32_t h, uint32_t array_size, int32_t mi
         set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
     else
         set_min_filter(GL_LINEAR);
+
+	
+    GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
