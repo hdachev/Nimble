@@ -1,0 +1,80 @@
+{
+    "name" : "Deferred",
+    "type" : "RENDER_GRAPH_STANDARD",
+    "nodes" : [
+        {
+            "name" : "GBufferNode",
+            "defines" : [],
+            "inputs" : []
+        },
+        {
+            "name" : "DeferredNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "G-Buffer1",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer1"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "GBuffer2",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "GBuffer2"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "G-Buffer3",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer3"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "G-Buffer4",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer4"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "Depth"
+                }
+            ]
+        },
+        {
+            "name" : "CubemapSkyboxNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "DeferredNode",
+                    "prev_output_name" : "Color"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "Depth"
+                }
+            ]
+        },
+        {
+            "name" : "CopyNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "CubemapSkyboxNode",
+                    "prev_output_name" : "Color"
+                }
+            ]
+        }
+    ]
+}

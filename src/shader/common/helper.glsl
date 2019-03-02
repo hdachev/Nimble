@@ -183,6 +183,28 @@ vec3 log10(in vec3 n)
 
 // ------------------------------------------------------------------
 
+vec3 world_position_from_depth(vec2 tex_coords, float ndc_depth)
+{
+	// Remap depth to [-1.0, 1.0] range. 
+	float depth = ndc_depth * 2.0 - 1.0;
+
+	// Take texture coordinate and remap to [-1.0, 1.0] range. 
+	vec2 screen_pos = tex_coords * 2.0 - 1.0;
+
+	// // Create NDC position.
+	vec4 ndc_pos = vec4(screen_pos, depth, 1.0);
+
+	// Transform back into world position.
+	vec4 world_pos = inv_view_proj * ndc_pos;
+
+	// Undo projection.
+	world_pos = world_pos / world_pos.w;
+
+	return world_pos.xyz;
+}
+
+// ------------------------------------------------------------------
+
 vec3 get_view_space_position(vec2 tex_coords, float depth)
 {
     vec3 clip_space_position = vec3(tex_coords, depth) * 2.0 - vec3(1.0);

@@ -43,8 +43,8 @@ bool DeferredNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_color_rtv = RenderTargetView(0, 0, 0, m_color_rt->texture);
 
-    m_vs = res_mgr->load_shader("shader/skybox/cubemap_skybox_vs.glsl", GL_VERTEX_SHADER);
-    m_fs = res_mgr->load_shader("shader/skybox/cubemap_skybox_fs.glsl", GL_FRAGMENT_SHADER);
+    m_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
+    m_fs = res_mgr->load_shader("shader/deferred/deferred_fs.glsl", GL_FRAGMENT_SHADER);
 
     if (m_vs && m_fs)
     {
