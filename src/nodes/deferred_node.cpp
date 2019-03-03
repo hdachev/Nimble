@@ -13,6 +13,7 @@ DEFINE_RENDER_NODE_FACTORY(DeferredNode)
 DeferredNode::DeferredNode(RenderGraph* graph) :
     RenderNode(graph)
 {
+	m_flags = NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS | NODE_USAGE_DIRECTIONAL_LIGHTS | NODE_USAGE_SHADOW_MAPPING | NODE_USAGE_STATIC_MESH | NODE_USAGE_SKELETAL_MESH;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -41,10 +42,16 @@ void DeferredNode::declare_connections()
 
 bool DeferredNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
+	m_gbuffer1_rt = find_input_render_target("G-Buffer1");
+	m_gbuffer2_rt = find_input_render_target("G-Buffer2");
+	m_gbuffer3_rt = find_input_render_target("G-Buffer3");
+	m_gbuffer4_rt = find_input_render_target("G-Buffer4");
+	m_depth_rt = find_input_render_target("Depth");
+
     m_color_rtv = RenderTargetView(0, 0, 0, m_color_rt->texture);
 
     m_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
-    m_fs = res_mgr->load_shader("shader/deferred/deferred_fs.glsl", GL_FRAGMENT_SHADER);
+    m_fs = res_mgr->load_shader("shader/deferred/deferred_fs.glsl", GL_FRAGMENT_SHADER, m_flags, renderer);
 
     if (m_vs && m_fs)
     {
@@ -80,22 +87,22 @@ void DeferredNode::execute(Renderer* renderer, Scene* scene, View* view)
 
     int32_t tex_unit = 0;
 
-    if (m_program->set_uniform("s_GBuffer1", tex_unit) && m_gbuffer1_rt)
+    if (m_program->set_uniform("s_GBufferRT1", tex_unit) && m_gbuffer1_rt)
         m_gbuffer1_rt->texture->bind(tex_unit++);
 
-    if (m_program->set_uniform("s_GBuffer2", tex_unit) && m_gbuffer2_rt)
+    if (m_program->set_uniform("s_GBufferRT2", tex_unit) && m_gbuffer2_rt)
         m_gbuffer2_rt->texture->bind(tex_unit++);
 
-    if (m_program->set_uniform("s_GBuffer3", tex_unit) && m_gbuffer3_rt)
+    if (m_program->set_uniform("s_GBufferRT3", tex_unit) && m_gbuffer3_rt)
         m_gbuffer3_rt->texture->bind(tex_unit++);
 
-    if (m_program->set_uniform("s_GBuffer4", tex_unit) && m_gbuffer4_rt)
+    if (m_program->set_uniform("s_GBufferRT4", tex_unit) && m_gbuffer4_rt)
         m_gbuffer4_rt->texture->bind(tex_unit++);
 
     if (m_program->set_uniform("s_Depth", tex_unit) && m_depth_rt)
         m_depth_rt->texture->bind(tex_unit++);
 
-    render_fullscreen_triangle(renderer, view, m_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS | NODE_USAGE_DIRECTIONAL_LIGHTS | NODE_USAGE_SHADOW_MAPPING | NODE_USAGE_STATIC_MESH | NODE_USAGE_SKELETAL_MESH);
+    render_fullscreen_triangle(renderer, view, m_program.get(), tex_unit, m_flags);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -108,7 +115,7 @@ void DeferredNode::shutdown()
 
 std::string DeferredNode::name()
 {
-    return "Cubemap Skybox";
+    return "Deferred";
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

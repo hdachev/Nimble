@@ -183,21 +183,21 @@ ShadowRenderGraph::ShadowRenderGraph() :
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool ShadowRenderGraph::initialize(Renderer* renderer, ResourceManager* res_mgr)
+std::string ShadowRenderGraph::sampling_source()
 {
-    if (!RenderGraph::initialize(renderer, res_mgr))
-        return false;
+	if (m_sampling_source == "")
+	{
+		std::string includes;
+		std::string defines;
 
-    std::string includes;
-    std::string defines;
+		if (!utility::read_shader_separate(utility::path_for_resource("assets/" + m_sampling_source_path), includes, m_sampling_source, defines))
+		{
+			NIMBLE_LOG_ERROR("Failed load Sampling Source: " + m_sampling_source_path);
+			return "";
+		}
+	}
 
-    if (!utility::read_shader_separate(utility::path_for_resource("assets/" + m_sampling_source_path), includes, m_sampling_source, defines))
-    {
-        NIMBLE_LOG_ERROR("Failed load Sampling Source: " + m_sampling_source_path);
-        return false;
-    }
-
-    return true;
+    return m_sampling_source;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

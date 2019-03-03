@@ -210,11 +210,11 @@ private:
         // Set the graphs as the active graphs
         m_renderer.set_scene(m_scene);
 
-        m_renderer.set_scene_render_graph(m_forward_graph);
-
         m_renderer.set_point_light_render_graph(m_pcf_point_light_graph);
         m_renderer.set_spot_light_render_graph(m_pcf_spot_light_graph);
         m_renderer.set_directional_light_render_graph(m_pcf_directional_light_graph);
+
+        m_renderer.set_scene_render_graph(m_forward_graph);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------

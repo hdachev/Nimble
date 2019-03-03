@@ -17,6 +17,7 @@ public:
     std::string name() override;
 
 private:
+	uint32_t					  m_flags;
     std::shared_ptr<RenderTarget> m_color_rt;
     RenderTargetView              m_color_rtv;
     std::shared_ptr<Shader>       m_vs;

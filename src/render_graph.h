@@ -68,11 +68,9 @@ class ShadowRenderGraph : public RenderGraph
 public:
     ShadowRenderGraph();
 
-    bool initialize(Renderer* renderer, ResourceManager* res_mgr) override;
-
     RenderGraphType type() override;
 
-    inline std::string sampling_source() { return m_sampling_source; }
+	std::string sampling_source();
 
     inline void set_sampling_source_path(const std::string& path) { m_sampling_source_path = path; }
 
