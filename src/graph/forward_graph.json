@@ -27,7 +27,7 @@
             ]
         },
         {
-            "name" : "CopyNode",
+            "name" : "ToneMapNode",
             "defines" : [],
             "inputs" : 
             [
