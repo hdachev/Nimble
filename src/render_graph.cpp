@@ -185,17 +185,17 @@ ShadowRenderGraph::ShadowRenderGraph() :
 
 std::string ShadowRenderGraph::sampling_source()
 {
-	if (m_sampling_source == "")
-	{
-		std::string includes;
-		std::string defines;
+    if (m_sampling_source == "")
+    {
+        std::string includes;
+        std::string defines;
 
-		if (!utility::read_shader_separate(utility::path_for_resource("assets/" + m_sampling_source_path), includes, m_sampling_source, defines))
-		{
-			NIMBLE_LOG_ERROR("Failed load Sampling Source: " + m_sampling_source_path);
-			return "";
-		}
-	}
+        if (!utility::read_shader_separate(utility::path_for_resource("assets/" + m_sampling_source_path), includes, m_sampling_source, defines))
+        {
+            NIMBLE_LOG_ERROR("Failed load Sampling Source: " + m_sampling_source_path);
+            return "";
+        }
+    }
 
     return m_sampling_source;
 }

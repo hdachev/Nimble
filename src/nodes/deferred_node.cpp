@@ -13,7 +13,7 @@ DEFINE_RENDER_NODE_FACTORY(DeferredNode)
 DeferredNode::DeferredNode(RenderGraph* graph) :
     RenderNode(graph)
 {
-	m_flags = NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS | NODE_USAGE_DIRECTIONAL_LIGHTS | NODE_USAGE_SHADOW_MAPPING | NODE_USAGE_STATIC_MESH | NODE_USAGE_SKELETAL_MESH;
+    m_flags = NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS | NODE_USAGE_DIRECTIONAL_LIGHTS | NODE_USAGE_SHADOW_MAPPING | NODE_USAGE_STATIC_MESH | NODE_USAGE_SKELETAL_MESH;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -42,11 +42,11 @@ void DeferredNode::declare_connections()
 
 bool DeferredNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-	m_gbuffer1_rt = find_input_render_target("G-Buffer1");
-	m_gbuffer2_rt = find_input_render_target("G-Buffer2");
-	m_gbuffer3_rt = find_input_render_target("G-Buffer3");
-	m_gbuffer4_rt = find_input_render_target("G-Buffer4");
-	m_depth_rt = find_input_render_target("Depth");
+    m_gbuffer1_rt = find_input_render_target("G-Buffer1");
+    m_gbuffer2_rt = find_input_render_target("G-Buffer2");
+    m_gbuffer3_rt = find_input_render_target("G-Buffer3");
+    m_gbuffer4_rt = find_input_render_target("G-Buffer4");
+    m_depth_rt    = find_input_render_target("Depth");
 
     m_color_rtv = RenderTargetView(0, 0, 0, m_color_rt->texture);
 

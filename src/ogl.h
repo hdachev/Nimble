@@ -60,7 +60,7 @@ public:
     GLuint   id();
     GLenum   target();
     uint32_t array_size();
-	uint32_t version();
+    uint32_t version();
 
     // Texture sampler functions.
     void set_wrapping(GLenum s, GLenum t, GLenum r);
@@ -78,7 +78,7 @@ protected:
     GLenum   m_internal_format;
     GLenum   m_format;
     GLenum   m_type;
-	uint32_t m_version = 0;
+    uint32_t m_version = 0;
     uint32_t m_array_size;
 };
 

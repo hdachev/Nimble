@@ -678,7 +678,7 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
         }
 
         graph->build(nodes[nodes.size() - 1]);
-		renderer->register_render_graph(graph);
+        renderer->register_render_graph(graph);
     }
 
     return graph;
@@ -729,21 +729,21 @@ std::shared_ptr<Shader> ResourceManager::load_shader(const std::string& path, co
 
 std::shared_ptr<Shader> ResourceManager::load_shader(const std::string& path, const uint32_t& type, uint32_t flags, Renderer* renderer)
 {
-	std::string shader_src;
-	std::string shader_includes;
-	std::string shader_defines;
+    std::string shader_src;
+    std::string shader_includes;
+    std::string shader_defines;
 
-	if (!utility::read_shader_separate(utility::path_for_resource("assets/" + path), shader_includes, shader_src, shader_defines))
-	{
-		NIMBLE_LOG_ERROR("Failed load Shader Source: " + path);
-		return nullptr;
-	}
+    if (!utility::read_shader_separate(utility::path_for_resource("assets/" + path), shader_includes, shader_src, shader_defines))
+    {
+        NIMBLE_LOG_ERROR("Failed load Shader Source: " + path);
+        return nullptr;
+    }
 
-	std::vector<std::string> defines;
+    std::vector<std::string> defines;
 
-	std::string source;
+    std::string source;
 
-	if (HAS_BIT_FLAG(flags, NODE_USAGE_PER_OBJECT_UBO))
+    if (HAS_BIT_FLAG(flags, NODE_USAGE_PER_OBJECT_UBO))
         defines.push_back("#define PER_OBJECT_UBO");
     if (HAS_BIT_FLAG(flags, NODE_USAGE_PER_VIEW_UBO))
         defines.push_back("#define PER_VIEW_UBO");
@@ -760,16 +760,16 @@ std::shared_ptr<Shader> ResourceManager::load_shader(const std::string& path, co
     if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && renderer->point_light_render_graph())
         defines.push_back("#define POINT_LIGHT_SHADOW_MAPPING");
 
-	// Fragment Func
+    // Fragment Func
     source += shader_defines;
     source += "\n\n";
 
     source += shader_includes;
     source += "\n\n";
 
-	if (type == GL_FRAGMENT_SHADER)
-	{
-		if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && renderer->directional_light_render_graph())
+    if (type == GL_FRAGMENT_SHADER)
+    {
+        if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && renderer->directional_light_render_graph())
         {
             source += renderer->directional_light_render_graph()->sampling_source();
             source += "\n\n";
@@ -786,9 +786,9 @@ std::shared_ptr<Shader> ResourceManager::load_shader(const std::string& path, co
             source += renderer->point_light_render_graph()->sampling_source();
             source += "\n\n";
         }
-	}
+    }
 
-	std::string defines_str = "";
+    std::string defines_str = "";
 
     for (auto& define : defines)
     {
@@ -797,9 +797,9 @@ std::shared_ptr<Shader> ResourceManager::load_shader(const std::string& path, co
     }
 
     source = defines_str + source;
-	source = source + shader_src;
+    source = source + shader_src;
 
-	std::string id = path + defines_str;
+    std::string id = path + defines_str;
 
     if (m_shader_cache.find(id) != m_shader_cache.end() && m_shader_cache[id].lock())
         return m_shader_cache[id].lock();

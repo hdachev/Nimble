@@ -66,10 +66,10 @@ void ToneMapNode::execute(Renderer* renderer, Scene* scene, View* view)
 
     m_program->use();
 
-	if (view->dest_render_target_view)
-		renderer->bind_render_targets(1, view->dest_render_target_view, nullptr);
-	else
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    if (view->dest_render_target_view)
+        renderer->bind_render_targets(1, view->dest_render_target_view, nullptr);
+    else
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glClear(GL_COLOR_BUFFER_BIT);
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());

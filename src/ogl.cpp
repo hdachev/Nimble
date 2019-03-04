@@ -69,7 +69,7 @@ uint32_t Texture::array_size()
 
 uint32_t Texture::version()
 {
-	return m_version;
+    return m_version;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -208,7 +208,6 @@ Texture1D::Texture1D(uint32_t w, uint32_t array_size, int32_t mip_levels, GLenum
     else
         set_min_filter(GL_LINEAR);
 
-	
     GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
@@ -363,7 +362,7 @@ Texture2D::Texture2D(uint32_t w, uint32_t h, uint32_t array_size, int32_t mip_le
     else
         set_min_filter(GL_LINEAR);
 
-	GL_CHECK_ERROR(glBindTexture(m_target, 0));
+    GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -447,9 +446,9 @@ void Texture2D::resize(uint32_t w, uint32_t h)
         GL_CHECK_ERROR(glDeleteTextures(1, &m_gl_tex));
     }
 
-	GL_CHECK_ERROR(glGenTextures(1, &m_gl_tex));
+    GL_CHECK_ERROR(glGenTextures(1, &m_gl_tex));
 
-	m_version++;
+    m_version++;
     m_width  = w;
     m_height = h;
 
@@ -548,7 +547,7 @@ void Texture2D::resize(uint32_t w, uint32_t h)
     else
         set_min_filter(GL_LINEAR);
 
-	 GL_CHECK_ERROR(glBindTexture(m_target, 0));
+    GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -638,7 +637,7 @@ Texture3D::Texture3D(uint32_t w, uint32_t h, uint32_t d, int mip_levels, GLenum 
     else
         set_min_filter(GL_LINEAR);
 
-	GL_CHECK_ERROR(glBindTexture(m_target, 0));
+    GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -768,7 +767,6 @@ TextureCube::TextureCube(uint32_t w, uint32_t h, uint32_t array_size, int32_t mi
     else
         set_min_filter(GL_LINEAR);
 
-	
     GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 

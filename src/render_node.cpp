@@ -536,7 +536,7 @@ void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, Shad
                                                               m_graph->type() == RENDER_GRAPH_STANDARD ? renderer->point_light_render_graph() : nullptr);
                         }
 
-						program->use();
+                        program->use();
 
                         // Bind material
                         if (HAS_BIT_FLAG(flags, NODE_USAGE_MATERIAL_ALBEDO) && !s.material->surface_texture(TEXTURE_TYPE_ALBEDO))

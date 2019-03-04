@@ -193,9 +193,9 @@ private:
         REGISTER_RENDER_NODE(PCFPointLightDepthNode, m_resource_manager);
         REGISTER_RENDER_NODE(PCFDirectionalLightDepthNode, m_resource_manager);
         REGISTER_RENDER_NODE(CopyNode, m_resource_manager);
-		REGISTER_RENDER_NODE(GBufferNode, m_resource_manager);
-		REGISTER_RENDER_NODE(DeferredNode, m_resource_manager);
-		REGISTER_RENDER_NODE(ToneMapNode, m_resource_manager);
+        REGISTER_RENDER_NODE(GBufferNode, m_resource_manager);
+        REGISTER_RENDER_NODE(DeferredNode, m_resource_manager);
+        REGISTER_RENDER_NODE(ToneMapNode, m_resource_manager);
 
         // Create Forward render graph
         m_forward_graph = m_resource_manager.load_render_graph("graph/deferred_graph.json", &m_renderer);

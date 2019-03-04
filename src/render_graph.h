@@ -70,7 +70,7 @@ public:
 
     RenderGraphType type() override;
 
-	std::string sampling_source();
+    std::string sampling_source();
 
     inline void set_sampling_source_path(const std::string& path) { m_sampling_source_path = path; }
 
