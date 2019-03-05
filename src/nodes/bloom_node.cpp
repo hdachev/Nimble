@@ -1,8 +1,12 @@
 #include "bloom_node.h"
+#include "../render_graph.h"
+#include "../resource_manager.h"
+#include "../renderer.h"
+#include "../logger.h"
 
 namespace nimble
 {
-BloomNode::BloomNode(RenderGraph* graph)
+BloomNode::BloomNode(RenderGraph* graph) : RenderNode(graph)
 {
     m_enabled = true;
     m_threshold = 1.0f;
@@ -18,7 +22,7 @@ void BloomNode::declare_connections()
 {
     register_input_render_target("Color");
 
-    m_composite_rt = register_intermediate_output_render_target("Composite", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+    m_composite_rt = register_scaled_intermediate_render_target("Composite", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 
     // Clear earlier render targets.
     for (uint32_t i = 0; i < BLOOM_TEX_CHAIN_SIZE; i++)
@@ -31,15 +35,15 @@ void BloomNode::declare_connections()
         if (i == 0)
             m_bloom_rt[i] = register_scaled_output_render_target("Bloom", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
         else
-            m_bloom_rt[i] = register_intermediate_output_render_target(rt_name, 1.0f/float(scale), 1.0f/float(scale), GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+            m_bloom_rt[i] = register_scaled_intermediate_render_target(rt_name, 1.0f/float(scale), 1.0f/float(scale), GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
     }
 }
 
 bool BloomNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-    register_bool_parameter("Enabled", &m_enabled);
-    register_float_parameter("Threshold", &m_threshold);
-    register_float_parameter("Strength", &m_strength);
+    register_bool_parameter("Enabled", m_enabled);
+    register_float_parameter("Threshold", m_threshold);
+    register_float_parameter("Strength", m_strength);
 
     m_color_rt = find_input_render_target("Color");
 
