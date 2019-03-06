@@ -1334,6 +1334,8 @@ void Renderer::create_texture_for_render_target(std::shared_ptr<RenderTarget> rt
     else if (rt->target == GL_TEXTURE_CUBE_MAP)
         tex = std::make_shared<TextureCube>(rt->w, rt->h, rt->array_size, rt->mip_levels, rt->internal_format, rt->format, rt->type);
 
+	tex->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
     // Assign it to the current output Render Target
     rt->texture = tex;
 

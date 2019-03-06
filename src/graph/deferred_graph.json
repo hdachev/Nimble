@@ -64,7 +64,7 @@
             ]
         },
         {
-            "name" : "ToneMapNode",
+            "name" : "BloomNode",
             "defines" : [],
             "inputs" : 
             [
@@ -73,6 +73,19 @@
                     "slot_name" : "Color",
                     "prev_node_name" : "CubemapSkyboxNode",
                     "prev_output_name" : "Color"
+                }
+            ]
+        },
+        {
+            "name" : "ToneMapNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "BloomNode",
+                    "prev_output_name" : "Bloom"
                 }
             ]
         }

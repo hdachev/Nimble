@@ -6,6 +6,10 @@
 
 namespace nimble
 {
+DEFINE_RENDER_NODE_FACTORY(BloomNode)
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 BloomNode::BloomNode(RenderGraph* graph) : RenderNode(graph)
 {
     m_enabled = true;
@@ -13,16 +17,20 @@ BloomNode::BloomNode(RenderGraph* graph) : RenderNode(graph)
     m_strength = 0.65f;
 }
 
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 BloomNode::~BloomNode()
 {
 
 }
 
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void BloomNode::declare_connections()
 {
     register_input_render_target("Color");
 
-    m_composite_rt = register_scaled_intermediate_render_target("Composite", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+    m_composite_rt = register_scaled_output_render_target("Bloom", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 
     // Clear earlier render targets.
     for (uint32_t i = 0; i < BLOOM_TEX_CHAIN_SIZE; i++)
@@ -32,12 +40,11 @@ void BloomNode::declare_connections()
         std::string rt_name = "Intermediate_";
         rt_name += std::to_string(scale);
 
-        if (i == 0)
-            m_bloom_rt[i] = register_scaled_output_render_target("Bloom", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
-        else
-            m_bloom_rt[i] = register_scaled_intermediate_render_target(rt_name, 1.0f/float(scale), 1.0f/float(scale), GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+        m_bloom_rt[i] = register_scaled_intermediate_render_target(rt_name, 1.0f/float(scale), 1.0f/float(scale), GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
     }
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 bool BloomNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
@@ -86,6 +93,8 @@ bool BloomNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
         return false;
 }
 
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void BloomNode::execute(Renderer* renderer, Scene* scene, View* view)
 {
     if (m_enabled)
@@ -95,19 +104,23 @@ void BloomNode::execute(Renderer* renderer, Scene* scene, View* view)
         upsample(renderer);
         composite(renderer);
     }
-    else
-        passthrough(renderer, m_color_rt, m_composite_rtv);
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 void BloomNode::shutdown()
 {
 
 }
 
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 std::string BloomNode::name()
 {
-
+	return "Bloom";
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 void BloomNode::bright_pass(Renderer* renderer)
 {
@@ -136,7 +149,7 @@ void BloomNode::downsample(Renderer* renderer)
     {
         float scale = pow(2, i + 1);
 
-        glm::vec2 pixel_size = glm::vec2(1.0f / (float(w) / scale), 1.0f / (float(h) / scale));
+        glm::vec2 pixel_size = glm::vec2(1.0f / (float(m_graph->window_width()) / scale), 1.0f / (float(m_graph->window_height()) / scale));
         m_bloom_downsample_program->set_uniform("u_PixelSize", pixel_size);
 
         if (m_bloom_downsample_program->set_uniform("s_Texture", 0))
@@ -167,7 +180,7 @@ void BloomNode::upsample(Renderer* renderer)
     {
         float scale = pow(2, BLOOM_TEX_CHAIN_SIZE - i - 2);
 
-        glm::vec2 pixel_size = glm::vec2(1.0f / (float(w) / scale), 1.0f / (float(h) / scale));
+        glm::vec2 pixel_size = glm::vec2(1.0f / (float(m_graph->window_width()) / scale), 1.0f / (float(m_graph->window_height()) / scale));
         m_bloom_upsample_program->set_uniform("u_PixelSize", pixel_size);
         
         if (m_bloom_upsample_program->set_uniform("s_Texture", 0))
@@ -175,7 +188,7 @@ void BloomNode::upsample(Renderer* renderer)
 
         renderer->bind_render_targets(1, &m_bloom_rtv[BLOOM_TEX_CHAIN_SIZE - i - 2], nullptr);
         glViewport(0, 0, m_graph->window_width()/scale, m_graph->window_height()/scale);
-        // glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         render_fullscreen_triangle(renderer, nullptr);
     }
@@ -205,4 +218,4 @@ void BloomNode::composite(Renderer* renderer)
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
-}
+} // namespace nimble

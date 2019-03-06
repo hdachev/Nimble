@@ -648,7 +648,7 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
                                 if (map.find(prev_node_name) != map.end())
                                 {
                                     auto prev_node = map[prev_node_name];
-                                    auto output    = prev_node->find_output_render_target_slot(slot_name);
+                                    auto output    = prev_node->find_output_render_target_slot(prev_output_name);
 
                                     current_node->set_input(slot_name, output, prev_node);
                                 }
@@ -662,7 +662,7 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
                                 if (map.find(prev_node_name) != map.end())
                                 {
                                     auto prev_node = map[prev_node_name];
-                                    auto output    = prev_node->find_output_buffer_slot(slot_name);
+                                    auto output    = prev_node->find_output_buffer_slot(prev_output_name);
 
                                     current_node->set_input(slot_name, output, prev_node);
                                 }
