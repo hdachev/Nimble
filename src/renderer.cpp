@@ -494,7 +494,7 @@ void Renderer::clear_all_views()
 {
     m_num_cull_views      = 0;
     m_num_update_views    = 0;
-    m_num_rendered_views  = 0;
+	m_num_rendered_views  = 0;
     m_num_allocated_views = 0;
 }
 
@@ -514,6 +514,7 @@ void Renderer::on_window_resized(const uint32_t& w, const uint32_t& h)
 
             Texture2D* texture = (Texture2D*)desc.rt->texture.get();
             texture->resize(width, height);
+			texture->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
         }
     }
 
