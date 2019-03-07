@@ -8,6 +8,25 @@
             "inputs" : []
         },
         {
+            "name" : "SSAONode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "Depth"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Normals",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer2"
+                }
+            ]
+        },
+        {
             "name" : "DeferredNode",
             "defines" : [],
             "inputs" : 
@@ -41,6 +60,12 @@
                     "slot_name" : "Depth",
                     "prev_node_name" : "GBufferNode",
                     "prev_output_name" : "Depth"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "SSAO",
+                    "prev_node_name" : "SSAONode",
+                    "prev_output_name" : "SSAO"
                 }
             ]
         },

@@ -31,6 +31,7 @@ void DeferredNode::declare_connections()
     register_input_render_target("G-Buffer2");
     register_input_render_target("G-Buffer3");
     register_input_render_target("G-Buffer4");
+	register_input_render_target("SSAO");
     register_input_render_target("Depth");
 
     // Since we're rendering to the render targets provided as input, we'll simply forward the input
@@ -46,6 +47,7 @@ bool DeferredNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     m_gbuffer2_rt = find_input_render_target("G-Buffer2");
     m_gbuffer3_rt = find_input_render_target("G-Buffer3");
     m_gbuffer4_rt = find_input_render_target("G-Buffer4");
+	m_ssao_rt = find_input_render_target("SSAO");
     m_depth_rt    = find_input_render_target("Depth");
 
     m_color_rtv = RenderTargetView(0, 0, 0, m_color_rt->texture);

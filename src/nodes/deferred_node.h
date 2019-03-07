@@ -29,6 +29,7 @@ private:
     std::shared_ptr<RenderTarget> m_gbuffer2_rt;
     std::shared_ptr<RenderTarget> m_gbuffer3_rt;
     std::shared_ptr<RenderTarget> m_gbuffer4_rt;
+	std::shared_ptr<RenderTarget> m_ssao_rt;
     std::shared_ptr<RenderTarget> m_depth_rt;
 };
 
