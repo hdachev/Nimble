@@ -19,39 +19,39 @@ public:
     std::string name() override;
 
 private:
-	void bright_pass(Renderer* renderer);
-	void downsample(Renderer* renderer);
-	void upsample(Renderer* renderer);
-	void composite(Renderer* renderer);
+    void bright_pass(Renderer* renderer);
+    void downsample(Renderer* renderer);
+    void upsample(Renderer* renderer);
+    void composite(Renderer* renderer);
 
 private:
     float m_threshold;
-	float m_strength;
-	bool m_enabled;
+    float m_strength;
+    bool  m_enabled;
 
-	std::shared_ptr<RenderTarget> m_composite_rt;
-	std::shared_ptr<RenderTarget> m_bloom_rt[BLOOM_TEX_CHAIN_SIZE]; 
+    std::shared_ptr<RenderTarget> m_composite_rt;
+    std::shared_ptr<RenderTarget> m_bloom_rt[BLOOM_TEX_CHAIN_SIZE];
 
     RenderTargetView m_composite_rtv;
     RenderTargetView m_bloom_rtv[BLOOM_TEX_CHAIN_SIZE];
 
-    std::shared_ptr<Shader>       m_triangle_vs;
+    std::shared_ptr<Shader> m_triangle_vs;
 
     // Brightpass shader
-	std::shared_ptr<Shader>  m_bright_pass_fs;
-	std::shared_ptr<Program> m_bright_pass_program;
+    std::shared_ptr<Shader>  m_bright_pass_fs;
+    std::shared_ptr<Program> m_bright_pass_program;
 
-	// Downsample shader
-	std::shared_ptr<Shader>  m_bloom_downsample_fs;
-	std::shared_ptr<Program> m_bloom_downsample_program;
+    // Downsample shader
+    std::shared_ptr<Shader>  m_bloom_downsample_fs;
+    std::shared_ptr<Program> m_bloom_downsample_program;
 
-	// Upsample shader
-	std::shared_ptr<Shader>  m_bloom_upsample_fs;
-	std::shared_ptr<Program> m_bloom_upsample_program;
+    // Upsample shader
+    std::shared_ptr<Shader>  m_bloom_upsample_fs;
+    std::shared_ptr<Program> m_bloom_upsample_program;
 
-	// Composite shader
-	std::shared_ptr<Shader>  m_bloom_composite_fs;
-	std::shared_ptr<Program> m_bloom_composite_program;
+    // Composite shader
+    std::shared_ptr<Shader>  m_bloom_composite_fs;
+    std::shared_ptr<Program> m_bloom_composite_program;
 
     std::shared_ptr<RenderTarget> m_color_rt;
 };

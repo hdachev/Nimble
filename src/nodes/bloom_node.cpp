@@ -10,18 +10,18 @@ DEFINE_RENDER_NODE_FACTORY(BloomNode)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-BloomNode::BloomNode(RenderGraph* graph) : RenderNode(graph)
+BloomNode::BloomNode(RenderGraph* graph) :
+    RenderNode(graph)
 {
-    m_enabled = true;
+    m_enabled   = true;
     m_threshold = 1.0f;
-    m_strength = 0.65f;
+    m_strength  = 0.65f;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 BloomNode::~BloomNode()
 {
-
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ void BloomNode::declare_connections()
         std::string rt_name = "Intermediate_";
         rt_name += std::to_string(scale);
 
-        m_bloom_rt[i] = register_scaled_intermediate_render_target(rt_name, 1.0f/float(scale), 1.0f/float(scale), GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+        m_bloom_rt[i] = register_scaled_intermediate_render_target(rt_name, 1.0f / float(scale), 1.0f / float(scale), GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
     }
 }
 
@@ -59,11 +59,11 @@ bool BloomNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     for (uint32_t i = 0; i < BLOOM_TEX_CHAIN_SIZE; i++)
         m_bloom_rtv[i] = RenderTargetView(0, 0, 0, m_bloom_rt[i]->texture);
 
-    m_triangle_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
-    m_bright_pass_fs = res_mgr->load_shader("shader/post_process/bloom/bright_pass_fs.glsl", GL_FRAGMENT_SHADER);
-    m_bloom_downsample_fs  = res_mgr->load_shader("shader/post_process/bloom/downsample_fs.glsl", GL_FRAGMENT_SHADER);
-    m_bloom_upsample_fs = res_mgr->load_shader("shader/post_process/bloom/upsample_fs.glsl", GL_FRAGMENT_SHADER);
-    m_bloom_composite_fs = res_mgr->load_shader("shader/post_process/bloom/composite_fs.glsl", GL_FRAGMENT_SHADER);
+    m_triangle_vs         = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
+    m_bright_pass_fs      = res_mgr->load_shader("shader/post_process/bloom/bright_pass_fs.glsl", GL_FRAGMENT_SHADER);
+    m_bloom_downsample_fs = res_mgr->load_shader("shader/post_process/bloom/downsample_fs.glsl", GL_FRAGMENT_SHADER);
+    m_bloom_upsample_fs   = res_mgr->load_shader("shader/post_process/bloom/upsample_fs.glsl", GL_FRAGMENT_SHADER);
+    m_bloom_composite_fs  = res_mgr->load_shader("shader/post_process/bloom/composite_fs.glsl", GL_FRAGMENT_SHADER);
 
     if (m_triangle_vs)
     {
@@ -110,14 +110,13 @@ void BloomNode::execute(Renderer* renderer, Scene* scene, View* view)
 
 void BloomNode::shutdown()
 {
-
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 std::string BloomNode::name()
 {
-	return "Bloom";
+    return "Bloom";
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -156,7 +155,7 @@ void BloomNode::downsample(Renderer* renderer)
             m_bloom_rt[i]->texture->bind(0);
 
         renderer->bind_render_targets(1, &m_bloom_rtv[i + 1], nullptr);
-        glViewport(0, 0, m_graph->window_width()/scale, m_graph->window_height()/scale);
+        glViewport(0, 0, m_graph->window_width() / scale, m_graph->window_height() / scale);
         glClear(GL_COLOR_BUFFER_BIT);
 
         render_fullscreen_triangle(renderer, nullptr);
@@ -182,12 +181,12 @@ void BloomNode::upsample(Renderer* renderer)
 
         glm::vec2 pixel_size = glm::vec2(1.0f / (float(m_graph->window_width()) / scale), 1.0f / (float(m_graph->window_height()) / scale));
         m_bloom_upsample_program->set_uniform("u_PixelSize", pixel_size);
-        
+
         if (m_bloom_upsample_program->set_uniform("s_Texture", 0))
             m_bloom_rt[BLOOM_TEX_CHAIN_SIZE - i - 1]->texture->bind(0);
 
         renderer->bind_render_targets(1, &m_bloom_rtv[BLOOM_TEX_CHAIN_SIZE - i - 2], nullptr);
-        glViewport(0, 0, m_graph->window_width()/scale, m_graph->window_height()/scale);
+        glViewport(0, 0, m_graph->window_width() / scale, m_graph->window_height() / scale);
         glClear(GL_COLOR_BUFFER_BIT);
 
         render_fullscreen_triangle(renderer, nullptr);
@@ -209,7 +208,7 @@ void BloomNode::composite(Renderer* renderer)
 
     if (m_bloom_composite_program->set_uniform("s_Bloom", 1))
         m_bloom_rt[0]->texture->bind(1);
-    
+
     renderer->bind_render_targets(1, &m_composite_rtv, nullptr);
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
     glClear(GL_COLOR_BUFFER_BIT);
