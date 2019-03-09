@@ -44,7 +44,7 @@ bool SSAONode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     m_ssao_intermediate_rtv = RenderTargetView(0, 0, 0, m_ssao_intermediate_rt->texture);
     m_ssao_rtv              = RenderTargetView(0, 0, 0, m_ssao_rt->texture);
 
-	std::uniform_real_distribution<float> random_floats(0.0, 1.0);
+    std::uniform_real_distribution<float> random_floats(0.0, 1.0);
     std::default_random_engine            generator;
 
     std::vector<glm::vec3> ssao_noise;
@@ -73,7 +73,7 @@ bool SSAONode::initialize(Renderer* renderer, ResourceManager* res_mgr)
         scale       = glm::lerp(0.1f, 1.0f, scale * scale);
         sample *= scale;
 
-		ssao_kernel.push_back(sample);
+        ssao_kernel.push_back(sample);
     }
 
     m_kernel_ubo = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, sizeof(glm::vec4) * 64, ssao_kernel.data());
@@ -135,15 +135,14 @@ void SSAONode::ssao(Renderer* renderer, View* view)
 
     m_kernel_ubo->bind_base(2);
 
-	if (m_ssao_program->set_uniform("s_Normals", 0))
-		m_normals_rt->texture->bind(0);
+    if (m_ssao_program->set_uniform("s_Normals", 0))
+        m_normals_rt->texture->bind(0);
 
     if (m_ssao_program->set_uniform("s_Depth", 1))
         m_depth_rt->texture->bind(1);
 
     if (m_ssao_program->set_uniform("s_Noise", 2))
         m_noise_texture->bind(2);
-
 
     m_ssao_program->set_uniform("u_ViewportSize", glm::vec2(m_graph->window_width() * SSAO_SCALE, m_graph->window_height() * SSAO_SCALE));
     m_ssao_program->set_uniform("u_NumSamples", m_num_samples);
@@ -154,7 +153,7 @@ void SSAONode::ssao(Renderer* renderer, View* view)
     glViewport(0, 0, m_graph->window_width() * SSAO_SCALE, m_graph->window_height() * SSAO_SCALE);
     glClear(GL_COLOR_BUFFER_BIT);
 
-	render_fullscreen_triangle(renderer, view, nullptr, 0, NODE_USAGE_PER_VIEW_UBO);
+    render_fullscreen_triangle(renderer, view, nullptr, 0, NODE_USAGE_PER_VIEW_UBO);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -170,7 +169,7 @@ void SSAONode::blur(Renderer* renderer)
     glViewport(0, 0, m_graph->window_width() * SSAO_SCALE, m_graph->window_height() * SSAO_SCALE);
     glClear(GL_COLOR_BUFFER_BIT);
 
-	render_fullscreen_triangle(renderer, nullptr);
+    render_fullscreen_triangle(renderer, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
