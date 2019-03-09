@@ -209,9 +209,9 @@ vec3 get_view_space_position(vec2 tex_coords, float depth)
 {
     vec3 clip_space_position = vec3(tex_coords, depth) * 2.0 - vec3(1.0);
 
-    vec4 view_position = vec4(vec2(inv_proj[0][0], inv_proj[1][1]) * clip_space_position.xy, -1.0,
-                                   inv_proj[2][3] * clip_space_position.z + inv_proj[3][3]);
-
+    //vec4 view_position = vec4(vec2(inv_proj[0][0], inv_proj[1][1]) * clip_space_position.xy, -1.0,
+    //                               inv_proj[2][3] * clip_space_position.z + inv_proj[3][3]);
+    vec4 view_position = inv_proj * vec4(clip_space_position, 1.0);
     return (view_position.xyz / view_position.w);
 }
 

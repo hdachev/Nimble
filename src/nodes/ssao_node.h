@@ -30,7 +30,7 @@ private:
     std::shared_ptr<RenderTarget> m_ssao_intermediate_rt;
     std::shared_ptr<RenderTarget> m_ssao_rt;
 
-    std::shared_ptr<RenderTarget> m_normals_rt;
+	std::shared_ptr<RenderTarget> m_normals_rt;
     std::shared_ptr<RenderTarget> m_depth_rt;
 
     std::shared_ptr<Shader> m_triangle_vs;

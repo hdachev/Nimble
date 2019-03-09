@@ -7,6 +7,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <gtx/compatibility.hpp>
 
+#define SSAO_SCALE 1.0f
+
 namespace nimble
 {
 DEFINE_RENDER_NODE_FACTORY(SSAONode)
@@ -30,10 +32,9 @@ void SSAONode::declare_connections()
 {
     register_input_render_target("Normals");
     register_input_render_target("Depth");
-	register_input_render_target("Position");
 
-    m_ssao_intermediate_rt = register_scaled_intermediate_render_target("SSAO_Intermediate", 0.5f, 0.5f, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-    m_ssao_rt              = register_scaled_output_render_target("SSAO", 0.5f, 0.5f, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+    m_ssao_intermediate_rt = register_scaled_intermediate_render_target("SSAO_Intermediate", SSAO_SCALE, SSAO_SCALE, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+    m_ssao_rt              = register_scaled_output_render_target("SSAO", SSAO_SCALE, SSAO_SCALE, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -80,7 +81,7 @@ bool SSAONode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     m_normals_rt = find_input_render_target("Normals");
     m_depth_rt   = find_input_render_target("Depth");
 
-    m_triangle_vs  = res_mgr->load_shader("shader/post_process/fullscreen_quad_vs.glsl", GL_VERTEX_SHADER);
+    m_triangle_vs  = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
     m_ssao_fs      = res_mgr->load_shader("shader/post_process/ssao/ssao_fs.glsl", GL_FRAGMENT_SHADER);
     m_ssao_blur_fs = res_mgr->load_shader("shader/post_process/ssao/ssao_blur_fs.glsl", GL_FRAGMENT_SHADER);
 
@@ -144,16 +145,16 @@ void SSAONode::ssao(Renderer* renderer, View* view)
         m_noise_texture->bind(2);
 
 
-    m_ssao_program->set_uniform("u_ViewportSize", glm::vec2(m_graph->window_width() / 2, m_graph->window_height() / 2));
+    m_ssao_program->set_uniform("u_ViewportSize", glm::vec2(m_graph->window_width() * SSAO_SCALE, m_graph->window_height() * SSAO_SCALE));
     m_ssao_program->set_uniform("u_NumSamples", m_num_samples);
     m_ssao_program->set_uniform("u_Radius", m_radius);
     m_ssao_program->set_uniform("u_Bias", m_bias);
 
     renderer->bind_render_targets(1, &m_ssao_intermediate_rtv, nullptr);
-    glViewport(0, 0, m_graph->window_width() / 2, m_graph->window_height() / 2);
+    glViewport(0, 0, m_graph->window_width() * SSAO_SCALE, m_graph->window_height() * SSAO_SCALE);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    render_fullscreen_triangle(renderer, view, nullptr, 0, NODE_USAGE_PER_VIEW_UBO);
+	render_fullscreen_triangle(renderer, view, nullptr, 0, NODE_USAGE_PER_VIEW_UBO);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -166,10 +167,10 @@ void SSAONode::blur(Renderer* renderer)
         m_ssao_intermediate_rt->texture->bind(0);
 
     renderer->bind_render_targets(1, &m_ssao_rtv, nullptr);
-    glViewport(0, 0, m_graph->window_width() / 2, m_graph->window_height() / 2);
+    glViewport(0, 0, m_graph->window_width() * SSAO_SCALE, m_graph->window_height() * SSAO_SCALE);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    render_fullscreen_triangle(renderer, nullptr);
+	render_fullscreen_triangle(renderer, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
