@@ -48,7 +48,7 @@ void main()
     // Reconstruct view-space position
     vec3 position = get_view_space_position(FS_IN_TexCoord, frag_depth);    
     // SSAO Scale
-    vec2 scale = vec2(float(u_ViewportSize.x / 2.0) / 4.0, float(u_ViewportSize.y / 2.0) / 4.0);   
+    vec2 scale = vec2(u_ViewportSize.x / 4.0, u_ViewportSize.y / 4.0);   
     // Fetch random vector
     vec3 random = normalize(texture(s_Noise, FS_IN_TexCoord * scale).rgb);  
     // Construct view-space TBN matrix
@@ -74,7 +74,7 @@ void main()
         // Use offset to sample depth texture
         float sample_depth = get_view_space_position(offset.xy, texture(s_Depth, offset.xy).r).z;  
         float range_check = smoothstep(0.0, 1.0, u_Radius / abs(position.z - sample_depth));
-        occlusion += (sample_depth >= ssao_sample.z + u_Bias ? 1.0 : 0.0) * range_check;
+        occlusion += (sample_depth >= (ssao_sample.z + u_Bias) ? 1.0 : 0.0) * range_check;
     }   
     occlusion = 1.0 - (occlusion / float(u_NumSamples));
     FS_OUT_FragColor = occlusion;
