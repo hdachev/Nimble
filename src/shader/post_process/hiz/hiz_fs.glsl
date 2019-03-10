@@ -5,6 +5,12 @@
 in vec2 FS_IN_TexCoord;
 
 // ------------------------------------------------------------------
+// OUTPUTS ----------------------------------------------------------
+// ------------------------------------------------------------------
+
+out vec2 FS_OUT_Color;
+
+// ------------------------------------------------------------------
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
@@ -16,12 +22,10 @@ uniform sampler2D s_Texture;
 
 void main()
 {
-	vec4 depth = textureGather(s_Texture, FS_IN_TexCoord, 0);
-#ifdef MAX
-	gl_FragDepth = max(max(depth.x, depth.y), max(depth.z, depth.w));
-#else
-	gl_FragDepth = min(min(depth.x, depth.y), min(depth.z, depth.w));
-#endif
+	vec4 depth_x = textureGather(s_Texture, FS_IN_TexCoord, 0);
+    vec4 depth_y = textureGather(s_Texture, FS_IN_TexCoord, 1);
+
+	FS_OUT_Color = vec2(min(min(depth_x.x, depth_x.y), min(depth_x.z, depth_x.w)), max(max(depth_y.x, depth_y.y), max(depth_y.z, depth_y.w)));
 }
 
 // ------------------------------------------------------------------

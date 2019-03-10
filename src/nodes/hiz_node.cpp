@@ -27,7 +27,7 @@ void HiZNode::declare_connections()
 {
 	register_input_render_target("Depth");
 	
-	m_hiz_rt = register_scaled_output_render_target("HiZDepth", 1.0f, 1.0f, GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, 1, -1);
+	m_hiz_rt = register_scaled_output_render_target("HiZDepth", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RG32F, GL_RG, GL_FLOAT, 1, 1, -1);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -80,14 +80,16 @@ void HiZNode::copy_depth(Renderer* renderer, Scene* scene, View* view)
 
     m_copy_program->use();
 
-    if (m_copy_program->set_uniform("s_Texture", 0))
+	renderer->bind_render_targets(1, &m_hiz_rtv[0], nullptr);
+    glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
+
+	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (m_copy_program->set_uniform("s_Texture", 0))
         m_depth_rt->texture->bind(0);
 
-    renderer->bind_render_targets(1, nullptr, &m_hiz_rtv[0]);
-    glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    render_fullscreen_triangle(renderer, nullptr);
+	render_fullscreen_triangle(renderer, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -95,7 +97,7 @@ void HiZNode::copy_depth(Renderer* renderer, Scene* scene, View* view)
 void HiZNode::downsample(Renderer* renderer, Scene* scene, View* view)
 {
 	glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+	glDisable(GL_CULL_FACE);
 
     m_hiz_program->use();
 
@@ -103,15 +105,17 @@ void HiZNode::downsample(Renderer* renderer, Scene* scene, View* view)
     {
         float scale = pow(2, i);
 
-        if (m_hiz_program->set_uniform("s_Texture", 0))
+		renderer->bind_render_targets(1, &m_hiz_rtv[i], nullptr);
+        glViewport(0, 0, m_graph->window_width()/scale, m_graph->window_height()/scale);
+
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		 if (m_hiz_program->set_uniform("s_Texture", 0))
             m_hiz_rt->texture->bind(0);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, i - 1);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, i - 1);
-
-        renderer->bind_render_targets(1, nullptr, &m_hiz_rtv[i]);
-        glViewport(0, 0, m_graph->window_width()/scale, m_graph->window_height()/scale);
-        glClear(GL_DEPTH_BUFFER_BIT);
 
         render_fullscreen_triangle(renderer, nullptr);
     }
@@ -129,7 +133,7 @@ void HiZNode::create_rtvs()
 	m_num_rtv = m_hiz_rt->texture->mip_levels();
 	
 	for (uint32_t i = 0; i < m_num_rtv; i++)
-	    m_hiz_rtv[i] = RenderTargetView(0, 0, i, m_hiz_rt->texture);
+		m_hiz_rtv[i] = RenderTargetView(0, 0, i, m_hiz_rt->texture);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

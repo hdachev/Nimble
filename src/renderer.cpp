@@ -625,7 +625,7 @@ Framebuffer* Renderer::framebuffer_for_render_targets(const uint32_t& num_render
 
         if (rt_views)
         {
-            if (num_render_targets == 0)
+            if (num_render_targets == 1)
             {
                 if (rt_views[0].texture->target() == GL_TEXTURE_2D || rt_views[0].texture->target() == GL_TEXTURE_2D_ARRAY)
                     fbo->attach_render_target(0, rt_views[0].texture.get(), rt_views[0].layer, rt_views[0].mip_level);

@@ -1,6 +1,8 @@
 #include <../../common/uniforms.glsl>
 #include <../../common/helper.glsl>
 
+#define DEPTH_LOD 1
+
 // ------------------------------------------------------------------
 // OUTPUTS ----------------------------------------------------------
 // ------------------------------------------------------------------
@@ -44,7 +46,7 @@ void main()
     vec3 normal = get_view_space_normal(FS_IN_TexCoord, s_Normals);
 
     // Sample depth at current fragment from hardware depth buffer
-    float frag_depth = texture(s_Depth, FS_IN_TexCoord).r; 
+    float frag_depth = textureLod(s_Depth, FS_IN_TexCoord, DEPTH_LOD).r; 
     // Reconstruct view-space position
     vec3 position = get_view_space_position(FS_IN_TexCoord, frag_depth);    
     // SSAO Scale
@@ -72,7 +74,7 @@ void main()
         // Remap to the [0, 1] range
         offset.xyz = offset.xyz * 0.5 + 0.5;    
         // Use offset to sample depth texture
-        float sample_depth = get_view_space_position(offset.xy, texture(s_Depth, offset.xy).r).z;  
+        float sample_depth = get_view_space_position(offset.xy, textureLod(s_Depth, offset.xy, DEPTH_LOD).r).z;  
         float range_check = smoothstep(0.0, 1.0, u_Radius / abs(position.z - sample_depth));
         occlusion += (sample_depth >= (ssao_sample.z + u_Bias) ? 1.0 : 0.0) * range_check;
     }   
