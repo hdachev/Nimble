@@ -8,7 +8,7 @@
             "inputs" : []
         },
         {
-            "name" : "SSAONode",
+            "name" : "HiZNode",
             "defines" : [],
             "inputs" : 
             [
@@ -17,6 +17,19 @@
                     "slot_name" : "Depth",
                     "prev_node_name" : "GBufferNode",
                     "prev_output_name" : "Depth"
+                }
+            ]
+        },
+        {
+            "name" : "SSAONode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "HiZNode",
+                    "prev_output_name" : "HiZDepth"
                 },
                 {
                     "type" : "RENDER_TARGET",
@@ -102,6 +115,19 @@
             ]
         },
         {
+            "name" : "AverageLuminanceNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "BloomNode",
+                    "prev_output_name" : "Bloom"
+                }
+            ]
+        },
+        {
             "name" : "ToneMapNode",
             "defines" : [],
             "inputs" : 
@@ -111,6 +137,12 @@
                     "slot_name" : "Color",
                     "prev_node_name" : "BloomNode",
                     "prev_output_name" : "Bloom"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Luminance",
+                    "prev_node_name" : "AverageLuminanceNode",
+                    "prev_output_name" : "Luminance"
                 }
             ]
         }

@@ -142,6 +142,14 @@ void Texture::set_compare_func(GLenum func)
     GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+uint32_t Texture::mip_levels()
+{
+    return m_mip_levels;
+}
+
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 Texture1D::Texture1D(uint32_t w, uint32_t array_size, int32_t mip_levels, GLenum internal_format, GLenum format, GLenum type) :
@@ -247,13 +255,6 @@ uint32_t Texture1D::width()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-uint32_t Texture1D::mip_levels()
-{
-    return m_mip_levels;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
 Texture2D::Texture2D(uint32_t w, uint32_t h, uint32_t array_size, int32_t mip_levels, uint32_t num_samples, GLenum internal_format, GLenum format, GLenum type, bool compressed) :
     Texture()
 {
@@ -275,7 +276,7 @@ Texture2D::Texture2D(uint32_t w, uint32_t h, uint32_t array_size, int32_t mip_le
         int width  = m_width;
         int height = m_height;
 
-        while (width > 1 && height > 1)
+        while (width > 1 || height > 1)
         {
             width  = std::max(1, (width / 2));
             height = std::max(1, (height / 2));
@@ -460,7 +461,7 @@ void Texture2D::resize(uint32_t w, uint32_t h)
         int width  = m_width;
         int height = m_height;
 
-        while (width > 1 && height > 1)
+        while (width > 1 || height > 1)
         {
             width  = std::max(1, (width / 2));
             height = std::max(1, (height / 2));
@@ -562,13 +563,6 @@ uint32_t Texture2D::width()
 uint32_t Texture2D::height()
 {
     return m_height;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-uint32_t Texture2D::mip_levels()
-{
-    return m_mip_levels;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -683,13 +677,6 @@ uint32_t Texture3D::height()
 uint32_t Texture3D::depth()
 {
     return m_depth;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-uint32_t Texture3D::mip_levels()
-{
-    return m_mip_levels;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -840,13 +827,6 @@ uint32_t TextureCube::width()
 uint32_t TextureCube::height()
 {
     return m_height;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-uint32_t TextureCube::mip_levels()
-{
-    return m_mip_levels;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

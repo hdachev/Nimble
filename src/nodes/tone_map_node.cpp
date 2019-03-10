@@ -27,6 +27,7 @@ void ToneMapNode::declare_connections()
 {
     // Declare the inputs to this render node
     register_input_render_target("Color");
+	register_input_render_target("Luminance");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

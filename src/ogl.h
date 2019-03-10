@@ -61,6 +61,7 @@ public:
     GLenum   target();
     uint32_t array_size();
     uint32_t version();
+	uint32_t mip_levels();
 
     // Texture sampler functions.
     void set_wrapping(GLenum s, GLenum t, GLenum r);
@@ -80,6 +81,7 @@ protected:
     GLenum   m_type;
     uint32_t m_version = 0;
     uint32_t m_array_size;
+	uint32_t m_mip_levels;
 };
 
 #if !defined(__EMSCRIPTEN__)
@@ -90,11 +92,9 @@ public:
     ~Texture1D();
     void     set_data(int array_index, int mip_level, void* data);
     uint32_t width();
-    uint32_t mip_levels();
 
 private:
     uint32_t m_width;
-    uint32_t m_mip_levels;
 };
 #endif
 
@@ -108,15 +108,13 @@ public:
     void     resize(uint32_t w, uint32_t h);
     uint32_t width();
     uint32_t height();
-    uint32_t mip_levels();
     uint32_t num_samples();
 
 private:
     bool     m_compressed;
     uint32_t m_width;
     uint32_t m_height;
-    uint32_t m_mip_levels;
-    uint32_t m_num_samples;
+	uint32_t m_num_samples;
 };
 
 class Texture3D : public Texture
@@ -128,13 +126,11 @@ public:
     uint32_t width();
     uint32_t height();
     uint32_t depth();
-    uint32_t mip_levels();
 
 private:
     uint32_t m_width;
     uint32_t m_height;
     uint32_t m_depth;
-    uint32_t m_mip_levels;
 };
 
 class TextureCube : public Texture
@@ -146,12 +142,10 @@ public:
     void     set_compressed_data(int face_index, int layer_index, int mip_level, size_t size, void* data);
     uint32_t width();
     uint32_t height();
-    uint32_t mip_levels();
 
 private:
     uint32_t m_width;
     uint32_t m_height;
-    uint32_t m_mip_levels;
 };
 
 class Framebuffer
