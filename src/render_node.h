@@ -138,10 +138,10 @@ public:
 
     // Virtual methods
     virtual void        declare_connections();
-    virtual bool        initialize(Renderer* renderer, ResourceManager* res_mgr) = 0;
-    virtual void        execute(double delta, Renderer* renderer, Scene* scene, View* view)    = 0;
-    virtual void        shutdown()                                               = 0;
-    virtual std::string name()                                                   = 0;
+    virtual bool        initialize(Renderer* renderer, ResourceManager* res_mgr)            = 0;
+    virtual void        execute(double delta, Renderer* renderer, Scene* scene, View* view) = 0;
+    virtual void        shutdown()                                                          = 0;
+    virtual std::string name()                                                              = 0;
 
     // Event callbacks
     virtual void on_window_resized(const uint32_t& w, const uint32_t& h);
