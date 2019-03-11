@@ -27,11 +27,11 @@ uniform float u_Tau;
 
 void main(void)
 {
-    float prev_lum = texture(s_PreviousLuminance, FS_IN_TexCoord).r;
+    float prev_lum = exp(texture(s_PreviousLuminance, FS_IN_TexCoord).r);
     float curr_lum = texture(s_CurrentLuminance, FS_IN_TexCoord).r;
 
     // Adapt the luminance using Pattanaik's technique    
-    float adapted_lum = prev_lum + (curr_lum - curr_lum) * (1 - exp(-u_Delta * u_Tau));
+    float adapted_lum = prev_lum + (curr_lum - prev_lum) * (1 - exp(-u_Delta * u_Tau));
 
     FS_OUT_Color = vec4(log(adapted_lum), 0.0, 0.0, 0.0);
 }

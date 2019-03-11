@@ -12,7 +12,7 @@ public:
 	
 	void        declare_connections() override;
     bool        initialize(Renderer* renderer, ResourceManager* res_mgr) override;
-    void        execute(Renderer* renderer, Scene* scene, View* view) override;
+    void        execute(double delta, Renderer* renderer, Scene* scene, View* view) override;
     void        shutdown() override;
     std::string name() override;
 	void on_window_resized(const uint32_t& w, const uint32_t& h) override;

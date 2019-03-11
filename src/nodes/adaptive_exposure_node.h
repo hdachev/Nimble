@@ -43,6 +43,7 @@ private:
 	std::shared_ptr<Shader>  m_copy_lum_fs;
 	std::shared_ptr<Program> m_copy_lum_program;
 
+	bool m_initialized = false;
 	float m_tau = 1.1f;
 	int32_t m_current_rt = 0;
 };

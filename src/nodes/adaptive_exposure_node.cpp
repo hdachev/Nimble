@@ -28,8 +28,8 @@ void AdaptiveExposureNode::declare_connections()
 	register_input_render_target("Color");
 	
 	m_luminance_rt = register_intermediate_render_target("InitialLuminance", 1024, 1024, GL_TEXTURE_2D, GL_R32F, GL_RED, GL_FLOAT);
-	m_adapted_luminance_rt[0] = register_intermediate_render_target("AdaptedLuminance", 1024, 1024, GL_TEXTURE_2D, GL_R32F, GL_RED, GL_FLOAT, 1, 1, -1);
-	m_adapted_luminance_rt[1] = register_intermediate_render_target("AdaptedLuminance", 1024, 1024, GL_TEXTURE_2D, GL_R32F, GL_RED, GL_FLOAT, 1, 1, -1);
+	m_adapted_luminance_rt[0] = register_intermediate_render_target("AdaptedLuminance1", 1024, 1024, GL_TEXTURE_2D, GL_R32F, GL_RED, GL_FLOAT, 1, 1, -1);
+	m_adapted_luminance_rt[1] = register_intermediate_render_target("AdaptedLuminance2", 1024, 1024, GL_TEXTURE_2D, GL_R32F, GL_RED, GL_FLOAT, 1, 1, -1);
 	m_final_luminance_rt = register_output_render_target("Luminance", 1, 1, GL_TEXTURE_2D, GL_R32F, GL_RED, GL_FLOAT);
 }
 
@@ -125,16 +125,31 @@ void AdaptiveExposureNode::adapted_luminance(double delta, Renderer* renderer, S
 	glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
+	if (!m_initialized)
+	{
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+		renderer->bind_render_targets(1, &m_adapted_luminance_rtv[0], nullptr);
+		glViewport(0, 0, 1024, 1024);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		renderer->bind_render_targets(1, &m_adapted_luminance_rtv[1], nullptr);
+		glViewport(0, 0, 1024, 1024);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		m_initialized = true;
+	}
+
     m_adapted_lum_program->use();
 
 	if (m_adapted_lum_program->set_uniform("s_PreviousLuminance", 0))
         m_adapted_luminance_rt[!m_current_rt]->texture->bind(0);
 
-    if (m_adapted_lum_program->set_uniform("s_CurrentLuminance", 1))
-        m_luminance_rt->texture->bind(1);
+	if (m_adapted_lum_program->set_uniform("s_CurrentLuminance", 1))
+		m_luminance_rt->texture->bind(1);
 
 	m_adapted_lum_program->set_uniform("u_Tau", m_tau);
-	m_adapted_lum_program->set_uniform("u_Delta", static_cast<float>(delta));
+	m_adapted_lum_program->set_uniform("u_Delta", static_cast<float>(delta) / 1000.0f);
 
     renderer->bind_render_targets(1, &m_adapted_luminance_rtv[m_current_rt], nullptr);
     glViewport(0, 0, 1024, 1024);

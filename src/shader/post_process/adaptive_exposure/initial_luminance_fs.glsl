@@ -1,6 +1,3 @@
-#include <../../common/uniforms.glsl>
-#include <../../common/helper.glsl>
-
 // ------------------------------------------------------------------
 // INPUT VARIABLES  -------------------------------------------------
 // ------------------------------------------------------------------
@@ -27,7 +24,8 @@ uniform sampler2D s_Texture;
 void main(void)
 {
     vec3 color = texture2D(s_Texture, FS_IN_TexCoord).rgb;
-    FS_OUT_Color = vec4(luminance(color), 0.0, 0.0, 0.0);
+    float luminance = max(dot(color, vec3(0.299, 0.587, 0.114)), 0.0001);
+    FS_OUT_Color = vec4(luminance, 0.0, 0.0, 0.0);
 }
 
 // ------------------------------------------------------------------
