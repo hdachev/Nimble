@@ -143,7 +143,7 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::render()
+void Renderer::render(double delta)
 {
     queue_default_views();
 
@@ -151,7 +151,7 @@ void Renderer::render()
 
     cull_scene();
 
-    render_all_views();
+    render_all_views(delta);
 
     clear_all_views();
 }
@@ -1689,7 +1689,7 @@ void Renderer::queue_default_views()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::render_all_views()
+void Renderer::render_all_views(double delta)
 {
     if (m_num_rendered_views > 0)
     {
@@ -1702,7 +1702,7 @@ void Renderer::render_all_views()
             if (view->enabled)
             {
                 if (view->graph)
-                    view->graph->execute(this, scene.get(), view);
+                    view->graph->execute(delta, this, scene.get(), view);
                 else
                     NIMBLE_LOG_ERROR("Render Graph not assigned for View!");
             }

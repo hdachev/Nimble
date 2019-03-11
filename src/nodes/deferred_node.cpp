@@ -76,7 +76,7 @@ bool DeferredNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void DeferredNode::execute(Renderer* renderer, Scene* scene, View* view)
+void DeferredNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);

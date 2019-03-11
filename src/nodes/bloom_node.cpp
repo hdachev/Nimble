@@ -95,7 +95,7 @@ bool BloomNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void BloomNode::execute(Renderer* renderer, Scene* scene, View* view)
+void BloomNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
     if (m_enabled)
     {

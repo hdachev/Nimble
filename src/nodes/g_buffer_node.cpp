@@ -59,7 +59,7 @@ std::string GBufferNode::name()
 }
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void GBufferNode::execute(Renderer* renderer, Scene* scene, View* view)
+void GBufferNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
     renderer->bind_render_targets(4, m_gbuffer_rtv, &m_depth_rtv);
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());

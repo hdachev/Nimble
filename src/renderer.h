@@ -43,7 +43,7 @@ public:
     ~Renderer();
 
     bool initialize(ResourceManager* res_mgr, const uint32_t& w, const uint32_t& h);
-    void render();
+    void render(double delta);
     void shutdown();
 
     void  set_settings(Settings settings);
@@ -105,7 +105,7 @@ private:
     uint32_t queue_update_view(View* view);
     uint32_t queue_culled_view(Frustum f);
     void     queue_default_views();
-    void     render_all_views();
+    void     render_all_views(double delta);
 
 private:
     // Resource caches

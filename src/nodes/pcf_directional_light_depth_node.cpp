@@ -35,7 +35,7 @@ bool PCFDirectionalLightDepthNode::initialize(Renderer* renderer, ResourceManage
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void PCFDirectionalLightDepthNode::execute(Renderer* renderer, Scene* scene, View* view)
+void PCFDirectionalLightDepthNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
     int32_t w = 0;
     int32_t h = 0;

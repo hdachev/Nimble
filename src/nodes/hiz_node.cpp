@@ -62,7 +62,7 @@ bool HiZNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void HiZNode::execute(Renderer* renderer, Scene* scene, View* view)
+void HiZNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
     // Copy G-Buffer Depth into Mip 0 of HiZ
     copy_depth(renderer, scene, view);

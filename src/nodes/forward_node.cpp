@@ -43,7 +43,7 @@ bool ForwardNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void ForwardNode::execute(Renderer* renderer, Scene* scene, View* view)
+void ForwardNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
     renderer->bind_render_targets(2, m_color_rtv, &m_depth_rtv);
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());

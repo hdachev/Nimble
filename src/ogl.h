@@ -61,7 +61,7 @@ public:
     GLenum   target();
     uint32_t array_size();
     uint32_t version();
-	uint32_t mip_levels();
+    uint32_t mip_levels();
 
     // Texture sampler functions.
     void set_wrapping(GLenum s, GLenum t, GLenum r);
@@ -81,7 +81,7 @@ protected:
     GLenum   m_type;
     uint32_t m_version = 0;
     uint32_t m_array_size;
-	uint32_t m_mip_levels;
+    uint32_t m_mip_levels;
 };
 
 #if !defined(__EMSCRIPTEN__)
@@ -114,7 +114,7 @@ private:
     bool     m_compressed;
     uint32_t m_width;
     uint32_t m_height;
-	uint32_t m_num_samples;
+    uint32_t m_num_samples;
 };
 
 class Texture3D : public Texture

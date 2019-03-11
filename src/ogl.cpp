@@ -142,7 +142,6 @@ void Texture::set_compare_func(GLenum func)
     GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
-
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 uint32_t Texture::mip_levels()

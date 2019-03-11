@@ -21,7 +21,7 @@ PCFPointLightDepthNode::~PCFPointLightDepthNode()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void PCFPointLightDepthNode::execute(Renderer* renderer, Scene* scene, View* view)
+void PCFPointLightDepthNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
     int32_t w = 0;
     int32_t h = 0;

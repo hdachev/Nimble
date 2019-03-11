@@ -21,7 +21,7 @@ public:
     ~RenderGraph();
 
     void                        build(std::shared_ptr<RenderNode> end_node);
-    void                        execute(Renderer* renderer, Scene* scene, View* view);
+    void                        execute(double delta, Renderer* renderer, Scene* scene, View* view);
     void                        shutdown();
     void                        clear();
     std::shared_ptr<RenderNode> node_by_name(const std::string& name);

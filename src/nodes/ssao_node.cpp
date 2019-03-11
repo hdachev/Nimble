@@ -31,7 +31,7 @@ SSAONode::~SSAONode()
 void SSAONode::declare_connections()
 {
     register_input_render_target("Normals");
-	register_input_render_target("Depth");
+    register_input_render_target("Depth");
 
     m_ssao_intermediate_rt = register_scaled_intermediate_render_target("SSAO_Intermediate", SSAO_SCALE, SSAO_SCALE, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
     m_ssao_rt              = register_scaled_output_render_target("SSAO", SSAO_SCALE, SSAO_SCALE, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
@@ -42,7 +42,7 @@ void SSAONode::declare_connections()
 bool SSAONode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_ssao_intermediate_rtv = RenderTargetView(0, 0, 0, m_ssao_intermediate_rt->texture);
-	m_ssao_rtv = RenderTargetView(0, 0, 0, m_ssao_rt->texture);
+    m_ssao_rtv              = RenderTargetView(0, 0, 0, m_ssao_rt->texture);
 
     std::uniform_real_distribution<float> random_floats(0.0, 1.0);
     std::default_random_engine            generator;
@@ -108,7 +108,7 @@ bool SSAONode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void SSAONode::execute(Renderer* renderer, Scene* scene, View* view)
+void SSAONode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
     ssao(renderer, view);
     blur(renderer);

@@ -102,7 +102,7 @@
             ]
         },
         {
-            "name" : "BloomNode",
+            "name" : "AdaptiveExposureNode",
             "defines" : [],
             "inputs" : 
             [
@@ -115,15 +115,15 @@
             ]
         },
         {
-            "name" : "AverageLuminanceNode",
+            "name" : "BloomNode",
             "defines" : [],
             "inputs" : 
             [
                 {
                     "type" : "RENDER_TARGET",
                     "slot_name" : "Color",
-                    "prev_node_name" : "BloomNode",
-                    "prev_output_name" : "Bloom"
+                    "prev_node_name" : "CubemapSkyboxNode",
+                    "prev_output_name" : "Color"
                 }
             ]
         },
@@ -141,7 +141,7 @@
                 {
                     "type" : "RENDER_TARGET",
                     "slot_name" : "Luminance",
-                    "prev_node_name" : "AverageLuminanceNode",
+                    "prev_node_name" : "AdaptiveExposureNode",
                     "prev_output_name" : "Luminance"
                 }
             ]

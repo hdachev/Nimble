@@ -66,7 +66,7 @@ bool CubemapSkyboxNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void CubemapSkyboxNode::execute(Renderer* renderer, Scene* scene, View* view)
+void CubemapSkyboxNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);

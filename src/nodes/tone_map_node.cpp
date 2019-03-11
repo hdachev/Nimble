@@ -27,7 +27,7 @@ void ToneMapNode::declare_connections()
 {
     // Declare the inputs to this render node
     register_input_render_target("Color");
-	register_input_render_target("Luminance");
+    register_input_render_target("Luminance");
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ bool ToneMapNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void ToneMapNode::execute(Renderer* renderer, Scene* scene, View* view)
+void ToneMapNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);

@@ -66,11 +66,11 @@ void RenderGraph::build(std::shared_ptr<RenderNode> end_node)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void RenderGraph::execute(Renderer* renderer, Scene* scene, View* view)
+void RenderGraph::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
     for (auto& node : m_flattened_graph)
     {
-        node->execute(renderer, scene, view);
+        node->execute(delta, renderer, scene, view);
 
         if (m_num_cascade_views > 0)
         {
@@ -81,7 +81,7 @@ void RenderGraph::execute(Renderer* renderer, Scene* scene, View* view)
                 if (light_view)
                 {
                     if (light_view->graph)
-                        light_view->graph->execute(renderer, scene, light_view);
+                        light_view->graph->execute(delta, renderer, scene, light_view);
                     else
                         NIMBLE_LOG_ERROR("Render Graph not assigned for View!");
                 }
