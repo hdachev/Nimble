@@ -1459,7 +1459,7 @@ void Renderer::update_uniforms()
 
         void* ptr = m_per_entity->map(GL_WRITE_ONLY);
         memcpy(ptr, &m_per_entity_uniforms[0], sizeof(PerEntityUniforms) * scene->entity_count());
-        m_per_entity->unmap();
+		m_per_entity->unmap();
 
         // Update per view uniforms
         for (uint32_t i = 0; i < m_num_update_views; i++)
@@ -1480,6 +1480,7 @@ void Renderer::update_uniforms()
             m_per_view_uniforms[i].num_cascades    = m_settings.cascade_count;
             m_per_view_uniforms[i].viewport_width  = m_window_width;
             m_per_view_uniforms[i].viewport_height = m_window_height;
+			m_per_view_uniforms[i].current_prev_jitter = view->jitter;
 
             for (uint32_t j = 0; j < view->num_cascade_frustums; j++)
             {

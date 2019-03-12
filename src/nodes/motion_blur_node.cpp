@@ -73,7 +73,7 @@ void MotionBlurNode::execute(double delta, Renderer* renderer, Scene* scene, Vie
 	if (m_program->set_uniform("s_Velocity", 1))
         m_velocity_rt->texture->bind(1);
 
-	int current_fps = int((1.0f / static_cast<float>(delta)) * 1000.0f);
+	int current_fps = int((1.0f / (static_cast<float>(delta)) * 1000.0f));
 	int target_fps = 60;
 
 	m_program->set_uniform("u_Scale", static_cast<float>(current_fps) / static_cast<float>(target_fps));

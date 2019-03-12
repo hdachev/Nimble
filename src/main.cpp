@@ -21,6 +21,7 @@
 #include "nodes/ssao_node.h"
 #include "nodes/hiz_node.h"
 #include "nodes/adaptive_exposure_node.h"
+#include "nodes/motion_blur_node.h"
 #include "debug_draw.h"
 #include "imgui_helpers.h"
 #include "external/nfd/nfd.h"
@@ -204,6 +205,7 @@ private:
         REGISTER_RENDER_NODE(SSAONode, m_resource_manager);
         REGISTER_RENDER_NODE(HiZNode, m_resource_manager);
         REGISTER_RENDER_NODE(AdaptiveExposureNode, m_resource_manager);
+		REGISTER_RENDER_NODE(MotionBlurNode, m_resource_manager);
 
         // Create Forward render graph
         m_forward_graph = m_resource_manager.load_render_graph("graph/deferred_graph.json", &m_renderer);

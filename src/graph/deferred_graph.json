@@ -128,7 +128,7 @@
             ]
         },
         {
-            "name" : "ToneMapNode",
+            "name" : "MotionBlurNode",
             "defines" : [],
             "inputs" : 
             [
@@ -137,6 +137,25 @@
                     "slot_name" : "Color",
                     "prev_node_name" : "BloomNode",
                     "prev_output_name" : "Bloom"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Velocity",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer3"
+                }
+            ]
+        },
+        {
+            "name" : "ToneMapNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "MotionBlurNode",
+                    "prev_output_name" : "MotionBlur"
                 },
                 {
                     "type" : "RENDER_TARGET",

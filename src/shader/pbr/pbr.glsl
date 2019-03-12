@@ -12,7 +12,7 @@ const float kAmbient   = 1.0;
 
 vec3 fresnel_schlick_roughness(float HdotV, vec3 F0, float roughness)
 {
-	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - HdotV, 5.0);
+	return clamp(F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - HdotV, 5.0), 0.0, 1.0);
 }
 
 // ------------------------------------------------------------------
