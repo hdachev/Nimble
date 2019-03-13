@@ -131,6 +131,8 @@ std::string SSAONode::name()
 
 void SSAONode::ssao(Renderer* renderer, View* view)
 {
+	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "SSAO");
+
     m_ssao_program->use();
 
     m_kernel_ubo->bind_base(2);
@@ -154,12 +156,16 @@ void SSAONode::ssao(Renderer* renderer, View* view)
     glClear(GL_COLOR_BUFFER_BIT);
 
     render_fullscreen_triangle(renderer, view, nullptr, 0, NODE_USAGE_PER_VIEW_UBO);
+
+	glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void SSAONode::blur(Renderer* renderer)
 {
+	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Blur");
+
     m_ssao_blur_program->use();
 
     if (m_ssao_blur_program->set_uniform("s_SSAO", 0))
@@ -170,6 +176,8 @@ void SSAONode::blur(Renderer* renderer)
     glClear(GL_COLOR_BUFFER_BIT);
 
     render_fullscreen_triangle(renderer, nullptr);
+
+	glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

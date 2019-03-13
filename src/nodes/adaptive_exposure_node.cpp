@@ -103,6 +103,8 @@ std::string AdaptiveExposureNode::name()
 
 void AdaptiveExposureNode::initial_luminance(Renderer* renderer, Scene* scene, View* view)
 {
+	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Initial Luminance");
+
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
@@ -116,12 +118,16 @@ void AdaptiveExposureNode::initial_luminance(Renderer* renderer, Scene* scene, V
     glClear(GL_COLOR_BUFFER_BIT);
 
     render_fullscreen_triangle(renderer, nullptr);
+
+	glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void AdaptiveExposureNode::adapted_luminance(double delta, Renderer* renderer, Scene* scene, View* view)
 {
+	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Adapted Luminance");
+
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
@@ -158,12 +164,16 @@ void AdaptiveExposureNode::adapted_luminance(double delta, Renderer* renderer, S
     render_fullscreen_triangle(renderer, nullptr);
 
     m_adapted_luminance_rt[m_current_rt]->texture->generate_mipmaps();
+
+	glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void AdaptiveExposureNode::copy_luminance(Renderer* renderer, Scene* scene, View* view)
 {
+	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Copy Luminance");
+
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
@@ -180,6 +190,8 @@ void AdaptiveExposureNode::copy_luminance(Renderer* renderer, Scene* scene, View
     glClear(GL_COLOR_BUFFER_BIT);
 
     render_fullscreen_triangle(renderer, nullptr);
+
+	glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
