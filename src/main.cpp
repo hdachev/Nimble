@@ -418,6 +418,11 @@ private:
                 }
             }
 
+			if (ImGui::CollapsingHeader("Render Graph"))
+			{
+				render_target_debug();
+			}
+
             if (ImGui::CollapsingHeader("Entities"))
             {
                 if (m_scene)
@@ -557,8 +562,30 @@ private:
                 }
             }
         }
+
         ImGui::End();
     }
+
+	// -----------------------------------------------------------------------------------------------------------------------------------
+
+	void render_target_debug()
+	{
+		for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
+		{
+			auto node = m_forward_graph->node(i);
+
+			if (ImGui::TreeNode(node->name().c_str()))
+			{
+				for (uint32_t j = 0; j < node->output_render_target_count(); j++)
+				{
+					Texture2D* texture = (Texture2D*)node->output_render_target(j)->texture.get();
+					image_with_texture(texture, ImVec2(ImGui::GetWindowSize().x, static_cast<float>(m_height)/static_cast<float>(m_width) * ImGui::GetWindowSize().x));
+				}
+
+				ImGui::TreePop();
+			}
+		}
+	}
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
