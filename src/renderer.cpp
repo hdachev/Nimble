@@ -1459,28 +1459,28 @@ void Renderer::update_uniforms()
 
         void* ptr = m_per_entity->map(GL_WRITE_ONLY);
         memcpy(ptr, &m_per_entity_uniforms[0], sizeof(PerEntityUniforms) * scene->entity_count());
-		m_per_entity->unmap();
+        m_per_entity->unmap();
 
         // Update per view uniforms
         for (uint32_t i = 0; i < m_num_update_views; i++)
         {
             View* view = m_update_views[i];
 
-            m_per_view_uniforms[i].view_mat        = view->view_mat;
-            m_per_view_uniforms[i].proj_mat        = view->projection_mat;
-            m_per_view_uniforms[i].view_proj       = view->vp_mat;
-            m_per_view_uniforms[i].last_view_proj  = view->prev_vp_mat;
-            m_per_view_uniforms[i].inv_proj        = view->inv_projection_mat;
-            m_per_view_uniforms[i].inv_view        = view->inv_view_mat;
-            m_per_view_uniforms[i].inv_view_proj   = view->inv_vp_mat;
-            m_per_view_uniforms[i].view_pos        = glm::vec4(view->position, 0.0f);
-            m_per_view_uniforms[i].view_dir        = glm::vec4(view->direction, 0.0f);
-            m_per_view_uniforms[i].near_plane      = view->near_plane;
-            m_per_view_uniforms[i].far_plane       = view->far_plane;
-            m_per_view_uniforms[i].num_cascades    = m_settings.cascade_count;
-            m_per_view_uniforms[i].viewport_width  = m_window_width;
-            m_per_view_uniforms[i].viewport_height = m_window_height;
-			m_per_view_uniforms[i].current_prev_jitter = view->jitter;
+            m_per_view_uniforms[i].view_mat            = view->view_mat;
+            m_per_view_uniforms[i].proj_mat            = view->projection_mat;
+            m_per_view_uniforms[i].view_proj           = view->vp_mat;
+            m_per_view_uniforms[i].last_view_proj      = view->prev_vp_mat;
+            m_per_view_uniforms[i].inv_proj            = view->inv_projection_mat;
+            m_per_view_uniforms[i].inv_view            = view->inv_view_mat;
+            m_per_view_uniforms[i].inv_view_proj       = view->inv_vp_mat;
+            m_per_view_uniforms[i].view_pos            = glm::vec4(view->position, 0.0f);
+            m_per_view_uniforms[i].view_dir            = glm::vec4(view->direction, 0.0f);
+            m_per_view_uniforms[i].near_plane          = view->near_plane;
+            m_per_view_uniforms[i].far_plane           = view->far_plane;
+            m_per_view_uniforms[i].num_cascades        = m_settings.cascade_count;
+            m_per_view_uniforms[i].viewport_width      = m_window_width;
+            m_per_view_uniforms[i].viewport_height     = m_window_height;
+            m_per_view_uniforms[i].current_prev_jitter = view->jitter;
 
             for (uint32_t j = 0; j < view->num_cascade_frustums; j++)
             {

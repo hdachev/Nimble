@@ -103,7 +103,7 @@ std::string AdaptiveExposureNode::name()
 
 void AdaptiveExposureNode::initial_luminance(Renderer* renderer, Scene* scene, View* view)
 {
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Initial Luminance");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Initial Luminance");
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
@@ -119,14 +119,14 @@ void AdaptiveExposureNode::initial_luminance(Renderer* renderer, Scene* scene, V
 
     render_fullscreen_triangle(renderer, nullptr);
 
-	glPopDebugGroup();
+    glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void AdaptiveExposureNode::adapted_luminance(double delta, Renderer* renderer, Scene* scene, View* view)
 {
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Adapted Luminance");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Adapted Luminance");
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
@@ -165,14 +165,14 @@ void AdaptiveExposureNode::adapted_luminance(double delta, Renderer* renderer, S
 
     m_adapted_luminance_rt[m_current_rt]->texture->generate_mipmaps();
 
-	glPopDebugGroup();
+    glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void AdaptiveExposureNode::copy_luminance(Renderer* renderer, Scene* scene, View* view)
 {
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Copy Luminance");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Copy Luminance");
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
@@ -191,7 +191,7 @@ void AdaptiveExposureNode::copy_luminance(Renderer* renderer, Scene* scene, View
 
     render_fullscreen_triangle(renderer, nullptr);
 
-	glPopDebugGroup();
+    glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

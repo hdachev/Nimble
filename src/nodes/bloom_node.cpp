@@ -123,7 +123,7 @@ std::string BloomNode::name()
 
 void BloomNode::bright_pass(Renderer* renderer)
 {
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Bright Pass");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Bright Pass");
 
     m_bright_pass_program->use();
 
@@ -138,14 +138,14 @@ void BloomNode::bright_pass(Renderer* renderer)
 
     render_fullscreen_triangle(renderer, nullptr);
 
-	glPopDebugGroup();
+    glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void BloomNode::downsample(Renderer* renderer)
 {
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Downsample");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Downsample");
 
     m_bloom_downsample_program->use();
 
@@ -167,7 +167,7 @@ void BloomNode::downsample(Renderer* renderer)
         render_fullscreen_triangle(renderer, nullptr);
     }
 
-	glPopDebugGroup();
+    glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -175,7 +175,7 @@ void BloomNode::downsample(Renderer* renderer)
 // TODO: Prevent clearing when upsampling and use additive blending.
 void BloomNode::upsample(Renderer* renderer)
 {
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Upsample");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Upsample");
 
     m_bloom_upsample_program->use();
 
@@ -204,14 +204,14 @@ void BloomNode::upsample(Renderer* renderer)
 
     // glDisable(GL_BLEND);
 
-	glPopDebugGroup();
+    glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void BloomNode::composite(Renderer* renderer)
 {
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Composite");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Composite");
 
     m_bloom_composite_program->use();
 
@@ -229,7 +229,7 @@ void BloomNode::composite(Renderer* renderer)
 
     render_fullscreen_triangle(renderer, nullptr);
 
-	glPopDebugGroup();
+    glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

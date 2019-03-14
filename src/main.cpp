@@ -205,7 +205,7 @@ private:
         REGISTER_RENDER_NODE(SSAONode, m_resource_manager);
         REGISTER_RENDER_NODE(HiZNode, m_resource_manager);
         REGISTER_RENDER_NODE(AdaptiveExposureNode, m_resource_manager);
-		REGISTER_RENDER_NODE(MotionBlurNode, m_resource_manager);
+        REGISTER_RENDER_NODE(MotionBlurNode, m_resource_manager);
 
         // Create Forward render graph
         m_forward_graph = m_resource_manager.load_render_graph("graph/deferred_graph.json", &m_renderer);
@@ -418,10 +418,10 @@ private:
                 }
             }
 
-			if (ImGui::CollapsingHeader("Render Graph"))
-			{
-				render_target_debug();
-			}
+            if (ImGui::CollapsingHeader("Render Graph"))
+            {
+                render_target_debug();
+            }
 
             if (ImGui::CollapsingHeader("Entities"))
             {
@@ -566,26 +566,26 @@ private:
         ImGui::End();
     }
 
-	// -----------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------
 
-	void render_target_debug()
-	{
-		for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
-		{
-			auto node = m_forward_graph->node(i);
+    void render_target_debug()
+    {
+        for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
+        {
+            auto node = m_forward_graph->node(i);
 
-			if (ImGui::TreeNode(node->name().c_str()))
-			{
-				for (uint32_t j = 0; j < node->output_render_target_count(); j++)
-				{
-					Texture2D* texture = (Texture2D*)node->output_render_target(j)->texture.get();
-					image_with_texture(texture, ImVec2(ImGui::GetWindowSize().x, static_cast<float>(m_height)/static_cast<float>(m_width) * ImGui::GetWindowSize().x));
-				}
+            if (ImGui::TreeNode(node->name().c_str()))
+            {
+                for (uint32_t j = 0; j < node->output_render_target_count(); j++)
+                {
+                    Texture2D* texture = (Texture2D*)node->output_render_target(j)->texture.get();
+                    image_with_texture(texture, ImVec2(ImGui::GetWindowSize().x, static_cast<float>(m_height) / static_cast<float>(m_width) * ImGui::GetWindowSize().x));
+                }
 
-				ImGui::TreePop();
-			}
-		}
-	}
+                ImGui::TreePop();
+            }
+        }
+    }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
