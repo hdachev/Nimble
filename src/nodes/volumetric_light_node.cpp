@@ -3,6 +3,8 @@
 #include "../resource_manager.h"
 #include "../renderer.h"
 #include "../logger.h"
+#define _USE_MATH_DEFINES
+#include <math.h> 
 
 namespace nimble
 {
@@ -91,8 +93,9 @@ void VolumetricLightNode::volumetrics(Renderer* renderer, Scene* scene, View* vi
 
     if (m_volumetrics_program->set_uniform("s_Depth", tex_unit))
         m_depth_rt->texture->bind(tex_unit++);
-
-	m_volumetrics_program->set_uniform("u_MieG", m_mie_g);
+	
+	float g_2 = m_mie_g * m_mie_g;
+	m_volumetrics_program->set_uniform("u_MieG", glm::vec4(1.0f - g_2, 1.0f + g_2, 2.0f * m_mie_g, 1.0f / (4.0f * M_PI)));
 	m_volumetrics_program->set_uniform("u_NumSamples", m_num_samples);
 
     render_fullscreen_triangle(renderer, view, m_volumetrics_program.get(), tex_unit, NODE_USAGE_SHADOW_MAP);
