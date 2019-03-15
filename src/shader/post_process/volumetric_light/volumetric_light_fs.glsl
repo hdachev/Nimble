@@ -43,7 +43,7 @@ float attenuation(vec3 frag_pos, int shadow_map_idx, int light_idx)
 	// TODO: Use spheres for shadow cascades for stability and ease of checking
     vec4 clip_pos = view_proj * vec4(frag_pos, 1.0);
 	clip_pos /= clip_pos.w;
-	float frag_depth = clip_pos.z;
+	float frag_depth = clip_pos.z * 0.5 + 0.5;
     
 	// Find shadow cascade.
 	for (int i = start_idx; i < (end_idx - 1); i++)
@@ -51,6 +51,15 @@ float attenuation(vec3 frag_pos, int shadow_map_idx, int light_idx)
 		if (frag_depth > cascade_far_plane[i])
 			index = i + 1;
 	}
+
+	// Transform frag position into Light-space.
+	vec4 light_space_pos = cascade_matrix[index] * vec4(frag_pos, 1.0);
+
+	float current_depth = light_space_pos.z;
+
+	float depth = texture(s_DirectionalLightShadowMaps, vec3(light_space_pos.xy, float(index))).r; 
+	
+	return current_depth > depth ? 0.0 : 1.0;        
 }
 
 // ------------------------------------------------------------------
