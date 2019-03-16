@@ -30,7 +30,7 @@ void BloomNode::declare_connections()
 {
     register_input_render_target("Color");
 
-    m_composite_rt = register_scaled_output_render_target("Bloom", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+    m_color_rt = register_forwarded_output_render_target("Color");
 
     // Clear earlier render targets.
     for (uint32_t i = 0; i < BLOOM_TEX_CHAIN_SIZE; i++)
@@ -52,9 +52,7 @@ bool BloomNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     register_float_parameter("Threshold", m_threshold, 0.0f, 1.0f);
     register_float_parameter("Strength", m_strength, 0.0f, 1.0f);
 
-    m_color_rt = find_input_render_target("Color");
-
-    m_composite_rtv = RenderTargetView(0, 0, 0, m_composite_rt->texture);
+    m_composite_rtv = RenderTargetView(0, 0, 0, m_color_rt->texture);
 
     for (uint32_t i = 0; i < BLOOM_TEX_CHAIN_SIZE; i++)
         m_bloom_rtv[i] = RenderTargetView(0, 0, 0, m_bloom_rt[i]->texture);
@@ -181,8 +179,8 @@ void BloomNode::upsample(Renderer* renderer)
 
     m_bloom_upsample_program->set_uniform("u_Strength", m_enabled ? m_strength : 0.0f);
 
-    // glEnable(GL_BLEND);
-    // glBlendFunc(GL_ONE, GL_ONE);
+     glEnable(GL_BLEND);
+     glBlendFunc(GL_ONE, GL_ONE);
 
     // Upsample each downsampled target
     for (uint32_t i = 0; i < (BLOOM_TEX_CHAIN_SIZE - 1); i++)
@@ -197,12 +195,12 @@ void BloomNode::upsample(Renderer* renderer)
 
         renderer->bind_render_targets(1, &m_bloom_rtv[BLOOM_TEX_CHAIN_SIZE - i - 2], nullptr);
         glViewport(0, 0, m_graph->window_width() / scale, m_graph->window_height() / scale);
-        glClear(GL_COLOR_BUFFER_BIT);
 
         render_fullscreen_triangle(renderer, nullptr);
     }
 
-    // glDisable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+	glDisable(GL_BLEND);
 
     glPopDebugGroup();
 }
@@ -213,21 +211,23 @@ void BloomNode::composite(Renderer* renderer)
 {
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Composite");
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+
     m_bloom_composite_program->use();
 
     m_bloom_composite_program->set_uniform("u_Strength", m_enabled ? m_strength : 0.0f);
 
-    if (m_bloom_composite_program->set_uniform("s_Color", 0))
-        m_color_rt->texture->bind(0);
-
-    if (m_bloom_composite_program->set_uniform("s_Bloom", 1))
-        m_bloom_rt[0]->texture->bind(1);
+    if (m_bloom_composite_program->set_uniform("s_Bloom", 0))
+        m_bloom_rt[0]->texture->bind(0);
 
     renderer->bind_render_targets(1, &m_composite_rtv, nullptr);
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
-    glClear(GL_COLOR_BUFFER_BIT);
 
     render_fullscreen_triangle(renderer, nullptr);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+	glDisable(GL_BLEND);
 
     glPopDebugGroup();
 }

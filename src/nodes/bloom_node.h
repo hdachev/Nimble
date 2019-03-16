@@ -29,7 +29,6 @@ private:
     float m_strength;
     bool  m_enabled;
 
-    std::shared_ptr<RenderTarget> m_composite_rt;
     std::shared_ptr<RenderTarget> m_bloom_rt[BLOOM_TEX_CHAIN_SIZE];
 
     RenderTargetView m_composite_rtv;

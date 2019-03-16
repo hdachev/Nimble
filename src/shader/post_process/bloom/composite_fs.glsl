@@ -14,7 +14,6 @@ in vec2 FS_IN_TexCoord;
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-uniform sampler2D s_Color;
 uniform sampler2D s_Bloom;
 uniform float u_Strength;
 
@@ -24,16 +23,14 @@ uniform float u_Strength;
 
 void main()
 {
-	vec3 color = texture(s_Color, FS_IN_TexCoord).rgb;
-
 	if (u_Strength > 0)
 	{
 		// Fetch samples from bloom textures
 		vec3 bloom = texture(s_Bloom, FS_IN_TexCoord).rgb;
-		color += bloom;
+		FS_OUT_FragColor = bloom * u_Strength;
 	}
-
-	FS_OUT_FragColor = color;
+	else
+		FS_OUT_FragColor = vec3(0.0);
 }
 
 // ------------------------------------------------------------------

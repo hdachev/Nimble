@@ -499,6 +499,33 @@ std::shared_ptr<RenderTarget> RenderNode::register_scaled_intermediate_render_ta
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+void RenderNode::blit_render_target(Renderer* renderer, std::shared_ptr<RenderTarget> src, std::shared_ptr<RenderTarget> dst)
+{
+	RenderTargetView rtv = RenderTargetView(0, 0, 0, dst->texture);
+
+	std::shared_ptr<Program> program = renderer->copy_program();
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+
+	program->use();
+
+	Texture2D* texture = (Texture2D*)dst->texture.get();
+
+	renderer->bind_render_targets(1, &rtv, nullptr);
+	glViewport(0, 0, texture->width(), texture->height());
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (program->set_uniform("s_Texture", 0))
+		src->texture->bind(0);
+
+	render_fullscreen_triangle(renderer, nullptr);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, ShaderLibrary* library, uint32_t flags, std::function<void(View*, Program*, int32_t&)> function)
 {
     if (scene)

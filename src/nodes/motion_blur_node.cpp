@@ -79,13 +79,15 @@ void MotionBlurNode::execute(double delta, Renderer* renderer, Scene* scene, Vie
 			m_velocity_rt->texture->bind(1);
 
 		int current_fps = int((1.0f / (static_cast<float>(delta)) * 1000.0f));
-		int target_fps  = 60;
+		int target_fps = 60;
 
 		m_program->set_uniform("u_Scale", static_cast<float>(current_fps) / static_cast<float>(target_fps));
 		m_program->set_uniform("u_NumSamples", m_num_samples);
 
 		render_fullscreen_triangle(renderer, nullptr);
 	}
+	else
+		blit_render_target(renderer, m_color_rt, m_motion_blur_rt);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

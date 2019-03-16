@@ -11,6 +11,7 @@
 #include "render_graph.h"
 #include "geometry.h"
 #include "profiler.h"
+#include "resource_manager.h"
 
 #include <gtc/matrix_transform.hpp>
 #include <fstream>
@@ -137,6 +138,14 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
     }
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+	m_copy_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
+    m_copy_fs = res_mgr->load_shader("shader/post_process/copy_fs.glsl", GL_FRAGMENT_SHADER);
+
+    if (m_copy_vs && m_copy_fs)
+        m_copy_program = create_program(m_copy_vs, m_copy_fs);
+    else
+        return false;
 
     return true;
 }

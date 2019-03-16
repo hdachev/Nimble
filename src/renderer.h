@@ -60,7 +60,7 @@ public:
     void  queue_point_light_views();
     void  clear_all_views();
     void  on_window_resized(const uint32_t& w, const uint32_t& h);
-
+	
     // Shader program caching.
     std::shared_ptr<Program> create_program(const std::shared_ptr<Shader>& vs, const std::shared_ptr<Shader>& fs);
     std::shared_ptr<Program> create_program(const std::vector<std::shared_ptr<Shader>>& shaders);
@@ -69,6 +69,7 @@ public:
     void         bind_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView* depth_view);
 
     // Inline getters
+	inline std::shared_ptr<Program>			  copy_program() { return m_copy_program; }
     inline ShaderCache&                       shader_cache() { return m_shader_cache; }
     inline std::weak_ptr<Scene>               scene() { return m_scene; }
     inline Settings                           settings() { return m_settings; }
@@ -152,5 +153,9 @@ private:
     // Common geometry.
     std::shared_ptr<VertexArray>  m_cube_vao;
     std::shared_ptr<VertexBuffer> m_cube_vbo;
+
+	std::shared_ptr<Shader>  m_copy_vs;
+    std::shared_ptr<Shader>  m_copy_fs;
+    std::shared_ptr<Program> m_copy_program;
 };
 } // namespace nimble

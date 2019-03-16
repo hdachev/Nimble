@@ -136,7 +136,7 @@
                     "type" : "RENDER_TARGET",
                     "slot_name" : "Color",
                     "prev_node_name" : "BloomNode",
-                    "prev_output_name" : "Bloom"
+                    "prev_output_name" : "Color"
                 },
                 {
                     "type" : "RENDER_TARGET",
