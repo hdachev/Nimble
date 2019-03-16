@@ -128,7 +128,7 @@
             ]
         },
         {
-            "name" : "MotionBlurNode",
+            "name" : "VolumetricLightNode",
             "defines" : [],
             "inputs" : 
             [
@@ -137,6 +137,25 @@
                     "slot_name" : "Color",
                     "prev_node_name" : "BloomNode",
                     "prev_output_name" : "Bloom"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "Depth"
+                }
+            ]
+        },
+        {
+            "name" : "MotionBlurNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "VolumetricLightNode",
+                    "prev_output_name" : "Color"
                 },
                 {
                     "type" : "RENDER_TARGET",

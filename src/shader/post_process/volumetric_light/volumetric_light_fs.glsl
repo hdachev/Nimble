@@ -1,4 +1,5 @@
 #include <../../common/uniforms.glsl>
+#include <../../common/helper.glsl>
 
 // ------------------------------------------------------------------
 // OUTPUTS ----------------------------------------------------------
@@ -68,37 +69,47 @@ float attenuation(vec3 frag_pos, int shadow_map_idx, int light_idx)
 
 void main()
 {
-	float depth = texture(s_Depth, FS_IN_TexCoord).r;
-	vec3 frag_pos = world_position_from_depth(FS_IN_TexCoord, f.FragDepth);
-
-	vec3 direction = view_pos - frag_pos;
-	float march_distance = length(direction);
-	direction = normalize(direction);
-	float step_size = march_distance / u_NumSamples;
-
-	vec3 current_pos = frag_pos;
-
-	float cos_angle = dot(directional_light_direction.xyz, direction);
-	vec3 v_light = vec3(0.0);
-
-	for (int i = 0; i < march_distance; i++)
+	if (directional_light_count > 0)
 	{
-		float atten = attenuation(current_pos, 0, 0);
-		v_light += atten;
+		if (directional_light_casts_shadow[0] == 1)
+		{
+			float depth = texture(s_Depth, FS_IN_TexCoord).r;
+			vec3 frag_pos = world_position_from_depth(FS_IN_TexCoord, depth);
 
-		current_pos = current_pos + direction * step_size;
+			vec3 direction = view_pos.xyz - frag_pos;
+			float march_distance = length(direction);
+			direction = normalize(direction);
+			float step_size = march_distance / u_NumSamples;
+
+			vec3 current_pos = frag_pos;
+
+			float cos_angle = dot(directional_light_direction[0].xyz, direction);
+			vec3 v_light = vec3(0.0);
+
+			for (int i = 0; i < u_NumSamples; i++)
+			{
+				float atten = attenuation(current_pos, 0, 0);
+				v_light += atten;
+
+				current_pos = current_pos + direction * step_size;
+			}
+
+			// Apply scattering
+			v_light *= mie_scattering(cos_angle);
+
+			// Apply light color
+			v_light *= directional_light_color_intensity[0].xyz;
+
+			// Divide by the number of samples
+			v_light /= u_NumSamples;
+
+			FS_OUT_FragColor = v_light * 2.0;
+		}
+		else
+			FS_OUT_FragColor = vec3(0.0);
 	}
-
-	// Apply scattering
-	v_light *= mie_scattering(cos_angle);
-
-	// Apply light color
-	v_light *= directional_light_color_intensity[0].xyz;
-
-	// Divide by the number of samples
-	v_light /= u_NumSamples;
-
-	FS_OUT_FragColor = v_light;
+	else
+		FS_OUT_FragColor = vec3(0.0);
 }
 
 // ------------------------------------------------------------------
