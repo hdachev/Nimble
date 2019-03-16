@@ -41,6 +41,10 @@ void SSAONode::declare_connections()
 
 bool SSAONode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
+	register_int_parameter("Num Samples", m_num_samples, 0, 64);
+    register_float_parameter("Radius", m_radius);
+    register_float_parameter("Bias", m_bias, 0.0f, 1.0f);
+
     m_ssao_intermediate_rtv = RenderTargetView(0, 0, 0, m_ssao_intermediate_rt->texture);
     m_ssao_rtv              = RenderTargetView(0, 0, 0, m_ssao_rt->texture);
 
@@ -110,8 +114,18 @@ bool SSAONode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 void SSAONode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
-    ssao(renderer, view);
-    blur(renderer);
+	if (m_enabled)
+	{
+		ssao(renderer, view);
+		blur(renderer);
+	}
+	else
+	{
+		renderer->bind_render_targets(1, &m_ssao_rtv, nullptr);
+		glViewport(0, 0, m_graph->window_width() * SSAO_SCALE, m_graph->window_height() * SSAO_SCALE);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

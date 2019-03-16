@@ -227,6 +227,10 @@ void RenderNode::set_float_parameter(const std::string& name, float value)
 BoolParameter* RenderNode::bool_parameters(int32_t& count)
 {
     count = m_bool_parameters.size();
+
+	if (count == 0)
+		return nullptr;
+
     return &m_bool_parameters[0];
 }
 
@@ -235,6 +239,10 @@ BoolParameter* RenderNode::bool_parameters(int32_t& count)
 IntParameter* RenderNode::int_parameters(int32_t& count)
 {
     count = m_int_parameters.size();
+
+	if (count == 0)
+		return nullptr;
+
     return &m_int_parameters[0];
 }
 
@@ -243,6 +251,10 @@ IntParameter* RenderNode::int_parameters(int32_t& count)
 FloatParameter* RenderNode::float_parameters(int32_t& count)
 {
     count = m_float_parameters.size();
+
+	if (count == 0)
+		return nullptr;
+
     return &m_float_parameters[0];
 }
 
@@ -255,16 +267,16 @@ void RenderNode::register_bool_parameter(const std::string& name, bool& paramete
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void RenderNode::register_int_parameter(const std::string& name, int32_t& parameter)
+void RenderNode::register_int_parameter(const std::string& name, int32_t& parameter, int32_t min, int32_t max)
 {
-    m_int_parameters.push_back({ &parameter, name });
+    m_int_parameters.push_back({ &parameter, name, min, max });
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void RenderNode::register_float_parameter(const std::string& name, float& parameter)
+void RenderNode::register_float_parameter(const std::string& name, float& parameter, float min, float max)
 {
-    m_float_parameters.push_back({ &parameter, name });
+    m_float_parameters.push_back({ &parameter, name, min, max });
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

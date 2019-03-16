@@ -58,12 +58,16 @@ struct IntParameter
 {
     int32_t*    ptr;
     std::string name;
+	int32_t		min = 0;
+	int32_t		max = 0;
 };
 
 struct FloatParameter
 {
     float*      ptr;
     std::string name;
+	float		min = 0.0f;
+	float		max = 0.0f;
 };
 
 class RenderNode
@@ -156,8 +160,8 @@ protected:
     std::shared_ptr<RenderTarget> register_intermediate_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
     std::shared_ptr<RenderTarget> register_scaled_intermediate_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
     void                          register_bool_parameter(const std::string& name, bool& parameter);
-    void                          register_int_parameter(const std::string& name, int32_t& parameter);
-    void                          register_float_parameter(const std::string& name, float& parameter);
+    void                          register_int_parameter(const std::string& name, int32_t& parameter, int32_t min = 0, int32_t max = 0);
+    void                          register_float_parameter(const std::string& name, float& parameter, float min = 0.0f, float max = 0.0f);
     void                          bind_shadow_maps(Renderer* renderer, Program* program, int32_t tex_unit, uint32_t flags);
 
     // Geometry render helpers

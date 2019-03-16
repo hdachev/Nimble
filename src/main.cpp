@@ -422,7 +422,7 @@ private:
 
             if (ImGui::CollapsingHeader("Render Graph"))
             {
-                render_target_debug();
+                render_node_params();
             }
 
             if (ImGui::CollapsingHeader("Entities"))
@@ -570,7 +570,7 @@ private:
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
-    void render_target_debug()
+    void render_node_params()
     {
         for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
         {
@@ -580,8 +580,32 @@ private:
             {
                 for (uint32_t j = 0; j < node->output_render_target_count(); j++)
                 {
-                    Texture2D* texture = (Texture2D*)node->output_render_target(j)->texture.get();
-                    image_with_texture(texture, ImVec2(ImGui::GetWindowSize().x, static_cast<float>(m_height) / static_cast<float>(m_width) * ImGui::GetWindowSize().x));
+					int32_t num_bool_params = 0;
+					int32_t num_int_params = 0;
+					int32_t num_float_params = 0;
+
+					BoolParameter* bool_params = node->bool_parameters(num_bool_params);
+					IntParameter* int_params = node->int_parameters(num_int_params);
+					FloatParameter* float_params = node->float_parameters(num_float_params);
+
+					for (uint32_t i = 0; i < num_bool_params; i++)
+						ImGui::Checkbox(bool_params[i].name.c_str(), bool_params[i].ptr);
+
+					for (uint32_t i = 0; i < num_int_params; i++)
+					{
+						if (int_params[i].min == int_params[i].max)
+							ImGui::InputInt(int_params[i].name.c_str(), int_params[i].ptr);
+						else
+							ImGui::SliderInt(int_params[i].name.c_str(), int_params[i].ptr, int_params[i].min, int_params[i].max);
+					}
+
+					for (uint32_t i = 0; i < num_float_params; i++)
+					{
+						if (float_params[i].min == float_params[i].max)
+							ImGui::InputFloat(float_params[i].name.c_str(), float_params[i].ptr);
+						else
+							ImGui::SliderFloat(float_params[i].name.c_str(), float_params[i].ptr, float_params[i].min, float_params[i].max);
+					}
                 }
 
                 ImGui::TreePop();

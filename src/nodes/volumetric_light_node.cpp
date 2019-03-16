@@ -38,6 +38,10 @@ void VolumetricLightNode::declare_connections()
 
 bool VolumetricLightNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
+	register_bool_parameter("Enabled", m_enabled);
+	register_int_parameter("Num Samples", m_num_samples, 0, 32);
+    register_float_parameter("Mie Scattering G", m_mie_g, 0.0f, 1.0f);
+
     m_depth_rt = find_input_render_target("Depth");
 
     m_volumetrics_rtv = RenderTargetView(0, 0, 0, m_color_rt->texture);
@@ -78,30 +82,33 @@ std::string VolumetricLightNode::name()
 
 void VolumetricLightNode::volumetrics(Renderer* renderer, Scene* scene, View* view)
 {
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+	if (m_enabled)
+	{
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE);
 
-    m_volumetrics_program->use();
+		m_volumetrics_program->use();
 
-    renderer->bind_render_targets(1, &m_volumetrics_rtv, nullptr);
-    glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
+		renderer->bind_render_targets(1, &m_volumetrics_rtv, nullptr);
+		glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
 
-    int32_t tex_unit = 0;
+		int32_t tex_unit = 0;
 
-	if (m_volumetrics_program->set_uniform("s_Depth", tex_unit))
-		m_depth_rt->texture->bind(tex_unit++);
+		if (m_volumetrics_program->set_uniform("s_Depth", tex_unit))
+			m_depth_rt->texture->bind(tex_unit++);
 
-    float g_2 = m_mie_g * m_mie_g;
-    m_volumetrics_program->set_uniform("u_MieG", glm::vec4(1.0f - g_2, 1.0f + g_2, 2.0f * m_mie_g, 1.0f / (4.0f * M_PI)));
-    m_volumetrics_program->set_uniform("u_NumSamples", m_num_samples);
+		float g_2 = m_mie_g * m_mie_g;
+		m_volumetrics_program->set_uniform("u_MieG", glm::vec4(1.0f - g_2, 1.0f + g_2, 2.0f * m_mie_g, 1.0f / (4.0f * M_PI)));
+		m_volumetrics_program->set_uniform("u_NumSamples", m_num_samples);
 
-	render_fullscreen_triangle(renderer, view, m_volumetrics_program.get(), tex_unit, m_flags);
+		render_fullscreen_triangle(renderer, view, m_volumetrics_program.get(), tex_unit, m_flags);
 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
-	glDisable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+		glDisable(GL_BLEND);
+	}
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

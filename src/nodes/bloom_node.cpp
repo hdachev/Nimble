@@ -49,8 +49,8 @@ void BloomNode::declare_connections()
 bool BloomNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Enabled", m_enabled);
-    register_float_parameter("Threshold", m_threshold);
-    register_float_parameter("Strength", m_strength);
+    register_float_parameter("Threshold", m_threshold, 0.0f, 1.0f);
+    register_float_parameter("Strength", m_strength, 0.0f, 1.0f);
 
     m_color_rt = find_input_render_target("Color");
 

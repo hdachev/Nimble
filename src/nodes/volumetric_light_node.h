@@ -30,6 +30,7 @@ private:
     std::shared_ptr<Program> m_volumetrics_program;
 
 	uint32_t m_flags = 0;
+	bool m_enabled = true;
     int32_t m_num_samples = 32;
     float   m_mie_g       = 0.1f;
 };

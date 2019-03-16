@@ -35,6 +35,9 @@ void MotionBlurNode::declare_connections()
 
 bool MotionBlurNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
+	register_bool_parameter("Enabled", m_enabled);
+	register_int_parameter("Num Samples", m_num_samples, 0, 32);
+
     m_color_rt    = find_input_render_target("Color");
     m_velocity_rt = find_input_render_target("Velocity");
 
@@ -56,30 +59,33 @@ bool MotionBlurNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 void MotionBlurNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+	if (m_enabled)
+	{
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
 
-    m_program->use();
+		m_program->use();
 
-    renderer->bind_render_targets(1, &m_motion_blur_rtv, nullptr);
-    glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
+		renderer->bind_render_targets(1, &m_motion_blur_rtv, nullptr);
+		glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
 
-    if (m_program->set_uniform("s_Color", 0))
-        m_color_rt->texture->bind(0);
+		if (m_program->set_uniform("s_Color", 0))
+			m_color_rt->texture->bind(0);
 
-    if (m_program->set_uniform("s_Velocity", 1))
-        m_velocity_rt->texture->bind(1);
+		if (m_program->set_uniform("s_Velocity", 1))
+			m_velocity_rt->texture->bind(1);
 
-    int current_fps = int((1.0f / (static_cast<float>(delta)) * 1000.0f));
-    int target_fps  = 60;
+		int current_fps = int((1.0f / (static_cast<float>(delta)) * 1000.0f));
+		int target_fps  = 60;
 
-    m_program->set_uniform("u_Scale", static_cast<float>(current_fps) / static_cast<float>(target_fps));
-    m_program->set_uniform("u_NumSamples", m_num_samples);
+		m_program->set_uniform("u_Scale", static_cast<float>(current_fps) / static_cast<float>(target_fps));
+		m_program->set_uniform("u_NumSamples", m_num_samples);
 
-    render_fullscreen_triangle(renderer, nullptr);
+		render_fullscreen_triangle(renderer, nullptr);
+	}
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
