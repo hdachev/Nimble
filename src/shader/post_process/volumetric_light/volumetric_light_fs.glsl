@@ -1,6 +1,8 @@
 #include <../../common/uniforms.glsl>
 #include <../../common/helper.glsl>
 
+#define DEPTH_LOD 1.0
+
 // ------------------------------------------------------------------
 // OUTPUTS ----------------------------------------------------------
 // ------------------------------------------------------------------
@@ -74,7 +76,7 @@ void main()
 	{
 		if (directional_light_casts_shadow[0] == 1)
 		{
-			float depth = texture(s_Depth, FS_IN_TexCoord).r;
+			float depth = textureLod(s_Depth, FS_IN_TexCoord, DEPTH_LOD).r;
 			vec3 frag_pos = world_position_from_depth(FS_IN_TexCoord, depth);
 
 			vec3 direction = view_pos.xyz - frag_pos;

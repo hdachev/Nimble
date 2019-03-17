@@ -141,8 +141,8 @@
                 {
                     "type" : "RENDER_TARGET",
                     "slot_name" : "Depth",
-                    "prev_node_name" : "GBufferNode",
-                    "prev_output_name" : "Depth"
+                    "prev_node_name" : "HiZNode",
+                    "prev_output_name" : "HiZDepth"
                 }
             ]
         },

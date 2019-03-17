@@ -26,9 +26,13 @@ private:
     std::shared_ptr<RenderTarget> m_depth_rt;
 
 	std::shared_ptr<RenderTarget> m_volumetric_light_rt;
-	std::shared_ptr<RenderTarget> m_blur_rt;
+	std::shared_ptr<RenderTarget> m_h_blur_rt;
+	std::shared_ptr<RenderTarget> m_v_blur_rt;
 
     RenderTargetView              m_volumetrics_rtv;
+	RenderTargetView              m_h_blur_rtv;
+	RenderTargetView              m_v_blur_rtv;
+	RenderTargetView              m_upscale_rtv;
 
     std::shared_ptr<Shader>  m_fullscreen_triangle_vs;
 

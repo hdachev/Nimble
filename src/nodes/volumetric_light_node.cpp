@@ -6,6 +6,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#define VOLUMETRIC_LIGHT_BUFFER_SCALE 0.5f
+
 namespace nimble
 {
 DEFINE_RENDER_NODE_FACTORY(VolumetricLightNode)
@@ -29,11 +31,12 @@ VolumetricLightNode::~VolumetricLightNode()
 void VolumetricLightNode::declare_connections()
 {
     register_input_render_target("Color");
-    register_input_render_target("Depth");
+	register_input_render_target("Depth");
 
 	m_color_rt = register_forwarded_output_render_target("Color");
-	m_volumetric_light_rt = register_scaled_intermediate_render_target("VolumetricLight", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT, 1, 1);
-	m_blur_rt = register_scaled_intermediate_render_target("VolumetricLightBlur", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT, 1, 1);
+	m_volumetric_light_rt = register_scaled_intermediate_render_target("VolumetricLight", VOLUMETRIC_LIGHT_BUFFER_SCALE, VOLUMETRIC_LIGHT_BUFFER_SCALE, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT, 1, 1);
+	m_h_blur_rt = register_scaled_intermediate_render_target("VolumetricLightHBlur", VOLUMETRIC_LIGHT_BUFFER_SCALE, VOLUMETRIC_LIGHT_BUFFER_SCALE, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT, 1, 1);
+	m_v_blur_rt = register_scaled_intermediate_render_target("VolumetricLightVBlur", VOLUMETRIC_LIGHT_BUFFER_SCALE, VOLUMETRIC_LIGHT_BUFFER_SCALE, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT, 1, 1);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -159,14 +162,33 @@ bool VolumetricLightNode::initialize(Renderer* renderer, ResourceManager* res_mg
     m_dither_texture->set_wrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
 	m_dither_texture->set_data(0, 0, dither.data());
 
-    m_volumetrics_rtv = RenderTargetView(0, 0, 0, m_color_rt->texture);
+	m_volumetrics_rtv = RenderTargetView(0, 0, 0, m_volumetric_light_rt->texture);
+	m_h_blur_rtv = RenderTargetView(0, 0, 0, m_h_blur_rt->texture);
+	m_v_blur_rtv = RenderTargetView(0, 0, 0, m_v_blur_rt->texture);
+	m_upscale_rtv = RenderTargetView(0, 0, 0, m_color_rt->texture);
 
     m_fullscreen_triangle_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
     m_volumetrics_fs = res_mgr->load_shader("shader/post_process/volumetric_light/volumetric_light_fs.glsl", GL_FRAGMENT_SHADER, m_flags, renderer);
+	m_blur_fs = res_mgr->load_shader("shader/post_process/volumetric_light/volumetric_light_blur_fs.glsl", GL_FRAGMENT_SHADER);
+	m_upscale_fs = res_mgr->load_shader("shader/post_process/volumetric_light/volumetric_light_upscale_fs.glsl", GL_FRAGMENT_SHADER);
 
-    if (m_fullscreen_triangle_vs && m_volumetrics_fs)
+    if (m_fullscreen_triangle_vs)
     {
-        m_volumetrics_program = renderer->create_program(m_fullscreen_triangle_vs, m_volumetrics_fs);
+		if (m_volumetrics_fs)
+			m_volumetrics_program = renderer->create_program(m_fullscreen_triangle_vs, m_volumetrics_fs);
+		else
+			return false;
+
+		if (m_blur_fs)
+			m_blur_program = renderer->create_program(m_fullscreen_triangle_vs, m_blur_fs);
+		else
+			return false;
+
+		if (m_upscale_fs)
+			m_upscale_program = renderer->create_program(m_fullscreen_triangle_vs, m_upscale_fs);
+		else
+			return false;
+
         return true;
     }
     else
@@ -177,9 +199,12 @@ bool VolumetricLightNode::initialize(Renderer* renderer, ResourceManager* res_mg
 
 void VolumetricLightNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
-    volumetrics(renderer, scene, view);
-	blur(renderer, scene, view);
-	upscale(renderer, scene, view);
+	if (m_enabled)
+	{
+		volumetrics(renderer, scene, view);
+		//blur(renderer, scene, view);
+		upscale(renderer, scene, view);
+	}
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -199,41 +224,40 @@ std::string VolumetricLightNode::name()
 
 void VolumetricLightNode::volumetrics(Renderer* renderer, Scene* scene, View* view)
 {
-	if (m_enabled)
-	{
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Volumetric Light Buffer");
+	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Volumetric Light Buffer");
+	
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	
+	m_volumetrics_program->use();
+	
+	renderer->bind_render_targets(1, &m_volumetrics_rtv, nullptr);
+	glViewport(0, 0, m_graph->window_width() * VOLUMETRIC_LIGHT_BUFFER_SCALE, m_graph->window_height() * VOLUMETRIC_LIGHT_BUFFER_SCALE);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ONE);
-
-		m_volumetrics_program->use();
-
-		renderer->bind_render_targets(1, &m_volumetrics_rtv, nullptr);
-		glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
-
-		int32_t tex_unit = 0;
-
-		if (m_volumetrics_program->set_uniform("s_Depth", tex_unit))
-			m_depth_rt->texture->bind(tex_unit++);
-
-		if (m_volumetrics_program->set_uniform("s_Dither", tex_unit))
-			m_dither_texture->bind(tex_unit++);
-
-		float g_2 = m_mie_g * m_mie_g;
-		m_volumetrics_program->set_uniform("u_MieG", glm::vec4(1.0f - g_2, 1.0f + g_2, 2.0f * m_mie_g, 1.0f / (4.0f * M_PI)));
-		m_volumetrics_program->set_uniform("u_NumSamples", m_num_samples);
-		m_volumetrics_program->set_uniform("u_Dither", (int32_t)m_dither);
-
-		render_fullscreen_triangle(renderer, view, m_volumetrics_program.get(), tex_unit, m_flags);
-
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
-		glDisable(GL_BLEND);
-
-		glPopDebugGroup();
-	}
+	int32_t tex_unit = 0;
+	
+	if (m_volumetrics_program->set_uniform("s_Depth", tex_unit))
+		m_depth_rt->texture->bind(tex_unit++);
+	
+	if (m_volumetrics_program->set_uniform("s_Dither", tex_unit))
+		m_dither_texture->bind(tex_unit++);
+	
+	float g_2 = m_mie_g * m_mie_g;
+	m_volumetrics_program->set_uniform("u_MieG", glm::vec4(1.0f - g_2, 1.0f + g_2, 2.0f * m_mie_g, 1.0f / (4.0f * M_PI)));
+	m_volumetrics_program->set_uniform("u_NumSamples", m_num_samples);
+	m_volumetrics_program->set_uniform("u_Dither", (int32_t)m_dither);
+	
+	render_fullscreen_triangle(renderer, view, m_volumetrics_program.get(), tex_unit, m_flags);
+	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+	glDisable(GL_BLEND);
+	
+	glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -241,6 +265,51 @@ void VolumetricLightNode::volumetrics(Renderer* renderer, Scene* scene, View* vi
 void VolumetricLightNode::blur(Renderer* renderer, Scene* scene, View* view)
 {
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Blur");
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	
+	m_blur_program->use();
+
+	// Horizontal
+	
+	renderer->bind_render_targets(1, &m_h_blur_rtv, nullptr);
+	glViewport(0, 0, m_graph->window_width() * VOLUMETRIC_LIGHT_BUFFER_SCALE, m_graph->window_height() * VOLUMETRIC_LIGHT_BUFFER_SCALE);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	int32_t tex_unit = 0;
+
+	glm::vec2 pixel_size = glm::vec2(1.0f / (float(m_graph->window_width()) * VOLUMETRIC_LIGHT_BUFFER_SCALE), 1.0f / (float(m_graph->window_height()) * VOLUMETRIC_LIGHT_BUFFER_SCALE));
+    m_blur_program->set_uniform("u_PixelSize", pixel_size);
+	m_blur_program->set_uniform("u_Direction", glm::vec2(1.0f, 0.0f));
+	
+	if (m_blur_program->set_uniform("s_Depth", tex_unit))
+		m_depth_rt->texture->bind(tex_unit++);
+	
+	if (m_blur_program->set_uniform("s_Volumetric", tex_unit))
+		m_volumetric_light_rt->texture->bind(tex_unit++);
+
+	render_fullscreen_triangle(renderer, view, nullptr, tex_unit, NODE_USAGE_PER_VIEW_UBO);
+
+	// Vertical
+
+	tex_unit = 0;
+
+	if (m_blur_program->set_uniform("s_Depth", tex_unit))
+		m_depth_rt->texture->bind(tex_unit++);
+	
+	if (m_blur_program->set_uniform("s_Volumetric", tex_unit))
+		m_h_blur_rt->texture->bind(tex_unit++);
+
+	m_blur_program->set_uniform("u_Direction", glm::vec2(0.0f, 1.0f));
+
+	renderer->bind_render_targets(1, &m_v_blur_rtv, nullptr);
+	glViewport(0, 0, m_graph->window_width() * VOLUMETRIC_LIGHT_BUFFER_SCALE, m_graph->window_height() * VOLUMETRIC_LIGHT_BUFFER_SCALE);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	render_fullscreen_triangle(renderer, view, nullptr, tex_unit, NODE_USAGE_PER_VIEW_UBO);
 
 	glPopDebugGroup();
 }
@@ -250,7 +319,31 @@ void VolumetricLightNode::blur(Renderer* renderer, Scene* scene, View* view)
 void VolumetricLightNode::upscale(Renderer* renderer, Scene* scene, View* view)
 {
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Upscale");
+	
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	
+	m_upscale_program->use();
+	
+	renderer->bind_render_targets(1, &m_upscale_rtv, nullptr);
+	glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
+	
+	int32_t tex_unit = 0;
+	
+	if (m_upscale_program->set_uniform("s_Depth", tex_unit))
+		m_depth_rt->texture->bind(tex_unit++);
+	
+	if (m_upscale_program->set_uniform("s_Volumetric", tex_unit))
+		m_volumetric_light_rt->texture->bind(tex_unit++);
 
+	render_fullscreen_triangle(renderer, view);
+	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+	glDisable(GL_BLEND);
+	
 	glPopDebugGroup();
 }
 
