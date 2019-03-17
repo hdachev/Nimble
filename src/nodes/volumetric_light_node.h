@@ -18,19 +18,34 @@ public:
 
 private:
     void volumetrics(Renderer* renderer, Scene* scene, View* view);
+	void blur(Renderer* renderer, Scene* scene, View* view);
+	void upscale(Renderer* renderer, Scene* scene, View* view);
 
 private:
     std::shared_ptr<RenderTarget> m_color_rt;
     std::shared_ptr<RenderTarget> m_depth_rt;
 
+	std::shared_ptr<RenderTarget> m_volumetric_light_rt;
+	std::shared_ptr<RenderTarget> m_blur_rt;
+
     RenderTargetView              m_volumetrics_rtv;
 
-    std::shared_ptr<Shader>  m_volumetrics_vs;
+    std::shared_ptr<Shader>  m_fullscreen_triangle_vs;
+
     std::shared_ptr<Shader>  m_volumetrics_fs;
     std::shared_ptr<Program> m_volumetrics_program;
 
+	std::shared_ptr<Shader>  m_blur_fs;
+    std::shared_ptr<Program> m_blur_program;
+
+	std::shared_ptr<Shader>  m_upscale_fs;
+    std::shared_ptr<Program> m_upscale_program;
+
+	std::unique_ptr<Texture2D> m_dither_texture;
+
 	uint32_t m_flags = 0;
 	bool m_enabled = true;
+	bool m_dither = true;
     int32_t m_num_samples = 32;
     float   m_mie_g       = 0.1f;
 };

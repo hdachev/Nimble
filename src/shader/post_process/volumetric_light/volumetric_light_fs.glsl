@@ -18,10 +18,11 @@ in vec2 FS_IN_TexCoord;
 // ------------------------------------------------------------------
 
 uniform sampler2D s_Depth;
-uniform sampler2D s_Velocity;
+uniform sampler2D s_Dither;
 
 uniform int u_NumSamples;
 uniform vec4 u_MieG;
+uniform int u_Dither;
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
@@ -81,7 +82,18 @@ void main()
 			direction = normalize(direction);
 			float step_size = march_distance / u_NumSamples;
 
-			vec3 current_pos = frag_pos;
+			#ifdef DITHER_8_8
+				vec2 interleaved_pos = (mod(floor(FS_IN_TexCoord.xy), 8.0));
+				float offset = texture(s_Dither, FS_IN_TexCoord + vec2(0.5 / 8.0, 0.5 / 8.0)).r;
+			#else
+				vec2 interleaved_pos = (mod(floor(FS_IN_TexCoord.xy), 4.0));
+				float offset = texture(s_Dither, FS_IN_TexCoord + vec2(0.5 / 4.0, 0.5 / 4.0)).r;	
+			#endif
+
+			if (u_Dither == 0)
+				offset = 0.0;
+
+			vec3 current_pos = frag_pos + direction * step_size * offset;
 
 			float cos_angle = dot(directional_light_direction[0].xyz, direction);
 			vec3 v_light = vec3(0.0);
