@@ -281,7 +281,7 @@ void VolumetricLightNode::blur(Renderer* renderer, Scene* scene, View* view)
 	int32_t tex_unit = 0;
 
 	glm::vec2 pixel_size = glm::vec2(1.0f / (float(m_graph->window_width()) * VOLUMETRIC_LIGHT_BUFFER_SCALE), 1.0f / (float(m_graph->window_height()) * VOLUMETRIC_LIGHT_BUFFER_SCALE));
-    m_blur_program->set_uniform("u_PixelSize", pixel_size);
+	m_blur_program->set_uniform("u_PixelSize", pixel_size);
 	m_blur_program->set_uniform("u_Direction", glm::vec2(1.0f, 0.0f));
 	
 	if (m_blur_program->set_uniform("s_Depth", tex_unit))
@@ -330,6 +330,9 @@ void VolumetricLightNode::upscale(Renderer* renderer, Scene* scene, View* view)
 	
 	renderer->bind_render_targets(1, &m_upscale_rtv, nullptr);
 	glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
+
+	glm::vec2 pixel_size = glm::vec2(1.0f / (float(m_graph->window_width()) * VOLUMETRIC_LIGHT_BUFFER_SCALE), 1.0f / (float(m_graph->window_height()) * VOLUMETRIC_LIGHT_BUFFER_SCALE));
+	m_upscale_program->set_uniform("u_PixelSize", pixel_size);
 	
 	int32_t tex_unit = 0;
 	
@@ -339,7 +342,7 @@ void VolumetricLightNode::upscale(Renderer* renderer, Scene* scene, View* view)
 	if (m_upscale_program->set_uniform("s_Volumetric", tex_unit))
 		m_volumetric_light_rt->texture->bind(tex_unit++);
 
-	render_fullscreen_triangle(renderer, view);
+	render_fullscreen_triangle(renderer, view, nullptr, tex_unit, NODE_USAGE_PER_VIEW_UBO);
 	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
 	glDisable(GL_BLEND);

@@ -131,7 +131,7 @@ void main()
 	// vec3 specular = prefilteredColor * (pbr.F * brdf.x + brdf.y);
 
 	// vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
-	vec3 color = Lo;// + ambient;
+	vec3 color = Lo + m.albedo.xyz * 0.1;// + ambient;
 
     FS_OUT_Color = color;
 }
