@@ -35,6 +35,7 @@ uniform vec2 u_ViewportSize;
 uniform int u_NumSamples;
 uniform float u_Radius;
 uniform float u_Bias;
+uniform float u_Power;
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -79,7 +80,7 @@ void main()
         occlusion += (sample_depth >= (ssao_sample.z + u_Bias) ? 1.0 : 0.0) * range_check;
     }   
     occlusion = 1.0 - (occlusion / float(u_NumSamples));
-    FS_OUT_FragColor = occlusion;
+    FS_OUT_FragColor = pow(occlusion, u_Power);
 }
 
 // ------------------------------------------------------------------

@@ -41,8 +41,10 @@ void SSAONode::declare_connections()
 
 bool SSAONode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
+	register_bool_parameter("Enabled", m_enabled);
 	register_int_parameter("Num Samples", m_num_samples, 0, 64);
     register_float_parameter("Radius", m_radius);
+	register_float_parameter("Power", m_power);
     register_float_parameter("Bias", m_bias, 0.0f, 1.0f);
 
     m_ssao_intermediate_rtv = RenderTargetView(0, 0, 0, m_ssao_intermediate_rt->texture);
@@ -161,9 +163,10 @@ void SSAONode::ssao(Renderer* renderer, View* view)
         m_noise_texture->bind(2);
 
     m_ssao_program->set_uniform("u_ViewportSize", glm::vec2(m_graph->window_width() * SSAO_SCALE, m_graph->window_height() * SSAO_SCALE));
-    m_ssao_program->set_uniform("u_NumSamples", m_num_samples);
+	m_ssao_program->set_uniform("u_NumSamples", m_num_samples);
     m_ssao_program->set_uniform("u_Radius", m_radius);
     m_ssao_program->set_uniform("u_Bias", m_bias);
+	m_ssao_program->set_uniform("u_Power", m_power);
 
     renderer->bind_render_targets(1, &m_ssao_intermediate_rtv, nullptr);
     glViewport(0, 0, m_graph->window_width() * SSAO_SCALE, m_graph->window_height() * SSAO_SCALE);

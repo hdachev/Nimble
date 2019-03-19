@@ -14,6 +14,7 @@ uniform sampler2D s_GBufferRT2;
 uniform sampler2D s_GBufferRT3;
 uniform sampler2D s_GBufferRT4;
 uniform sampler2D s_Depth;
+uniform sampler2D s_SSAO;
 
 // ------------------------------------------------------------------
 // INPUT VARIABLES  -------------------------------------------------
@@ -66,6 +67,13 @@ float unpack_roughness()
 float unpack_depth()
 {
 	return texture(s_Depth, FS_IN_TexCoord).x;
+}
+
+// ------------------------------------------------------------------
+
+float unpack_ssao()
+{
+	return texture(s_SSAO, FS_IN_TexCoord).x;
 }
 
 // ------------------------------------------------------------------
@@ -131,7 +139,8 @@ void main()
 	// vec3 specular = prefilteredColor * (pbr.F * brdf.x + brdf.y);
 
 	// vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
-	vec3 color = Lo + m.albedo.xyz * 0.1;// + ambient;
+	float ambient = unpack_ssao();
+	vec3 color = Lo + (m.albedo.xyz * ambient * 0.3);// + ambient;
 
     FS_OUT_Color = color;
 }
