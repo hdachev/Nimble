@@ -164,7 +164,7 @@ void SSAONode::ssao(Renderer* renderer, View* view)
 
     m_ssao_program->set_uniform("u_ViewportSize", glm::vec2(m_graph->window_width() * SSAO_SCALE, m_graph->window_height() * SSAO_SCALE));
 	m_ssao_program->set_uniform("u_NumSamples", m_num_samples);
-    m_ssao_program->set_uniform("u_Radius", m_radius);
+	m_ssao_program->set_uniform("u_Radius", m_radius);
     m_ssao_program->set_uniform("u_Bias", m_bias);
 	m_ssao_program->set_uniform("u_Power", m_power);
 

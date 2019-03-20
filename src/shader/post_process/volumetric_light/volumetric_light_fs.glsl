@@ -85,11 +85,11 @@ void main()
 			float step_size = march_distance / u_NumSamples;
 
 			#ifdef DITHER_8_8
-				vec2 interleaved_pos = (mod(floor(FS_IN_TexCoord.xy), 8.0));
-				float offset = texture(s_Dither, FS_IN_TexCoord + vec2(0.5 / 8.0, 0.5 / 8.0)).r;
+				vec2 interleaved_pos = (mod(floor(gl_FragCoord.xy), 8.0));
+				float offset = texture(s_Dither, interleaved_pos / 8.0 + vec2(0.5 / 8.0, 0.5 / 8.0)).r;
 			#else
-				vec2 interleaved_pos = (mod(floor(FS_IN_TexCoord.xy), 4.0));
-				float offset = texture(s_Dither, FS_IN_TexCoord + vec2(0.5 / 4.0, 0.5 / 4.0)).r;	
+				vec2 interleaved_pos = (mod(floor(gl_FragCoord.xy), 4.0));
+				float offset = texture(s_Dither, interleaved_pos / 4.0 + vec2(0.5 / 4.0, 0.5 / 4.0)).r;	
 			#endif
 
 			if (u_Dither == 0)
