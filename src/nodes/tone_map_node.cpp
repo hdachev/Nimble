@@ -36,7 +36,7 @@ bool ToneMapNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
 	register_int_parameter("Operator", m_tone_map_operator, 0, 4);
 	register_int_parameter("Auto Exposure Type", m_auto_exposure_type, 0, 2);
-	register_float_parameter("Key Value", m_key_value, 0.0f, 1.0f);
+	register_float_parameter("Key Value", m_key_value);
     register_float_parameter("Exposure", m_exposure, -10.0f, 10.0f);
 
     m_texture = find_input_render_target("Color");

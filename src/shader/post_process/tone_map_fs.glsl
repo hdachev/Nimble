@@ -121,7 +121,7 @@ vec3 exposed_color(vec3 color, float avg_luma)
         if (u_AutoExposure == 1)
             key_value = u_KeyValue;
         else if (u_AutoExposure == 2)
-            key_value = 1.03 - (2.0 / (2 + log10(avg_luma + 1)));
+            key_value = 1.03 - (2.0 / (2.0 + log10(avg_luma + 1.0)));
 
         float linear_exposure = (key_value / avg_luma);
 
@@ -163,7 +163,7 @@ vec3 apply_tone_map(vec3 exp_color)
 	else if (u_ToneMapOperator == 4)
 		return uncharted_2_tone_mapping(exp_color);
 	else
-		return exp_color;
+		return exp_color;  
 }
 
 // ------------------------------------------------------------------

@@ -18,8 +18,8 @@ public:
 
 private:
 	int32_t m_tone_map_operator = 4;
-	int32_t m_auto_exposure_type = 0;
-	float m_key_value = 0.18f;
+	int32_t m_auto_exposure_type = 1;
+	float m_key_value = 0.001f;
 	float m_exposure = 0.0f;
     std::shared_ptr<Shader>       m_vs;
     std::shared_ptr<Shader>       m_fs;
