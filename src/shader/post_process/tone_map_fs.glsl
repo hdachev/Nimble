@@ -18,6 +18,13 @@ out vec4 FS_OUT_Color;
 // ------------------------------------------------------------------
 
 uniform sampler2D s_Texture;
+uniform sampler2D s_AvgLuma;
+uniform sampler2D s_LUT;
+
+uniform int u_ToneMapOperator;
+uniform int u_AutoExposure;
+uniform float u_KeyValue;
+uniform float u_Exposure;
 
 // ------------------------------------------------------------------
 // CONSTANTS --------------------------------------------------------
@@ -36,16 +43,9 @@ const float W = 11.2;
 // FUNCTIONS --------------------------------------------------------
 // ------------------------------------------------------------------
 
-vec3 linear_tone_mapping(vec3 color, float exposure)
+vec3 reinhard_tone_mapping(vec3 exp_color)
 {
-	return color * exposure;
-}
-
-// ------------------------------------------------------------------
-
-vec3 reinhard_tone_mapping(vec3 color, float exposure)
-{
-	vec3 ret_color = color * exposure;
+	vec3 ret_color = exp_color;
 	ret_color = ret_color / (1.0 + ret_color);
 
 	return ret_color;
@@ -53,10 +53,8 @@ vec3 reinhard_tone_mapping(vec3 color, float exposure)
 
 // ------------------------------------------------------------------
 
-vec3 haarm_peter_duiker_tone_mapping(vec3 color, float exposure, sampler2D lut)
+vec3 haarm_peter_duiker_tone_mapping(vec3 exp_color)
 {
-	vec3 exp_color = color * exposure;
-
 	vec3 ld = vec3(0.002);
 	float lin_reference = 0.18;
 	float log_reference = 444;
@@ -70,18 +68,17 @@ vec3 haarm_peter_duiker_tone_mapping(vec3 color, float exposure, sampler2D lut)
       
 	//  apply response lookup and color grading for target display
 	vec3 ret_color;
-	ret_color.r = texture(lut, vec2(mix(padding, 1.0 - padding, log_color.r), 0.5)).r;
-	ret_color.g = texture(lut, vec2(mix(padding, 1.0 - padding, log_color.g), 0.5)).r;
-	ret_color.b = texture(lut, vec2(mix(padding, 1.0 - padding, log_color.b), 0.5)).r;
+	ret_color.r = texture(s_LUT, vec2(mix(padding, 1.0 - padding, log_color.r), 0.5)).r;
+	ret_color.g = texture(s_LUT, vec2(mix(padding, 1.0 - padding, log_color.g), 0.5)).r;
+	ret_color.b = texture(s_LUT, vec2(mix(padding, 1.0 - padding, log_color.b), 0.5)).r;
 
 	return ret_color;
 }
 
 // ------------------------------------------------------------------
 
-vec3 filmic_tone_mapping(vec3 color, float exposure)
+vec3 filmic_tone_mapping(vec3 exp_color)
 {
-	vec3 exp_color = color * exposure;
 	vec3 x = max(vec3(0.0), exp_color - vec3(0.004));
    	vec3 ret_color = (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06);
 
@@ -90,22 +87,60 @@ vec3 filmic_tone_mapping(vec3 color, float exposure)
 
 // ------------------------------------------------------------------
 
-vec3 uncharted_2_tone_mapping(vec3 x)
+vec3 u2_func(vec3 x)
 {
 	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
 }
 
 // ------------------------------------------------------------------
 
-vec3 uncharted_2_tone_mapping(vec3 color, float exposure, float exposure_bias)
+vec3 uncharted_2_tone_mapping(vec3 exp_color)
 {
-	vec3 tex_color = color * exposure;
-	vec3 curr = uncharted_2_tone_mapping(exposure_bias * tex_color);
+	float exposure_bias = 2.0;
+	vec3 curr = u2_func(exposure_bias * exp_color);
 
-   	vec3 white_scale = 1.0f/uncharted_2_tone_mapping(vec3(W));
+   	vec3 white_scale = 1.0f/u2_func(vec3(W));
    	vec3 ret_color = curr * white_scale;
 
 	return ret_color;
+}
+
+// ------------------------------------------------------------------
+
+vec3 exposed_color(vec3 color, float avg_luma)
+{    
+    float exposure = 0;
+
+    if (u_AutoExposure > 0)
+    {
+        // Use geometric mean        
+        avg_luma = max(avg_luma, 0.001f);
+
+        float key_value = 0;
+
+        if (u_AutoExposure == 1)
+            key_value = u_KeyValue;
+        else if (u_AutoExposure == 2)
+            key_value = 1.03 - (2.0 / (2 + log10(avg_luma + 1)));
+
+        float linear_exposure = (key_value / avg_luma);
+
+        exposure = log2(max(linear_exposure, 0.0001));
+    }
+    else
+    {
+        // Use exposure setting
+        exposure = u_Exposure;
+    }
+
+    return exp2(exposure) * color;
+}
+
+// ------------------------------------------------------------------
+
+float average_luminance()
+{
+	return texture(s_AvgLuma, vec2(0.5)).r;
 }
 
 // ------------------------------------------------------------------
@@ -116,20 +151,40 @@ vec3 gamma_correction(vec3 color)
 }
 
 // ------------------------------------------------------------------
+
+vec3 apply_tone_map(vec3 exp_color)
+{
+	if (u_ToneMapOperator == 1)
+		return reinhard_tone_mapping(exp_color);
+	else if (u_ToneMapOperator == 2)
+		return haarm_peter_duiker_tone_mapping(exp_color);
+	else if (u_ToneMapOperator == 3)
+		return filmic_tone_mapping(exp_color);
+	else if (u_ToneMapOperator == 4)
+		return uncharted_2_tone_mapping(exp_color);
+	else
+		return exp_color;
+}
+
+// ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
 // ------------------------------------------------------------------
-
 
 void main(void)
 {
     // Get HDR color
 	vec3 linear_color = texture(s_Texture, FS_IN_TexCoord).rgb;
-	vec3 tone_mapped_color = vec3(1.0);
 
-    float exposure = 1.0;
-    // tone_mapped_color = reinhard_tone_mapping(linear_color, exposure);
-	tone_mapped_color = uncharted_2_tone_mapping(linear_color, exposure, 2.0);
+	// Retrieve average luminance of frame
+	float avg_luma = average_luminance();
 
+	// Apply exposure to color
+	vec3 exp_color = exposed_color(linear_color, avg_luma);
+
+	// Apply tone mapping
+	vec3 tone_mapped_color = apply_tone_map(exp_color);
+
+	// Apply gamma correction
     FS_OUT_Color = vec4(gamma_correction(tone_mapped_color), 1.0);
 }
 

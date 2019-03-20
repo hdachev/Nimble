@@ -34,7 +34,13 @@ void ToneMapNode::declare_connections()
 
 bool ToneMapNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
+	register_int_parameter("Operator", m_tone_map_operator, 0, 4);
+	register_int_parameter("Auto Exposure Type", m_auto_exposure_type, 0, 2);
+	register_float_parameter("Key Value", m_key_value, 0.0f, 1.0f);
+    register_float_parameter("Exposure", m_exposure, -10.0f, 10.0f);
+
     m_texture = find_input_render_target("Color");
+	m_avg_luma = find_input_render_target("Luminance");
 
     m_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
     m_fs = res_mgr->load_shader("shader/post_process/tone_map_fs.glsl", GL_FRAGMENT_SHADER);
@@ -75,8 +81,16 @@ void ToneMapNode::execute(double delta, Renderer* renderer, Scene* scene, View* 
     glClear(GL_COLOR_BUFFER_BIT);
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
 
+	m_program->set_uniform("u_ToneMapOperator", m_tone_map_operator);
+	m_program->set_uniform("u_AutoExposure", m_auto_exposure_type);
+	m_program->set_uniform("u_KeyValue", m_key_value);
+	m_program->set_uniform("u_Exposure", m_exposure);
+
     if (m_program->set_uniform("s_Texture", 0) && m_texture)
         m_texture->texture->bind(0);
+
+	if (m_program->set_uniform("s_AvgLuma", 1) && m_avg_luma)
+        m_avg_luma->texture->bind(1);
 
     render_fullscreen_triangle(renderer, view);
 }

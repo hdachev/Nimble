@@ -140,7 +140,7 @@ void main()
 
 	// vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
 	float ambient = unpack_ssao();
-	vec3 color = Lo;// + (m.albedo.xyz * ambient * 0.3);// + ambient;
+	vec3 color = Lo + (m.albedo.xyz * ambient * 0.3);// + ambient;
 
     FS_OUT_Color = color;
 }

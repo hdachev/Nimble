@@ -578,35 +578,32 @@ private:
 
             if (ImGui::TreeNode(node->name().c_str()))
             {
-                for (uint32_t j = 0; j < node->output_render_target_count(); j++)
-                {
-					int32_t num_bool_params = 0;
-					int32_t num_int_params = 0;
-					int32_t num_float_params = 0;
+				int32_t num_bool_params = 0;
+				int32_t num_int_params = 0;
+				int32_t num_float_params = 0;
 
-					BoolParameter* bool_params = node->bool_parameters(num_bool_params);
-					IntParameter* int_params = node->int_parameters(num_int_params);
-					FloatParameter* float_params = node->float_parameters(num_float_params);
+				BoolParameter* bool_params = node->bool_parameters(num_bool_params);
+				IntParameter* int_params = node->int_parameters(num_int_params);
+				FloatParameter* float_params = node->float_parameters(num_float_params);
 
-					for (uint32_t i = 0; i < num_bool_params; i++)
-						ImGui::Checkbox(bool_params[i].name.c_str(), bool_params[i].ptr);
+				for (uint32_t i = 0; i < num_bool_params; i++)
+					ImGui::Checkbox(bool_params[i].name.c_str(), bool_params[i].ptr);
 
-					for (uint32_t i = 0; i < num_int_params; i++)
-					{
-						if (int_params[i].min == int_params[i].max)
-							ImGui::InputInt(int_params[i].name.c_str(), int_params[i].ptr);
-						else
-							ImGui::SliderInt(int_params[i].name.c_str(), int_params[i].ptr, int_params[i].min, int_params[i].max);
-					}
+				for (uint32_t i = 0; i < num_int_params; i++)
+				{
+					if (int_params[i].min == int_params[i].max)
+						ImGui::InputInt(int_params[i].name.c_str(), int_params[i].ptr);
+					else
+						ImGui::SliderInt(int_params[i].name.c_str(), int_params[i].ptr, int_params[i].min, int_params[i].max);
+				}
 
-					for (uint32_t i = 0; i < num_float_params; i++)
-					{
-						if (float_params[i].min == float_params[i].max)
-							ImGui::InputFloat(float_params[i].name.c_str(), float_params[i].ptr);
-						else
-							ImGui::SliderFloat(float_params[i].name.c_str(), float_params[i].ptr, float_params[i].min, float_params[i].max);
-					}
-                }
+				for (uint32_t i = 0; i < num_float_params; i++)
+				{
+					if (float_params[i].min == float_params[i].max)
+						ImGui::InputFloat(float_params[i].name.c_str(), float_params[i].ptr);
+					else
+						ImGui::SliderFloat(float_params[i].name.c_str(), float_params[i].ptr, float_params[i].min, float_params[i].max);
+				}
 
                 ImGui::TreePop();
             }
