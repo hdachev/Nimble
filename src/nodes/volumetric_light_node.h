@@ -50,6 +50,7 @@ private:
 	uint32_t m_flags = 0;
 	bool m_enabled = true;
 	bool m_dither = true;
+	bool m_blur = true;
     int32_t m_num_samples = 32;
     float   m_mie_g       = 0.1f;
 };

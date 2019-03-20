@@ -44,6 +44,7 @@ void VolumetricLightNode::declare_connections()
 bool VolumetricLightNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
 	register_bool_parameter("Dither", m_dither);
+	register_bool_parameter("Blur", m_blur);
 	register_bool_parameter("Enabled", m_enabled);
 	register_int_parameter("Num Samples", m_num_samples, 0, 32);
     register_float_parameter("Mie Scattering G", m_mie_g, 0.0f, 1.0f);
@@ -202,7 +203,10 @@ void VolumetricLightNode::execute(double delta, Renderer* renderer, Scene* scene
 	if (m_enabled)
 	{
 		volumetrics(renderer, scene, view);
-		//blur(renderer, scene, view);
+
+		if (m_blur)
+			blur(renderer, scene, view);
+
 		upscale(renderer, scene, view);
 	}
 }
@@ -340,7 +344,12 @@ void VolumetricLightNode::upscale(Renderer* renderer, Scene* scene, View* view)
 		m_depth_rt->texture->bind(tex_unit++);
 	
 	if (m_upscale_program->set_uniform("s_Volumetric", tex_unit))
-		m_volumetric_light_rt->texture->bind(tex_unit++);
+	{
+		if (m_blur)
+			m_v_blur_rt->texture->bind(tex_unit++);
+		else
+			m_volumetric_light_rt->texture->bind(tex_unit++);
+	}
 
 	render_fullscreen_triangle(renderer, view, nullptr, tex_unit, NODE_USAGE_PER_VIEW_UBO);
 	
