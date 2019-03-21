@@ -197,17 +197,17 @@ private:
         REGISTER_RENDER_NODE(ForwardNode, m_resource_manager);
         REGISTER_RENDER_NODE(CubemapSkyboxNode, m_resource_manager);
         REGISTER_RENDER_NODE(PCFPointLightDepthNode, m_resource_manager);
-		REGISTER_RENDER_NODE(PCFDirectionalLightDepthNode, m_resource_manager);
+        REGISTER_RENDER_NODE(PCFDirectionalLightDepthNode, m_resource_manager);
         REGISTER_RENDER_NODE(CopyNode, m_resource_manager);
         REGISTER_RENDER_NODE(GBufferNode, m_resource_manager);
-		REGISTER_RENDER_NODE(DeferredNode, m_resource_manager);
-		REGISTER_RENDER_NODE(ToneMapNode, m_resource_manager);
+        REGISTER_RENDER_NODE(DeferredNode, m_resource_manager);
+        REGISTER_RENDER_NODE(ToneMapNode, m_resource_manager);
         REGISTER_RENDER_NODE(BloomNode, m_resource_manager);
         REGISTER_RENDER_NODE(SSAONode, m_resource_manager);
         REGISTER_RENDER_NODE(HiZNode, m_resource_manager);
         REGISTER_RENDER_NODE(AdaptiveExposureNode, m_resource_manager);
         REGISTER_RENDER_NODE(MotionBlurNode, m_resource_manager);
-		REGISTER_RENDER_NODE(VolumetricLightNode, m_resource_manager);
+        REGISTER_RENDER_NODE(VolumetricLightNode, m_resource_manager);
 
         // Create Forward render graph
         m_forward_graph = m_resource_manager.load_render_graph("graph/deferred_graph.json", &m_renderer);
@@ -578,32 +578,32 @@ private:
 
             if (ImGui::TreeNode(node->name().c_str()))
             {
-				int32_t num_bool_params = 0;
-				int32_t num_int_params = 0;
-				int32_t num_float_params = 0;
+                int32_t num_bool_params  = 0;
+                int32_t num_int_params   = 0;
+                int32_t num_float_params = 0;
 
-				BoolParameter* bool_params = node->bool_parameters(num_bool_params);
-				IntParameter* int_params = node->int_parameters(num_int_params);
-				FloatParameter* float_params = node->float_parameters(num_float_params);
+                BoolParameter*  bool_params  = node->bool_parameters(num_bool_params);
+                IntParameter*   int_params   = node->int_parameters(num_int_params);
+                FloatParameter* float_params = node->float_parameters(num_float_params);
 
-				for (uint32_t i = 0; i < num_bool_params; i++)
-					ImGui::Checkbox(bool_params[i].name.c_str(), bool_params[i].ptr);
+                for (uint32_t i = 0; i < num_bool_params; i++)
+                    ImGui::Checkbox(bool_params[i].name.c_str(), bool_params[i].ptr);
 
-				for (uint32_t i = 0; i < num_int_params; i++)
-				{
-					if (int_params[i].min == int_params[i].max)
-						ImGui::InputInt(int_params[i].name.c_str(), int_params[i].ptr);
-					else
-						ImGui::SliderInt(int_params[i].name.c_str(), int_params[i].ptr, int_params[i].min, int_params[i].max);
-				}
+                for (uint32_t i = 0; i < num_int_params; i++)
+                {
+                    if (int_params[i].min == int_params[i].max)
+                        ImGui::InputInt(int_params[i].name.c_str(), int_params[i].ptr);
+                    else
+                        ImGui::SliderInt(int_params[i].name.c_str(), int_params[i].ptr, int_params[i].min, int_params[i].max);
+                }
 
-				for (uint32_t i = 0; i < num_float_params; i++)
-				{
-					if (float_params[i].min == float_params[i].max)
-						ImGui::InputFloat(float_params[i].name.c_str(), float_params[i].ptr);
-					else
-						ImGui::SliderFloat(float_params[i].name.c_str(), float_params[i].ptr, float_params[i].min, float_params[i].max);
-				}
+                for (uint32_t i = 0; i < num_float_params; i++)
+                {
+                    if (float_params[i].min == float_params[i].max)
+                        ImGui::InputFloat(float_params[i].name.c_str(), float_params[i].ptr);
+                    else
+                        ImGui::SliderFloat(float_params[i].name.c_str(), float_params[i].ptr, float_params[i].min, float_params[i].max);
+                }
 
                 ImGui::TreePop();
             }

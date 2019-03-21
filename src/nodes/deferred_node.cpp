@@ -70,7 +70,7 @@ bool DeferredNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     else
     {
         NIMBLE_LOG_ERROR("Failed to load Shaders!");
-		return false;
+        return false;
     }
 }
 
@@ -79,7 +79,7 @@ bool DeferredNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 void DeferredNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
     glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);
 
     m_program->use();
 
@@ -104,7 +104,7 @@ void DeferredNode::execute(double delta, Renderer* renderer, Scene* scene, View*
     if (m_program->set_uniform("s_Depth", tex_unit) && m_depth_rt)
         m_depth_rt->texture->bind(tex_unit++);
 
-	if (m_program->set_uniform("s_SSAO", tex_unit) && m_depth_rt)
+    if (m_program->set_uniform("s_SSAO", tex_unit) && m_depth_rt)
         m_ssao_rt->texture->bind(tex_unit++);
 
     render_fullscreen_triangle(renderer, view, m_program.get(), tex_unit, m_flags);

@@ -228,8 +228,8 @@ BoolParameter* RenderNode::bool_parameters(int32_t& count)
 {
     count = m_bool_parameters.size();
 
-	if (count == 0)
-		return nullptr;
+    if (count == 0)
+        return nullptr;
 
     return &m_bool_parameters[0];
 }
@@ -240,8 +240,8 @@ IntParameter* RenderNode::int_parameters(int32_t& count)
 {
     count = m_int_parameters.size();
 
-	if (count == 0)
-		return nullptr;
+    if (count == 0)
+        return nullptr;
 
     return &m_int_parameters[0];
 }
@@ -252,8 +252,8 @@ FloatParameter* RenderNode::float_parameters(int32_t& count)
 {
     count = m_float_parameters.size();
 
-	if (count == 0)
-		return nullptr;
+    if (count == 0)
+        return nullptr;
 
     return &m_float_parameters[0];
 }
@@ -501,27 +501,27 @@ std::shared_ptr<RenderTarget> RenderNode::register_scaled_intermediate_render_ta
 
 void RenderNode::blit_render_target(Renderer* renderer, std::shared_ptr<RenderTarget> src, std::shared_ptr<RenderTarget> dst)
 {
-	RenderTargetView rtv = RenderTargetView(0, 0, 0, dst->texture);
+    RenderTargetView rtv = RenderTargetView(0, 0, 0, dst->texture);
 
-	std::shared_ptr<Program> program = renderer->copy_program();
+    std::shared_ptr<Program> program = renderer->copy_program();
 
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
 
-	program->use();
+    program->use();
 
-	Texture2D* texture = (Texture2D*)dst->texture.get();
+    Texture2D* texture = (Texture2D*)dst->texture.get();
 
-	renderer->bind_render_targets(1, &rtv, nullptr);
-	glViewport(0, 0, texture->width(), texture->height());
+    renderer->bind_render_targets(1, &rtv, nullptr);
+    glViewport(0, 0, texture->width(), texture->height());
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (program->set_uniform("s_Texture", 0))
-		src->texture->bind(0);
+    if (program->set_uniform("s_Texture", 0))
+        src->texture->bind(0);
 
-	render_fullscreen_triangle(renderer, nullptr);
+    render_fullscreen_triangle(renderer, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

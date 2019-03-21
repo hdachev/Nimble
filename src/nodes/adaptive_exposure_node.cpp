@@ -37,7 +37,7 @@ void AdaptiveExposureNode::declare_connections()
 
 bool AdaptiveExposureNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-	register_float_parameter("Tau", m_tau);
+    register_float_parameter("Tau", m_tau);
 
     m_color_rt = find_input_render_target("Color");
 

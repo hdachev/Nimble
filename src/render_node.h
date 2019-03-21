@@ -58,16 +58,16 @@ struct IntParameter
 {
     int32_t*    ptr;
     std::string name;
-	int32_t		min = 0;
-	int32_t		max = 0;
+    int32_t     min = 0;
+    int32_t     max = 0;
 };
 
 struct FloatParameter
 {
     float*      ptr;
     std::string name;
-	float		min = 0.0f;
-	float		max = 0.0f;
+    float       min = 0.0f;
+    float       max = 0.0f;
 };
 
 class RenderNode
@@ -165,7 +165,7 @@ protected:
     void                          bind_shadow_maps(Renderer* renderer, Program* program, int32_t tex_unit, uint32_t flags);
 
     // Geometry render helpers
-	void blit_render_target(Renderer* renderer, std::shared_ptr<RenderTarget> src, std::shared_ptr<RenderTarget> dst);
+    void blit_render_target(Renderer* renderer, std::shared_ptr<RenderTarget> src, std::shared_ptr<RenderTarget> dst);
     void render_scene(Renderer* renderer, Scene* scene, View* view, ShaderLibrary* library, uint32_t flags = 0, std::function<void(View*, Program*, int32_t&)> function = nullptr);
     void render_fullscreen_triangle(Renderer* renderer, View* view, Program* program = nullptr, int32_t tex_unit = 0, uint32_t flags = 0);
     void render_fullscreen_quad(Renderer* renderer, View* view, Program* program = nullptr, int32_t tex_unit = 0, uint32_t flags = 0);

@@ -41,9 +41,9 @@ private:
     std::shared_ptr<Shader>  m_ssao_blur_fs;
     std::shared_ptr<Program> m_ssao_blur_program;
 
-	bool m_enabled = true;
+    bool    m_enabled     = true;
     int32_t m_num_samples = 64;
-	float   m_power		  = 3.0f;
+    float   m_power       = 3.0f;
     float   m_radius      = 25.0f;
     float   m_bias        = 0.025f;
 };

@@ -22,7 +22,7 @@ layout (local_size_x = AVG_LUM_THREADS, local_size_y = 1) in;
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (binding = 0, rgba32f) uniform image2D ;
+layout (binding = 0, rgba32f) uniform image2D;
 
 uniform int u_Width;
 uniform int u_Height;
@@ -44,7 +44,7 @@ void main()
 	
 	for(uint i = 0; i < u_Width/(LUM_THREADS * AVG_LUM_THREADS); i++)
 	{
-		for(uint j = 0; j < u_Height/16u; j++)
+		for(uint j = 0; j < u_Height/16; j++)
 			total_luminance += imageLoad(i_Luma, ivec2(gl_GlobalInvocationID.x + AVG_LUM_THREADS * i, j));
 	}
 

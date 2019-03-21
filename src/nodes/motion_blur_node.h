@@ -27,7 +27,7 @@ private:
     std::shared_ptr<Shader>  m_fs;
     std::shared_ptr<Program> m_program;
 
-	bool m_enabled = true;
+    bool    m_enabled     = true;
     int32_t m_num_samples = 32;
 };
 
