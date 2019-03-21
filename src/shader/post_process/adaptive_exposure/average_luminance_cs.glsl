@@ -9,19 +9,20 @@
 // ------------------------------------------------------------------
 
 #define LUM_THREADS 8
+#define AVG_LUM_THREADS 8
 #define DELTA 0.00000001
 
 // ------------------------------------------------------------------
 // INPUTS -----------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (local_size_x = LUM_THREADS, local_size_y = LUM_THREADS) in;
+layout (local_size_x = AVG_LUM_THREADS, local_size_y = 1) in;
 
 // ------------------------------------------------------------------
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (binding = 0, rgba32f) uniform image2D i_Luma;
+layout (binding = 0, rgba32f) uniform image2D ;
 
 uniform sampler2D u_Color;
 
@@ -29,20 +30,7 @@ uniform sampler2D u_Color;
 // GLOBALS ----------------------------------------------------------
 // ------------------------------------------------------------------
 
-shared float temp0[LUM_THREADS][LUM_THREADS];
-shared float temp1[LUM_THREADS][LUM_THREADS];
-
-// ------------------------------------------------------------------
-// FUNCTIONS --------------------------------------------------------
-// ------------------------------------------------------------------
-
-float log_luminance(vec2 tex_coord, ivec2 offset)
-{
-	vec3 color = textureOffset(u_Color, tex_coord, offset).rgb;
-	float luma = luminance(color);
-
-	return log(luma + DELTA);
-}
+shared float avg_temp[AVG_LUM_THREADS];
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -50,65 +38,26 @@ float log_luminance(vec2 tex_coord, ivec2 offset)
 
 void main()
 {
-	vec2 tex_coord = (2 * gl_GlobalInvocationID.xy + 0.5) / vec2(width, height);
-
-	float avg = 0;
-
-	ivec2 offset = ivec2(0, 0);
-	avg += log_luminance(tex_coord, offset * 2);
-
-	offset = ivec2(0, 1);
-	avg += log_luminance(tex_coord, offset * 2);
+	float total_luminance = 0.0f;
 	
-	offset = ivec2(1, 0);
-	avg += log_luminance(tex_coord, offset * 2);
-	
-	offset = ivec2(1, 1);
-	avg += log_luminance(tex_coord, offset * 2);
-	
-	avg = avg / 4;
-	temp0[gl_LocalInvocationID.x][gl_LocalInvocationID.y] = avg;
+	for(uint i = 0; i < width/(LUM_THREADS * AVG_LUM_THREADS); i++)
+	{
+		for(uint j = 0; j < height/16u; j++)
+			total_luminance += imageLoad(i_Luma, ivec2(gl_GlobalInvocationID.x + AVG_LUM_THREADS * i, j));
+	}
 
+	avg_temp[gl_GlobalInvocationID.x] = total_luminance;
+	
 	groupMemoryBarrier();
 	barrier();
 
-	if (gl_LocalInvocationID.x < LUM_AND_BRIGHT_THREADS / 2 && gl_LocalInvocationID.y < LUM_AND_BRIGHT_THREADS / 2) 
+	if (gl_GlobalInvocationID.x == 0)
 	{
-		float nextLevel;
-		nextLevel = temp0[gl_LocalInvocationID.x * 2][gl_LocalInvocationID.y * 2];
-		nextLevel += temp0[gl_LocalInvocationID.x * 2 + 1][gl_LocalInvocationID.y * 2];
-		nextLevel += temp0[gl_LocalInvocationID.x * 2][gl_LocalInvocationID.y * 2 + 1];
-		nextLevel += temp0[gl_LocalInvocationID.x * 2 + 1][gl_LocalInvocationID.y * 2 + 1];
-		nextLevel = nextLevel / 4;
-		temp1[gl_LocalInvocationID.x][gl_LocalInvocationID.y] = nextLevel;
-	}
+		for(uint i = 1; i < AVG_LUM_THREADS; i++)
+			total_luminance += avg_temp[i];
 
-	groupMemoryBarrier();	
-	barrier();
-
-	if (gl_LocalInvocationID.x < LUM_AND_BRIGHT_THREADS / 4 && gl_LocalInvocationID.y < LUM_AND_BRIGHT_THREADS / 4)
-	{
-		float nextLevel;
-		nextLevel =  temp1[gl_LocalInvocationID.x * 2][gl_LocalInvocationID.y * 2];
-		nextLevel += temp1[gl_LocalInvocationID.x * 2 + 1][gl_LocalInvocationID.y * 2];
-		nextLevel += temp1[gl_LocalInvocationID.x * 2][gl_LocalInvocationID.y * 2 + 1];
-		nextLevel += temp1[gl_LocalInvocationID.x * 2 + 1][gl_LocalInvocationID.y * 2 + 1];
-		nextLevel = nextLevel / 4;
-		temp0[gl_LocalInvocationID.x][gl_LocalInvocationID.y] = nextLevel;
-	}
-
-	groupMemoryBarrier();
-	barrier();
-
-	if (gl_LocalInvocationID.x == 0 && gl_LocalInvocationID.y == 0)
-	{
-		float nextLevel;
-		nextLevel =  temp0[0][0];
-		nextLevel += temp0[1][0];
-		nextLevel += temp0[0][1];
-		nextLevel += temp0[1][1];
-		nextLevel = nextLevel / 4;
-		imageStore(i_Luma, gl_WorkGroupID.xy, nextLevel);
+		float luminance = total_luminance / ((width/AVG_LUM_THREADS)*(height/AVG_LUM_THREADS));
+		imageStore(ivec2(0, 0), middleGrey/(exp(luminance)-DELTA));
 	}
 }
 
