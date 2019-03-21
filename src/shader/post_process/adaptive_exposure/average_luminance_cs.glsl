@@ -24,7 +24,9 @@ layout (local_size_x = AVG_LUM_THREADS, local_size_y = 1) in;
 
 layout (binding = 0, rgba32f) uniform image2D ;
 
-uniform sampler2D u_Color;
+uniform int u_Width;
+uniform int u_Height;
+uniform float u_MiddleGrey;
 
 // ------------------------------------------------------------------
 // GLOBALS ----------------------------------------------------------
@@ -40,9 +42,9 @@ void main()
 {
 	float total_luminance = 0.0f;
 	
-	for(uint i = 0; i < width/(LUM_THREADS * AVG_LUM_THREADS); i++)
+	for(uint i = 0; i < u_Width/(LUM_THREADS * AVG_LUM_THREADS); i++)
 	{
-		for(uint j = 0; j < height/16u; j++)
+		for(uint j = 0; j < u_Height/16u; j++)
 			total_luminance += imageLoad(i_Luma, ivec2(gl_GlobalInvocationID.x + AVG_LUM_THREADS * i, j));
 	}
 
@@ -56,8 +58,8 @@ void main()
 		for(uint i = 1; i < AVG_LUM_THREADS; i++)
 			total_luminance += avg_temp[i];
 
-		float luminance = total_luminance / ((width/AVG_LUM_THREADS)*(height/AVG_LUM_THREADS));
-		imageStore(ivec2(0, 0), middleGrey/(exp(luminance)-DELTA));
+		float luminance = total_luminance / ((u_Width / AVG_LUM_THREADS) * (u_Height / AVG_LUM_THREADS));
+		imageStore(ivec2(0, 0), u_MiddleGrey / (exp(luminance) - DELTA));
 	}
 }
 
