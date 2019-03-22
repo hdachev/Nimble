@@ -22,9 +22,6 @@ uniform sampler2D s_AvgLuma;
 uniform sampler2D s_LUT;
 
 uniform int u_ToneMapOperator;
-uniform int u_AutoExposure;
-uniform float u_KeyValue;
-uniform float u_Exposure;
 
 // ------------------------------------------------------------------
 // CONSTANTS --------------------------------------------------------
@@ -107,38 +104,14 @@ vec3 uncharted_2_tone_mapping(vec3 exp_color)
 
 // ------------------------------------------------------------------
 
-vec3 exposed_color(vec3 color, float avg_luma)
+vec3 exposed_color(vec3 color, float exposure)
 {    
-    float exposure = 0;
-
-    if (u_AutoExposure > 0)
-    {
-        // Use geometric mean        
-        avg_luma = max(avg_luma, 0.001f);
-
-        float key_value = 0;
-
-        if (u_AutoExposure == 1)
-            key_value = u_KeyValue;
-        else if (u_AutoExposure == 2)
-            key_value = 1.03 - (2.0 / (2.0 + log10(avg_luma + 1.0)));
-
-        float linear_exposure = (key_value / avg_luma);
-
-        exposure = log2(max(linear_exposure, 0.0001));
-    }
-    else
-    {
-        // Use exposure setting
-        exposure = u_Exposure;
-    }
-
-    return exp2(exposure) * color;
+    return color * exposure;
 }
 
 // ------------------------------------------------------------------
 
-float average_luminance()
+float exposure()
 {
 	return texture(s_AvgLuma, vec2(0.5)).r;
 }
@@ -176,10 +149,10 @@ void main(void)
 	vec3 linear_color = texture(s_Texture, FS_IN_TexCoord).rgb;
 
 	// Retrieve average luminance of frame
-	float avg_luma = average_luminance();
+	float current_exposure = exposure();
 
 	// Apply exposure to color
-	vec3 exp_color = exposed_color(linear_color, avg_luma);
+	vec3 exp_color = exposed_color(linear_color, current_exposure);
 
 	// Apply tone mapping
 	vec3 tone_mapped_color = apply_tone_map(exp_color);

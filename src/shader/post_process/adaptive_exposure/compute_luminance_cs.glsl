@@ -18,12 +18,18 @@
 layout (local_size_x = LUM_THREADS, local_size_y = LUM_THREADS) in;
 
 // ------------------------------------------------------------------
+// CONSTANTS --------------------------------------------------------
+// ------------------------------------------------------------------
+
+const int kSize = 512;
+
+// ------------------------------------------------------------------
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (binding = 0, rgba32f) uniform image2D i_Luma;
+layout (binding = 0, r32f) uniform image2D i_Luma;
 
-uniform sampler2D u_Color;
+uniform sampler2D u_InitialLuma;
 
 // ------------------------------------------------------------------
 // GLOBALS ----------------------------------------------------------
@@ -38,10 +44,7 @@ shared float temp1[LUM_THREADS][LUM_THREADS];
 
 float log_luminance(vec2 tex_coord, ivec2 offset)
 {
-	vec3 color = textureOffset(u_Color, tex_coord, offset).rgb;
-	float luma = luminance(color);
-
-	return log(luma + DELTA);
+	return textureOffset(u_InitialLuma, tex_coord, offset).r;
 }
 
 // ------------------------------------------------------------------
@@ -50,7 +53,7 @@ float log_luminance(vec2 tex_coord, ivec2 offset)
 
 void main()
 {
-	vec2 tex_coord = (2 * gl_GlobalInvocationID.xy + 0.5) / vec2(width, height);
+	vec2 tex_coord = (2.0 * vec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y) + vec2(0.5)) / vec2(kSize);
 
 	float avg = 0;
 
@@ -72,7 +75,7 @@ void main()
 	groupMemoryBarrier();
 	barrier();
 
-	if (gl_LocalInvocationID.x < LUM_AND_BRIGHT_THREADS / 2 && gl_LocalInvocationID.y < LUM_AND_BRIGHT_THREADS / 2) 
+	if (gl_LocalInvocationID.x < LUM_THREADS / 2 && gl_LocalInvocationID.y < LUM_THREADS / 2) 
 	{
 		float nextLevel;
 		nextLevel = temp0[gl_LocalInvocationID.x * 2][gl_LocalInvocationID.y * 2];
@@ -86,7 +89,7 @@ void main()
 	groupMemoryBarrier();	
 	barrier();
 
-	if (gl_LocalInvocationID.x < LUM_AND_BRIGHT_THREADS / 4 && gl_LocalInvocationID.y < LUM_AND_BRIGHT_THREADS / 4)
+	if (gl_LocalInvocationID.x < LUM_THREADS / 4 && gl_LocalInvocationID.y < LUM_THREADS / 4)
 	{
 		float nextLevel;
 		nextLevel =  temp1[gl_LocalInvocationID.x * 2][gl_LocalInvocationID.y * 2];
@@ -108,7 +111,7 @@ void main()
 		nextLevel += temp0[0][1];
 		nextLevel += temp0[1][1];
 		nextLevel = nextLevel / 4;
-		imageStore(i_Luma, gl_WorkGroupID.xy, nextLevel);
+		imageStore(i_Luma, ivec2(gl_WorkGroupID.x, gl_WorkGroupID.y), vec4(nextLevel, 0, 0, 0));
 	}
 }
 
