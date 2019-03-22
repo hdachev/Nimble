@@ -31,27 +31,27 @@ void AdaptiveExposureNode::declare_connections()
 {
     register_input_render_target("Color");
 
-    m_luma_rt = register_intermediate_render_target("InitialLuma", LUM_SIZE, LUM_SIZE, GL_TEXTURE_2D, GL_R32F, GL_RED, GL_FLOAT);
-    m_compute_luma_rt = register_intermediate_render_target("ComputeLuma", LUM_SIZE/2, LUM_SIZE/2, GL_TEXTURE_2D, GL_R32F, GL_RED, GL_FLOAT);
-	m_avg_luma_rt = register_output_render_target("Luminance", 1, 1, GL_TEXTURE_2D, GL_R32F, GL_RED, GL_FLOAT);
+    m_luma_rt         = register_intermediate_render_target("InitialLuma", LUM_SIZE, LUM_SIZE, GL_TEXTURE_2D, GL_R32F, GL_RED, GL_FLOAT);
+    m_compute_luma_rt = register_intermediate_render_target("ComputeLuma", LUM_SIZE / 2, LUM_SIZE / 2, GL_TEXTURE_2D, GL_R32F, GL_RED, GL_FLOAT);
+    m_avg_luma_rt     = register_output_render_target("Luminance", 1, 1, GL_TEXTURE_2D, GL_R32F, GL_RED, GL_FLOAT);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 bool AdaptiveExposureNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-	register_float_parameter("Middle Grey", m_middle_grey);
+    register_float_parameter("Middle Grey", m_middle_grey);
     register_float_parameter("Tau", m_tau);
 
     m_color_rt = find_input_render_target("Color");
 
     m_luma_rtv = RenderTargetView(0, 0, 0, m_luma_rt->texture);
 
-	m_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
+    m_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
 
     if (m_vs)
     {
-		m_lum_fs = res_mgr->load_shader("shader/post_process/adaptive_exposure/initial_luminance_fs.glsl", GL_FRAGMENT_SHADER);
+        m_lum_fs = res_mgr->load_shader("shader/post_process/adaptive_exposure/initial_luminance_fs.glsl", GL_FRAGMENT_SHADER);
 
         if (m_lum_fs)
             m_lum_program = renderer->create_program(m_vs, m_lum_fs);
@@ -61,14 +61,14 @@ bool AdaptiveExposureNode::initialize(Renderer* renderer, ResourceManager* res_m
         m_compute_lum_fs = res_mgr->load_shader("shader/post_process/adaptive_exposure/compute_luminance_cs.glsl", GL_COMPUTE_SHADER);
 
         if (m_compute_lum_fs)
-			m_compute_lum_program = renderer->create_program({ m_compute_lum_fs });
+            m_compute_lum_program = renderer->create_program({ m_compute_lum_fs });
         else
             return false;
 
         m_average_lum_fs = res_mgr->load_shader("shader/post_process/adaptive_exposure/average_luminance_cs.glsl", GL_COMPUTE_SHADER);
 
-		if (m_average_lum_fs)
-			m_average_lum_program = renderer->create_program({ m_average_lum_fs });
+        if (m_average_lum_fs)
+            m_average_lum_program = renderer->create_program({ m_average_lum_fs });
         else
             return false;
 
@@ -131,12 +131,12 @@ void AdaptiveExposureNode::compute_luminance(Renderer* renderer, Scene* scene, V
 
     m_compute_lum_program->use();
 
-	m_compute_luma_rt->texture->bind_image(0, 0, 0, GL_READ_WRITE, GL_R32F);
+    m_compute_luma_rt->texture->bind_image(0, 0, 0, GL_READ_WRITE, GL_R32F);
 
     if (m_compute_lum_program->set_uniform("u_InitialLuma", 0))
         m_luma_rt->texture->bind(0);
 
-	glDispatchCompute(512/LUM_THREADS, 512/LUM_THREADS, 1);
+    glDispatchCompute(512 / LUM_THREADS, 512 / LUM_THREADS, 1);
 
     glPopDebugGroup();
 }
@@ -145,7 +145,7 @@ void AdaptiveExposureNode::compute_luminance(Renderer* renderer, Scene* scene, V
 
 void AdaptiveExposureNode::average_luminance(double delta, Renderer* renderer, Scene* scene, View* view)
 {
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Average Luminance");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Average Luminance");
 
     m_average_lum_program->use();
 
@@ -154,8 +154,8 @@ void AdaptiveExposureNode::average_luminance(double delta, Renderer* renderer, S
     m_avg_luma_rt->texture->bind_image(1, 0, 0, GL_READ_WRITE, GL_R32F);
 
     m_average_lum_program->set_uniform("u_MiddleGrey", m_middle_grey);
-	//m_average_lum_program->set_uniform("u_Tau", m_tau);
- //   m_average_lum_program->set_uniform("u_Delta", static_cast<float>(delta) / 1000.0f);
+    //m_average_lum_program->set_uniform("u_Tau", m_tau);
+    //   m_average_lum_program->set_uniform("u_Delta", static_cast<float>(delta) / 1000.0f);
 
     glDispatchCompute(1, 1, 1);
 

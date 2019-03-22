@@ -78,7 +78,7 @@ void ToneMapNode::execute(double delta, Renderer* renderer, Scene* scene, View* 
     glClear(GL_COLOR_BUFFER_BIT);
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
 
-	m_program->set_uniform("u_ToneMapOperator", m_tone_map_operator);
+    m_program->set_uniform("u_ToneMapOperator", m_tone_map_operator);
 
     if (m_program->set_uniform("s_Texture", 0) && m_texture)
         m_texture->texture->bind(0);

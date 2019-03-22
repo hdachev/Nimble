@@ -17,7 +17,7 @@ public:
     std::string name() override;
 
 private:
-    int32_t                       m_tone_map_operator  = 4;
+    int32_t                       m_tone_map_operator = 4;
     std::shared_ptr<Shader>       m_vs;
     std::shared_ptr<Shader>       m_fs;
     std::shared_ptr<Program>      m_program;

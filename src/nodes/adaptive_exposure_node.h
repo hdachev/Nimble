@@ -24,10 +24,10 @@ private:
 private:
     std::shared_ptr<RenderTarget> m_color_rt;
     std::shared_ptr<RenderTarget> m_luma_rt;
-	std::shared_ptr<RenderTarget> m_compute_luma_rt;
-	std::shared_ptr<RenderTarget> m_avg_luma_rt;
+    std::shared_ptr<RenderTarget> m_compute_luma_rt;
+    std::shared_ptr<RenderTarget> m_avg_luma_rt;
 
-	RenderTargetView m_luma_rtv;
+    RenderTargetView m_luma_rtv;
 
     std::shared_ptr<Shader> m_vs;
 
@@ -40,8 +40,8 @@ private:
     std::shared_ptr<Shader>  m_average_lum_fs;
     std::shared_ptr<Program> m_average_lum_program;
 
-    float   m_middle_grey = 0.18f;
-    float   m_tau         = 1.1f;
+    float m_middle_grey = 0.18f;
+    float m_tau         = 1.1f;
 };
 
 DECLARE_RENDER_NODE_FACTORY(AdaptiveExposureNode);
