@@ -12,7 +12,7 @@ namespace nimble
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 RenderNode::RenderNode(RenderGraph* graph) :
-    m_enabled(true), m_graph(graph), m_total_time_cpu(0.0f), m_total_time_gpu(0.0f)
+    m_enabled(true), m_graph(graph)
 {
 }
 
@@ -170,14 +170,6 @@ void RenderNode::set_input(const std::string& name, OutputBuffer* buffer, std::s
     }
 
     NIMBLE_LOG_ERROR("No input buffer slot named: " + name);
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void RenderNode::timing_total(float& cpu_time, float& gpu_time)
-{
-    cpu_time = m_total_time_cpu;
-    gpu_time = m_total_time_gpu;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 #include "../resource_manager.h"
 #include "../renderer.h"
 #include "../logger.h"
+#include "../profiler.h"
 
 namespace nimble
 {
@@ -121,6 +122,8 @@ std::string BloomNode::name()
 
 void BloomNode::bright_pass(Renderer* renderer)
 {
+	NIMBLE_SCOPED_SAMPLE("Bright Pass");
+
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Bright Pass");
 
     m_bright_pass_program->use();
@@ -143,6 +146,8 @@ void BloomNode::bright_pass(Renderer* renderer)
 
 void BloomNode::downsample(Renderer* renderer)
 {
+	NIMBLE_SCOPED_SAMPLE("Downsample");
+
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Downsample");
 
     m_bloom_downsample_program->use();
@@ -173,6 +178,8 @@ void BloomNode::downsample(Renderer* renderer)
 // TODO: Prevent clearing when upsampling and use additive blending.
 void BloomNode::upsample(Renderer* renderer)
 {
+	NIMBLE_SCOPED_SAMPLE("Upsample");
+
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Upsample");
 
     m_bloom_upsample_program->use();
@@ -209,6 +216,8 @@ void BloomNode::upsample(Renderer* renderer)
 
 void BloomNode::composite(Renderer* renderer)
 {
+	NIMBLE_SCOPED_SAMPLE("Composite");
+
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Composite");
 
     glEnable(GL_BLEND);

@@ -21,6 +21,7 @@ enum ViewType
 
 struct View
 {
+	std::string					 tag;
     bool                         enabled;
     bool                         culling;
     uint32_t                     cull_idx;

@@ -328,6 +328,7 @@ void Renderer::queue_directional_light_views(View* dependent_view)
                 {
                     View* light_view = allocate_view();
 
+					light_view->tag = "Directional Light " + std::to_string(light_idx) + " Cascade View " + std::to_string(cascade_idx);
                     light_view->enabled                 = true;
                     light_view->culling                 = true;
                     light_view->direction               = light.transform.forward();
@@ -415,6 +416,7 @@ void Renderer::queue_spot_light_views()
             {
                 View* light_view = allocate_view();
 
+				light_view->tag = "Spot Light View " + std::to_string(light_idx);
                 light_view->enabled                 = true;
                 light_view->culling                 = true;
                 light_view->direction               = light.transform.forward();
@@ -467,6 +469,7 @@ void Renderer::queue_point_light_views()
                 {
                     View* light_view = allocate_view();
 
+					light_view->tag = "Point Light View " + std::to_string(light_idx) + " - " + std::to_string(face_idx);
                     light_view->enabled                 = true;
                     light_view->culling                 = true;
                     light_view->direction               = light.transform.forward();
@@ -1554,7 +1557,7 @@ void Renderer::update_uniforms()
 
 void Renderer::cull_scene()
 {
-    Profiler::begin_cpu_sample(PROFILER_FRUSTUM_CULLING);
+	NIMBLE_SCOPED_SAMPLE(PROFILER_FRUSTUM_CULLING);
 
     if (!m_scene.expired())
     {
@@ -1595,8 +1598,6 @@ void Renderer::cull_scene()
             }
         }
     }
-
-    Profiler::end_cpu_sample(PROFILER_FRUSTUM_CULLING);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -1665,6 +1666,7 @@ void Renderer::queue_default_views()
         auto  camera     = scene->camera();
         View* scene_view = allocate_view();
 
+		scene_view->tag = "Scene View";
         scene_view->enabled                 = true;
         scene_view->culling                 = true;
         scene_view->direction               = camera->m_forward;
@@ -1701,6 +1703,8 @@ void Renderer::queue_default_views()
 
 void Renderer::render_all_views(double delta)
 {
+	NIMBLE_SCOPED_SAMPLE("Render All Views");
+
     if (m_num_rendered_views > 0)
     {
         auto scene = m_scene.lock();
@@ -1711,8 +1715,11 @@ void Renderer::render_all_views(double delta)
 
             if (view->enabled)
             {
-                if (view->graph)
-                    view->graph->execute(delta, this, scene.get(), view);
+				if (view->graph)
+				{
+					NIMBLE_SCOPED_SAMPLE(view->tag);
+					view->graph->execute(delta, this, scene.get(), view);
+				}
                 else
                     NIMBLE_LOG_ERROR("Render Graph not assigned for View!");
             }

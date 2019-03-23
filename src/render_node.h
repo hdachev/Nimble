@@ -115,7 +115,6 @@ public:
     InputBuffer*                         find_input_buffer_slot(const std::string& name);
     void                                 set_input(const std::string& name, OutputRenderTarget* render_target, std::shared_ptr<RenderNode> owner);
     void                                 set_input(const std::string& name, OutputBuffer* buffer, std::shared_ptr<RenderNode> owner);
-    void                                 timing_total(float& cpu_time, float& gpu_time);
     void                                 set_bool_parameter(const std::string& name, bool value);
     void                                 set_int_parameter(const std::string& name, int32_t value);
     void                                 set_float_parameter(const std::string& name, float value);
@@ -172,8 +171,6 @@ protected:
 
 protected:
     RenderGraph*                m_graph;
-    float                       m_total_time_cpu;
-    float                       m_total_time_gpu;
     std::string                 m_passthrough_name;
     std::vector<BoolParameter>  m_bool_parameters;
     std::vector<IntParameter>   m_int_parameters;

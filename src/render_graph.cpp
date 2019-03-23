@@ -2,6 +2,7 @@
 #include "renderer.h"
 #include "utility.h"
 #include "logger.h"
+#include "profiler.h"
 
 namespace nimble
 {
@@ -72,8 +73,11 @@ void RenderGraph::execute(double delta, Renderer* renderer, Scene* scene, View* 
     {
         glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, node->name().c_str());
 
-        node->execute(delta, renderer, scene, view);
-
+		{
+			NIMBLE_SCOPED_SAMPLE(node->name().c_str());
+			node->execute(delta, renderer, scene, view);
+		}
+        
         glPopDebugGroup();
 
         if (m_num_cascade_views > 0)
