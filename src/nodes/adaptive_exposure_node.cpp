@@ -41,7 +41,7 @@ void AdaptiveExposureNode::declare_connections()
 bool AdaptiveExposureNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_float_parameter("Middle Grey", m_middle_grey);
-    register_float_parameter("Tau", m_tau);
+    register_float_parameter("Rate", m_rate);
 
     m_color_rt = find_input_render_target("Color");
 
@@ -153,13 +153,17 @@ void AdaptiveExposureNode::average_luminance(double delta, Renderer* renderer, S
 
     m_avg_luma_rt->texture->bind_image(1, 0, 0, GL_READ_WRITE, GL_R32F);
 
-    m_average_lum_program->set_uniform("u_MiddleGrey", m_middle_grey);
-    //m_average_lum_program->set_uniform("u_Tau", m_tau);
-    //   m_average_lum_program->set_uniform("u_Delta", static_cast<float>(delta) / 1000.0f);
+	m_average_lum_program->set_uniform("u_MiddleGrey", m_middle_grey);
+    m_average_lum_program->set_uniform("u_Rate", m_rate);
+    m_average_lum_program->set_uniform("u_Delta", static_cast<float>(delta) / 1000.0f);
+	m_average_lum_program->set_uniform("u_First", m_first ? 1 : 0);
 
     glDispatchCompute(1, 1, 1);
 
     glPopDebugGroup();
+
+	if (m_first)
+		m_first = false;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

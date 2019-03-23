@@ -32,6 +32,9 @@ layout (binding = 0, r32f) uniform image2D i_Luma;
 layout (binding = 1, r32f) uniform image2D i_AvgLuma;
 
 uniform float u_MiddleGrey;
+uniform float u_Rate;
+uniform float u_Delta;
+uniform int u_First;
 
 // ------------------------------------------------------------------
 // GLOBALS ----------------------------------------------------------
@@ -64,7 +67,16 @@ void main()
 			total_luminance += avg_temp[i];
 
 		float luminance = total_luminance / ((kSize / AVG_LUM_THREADS) * (kSize / AVG_LUM_THREADS));
-		imageStore(i_AvgLuma, ivec2(0, 0), vec4(u_MiddleGrey / (exp(luminance) - DELTA), 0, 0, 0));
+
+		float current_exposure = u_MiddleGrey / (exp(luminance) - DELTA);
+		float prev_exposure = imageLoad(i_AvgLuma, ivec2(0, 0)).x;
+
+		if (u_First == 1)
+			prev_exposure = current_exposure;
+
+		float adapted_exposure = prev_exposure + (current_exposure - prev_exposure) * (1 - exp(-u_Delta * u_Rate));
+
+		imageStore(i_AvgLuma, ivec2(0, 0), vec4(adapted_exposure, 0, 0, 0));
 	}
 }
 
