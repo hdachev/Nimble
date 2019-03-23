@@ -41,8 +41,8 @@ private:
     std::shared_ptr<Program> m_average_lum_program;
 
     float m_middle_grey = 0.18f;
-    float m_rate         = 1.1f;
-	bool  m_first = true;
+    float m_rate        = 1.1f;
+    bool  m_first       = true;
 };
 
 DECLARE_RENDER_NODE_FACTORY(AdaptiveExposureNode);

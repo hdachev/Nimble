@@ -11,256 +11,257 @@ namespace nimble
 {
 namespace profiler
 {
-	// -----------------------------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------------------------------------------
 
-	struct Profiler
-	{
-		struct Sample
-		{
-			std::string name;
-			Query query;
-			bool start = true;
-			double cpu_time;
-			Sample* end_sample;
-		};
+struct Profiler
+{
+    struct Sample
+    {
+        std::string name;
+        Query       query;
+        bool        start = true;
+        double      cpu_time;
+        Sample*     end_sample;
+    };
 
-		struct Buffer
-		{
-			std::vector<std::unique_ptr<Sample>> samples;
-			int32_t index = 0;
+    struct Buffer
+    {
+        std::vector<std::unique_ptr<Sample>> samples;
+        int32_t                              index = 0;
 
-			Buffer()
-			{
-				samples.resize(MAX_SAMPLES);
+        Buffer()
+        {
+            samples.resize(MAX_SAMPLES);
 
-				for (uint32_t i = 0; i < MAX_SAMPLES; i++)
-					samples[i] = nullptr;
-			}
-		};
+            for (uint32_t i = 0; i < MAX_SAMPLES; i++)
+                samples[i] = nullptr;
+        }
+    };
 
-		// -----------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------
 
-		Profiler()
-		{
-		#ifdef WIN32
-			QueryPerformanceFrequency(&m_frequency);
-		#endif
-		}
+    Profiler()
+    {
+#ifdef WIN32
+        QueryPerformanceFrequency(&m_frequency);
+#endif
+    }
 
-		// -----------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------
 
-		void begin_sample(std::string name)
-		{
-			int32_t idx = m_sample_buffers[m_write_buffer_idx].index++;
+    void begin_sample(std::string name)
+    {
+        int32_t idx = m_sample_buffers[m_write_buffer_idx].index++;
 
-			if (!m_sample_buffers[m_write_buffer_idx].samples[idx])
-				m_sample_buffers[m_write_buffer_idx].samples[idx] = std::make_unique<Sample>();
+        if (!m_sample_buffers[m_write_buffer_idx].samples[idx])
+            m_sample_buffers[m_write_buffer_idx].samples[idx] = std::make_unique<Sample>();
 
-			auto& sample = m_sample_buffers[m_write_buffer_idx].samples[idx];
-			
-			sample->name = name;
-			sample->query.query_counter(GL_TIMESTAMP);
-			sample->end_sample = nullptr;
-			sample->start = true;
+        auto& sample = m_sample_buffers[m_write_buffer_idx].samples[idx];
 
-		#ifdef WIN32
-			LARGE_INTEGER cpu_time;
-			QueryPerformanceCounter(&cpu_time);
-			sample->cpu_time = cpu_time.QuadPart * (1000000.0 / m_frequency.QuadPart);
-		#else
-			timeval cpu_time;
-			gettimeofday(&sample->cpu_time, nullptr);
-		#endif
+        sample->name = name;
+        sample->query.query_counter(GL_TIMESTAMP);
+        sample->end_sample = nullptr;
+        sample->start      = true;
 
-			m_sample_stack.push(sample.get());
-		}
+#ifdef WIN32
+        LARGE_INTEGER cpu_time;
+        QueryPerformanceCounter(&cpu_time);
+        sample->cpu_time = cpu_time.QuadPart * (1000000.0 / m_frequency.QuadPart);
+#else
+        timeval cpu_time;
+        gettimeofday(&sample->cpu_time, nullptr);
+#endif
 
-		// -----------------------------------------------------------------------------------------------------------------------------------
+        m_sample_stack.push(sample.get());
+    }
 
-		void end_sample(std::string name)
-		{
-			int32_t idx = m_sample_buffers[m_write_buffer_idx].index++;
+    // -----------------------------------------------------------------------------------------------------------------------------------
 
-			if (!m_sample_buffers[m_write_buffer_idx].samples[idx])
-				m_sample_buffers[m_write_buffer_idx].samples[idx] = std::make_unique<Sample>();
+    void end_sample(std::string name)
+    {
+        int32_t idx = m_sample_buffers[m_write_buffer_idx].index++;
 
-			auto& sample = m_sample_buffers[m_write_buffer_idx].samples[idx];
-			
-			sample->name = name;
-			sample->start = false;
-			sample->query.query_counter(GL_TIMESTAMP);
-			sample->end_sample = nullptr;
-			
-		#ifdef WIN32
-			LARGE_INTEGER cpu_time;
-			QueryPerformanceCounter(&cpu_time);
-			sample->cpu_time = cpu_time.QuadPart * (1000000.0 / m_frequency.QuadPart);
-		#else
-			timeval cpu_time;
-			gettimeofday(&sample->cpu_time, nullptr);
-		#endif
+        if (!m_sample_buffers[m_write_buffer_idx].samples[idx])
+            m_sample_buffers[m_write_buffer_idx].samples[idx] = std::make_unique<Sample>();
 
-			Sample* start = m_sample_stack.top();
+        auto& sample = m_sample_buffers[m_write_buffer_idx].samples[idx];
 
-			start->end_sample = sample.get();
+        sample->name  = name;
+        sample->start = false;
+        sample->query.query_counter(GL_TIMESTAMP);
+        sample->end_sample = nullptr;
 
-			m_sample_stack.pop();
-		}
+#ifdef WIN32
+        LARGE_INTEGER cpu_time;
+        QueryPerformanceCounter(&cpu_time);
+        sample->cpu_time = cpu_time.QuadPart * (1000000.0 / m_frequency.QuadPart);
+#else
+        timeval cpu_time;
+        gettimeofday(&sample->cpu_time, nullptr);
+#endif
 
-		// -----------------------------------------------------------------------------------------------------------------------------------
+        Sample* start = m_sample_stack.top();
 
-		void begin_frame()
-		{
-			m_read_buffer_idx++;
-			m_write_buffer_idx++;
+        start->end_sample = sample.get();
 
-			if (m_read_buffer_idx == 3)
-				m_read_buffer_idx = 0;
+        m_sample_stack.pop();
+    }
 
-			if (m_write_buffer_idx == 3)
-				m_write_buffer_idx = 0;
-		}
+    // -----------------------------------------------------------------------------------------------------------------------------------
 
-		// -----------------------------------------------------------------------------------------------------------------------------------
+    void begin_frame()
+    {
+        m_read_buffer_idx++;
+        m_write_buffer_idx++;
 
-		void end_frame()
-		{
-			if (m_read_buffer_idx >= 0)
-				m_sample_buffers[m_read_buffer_idx].index = 0;
-		}
+        if (m_read_buffer_idx == 3)
+            m_read_buffer_idx = 0;
 
-		// -----------------------------------------------------------------------------------------------------------------------------------
+        if (m_write_buffer_idx == 3)
+            m_write_buffer_idx = 0;
+    }
 
-		void ui()
-		{
-			if (m_read_buffer_idx >= 0)
-			{
-				for (int32_t i = 0; i < m_sample_buffers[m_read_buffer_idx].index; i++)
-				{
-					auto& sample = m_sample_buffers[m_read_buffer_idx].samples[i];
+    // -----------------------------------------------------------------------------------------------------------------------------------
 
-					if (sample->start)
-					{
-						if (!m_should_pop_stack.empty())
-						{
-							if (!m_should_pop_stack.top())
-							{
-								m_should_pop_stack.push(false);
-								continue;
-							}
-						}
+    void end_frame()
+    {
+        if (m_read_buffer_idx >= 0)
+            m_sample_buffers[m_read_buffer_idx].index = 0;
+    }
 
-						std::string id = std::to_string(i);
+    // -----------------------------------------------------------------------------------------------------------------------------------
 
-						uint64_t time = 0;
+    void ui()
+    {
+        if (m_read_buffer_idx >= 0)
+        {
+            for (int32_t i = 0; i < m_sample_buffers[m_read_buffer_idx].index; i++)
+            {
+                auto& sample = m_sample_buffers[m_read_buffer_idx].samples[i];
 
-						sample->query.result_64(&time);
-						float gpu_start_time = time / 1000000.0f;
+                if (sample->start)
+                {
+                    if (!m_should_pop_stack.empty())
+                    {
+                        if (!m_should_pop_stack.top())
+                        {
+                            m_should_pop_stack.push(false);
+                            continue;
+                        }
+                    }
 
-						sample->end_sample->query.result_64(&time);
-						float gpu_end_time = time / 1000000.0f;
+                    std::string id = std::to_string(i);
 
-						float gpu_time = gpu_end_time - gpu_start_time;
-						float cpu_time = (sample->end_sample->cpu_time - sample->cpu_time) * 0.001f;
-				
-						if (ImGui::TreeNode(id.c_str(), "%s | %f ms (CPU) | %f ms (GPU)", sample->name.c_str(), cpu_time, gpu_time))
-							m_should_pop_stack.push(true);
-						else
-							m_should_pop_stack.push(false);
-					}
-					else
-					{
-						if (!m_should_pop_stack.empty())
-						{
-							bool should_pop = m_should_pop_stack.top();
-							m_should_pop_stack.pop();
+                    uint64_t time = 0;
 
-							if (should_pop)
-								ImGui::TreePop();
-						}
-					}
-				}
-			}
-		}
+                    sample->query.result_64(&time);
+                    float gpu_start_time = time / 1000000.0f;
 
-		// -----------------------------------------------------------------------------------------------------------------------------------
+                    sample->end_sample->query.result_64(&time);
+                    float gpu_end_time = time / 1000000.0f;
 
-		int32_t m_read_buffer_idx = -3;
-		int32_t m_write_buffer_idx = -1;
-		Buffer m_sample_buffers[BUFFER_COUNT];
-		std::stack<Sample*> m_sample_stack;
-		std::stack<bool> m_should_pop_stack;
+                    float gpu_time = gpu_end_time - gpu_start_time;
+                    float cpu_time = (sample->end_sample->cpu_time - sample->cpu_time) * 0.001f;
 
-	#ifdef WIN32
-	    LARGE_INTEGER m_frequency;
-	#endif
-	};
+                    if (ImGui::TreeNode(id.c_str(), "%s | %f ms (CPU) | %f ms (GPU)", sample->name.c_str(), cpu_time, gpu_time))
+                        m_should_pop_stack.push(true);
+                    else
+                        m_should_pop_stack.push(false);
+                }
+                else
+                {
+                    if (!m_should_pop_stack.empty())
+                    {
+                        bool should_pop = m_should_pop_stack.top();
+                        m_should_pop_stack.pop();
 
-	Profiler* g_profiler = nullptr;
+                        if (should_pop)
+                            ImGui::TreePop();
+                    }
+                }
+            }
+        }
+    }
 
-	// -----------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------
 
-	ScopedProfile::ScopedProfile(std::string name) : m_name(name)
-	{
-		begin_sample(m_name);
-	}
+    int32_t             m_read_buffer_idx  = -3;
+    int32_t             m_write_buffer_idx = -1;
+    Buffer              m_sample_buffers[BUFFER_COUNT];
+    std::stack<Sample*> m_sample_stack;
+    std::stack<bool>    m_should_pop_stack;
 
-	// -----------------------------------------------------------------------------------------------------------------------------------
+#ifdef WIN32
+    LARGE_INTEGER m_frequency;
+#endif
+};
 
-	ScopedProfile::~ScopedProfile()
-	{
-		end_sample(m_name);
-	}
+Profiler* g_profiler = nullptr;
 
-	// -----------------------------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void initialize()
-	{
-		g_profiler = new Profiler();
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void shutdown()
-	{
-		NIMBLE_SAFE_DELETE(g_profiler);
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void begin_sample(std::string name)
-	{
-		g_profiler->begin_sample(name);
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void end_sample(std::string name)
-	{
-		g_profiler->end_sample(name);
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void begin_frame()
-	{
-		g_profiler->begin_frame();
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void end_frame()
-	{
-		g_profiler->end_frame();
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
-
-	void ui()
-	{
-		g_profiler->ui();
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------------------------
+ScopedProfile::ScopedProfile(std::string name) :
+    m_name(name)
+{
+    begin_sample(m_name);
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+ScopedProfile::~ScopedProfile()
+{
+    end_sample(m_name);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void initialize()
+{
+    g_profiler = new Profiler();
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void shutdown()
+{
+    NIMBLE_SAFE_DELETE(g_profiler);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void begin_sample(std::string name)
+{
+    g_profiler->begin_sample(name);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void end_sample(std::string name)
+{
+    g_profiler->end_sample(name);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void begin_frame()
+{
+    g_profiler->begin_frame();
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void end_frame()
+{
+    g_profiler->end_frame();
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void ui()
+{
+    g_profiler->ui();
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+} // namespace profiler
 } // namespace nimble

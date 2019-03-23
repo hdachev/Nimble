@@ -122,7 +122,7 @@ std::string BloomNode::name()
 
 void BloomNode::bright_pass(Renderer* renderer)
 {
-	NIMBLE_SCOPED_SAMPLE("Bright Pass");
+    NIMBLE_SCOPED_SAMPLE("Bright Pass");
 
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Bright Pass");
 
@@ -146,7 +146,7 @@ void BloomNode::bright_pass(Renderer* renderer)
 
 void BloomNode::downsample(Renderer* renderer)
 {
-	NIMBLE_SCOPED_SAMPLE("Downsample");
+    NIMBLE_SCOPED_SAMPLE("Downsample");
 
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Downsample");
 
@@ -178,7 +178,7 @@ void BloomNode::downsample(Renderer* renderer)
 // TODO: Prevent clearing when upsampling and use additive blending.
 void BloomNode::upsample(Renderer* renderer)
 {
-	NIMBLE_SCOPED_SAMPLE("Upsample");
+    NIMBLE_SCOPED_SAMPLE("Upsample");
 
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Upsample");
 
@@ -216,7 +216,7 @@ void BloomNode::upsample(Renderer* renderer)
 
 void BloomNode::composite(Renderer* renderer)
 {
-	NIMBLE_SCOPED_SAMPLE("Composite");
+    NIMBLE_SCOPED_SAMPLE("Composite");
 
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Composite");
 

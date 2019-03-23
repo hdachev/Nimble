@@ -157,7 +157,7 @@ bool Application::init_base(int argc, const char* argv[])
     if (!init(argc, argv))
         return false;
 
-	profiler::initialize();
+    profiler::initialize();
     m_renderer.initialize(&m_resource_manager, m_width, m_height);
 
     return true;
@@ -179,7 +179,7 @@ void Application::shutdown_base()
     // Execute user-side shutdown method.
     shutdown();
 
-	profiler::shutdown();
+    profiler::shutdown();
 
     m_renderer.shutdown();
     m_resource_manager.shutdown();
@@ -212,7 +212,7 @@ void Application::begin_frame()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-	profiler::begin_frame();
+    profiler::begin_frame();
 
     m_mouse_delta_x = m_mouse_x - m_last_mouse_x;
     m_mouse_delta_y = m_mouse_y - m_last_mouse_y;
@@ -225,7 +225,7 @@ void Application::begin_frame()
 
 void Application::end_frame()
 {
-	profiler::end_frame();
+    profiler::end_frame();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
