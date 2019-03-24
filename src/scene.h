@@ -10,6 +10,8 @@
 
 namespace nimble
 {
+#define ENVIRONMENT_MAP_SIZE 1024
+
 struct ReflectionProbe
 {
     using ID = uint32_t;
