@@ -17,7 +17,6 @@ public:
     void render(double delta, Renderer* renderer, Scene* scene);
 
     virtual bool initialize(Renderer* renderer, ResourceManager* res_mgr);
-    virtual void shutdown();
 
 protected:
     virtual void        env_map(double delta, Renderer* renderer, Scene* scene)  = 0;

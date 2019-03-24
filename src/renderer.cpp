@@ -12,6 +12,8 @@
 #include "geometry.h"
 #include "profiler.h"
 #include "resource_manager.h"
+#include "global_probe_renderer.h"
+#include "local_probe_renderer.h"
 
 #include <gtc/matrix_transform.hpp>
 #include <fstream>
@@ -131,13 +133,14 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
 
     for (auto& current_graph : m_registered_render_graphs)
     {
-        current_graph->on_window_resized(m_window_width, m_window_height);
+		current_graph->on_window_resized(m_window_width, m_window_height);
 
         if (!current_graph->initialize(this, res_mgr))
             return false;
     }
 
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	if (m_global_probe_renderer)
+		m_global_probe_renderer->initialize(this, res_mgr);
 
     m_copy_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
     m_copy_fs = res_mgr->load_shader("shader/post_process/copy_fs.glsl", GL_FRAGMENT_SHADER);
@@ -154,6 +157,8 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
 
 void Renderer::render(double delta)
 {
+	render_probes(delta);
+
     queue_default_views();
 
     update_uniforms();
@@ -256,6 +261,20 @@ void Renderer::set_point_light_render_graph(std::shared_ptr<ShadowRenderGraph> g
 {
     if (graph)
         m_point_light_render_graph = graph;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::set_global_probe_renderer(std::shared_ptr<GlobalProbeRenderer> probe_renderer)
+{
+	m_global_probe_renderer = probe_renderer;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::set_local_probe_renderer(std::shared_ptr<LocalProbeRenderer> probe_renderer)
+{
+	m_local_probe_renderer = probe_renderer;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -592,9 +611,12 @@ std::shared_ptr<Program> Renderer::create_program(const std::vector<std::shared_
 
         m_program_cache[id] = program;
 
-        program->uniform_block_binding("u_PerView", 0);
-        program->uniform_block_binding("u_PerScene", 1);
-        program->uniform_block_binding("u_PerEntity", 2);
+		if (program->num_active_uniform_blocks() > 0)
+		{
+			program->uniform_block_binding("u_PerView", 0);
+			program->uniform_block_binding("u_PerScene", 1);
+			program->uniform_block_binding("u_PerEntity", 2);
+		}
 
         return program;
     }
@@ -677,6 +699,19 @@ void Renderer::bind_render_targets(const uint32_t& num_render_targets, const Ren
 
     if (fbo)
         fbo->bind();
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::render_probes(double delta)
+{
+	if (!m_scene.expired())
+	{
+		auto scene = m_scene.lock();
+
+		if (m_global_probe_renderer)
+			m_global_probe_renderer->render(delta, this, scene.get());
+	}
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

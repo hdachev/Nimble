@@ -50,7 +50,7 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
     {
         m_clear_2d_program = renderer->create_program({ m_clear_2d_shader });
 
-        if (m_clear_2d_program)
+        if (!m_clear_2d_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -68,7 +68,7 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
     {
         m_clear_3d_program = renderer->create_program({ m_clear_3d_shader });
 
-        if (m_clear_3d_program)
+        if (!m_clear_3d_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -86,7 +86,7 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
     {
         m_direct_irradiance_program = renderer->create_program({ m_direct_irradiance_shader });
 
-        if (m_direct_irradiance_program)
+        if (!m_direct_irradiance_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -104,7 +104,7 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
     {
         m_indirect_irradiance_program = renderer->create_program({ m_indirect_irradiance_shader });
 
-        if (m_indirect_irradiance_program)
+        if (!m_indirect_irradiance_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -122,7 +122,7 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
     {
         m_multiple_scattering_program = renderer->create_program({ m_multiple_scattering_shader });
 
-        if (m_multiple_scattering_program)
+        if (!m_multiple_scattering_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -140,7 +140,7 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
     {
         m_scattering_density_program = renderer->create_program({ m_scattering_density_shader });
 
-        if (m_scattering_density_program)
+        if (!m_scattering_density_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -158,7 +158,7 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
     {
         m_single_scattering_program = renderer->create_program({ m_single_scattering_shader });
 
-        if (m_single_scattering_program)
+        if (!m_single_scattering_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -176,7 +176,7 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
     {
         m_transmittance_program = renderer->create_program({ m_transmittance_shader });
 
-        if (m_transmittance_program)
+        if (!m_transmittance_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;

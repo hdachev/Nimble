@@ -21,8 +21,10 @@ in vec3 FS_IN_WorldPos;
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
+uniform vec3 earth_center;
 uniform vec3 sun_direction;
 uniform vec2 sun_size;
+uniform float exposure;
 
 uniform sampler2D transmittance_texture;
 uniform sampler2D irradiance_texture;
@@ -86,12 +88,16 @@ void main()
 
 	// Compute the radiance of the sky.
 	vec3 transmittance;
-	vec3 radiance = GetSkyRadiance(vec3(0.0, 0.0, 0.0), view_direction, 4.0, sun_direction, transmittance);
+	vec3 radiance = GetSkyRadiance(-earth_center, view_direction, 4.0, sun_direction, transmittance);
 
 	// If the view ray intersects the Sun, add the Sun radiance.
 	if (dot(view_direction, sun_direction) > sun_size.y) 
 		radiance = radiance + transmittance * GetSolarRadiance();
-		
+
+	vec3 white_point = vec3(1.0);
+
+	radiance = vec3(1,1,1) - exp(-radiance / white_point * exposure);
+
 	FS_OUT_Color = vec4(radiance, 1.0);
 }
 

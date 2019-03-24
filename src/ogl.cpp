@@ -1239,15 +1239,10 @@ void Program::uniform_block_binding(std::string name, int binding)
 {
     GL_CHECK_ERROR(GLuint idx = glGetUniformBlockIndex(m_gl_program, name.c_str()));
 
-    if (idx == GL_INVALID_INDEX)
+    if (idx != GL_INVALID_INDEX)
     {
-        std::string uniform_error = "OPENGL: Failed to get Uniform Block Index for Uniform Buffer : ";
-        uniform_error += name;
-
-        NIMBLE_LOG_ERROR(uniform_error);
+		GL_CHECK_ERROR(glUniformBlockBinding(m_gl_program, idx, binding));
     }
-    else
-        GL_CHECK_ERROR(glUniformBlockBinding(m_gl_program, idx, binding));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

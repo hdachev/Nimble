@@ -151,6 +151,8 @@ bool Application::init_base(int argc, const char* argv[])
     m_width  = display_w;
     m_height = display_h;
 
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
     if (!m_debug_draw.init())
         return false;
 
