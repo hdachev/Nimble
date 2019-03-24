@@ -139,8 +139,8 @@ protected:
     void render_fullscreen_quad(Renderer* renderer, View* view, Program* program = nullptr, int32_t tex_unit = 0, uint32_t flags = 0);
 
 protected:
-    RenderGraph*                m_graph;
-    std::string                 m_passthrough_name;
+    RenderGraph* m_graph;
+    std::string  m_passthrough_name;
 
 private:
     bool                                                               m_enabled;

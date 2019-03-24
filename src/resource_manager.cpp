@@ -488,10 +488,10 @@ std::shared_ptr<Scene> ResourceManager::load_scene(const std::string& path, cons
             camera->set_position(ast_scene.camera.position);
 
             // Load environment
-			if (ast_scene.skybox.environment_map.size() > 0)
-				scene->set_environment_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.environment_map, false, false, true)));
-			else
-				scene->set_environment_map(std::make_shared<TextureCube>(ENVIRONMENT_MAP_SIZE, ENVIRONMENT_MAP_SIZE, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT, false));
+            if (ast_scene.skybox.environment_map.size() > 0)
+                scene->set_environment_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.environment_map, false, false, true)));
+            else
+                scene->set_environment_map(std::make_shared<TextureCube>(ENVIRONMENT_MAP_SIZE, ENVIRONMENT_MAP_SIZE, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT, false));
 
             if (ast_scene.skybox.diffuse_irradiance.size() > 0)
                 scene->set_irradiance_map(std::static_pointer_cast<TextureCube>(load_texture(ast_scene.skybox.diffuse_irradiance, false, false, true)));
