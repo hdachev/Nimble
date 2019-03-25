@@ -31,7 +31,7 @@ void BloomNode::declare_connections()
 {
     register_input_render_target("Color");
 
-    m_color_rt = register_forwarded_output_render_target("Color");
+    m_composite_rt = register_scaled_output_render_target("Bloom", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 
     // Clear earlier render targets.
     for (uint32_t i = 0; i < BLOOM_TEX_CHAIN_SIZE; i++)
@@ -53,7 +53,8 @@ bool BloomNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     register_float_parameter("Threshold", m_threshold, 0.0f, 1.0f);
     register_float_parameter("Strength", m_strength, 0.0f, 1.0f);
 
-    m_composite_rtv = RenderTargetView(0, 0, 0, m_color_rt->texture);
+	m_color_rt = find_input_render_target("Color");
+    m_composite_rtv = RenderTargetView(0, 0, 0, m_composite_rt->texture);
 
     for (uint32_t i = 0; i < BLOOM_TEX_CHAIN_SIZE; i++)
         m_bloom_rtv[i] = RenderTargetView(0, 0, 0, m_bloom_rt[i]->texture);
@@ -96,6 +97,8 @@ bool BloomNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 void BloomNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
+	blit_render_target(renderer, m_color_rt, m_composite_rt);
+
     if (m_enabled)
     {
         bright_pass(renderer);
