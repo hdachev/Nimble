@@ -222,7 +222,7 @@ private:
         // Create Directional Light render graph
         m_pcf_directional_light_graph = std::dynamic_pointer_cast<ShadowRenderGraph>(m_resource_manager.load_render_graph("graph/pcf_directional_light_graph.json", &m_renderer));
 
-		m_bruneton_probe_renderer = std::make_shared<BrunetonProbeRenderer>();
+        m_bruneton_probe_renderer = std::make_shared<BrunetonProbeRenderer>();
 
         // Set the graphs as the active graphs
         m_renderer.set_scene(m_scene);
@@ -230,7 +230,7 @@ private:
         m_renderer.set_point_light_render_graph(m_pcf_point_light_graph);
         m_renderer.set_spot_light_render_graph(m_pcf_spot_light_graph);
         m_renderer.set_directional_light_render_graph(m_pcf_directional_light_graph);
-		m_renderer.set_global_probe_renderer(m_bruneton_probe_renderer);
+        m_renderer.set_global_probe_renderer(m_bruneton_probe_renderer);
 
         m_renderer.set_scene_render_graph(m_forward_graph);
     }
@@ -404,12 +404,12 @@ private:
 
             if (ImGui::CollapsingHeader("Render Graph"))
                 render_node_params();
-     
-			if (m_renderer.global_probe_renderer())
-			{
-				if (ImGui::CollapsingHeader("Global Probe Renderer"))
-					paramerizable_ui(m_renderer.global_probe_renderer());
-			}
+
+            if (m_renderer.global_probe_renderer())
+            {
+                if (ImGui::CollapsingHeader("Global Probe Renderer"))
+                    paramerizable_ui(m_renderer.global_probe_renderer());
+            }
 
             if (ImGui::CollapsingHeader("Entities"))
             {
@@ -556,37 +556,37 @@ private:
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
-	void paramerizable_ui(std::shared_ptr<Parameterizable> paramterizable)
+    void paramerizable_ui(std::shared_ptr<Parameterizable> paramterizable)
     {
-         int32_t num_bool_params  = 0;
-         int32_t num_int_params   = 0;
-         int32_t num_float_params = 0;
+        int32_t num_bool_params  = 0;
+        int32_t num_int_params   = 0;
+        int32_t num_float_params = 0;
 
-         BoolParameter*  bool_params  = paramterizable->bool_parameters(num_bool_params);
-         IntParameter*   int_params   = paramterizable->int_parameters(num_int_params);
-         FloatParameter* float_params = paramterizable->float_parameters(num_float_params);
+        BoolParameter*  bool_params  = paramterizable->bool_parameters(num_bool_params);
+        IntParameter*   int_params   = paramterizable->int_parameters(num_int_params);
+        FloatParameter* float_params = paramterizable->float_parameters(num_float_params);
 
-         for (uint32_t i = 0; i < num_bool_params; i++)
-             ImGui::Checkbox(bool_params[i].name.c_str(), bool_params[i].ptr);
+        for (uint32_t i = 0; i < num_bool_params; i++)
+            ImGui::Checkbox(bool_params[i].name.c_str(), bool_params[i].ptr);
 
-         for (uint32_t i = 0; i < num_int_params; i++)
-         {
-             if (int_params[i].min == int_params[i].max)
-                 ImGui::InputInt(int_params[i].name.c_str(), int_params[i].ptr);
-             else
-                 ImGui::SliderInt(int_params[i].name.c_str(), int_params[i].ptr, int_params[i].min, int_params[i].max);
-         }
+        for (uint32_t i = 0; i < num_int_params; i++)
+        {
+            if (int_params[i].min == int_params[i].max)
+                ImGui::InputInt(int_params[i].name.c_str(), int_params[i].ptr);
+            else
+                ImGui::SliderInt(int_params[i].name.c_str(), int_params[i].ptr, int_params[i].min, int_params[i].max);
+        }
 
-         for (uint32_t i = 0; i < num_float_params; i++)
-         {
-             if (float_params[i].min == float_params[i].max)
-                 ImGui::InputFloat(float_params[i].name.c_str(), float_params[i].ptr);
-             else
-                 ImGui::SliderFloat(float_params[i].name.c_str(), float_params[i].ptr, float_params[i].min, float_params[i].max);
-         }
+        for (uint32_t i = 0; i < num_float_params; i++)
+        {
+            if (float_params[i].min == float_params[i].max)
+                ImGui::InputFloat(float_params[i].name.c_str(), float_params[i].ptr);
+            else
+                ImGui::SliderFloat(float_params[i].name.c_str(), float_params[i].ptr, float_params[i].min, float_params[i].max);
+        }
     }
 
-	// -----------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------
 
     void render_node_params()
     {
@@ -596,7 +596,7 @@ private:
 
             if (ImGui::TreeNode(node->name().c_str()))
             {
-				paramerizable_ui(node);
+                paramerizable_ui(node);
                 ImGui::TreePop();
             }
         }
@@ -757,12 +757,12 @@ private:
     float m_camera_sensitivity = 0.05f;
     float m_camera_speed       = 0.1f;
 
-    std::shared_ptr<Scene>             m_scene;
-    std::shared_ptr<RenderGraph>       m_forward_graph;
-    std::shared_ptr<ShadowRenderGraph> m_pcf_point_light_graph;
-    std::shared_ptr<ShadowRenderGraph> m_pcf_spot_light_graph;
-    std::shared_ptr<ShadowRenderGraph> m_pcf_directional_light_graph;
-	std::shared_ptr<BrunetonProbeRenderer> m_bruneton_probe_renderer;
+    std::shared_ptr<Scene>                 m_scene;
+    std::shared_ptr<RenderGraph>           m_forward_graph;
+    std::shared_ptr<ShadowRenderGraph>     m_pcf_point_light_graph;
+    std::shared_ptr<ShadowRenderGraph>     m_pcf_spot_light_graph;
+    std::shared_ptr<ShadowRenderGraph>     m_pcf_directional_light_graph;
+    std::shared_ptr<BrunetonProbeRenderer> m_bruneton_probe_renderer;
 
     Entity::ID           m_selected_entity      = UINT32_MAX;
     PointLight::ID       m_selected_point_light = UINT32_MAX;

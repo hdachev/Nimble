@@ -55,8 +55,8 @@ public:
     void  set_directional_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
     void  set_spot_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
     void  set_point_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
-	void  set_global_probe_renderer(std::shared_ptr<GlobalProbeRenderer> probe_renderer);
-	void  set_local_probe_renderer(std::shared_ptr<LocalProbeRenderer> probe_renderer);
+    void  set_global_probe_renderer(std::shared_ptr<GlobalProbeRenderer> probe_renderer);
+    void  set_local_probe_renderer(std::shared_ptr<LocalProbeRenderer> probe_renderer);
     View* allocate_view();
     void  queue_view(View* view);
     void  queue_directional_light_views(View* dependent_view);
@@ -73,23 +73,23 @@ public:
     void         bind_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView* depth_view);
 
     // Inline getters
-    inline std::shared_ptr<Program>           copy_program() { return m_copy_program; }
-    inline ShaderCache&                       shader_cache() { return m_shader_cache; }
-    inline std::weak_ptr<Scene>               scene() { return m_scene; }
-    inline Settings                           settings() { return m_settings; }
-    inline std::shared_ptr<RenderGraph>       scene_render_graph() { return m_scene_render_graph; }
-    inline std::shared_ptr<ShadowRenderGraph> directional_light_render_graph() { return m_directional_light_render_graph; }
-    inline std::shared_ptr<ShadowRenderGraph> spot_light_render_graph() { return m_spot_light_render_graph; }
-    inline std::shared_ptr<ShadowRenderGraph> point_light_render_graph() { return m_point_light_render_graph; }
-	inline std::shared_ptr<GlobalProbeRenderer> global_probe_renderer() { return m_global_probe_renderer; }
-	inline std::shared_ptr<LocalProbeRenderer> local_probe_renderer() { return m_local_probe_renderer; }
-    inline std::shared_ptr<Texture>           directional_light_shadow_maps() { return m_directional_light_shadow_maps; }
-    inline std::shared_ptr<Texture>           spot_light_shadow_maps() { return m_spot_light_shadow_maps; }
-    inline std::shared_ptr<Texture>           point_light_shadow_maps() { return m_point_light_shadow_maps; }
-    inline ShaderStorageBuffer*               per_view_ssbo() { return m_per_view.get(); }
-    inline UniformBuffer*                     per_entity_ubo() { return m_per_entity.get(); }
-    inline ShaderStorageBuffer*               per_scene_ssbo() { return m_per_scene.get(); }
-    inline std::shared_ptr<VertexArray>       cube_vao() { return m_cube_vao; }
+    inline std::shared_ptr<Program>             copy_program() { return m_copy_program; }
+    inline ShaderCache&                         shader_cache() { return m_shader_cache; }
+    inline std::weak_ptr<Scene>                 scene() { return m_scene; }
+    inline Settings                             settings() { return m_settings; }
+    inline std::shared_ptr<RenderGraph>         scene_render_graph() { return m_scene_render_graph; }
+    inline std::shared_ptr<ShadowRenderGraph>   directional_light_render_graph() { return m_directional_light_render_graph; }
+    inline std::shared_ptr<ShadowRenderGraph>   spot_light_render_graph() { return m_spot_light_render_graph; }
+    inline std::shared_ptr<ShadowRenderGraph>   point_light_render_graph() { return m_point_light_render_graph; }
+    inline std::shared_ptr<GlobalProbeRenderer> global_probe_renderer() { return m_global_probe_renderer; }
+    inline std::shared_ptr<LocalProbeRenderer>  local_probe_renderer() { return m_local_probe_renderer; }
+    inline std::shared_ptr<Texture>             directional_light_shadow_maps() { return m_directional_light_shadow_maps; }
+    inline std::shared_ptr<Texture>             spot_light_shadow_maps() { return m_spot_light_shadow_maps; }
+    inline std::shared_ptr<Texture>             point_light_shadow_maps() { return m_point_light_shadow_maps; }
+    inline ShaderStorageBuffer*                 per_view_ssbo() { return m_per_view.get(); }
+    inline UniformBuffer*                       per_entity_ubo() { return m_per_entity.get(); }
+    inline ShaderStorageBuffer*                 per_scene_ssbo() { return m_per_scene.get(); }
+    inline std::shared_ptr<VertexArray>         cube_vao() { return m_cube_vao; }
 
 private:
     using TextureLifetimes = std::vector<std::pair<uint32_t, uint32_t>>;
@@ -100,7 +100,7 @@ private:
         TextureLifetimes              lifetimes;
     };
 
-	void	 render_probes(double delta);
+    void     render_probes(double delta);
     void     setup_cascade_views(DirectionalLight& dir_light, View* dependent_view, View** cascade_views, View* parent = nullptr);
     void     create_cube();
     int32_t  find_render_target_last_usage(std::shared_ptr<RenderTarget> rt);
@@ -157,9 +157,9 @@ private:
     std::vector<RenderTargetView> m_spot_light_rt_views;
     Settings                      m_settings;
 
-	// Probe Renderers
-	std::shared_ptr<GlobalProbeRenderer> m_global_probe_renderer = nullptr;
-	std::shared_ptr<LocalProbeRenderer> m_local_probe_renderer = nullptr;
+    // Probe Renderers
+    std::shared_ptr<GlobalProbeRenderer> m_global_probe_renderer = nullptr;
+    std::shared_ptr<LocalProbeRenderer>  m_local_probe_renderer  = nullptr;
 
     // Common geometry.
     std::shared_ptr<VertexArray>  m_cube_vao;

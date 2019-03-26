@@ -1241,7 +1241,7 @@ void Program::uniform_block_binding(std::string name, int binding)
 
     if (idx != GL_INVALID_INDEX)
     {
-		GL_CHECK_ERROR(glUniformBlockBinding(m_gl_program, idx, binding));
+        GL_CHECK_ERROR(glUniformBlockBinding(m_gl_program, idx, binding));
     }
 }
 

@@ -25,8 +25,8 @@ BrunetonProbeRenderer::~BrunetonProbeRenderer()
 
 bool BrunetonProbeRenderer::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-	register_float_parameter("Sun Radius", m_sun_angular_radius);
-	register_float_parameter("Exposure", m_exposure);
+    register_float_parameter("Sun Radius", m_sun_angular_radius);
+    register_float_parameter("Exposure", m_exposure);
 
     // Values from "Reference Solar Spectral Irradiance: ASTM G-173", ETR column
     // (see http://rredc.nrel.gov/solar/spectra/am1.5/ASTMG173/ASTMG173.html),
@@ -145,13 +145,13 @@ bool BrunetonProbeRenderer::initialize(Renderer* renderer, ResourceManager* res_
 
     m_sun_dir = glm::vec3(0.0f);
 
-	std::vector<std::string> defines;
+    std::vector<std::string> defines;
 
-	if (m_use_luminance == LUMINANCE::NONE)
-		defines.push_back("RADIANCE_API_ENABLED");
+    if (m_use_luminance == LUMINANCE::NONE)
+        defines.push_back("RADIANCE_API_ENABLED");
 
-	if (m_use_combined_textures)
-		defines.push_back("COMBINED_SCATTERING_TEXTURES");
+    if (m_use_combined_textures)
+        defines.push_back("COMBINED_SCATTERING_TEXTURES");
 
     m_env_map_vs = res_mgr->load_shader("shader/bruneton_sky_model/env_map_vs.glsl", GL_VERTEX_SHADER, defines);
     m_env_map_fs = res_mgr->load_shader("shader/bruneton_sky_model/env_map_fs.glsl", GL_FRAGMENT_SHADER, defines);
@@ -191,8 +191,8 @@ void BrunetonProbeRenderer::env_map(double delta, Renderer* renderer, Scene* sce
         {
             m_sun_dir = sun_dir;
 
-			for (int i = 0; i < 6; i++)
-				m_cubemap_rtv[i] = RenderTargetView(i, 0, 0, scene->env_map());
+            for (int i = 0; i < 6; i++)
+                m_cubemap_rtv[i] = RenderTargetView(i, 0, 0, scene->env_map());
 
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_CULL_FACE);
@@ -202,9 +202,9 @@ void BrunetonProbeRenderer::env_map(double delta, Renderer* renderer, Scene* sce
             m_sky_model.bind_rendering_uniforms(m_env_map_program.get());
 
             m_env_map_program->set_uniform("sun_size", glm::vec2(tan(m_sun_angular_radius), cos(m_sun_angular_radius)));
-			m_env_map_program->set_uniform("sun_direction", -light.transform.forward());
-			m_env_map_program->set_uniform("earth_center", glm::vec3(0.0f, -m_bottom_radius / m_length_unit_in_meters, 0.0f));
-			m_env_map_program->set_uniform("exposure", m_exposure);
+            m_env_map_program->set_uniform("sun_direction", -light.transform.forward());
+            m_env_map_program->set_uniform("earth_center", glm::vec3(0.0f, -m_bottom_radius / m_length_unit_in_meters, 0.0f));
+            m_env_map_program->set_uniform("exposure", m_exposure);
 
             for (int i = 0; i < 6; i++)
             {
