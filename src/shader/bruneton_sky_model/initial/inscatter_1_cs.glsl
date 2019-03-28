@@ -59,8 +59,6 @@
  // copies deltaS into S (line 5 in algorithm 4.1)
 
 #include <precompute_common.glsl>
- 
-#define NUM_THREADS 8
 
 // ------------------------------------------------------------------
 // INPUTS -----------------------------------------------------------

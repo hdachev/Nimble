@@ -111,7 +111,7 @@ int RES_NU;
 // PARAMETERIZATION FUNCTIONS 
 // ---------------------------------------------------------------------------- 
 
-sampler2D transmittanceRead;
+sampler2D s_TransmittanceRead;
 
 vec4 SamplePoint(sampler3D tex, vec3 uv, vec3 size)
 {
@@ -265,7 +265,7 @@ float Limit(float r, float mu)
 vec3 Transmittance(float r, float mu) 
 { 
 	vec2 uv = GetTransmittanceUV(r, mu);
-    return textureLod(transmittanceRead, uv, 0).rgb; 
+    return textureLod(s_TransmittanceRead, uv, 0).rgb; 
 } 
 
 // transmittance(=transparency) of atmosphere between x and x0 
