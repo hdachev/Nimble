@@ -58,7 +58,7 @@
  
  // copies deltaS into S (line 5 in algorithm 4.1)
 
-#include <precompute_common.glsl>
+#include <precompute_common.glsl> 
 
 // ------------------------------------------------------------------
 // INPUTS -----------------------------------------------------------
@@ -70,7 +70,30 @@ layout (local_size_x = NUM_THREADS, local_size_y = NUM_THREADS, local_size_z = 1
 // INPUT ------------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (binding = 0, rgba32f) uniform image2D i_DeltaEWrite;
+layout (binding = 0, rgba32f) uniform image2D i_TransmittanceWrite;
+
+// ------------------------------------------------------------------
+// FUNCTIONS --------------------------------------------------------
+// ------------------------------------------------------------------
+
+float OpticalDepth(float H, float r, float mu) 
+{ 
+    float result = 0.0; 
+    float dx = Limit(r, mu) / float(TRANSMITTANCE_INTEGRAL_SAMPLES); 
+    float xi = 0.0; 
+    float yi = exp(-(r - Rg) / H); 
+    
+    for (int i = 1; i <= TRANSMITTANCE_INTEGRAL_SAMPLES; ++i) 
+    { 
+        float xj = float(i) * dx; 
+        float yj = exp(-(sqrt(r * r + xj * xj + 2.0 * xj * r * mu) - Rg) / H); 
+        result += (yi + yj) / 2.0 * dx; 
+        xi = xj; 
+        yi = yj; 
+    }
+     
+    return mu < -sqrt(1.0 - (Rg / r) * (Rg / r)) ? 1e9 : result; 
+} 
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -79,11 +102,11 @@ layout (binding = 0, rgba32f) uniform image2D i_DeltaEWrite;
 void main()
 {
     float r, muS; 
-    vec2 coords = vec2(gl_GlobalInvocationID.xy) + 0.5; 
+    GetTransmittanceRMu(vec2(gl_GlobalInvocationID.xy), r, muS); 
     
-    GetIrradianceRMuS(coords, r, muS); 
-    
-    imageStore(i_DeltaEWrite, gl_GlobalInvocationID.xy, vec4(Transmittance(r, muS) * max(muS, 0.0), 0.0)); 
+    vec4 depth = betaR * OpticalDepth(HR, r, muS) + betaMEx * OpticalDepth(HM, r, muS); 
+
+	imageStore(i_TransmittanceWrite, ivec2(gl_GlobalInvocationID.xy), exp(-depth)); // Eq (5);
 }
 
 // ------------------------------------------------------------------

@@ -58,7 +58,7 @@
  
  // copies deltaS into S (line 5 in algorithm 4.1)
 
-#include <precompute_common.glsl> 
+#include <precompute_common.glsl>
 
 // ------------------------------------------------------------------
 // INPUTS -----------------------------------------------------------
@@ -70,30 +70,14 @@ layout (local_size_x = NUM_THREADS, local_size_y = NUM_THREADS, local_size_z = 1
 // INPUT ------------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (binding = 0, rgba32f) uniform image2D i_TransmittanceWrite;
+layout (binding = 0, rgba32f) uniform image2D i_DeltaEWrite;
 
 // ------------------------------------------------------------------
-// FUNCTIONS --------------------------------------------------------
+// UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-float OpticalDepth(float H, float r, float mu) 
-{ 
-    float result = 0.0; 
-    float dx = Limit(r, mu) / float(TRANSMITTANCE_INTEGRAL_SAMPLES); 
-    float xi = 0.0; 
-    float yi = exp(-(r - Rg) / H); 
-    
-    for (int i = 1; i <= TRANSMITTANCE_INTEGRAL_SAMPLES; ++i) 
-    { 
-        float xj = float(i) * dx; 
-        float yj = exp(-(sqrt(r * r + xj * xj + 2.0 * xj * r * mu) - Rg) / H); 
-        result += (yi + yj) / 2.0 * dx; 
-        xi = xj; 
-        yi = yj; 
-    }
-     
-    return mu < -sqrt(1.0 - (Rg / r) * (Rg / r)) ? 1e9 : result; 
-} 
+uniform sampler3D s_DeltaSRRead; 
+uniform sampler3D s_DeltaSMRead;
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -101,12 +85,51 @@ float OpticalDepth(float H, float r, float mu)
 
 void main()
 {
-    float r, muS; 
-    GetTransmittanceRMu(vec2(gl_GlobalInvocationID.xy), r, muS); 
+    float r, muS;
+    vec2 coords = vec2(gl_GlobalInvocationID.xy) + 0.5; 
     
-    vec4 depth = betaR * OpticalDepth(HR, r, muS) + betaMEx * OpticalDepth(HM, r, muS); 
+    GetIrradianceRMuS(coords, r, muS); 
+    
+    vec3 s = vec3(sqrt(max(1.0 - muS * muS, 0.0)), 0.0, muS); 
+ 
+    vec3 result = vec3(0,0,0); 
+    // integral over 2.PI around x with two nested loops over w directions (theta,phi) -- Eq (15) 
+    
+    float dphi = M_PI / float(IRRADIANCE_INTEGRAL_SAMPLES); 
+	float dtheta = M_PI / float(IRRADIANCE_INTEGRAL_SAMPLES); 
 
-	imageStore(i_TransmittanceWrite, gl_GlobalInvocationID.xy, exp(-depth)); // Eq (5);
+    for (int iphi = 0; iphi < 2 * IRRADIANCE_INTEGRAL_SAMPLES; ++iphi) { 
+
+        float phi = (float(iphi) + 0.5) * dphi; 
+
+        for (int itheta = 0; itheta < IRRADIANCE_INTEGRAL_SAMPLES / 2; ++itheta) { 
+
+            float theta = (float(itheta) + 0.5) * dtheta; 
+
+            float dw = dtheta * dphi * sin(theta); 
+
+            vec3 w = vec3(cos(phi) * sin(theta), sin(phi) * sin(theta), cos(theta)); 
+
+            float nu = dot(s, w); 
+
+            if (first == 1) 
+            { 
+                // first iteration is special because Rayleigh and Mie were stored separately, 
+                // without the phase functions factors; they must be reintroduced here 
+                float pr1 = PhaseFunctionR(nu); 
+                float pm1 = PhaseFunctionM(nu); 
+                vec3 ray1 = Texture4D(s_DeltaSRRead, r, w.z, muS, nu).rgb; 
+                vec3 mie1 = Texture4D(s_DeltaSMRead, r, w.z, muS, nu).rgb; 
+                result += (ray1 * pr1 + mie1 * pm1) * w.z * dw; 
+            } 
+            else { 
+                result += Texture4D(s_DeltaSRRead, r, w.z, muS, nu).rgb * w.z * dw; 
+
+            } 
+        } 
+    } 
+ 
+    imageStore(i_DeltaEWrite, ivec2(gl_GlobalInvocationID.xy), vec4(result, 1.0)); 
 }
 
 // ------------------------------------------------------------------

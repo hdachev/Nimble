@@ -57,8 +57,8 @@
  */
  
  // copies deltaS into S (line 5 in algorithm 4.1)
-
-#define NUM_THREADS 8
+ 
+#include <precompute_common.glsl>
 
 // ------------------------------------------------------------------
 // INPUTS -----------------------------------------------------------
@@ -70,16 +70,48 @@ layout (local_size_x = NUM_THREADS, local_size_y = NUM_THREADS, local_size_z = 1
 // INPUT ------------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (binding = 0, rgba32f) uniform image2D i_IrradianceWrite;
+layout (binding = 0, rgba32f) uniform image3D i_DeltaSRWrite;
 
 // ------------------------------------------------------------------
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-uniform sampler2D s_DeltaERead; 
-uniform sampler2D s_IrradianceRead;
+uniform sampler3D s_DeltaJRead; 
 
-uniform float u_K;
+uniform int u_Layer;
+
+// ------------------------------------------------------------------
+// FUNCTIONS --------------------------------------------------------
+// ------------------------------------------------------------------
+
+vec3 Integrand(float r, float mu, float muS, float nu, float t) 
+{ 
+    float ri = sqrt(r * r + t * t + 2.0 * r * mu * t); 
+    float mui = (r * mu + t) / ri; 
+    float muSi = (nu * t + muS * r) / ri; 
+    return Texture4D(s_DeltaJRead, ri, mui, muSi, nu).rgb * Transmittance(r, mu, t); 
+} 
+ 
+// ------------------------------------------------------------------
+
+vec3 Inscatter(float r, float mu, float muS, float nu) 
+{ 
+    vec3 raymie = vec3(0,0,0); 
+    float dx = Limit(r, mu) / float(INSCATTER_INTEGRAL_SAMPLES); 
+    float xi = 0.0; 
+    vec3 raymiei = Integrand(r, mu, muS, nu, 0.0); 
+    
+    for (int i = 1; i <= INSCATTER_INTEGRAL_SAMPLES; ++i) 
+    { 
+        float xj = float(i) * dx; 
+        vec3 raymiej = Integrand(r, mu, muS, nu, xj); 
+        raymie += (raymiei + raymiej) / 2.0 * dx; 
+        xi = xj; 
+        raymiei = raymiej; 
+    } 
+    
+    return raymie; 
+} 
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -87,8 +119,14 @@ uniform float u_K;
 
 void main()
 {
-    vec4 value = texelFetch(s_IrradianceRead, gl_GlobalInvocationID.xy, 0) + u_K * texelFetch(s_DeltaERead, gl_GlobalInvocationID.xy, 0);  
-    imageStore(i_IrradianceWrite, gl_GlobalInvocationID.xy, value); 
+    vec4 dhdH;
+    float mu, muS, nu, r; 
+    vec2 coords = vec2(gl_GlobalInvocationID.xy) + 0.5;  
+    
+    GetLayer(u_Layer, r, dhdH); 
+    GetMuMuSNu(coords, r, dhdH, mu, muS, nu); 
+
+    imageStore(i_DeltaSRWrite, ivec3(gl_GlobalInvocationID.xy, u_Layer), vec4(Inscatter(r, mu, muS, nu), 0));
 }
 
 // ------------------------------------------------------------------

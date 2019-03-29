@@ -58,9 +58,7 @@
  
  // copies deltaS into S (line 5 in algorithm 4.1)
 
- #include <preprocess_common.glsl>
- 
-#define NUM_THREADS 8
+#include <precompute_common.glsl>
 
 // ------------------------------------------------------------------
 // INPUTS -----------------------------------------------------------
@@ -72,16 +70,7 @@ layout (local_size_x = NUM_THREADS, local_size_y = NUM_THREADS, local_size_z = 1
 // INPUT ------------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (binding = 0, rgba32f) uniform image3D i_InscatterWrite;
-
-// ------------------------------------------------------------------
-// UNIFORMS ---------------------------------------------------------
-// ------------------------------------------------------------------
-
-uniform sampler3D s_InscatterRead; 
-uniform sampler3D s_DeltaSRead;
-
-uniform int u_Layer;
+layout (binding = 0, rgba32f) uniform image2D i_DeltaEWrite;
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -89,18 +78,12 @@ uniform int u_Layer;
 
 void main()
 {
-    vec4 dhdH;
-    float mu, muS, nu, r;  
+    float r, muS; 
     vec2 coords = vec2(gl_GlobalInvocationID.xy) + 0.5; 
     
-    GetLayer(u_Layer, r, dhdH); 
-    GetMuMuSNu(coords, r, dhdH, mu, muS, nu); 
+    GetIrradianceRMuS(coords, r, muS); 
     
-    ivec3 idx = ivec3(gl_GlobalInvocationID.xy, u_Layer);
-    
-    vec4 value = texelFetch(s_InscatterRead, idx, 0) + vec4(texelFetch(s_DeltaSRead, idx, 0).rgb / PhaseFunctionR(nu), 0.0)
-
-    imageStore(i_InscatterWrite, idx, value); 
+    imageStore(i_DeltaEWrite, ivec2(gl_GlobalInvocationID.xy), vec4(Transmittance(r, muS) * max(muS, 0.0), 0.0)); 
 }
 
 // ------------------------------------------------------------------

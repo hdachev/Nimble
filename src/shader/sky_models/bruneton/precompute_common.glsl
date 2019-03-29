@@ -64,30 +64,30 @@
 // PHYSICAL MODEL PARAMETERS 
 // ---------------------------------------------------------------------------- 
  
-float Rg;
-float Rt;
-float RL;
-float HR;
-float HM;
-float mieG;
-float AVERAGE_GROUND_REFLECTANCE;
-vec4 betaR;
-vec4 betaMSca;
-vec4 betaMEx;
+uniform float Rg;
+uniform float Rt;
+uniform float RL;
+uniform float HR;
+uniform float HM;
+uniform float mieG;
+uniform float AVERAGE_GROUND_REFLECTANCE;
+uniform vec4 betaR;
+uniform vec4 betaMSca;
+uniform vec4 betaMEx;
 
 // ---------------------------------------------------------------------------- 
 // CONSTANT PARAMETERS 
 // ---------------------------------------------------------------------------- 
 
-int first;
-int TRANSMITTANCE_H;
-int TRANSMITTANCE_W;
-int SKY_W;
-int SKY_H;
-int RES_R;
-int RES_MU;
-int RES_MU_S;
-int RES_NU;
+uniform int first;
+uniform int TRANSMITTANCE_H;
+uniform int TRANSMITTANCE_W;
+uniform int SKY_W;
+uniform int SKY_H;
+uniform int RES_R;
+uniform int RES_MU;
+uniform int RES_MU_S;
+uniform int RES_NU;
 
 // ---------------------------------------------------------------------------- 
 // NUMERICAL INTEGRATION PARAMETERS 
@@ -111,13 +111,13 @@ int RES_NU;
 // PARAMETERIZATION FUNCTIONS 
 // ---------------------------------------------------------------------------- 
 
-sampler2D s_TransmittanceRead;
+uniform sampler2D s_TransmittanceRead;
 
 vec4 SamplePoint(sampler3D tex, vec3 uv, vec3 size)
 {
-	uv = saturate(uv);
+	uv = clamp(uv, 0.0, 1.0);
 	uv = uv * (size-1.0);
-	return texelFetch(tex, uvec3(uv+0.5), 0);
+	return texelFetch(tex, ivec3(uv + 0.5), 0);
 }
 
 float mod(float x, float y) { return x - y * floor(x/y); }

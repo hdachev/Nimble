@@ -58,7 +58,7 @@
  
  // copies deltaS into S (line 5 in algorithm 4.1)
 
-#include <precompute_common.glsl>
+#define NUM_THREADS 8
 
 // ------------------------------------------------------------------
 // INPUTS -----------------------------------------------------------
@@ -70,14 +70,16 @@ layout (local_size_x = NUM_THREADS, local_size_y = NUM_THREADS, local_size_z = 1
 // INPUT ------------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (binding = 0, rgba32f) uniform image2D i_DeltaEWrite;
+layout (binding = 0, rgba32f) uniform image2D i_IrradianceWrite;
 
 // ------------------------------------------------------------------
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-uniform sampler3D s_DeltaSRRead; 
-uniform sampler3D s_DeltaSMRead;
+uniform sampler2D s_DeltaERead; 
+uniform sampler2D s_IrradianceRead;
+
+uniform float u_K;
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -85,51 +87,9 @@ uniform sampler3D s_DeltaSMRead;
 
 void main()
 {
-    float r, muS;
-    vec2 coords = vec2(gl_GlobalInvocationID.xy) + 0.5; 
-    
-    GetIrradianceRMuS(coords, r, muS); 
-    
-    vec3 s = vec3(sqrt(max(1.0 - muS * muS, 0.0)), 0.0, muS); 
- 
-    vec3 result = vec3(0,0,0); 
-    // integral over 2.PI around x with two nested loops over w directions (theta,phi) -- Eq (15) 
-    
-    float dphi = M_PI / float(IRRADIANCE_INTEGRAL_SAMPLES); 
-	float dtheta = M_PI / float(IRRADIANCE_INTEGRAL_SAMPLES); 
-
-    for (int iphi = 0; iphi < 2 * IRRADIANCE_INTEGRAL_SAMPLES; ++iphi) { 
-
-        float phi = (float(iphi) + 0.5) * dphi; 
-
-        for (int itheta = 0; itheta < IRRADIANCE_INTEGRAL_SAMPLES / 2; ++itheta) { 
-
-            float theta = (float(itheta) + 0.5) * dtheta; 
-
-            float dw = dtheta * dphi * sin(theta); 
-
-            vec3 w = vec3(cos(phi) * sin(theta), sin(phi) * sin(theta), cos(theta)); 
-
-            float nu = dot(s, w); 
-
-            if (first == 1) 
-            { 
-                // first iteration is special because Rayleigh and Mie were stored separately, 
-                // without the phase functions factors; they must be reintroduced here 
-                float pr1 = PhaseFunctionR(nu); 
-                float pm1 = PhaseFunctionM(nu); 
-                vec3 ray1 = Texture4D(s_DeltaSRRead, r, w.z, muS, nu).rgb; 
-                vec3 mie1 = Texture4D(s_DeltaSMRead, r, w.z, muS, nu).rgb; 
-                result += (ray1 * pr1 + mie1 * pm1) * w.z * dw; 
-            } 
-            else { 
-                result += Texture4D(s_DeltaSRRead, r, w.z, muS, nu).rgb * w.z * dw; 
-
-            } 
-        } 
-    } 
- 
-    imageStore(i_DeltaEWrite, gl_GlobalInvocationID.xy, vec4(result, 1.0)); 
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    vec4 value = texelFetch(s_IrradianceRead, coord, 0) + u_K * texelFetch(s_DeltaERead, coord, 0);  
+    imageStore(i_IrradianceWrite, coord, value); 
 }
 
 // ------------------------------------------------------------------

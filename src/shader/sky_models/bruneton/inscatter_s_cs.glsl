@@ -76,7 +76,7 @@ layout (binding = 0, rgba32f) uniform image3D i_DeltaJWrite;
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-uniform sampler3D s_DeltaERead; 
+uniform sampler2D s_DeltaERead; 
 uniform sampler3D s_DeltaSRRead;
 uniform sampler3D s_DeltaSMRead;
 
@@ -181,12 +181,12 @@ void main()
     float mu, muS, nu, r;  
     vec2 coords = vec2(gl_GlobalInvocationID.xy) + 0.5; 
     
-    GetLayer(layer, r, dhdH); 
+    GetLayer(u_Layer, r, dhdH); 
     GetMuMuSNu(coords, r, dhdH, mu, muS, nu); 
     
     Inscatter(r, mu, muS, nu, raymie); 
 
-    imageStore(i_DeltaJWrite, ivec3(gl_GlobalInvocationID.xy,layer), vec4(raymie, 0.0));
+    imageStore(i_DeltaJWrite, ivec3(gl_GlobalInvocationID.xy, u_Layer), vec4(raymie, 0.0));
 }
 
 // ------------------------------------------------------------------

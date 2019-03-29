@@ -58,7 +58,7 @@
  
  // copies deltaS into S (line 5 in algorithm 4.1)
  
-#include <precompute_common.glsl>
+#define NUM_THREADS 8
 
 // ------------------------------------------------------------------
 // INPUTS -----------------------------------------------------------
@@ -70,48 +70,16 @@ layout (local_size_x = NUM_THREADS, local_size_y = NUM_THREADS, local_size_z = 1
 // INPUT ------------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (binding = 0, rgba32f) uniform image3D i_DeltaSRWrite;
+layout (binding = 0, rgba32f) uniform image3D i_InscatterWrite;
 
 // ------------------------------------------------------------------
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-uniform sampler3D s_DeltaJRead; 
+uniform sampler3D s_DeltaSRRead; 
+uniform sampler3D s_DeltaSMRead;
 
 uniform int u_Layer;
-
-// ------------------------------------------------------------------
-// FUNCTIONS --------------------------------------------------------
-// ------------------------------------------------------------------
-
-vec3 Integrand(float r, float mu, float muS, float nu, float t) 
-{ 
-    float ri = sqrt(r * r + t * t + 2.0 * r * mu * t); 
-    float mui = (r * mu + t) / ri; 
-    float muSi = (nu * t + muS * r) / ri; 
-    return Texture4D(deltaJRead, ri, mui, muSi, nu).rgb * Transmittance(r, mu, t); 
-} 
- 
-// ------------------------------------------------------------------
-
-vec3 Inscatter(float r, float mu, float muS, float nu) 
-{ 
-    vec3 raymie = vec3(0,0,0); 
-    float dx = Limit(r, mu) / float(INSCATTER_INTEGRAL_SAMPLES); 
-    float xi = 0.0; 
-    vec3 raymiei = Integrand(r, mu, muS, nu, 0.0); 
-    
-    for (int i = 1; i <= INSCATTER_INTEGRAL_SAMPLES; ++i) 
-    { 
-        float xj = float(i) * dx; 
-        vec3 raymiej = Integrand(r, mu, muS, nu, xj); 
-        raymie += (raymiei + raymiej) / 2.0 * dx; 
-        xi = xj; 
-        raymiei = raymiej; 
-    } 
-    
-    return raymie; 
-} 
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -119,14 +87,11 @@ vec3 Inscatter(float r, float mu, float muS, float nu)
 
 void main()
 {
-    vec4 dhdH;
-    float mu, muS, nu, r; 
-    vec2 coords = vec2(gl_GlobalInvocationID.xy) + 0.5;  
+    vec4 ray = texelFetch(s_DeltaSRRead, ivec3(gl_GlobalInvocationID.xy, u_Layer), 0); 
+    vec4 mie = texelFetch(s_DeltaSMRead, ivec3(gl_GlobalInvocationID.xy, u_Layer), 0); 
     
-    GetLayer(u_Layer, r, dhdH); 
-    GetMuMuSNu(coords, r, dhdH, mu, muS, nu); 
-
-    imageStore(i_DeltaSRWrite, ivec3(gl_GlobalInvocationID.xy, u_Layer), vec4(Inscatter(r, mu, muS, nu), 0));
+    // store only red component of single Mie scattering (cf. 'Angular precision') 
+    imageStore(i_InscatterWrite, ivec3(gl_GlobalInvocationID.xy, u_Layer), vec4(ray.rgb, mie.r));
 }
 
 // ------------------------------------------------------------------
