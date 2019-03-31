@@ -189,8 +189,10 @@ void BloomNode::upsample(Renderer* renderer)
 
     m_bloom_upsample_program->set_uniform("u_Strength", m_enabled ? m_strength : 0.0f);
 
+#ifdef BLOOM_ADDITIVE_BLEND
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
+#endif
 
     // Upsample each downsampled target
     for (uint32_t i = 0; i < (BLOOM_TEX_CHAIN_SIZE - 1); i++)
@@ -206,11 +208,16 @@ void BloomNode::upsample(Renderer* renderer)
         renderer->bind_render_targets(1, &m_bloom_rtv[BLOOM_TEX_CHAIN_SIZE - i - 2], nullptr);
         glViewport(0, 0, m_graph->window_width() / scale, m_graph->window_height() / scale);
 
+#ifndef BLOOM_ADDITIVE_BLEND
+		glClear(GL_COLOR_BUFFER_BIT);
+#endif
         render_fullscreen_triangle(renderer, nullptr);
     }
 
+#ifdef BLOOM_ADDITIVE_BLEND
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_BLEND);
+#endif
 
     glPopDebugGroup();
 }

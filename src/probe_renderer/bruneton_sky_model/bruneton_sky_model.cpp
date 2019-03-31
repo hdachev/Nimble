@@ -7,50 +7,41 @@
 
 namespace nimble
 {
-static double kDefaultLambdas[]               = { kLambdaR, kLambdaG, kLambdaB };
-static double kDefaultLuminanceFromRadiance[] = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
-
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 BrunetonSkyModel::BrunetonSkyModel()
 {
+	m_transmittance_t = nullptr;
+    m_irradiance_t[0] = nullptr;
+    m_irradiance_t[1] = nullptr;
+    m_inscatter_t[0] = nullptr;
+    m_inscatter_t[1] = nullptr;
+    m_delta_et = nullptr;
+    m_delta_srt = nullptr;
+    m_delta_smt = nullptr;
+    m_delta_jt = nullptr;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
+
 
 BrunetonSkyModel::~BrunetonSkyModel()
 {
-    for (auto layer : m_absorption_density)
-    {
-        NIMBLE_SAFE_DELETE(layer);
-    }
 
-    m_absorption_density.clear();
-
-    NIMBLE_SAFE_DELETE(m_mie_density);
-    NIMBLE_SAFE_DELETE(m_rayleigh_density);
-    NIMBLE_SAFE_DELETE(m_texture_buffer);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer, ResourceManager* res_mgr)
+
+bool BrunetonSkyModel::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-    std::vector<std::string> defines;
+	m_copy_inscatter_1_cs = res_mgr->load_shader("shader/sky_models/bruneton/copy_inscatter_1_cs.glsl", GL_COMPUTE_SHADER);
 
-    if (m_use_luminance == LUMINANCE::NONE)
-        defines.push_back("RADIANCE_API_ENABLED");
-
-    if (m_combine_scattering_textures)
-        defines.push_back("COMBINED_SCATTERING_TEXTURES");
-
-    m_clear_2d_shader = res_mgr->load_shader("shader/bruneton_sky_model/clear_2d_cs.glsl", GL_COMPUTE_SHADER);
-
-    if (m_clear_2d_shader)
+    if (m_copy_inscatter_1_cs)
     {
-        m_clear_2d_program = renderer->create_program({ m_clear_2d_shader });
+        m_copy_inscatter_1_program = renderer->create_program({ m_copy_inscatter_1_cs });
 
-        if (!m_clear_2d_program)
+        if (!m_copy_inscatter_1_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -62,13 +53,13 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
         return false;
     }
 
-    m_clear_3d_shader = res_mgr->load_shader("shader/bruneton_sky_model/clear_3d_cs.glsl", GL_COMPUTE_SHADER);
+	m_copy_inscatter_n_cs = res_mgr->load_shader("shader/sky_models/bruneton/copy_inscatter_n_cs.glsl", GL_COMPUTE_SHADER);
 
-    if (m_clear_3d_shader)
+    if (m_copy_inscatter_n_cs)
     {
-        m_clear_3d_program = renderer->create_program({ m_clear_3d_shader });
+        m_copy_inscatter_n_program = renderer->create_program({ m_copy_inscatter_n_cs });
 
-        if (!m_clear_3d_program)
+        if (!m_copy_inscatter_n_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -80,13 +71,13 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
         return false;
     }
 
-    m_direct_irradiance_shader = res_mgr->load_shader("shader/bruneton_sky_model/compute_direct_irradiance_cs.glsl", GL_COMPUTE_SHADER, defines);
+	m_copy_irradiance_cs = res_mgr->load_shader("shader/sky_models/bruneton/copy_irradiance_cs.glsl", GL_COMPUTE_SHADER);
 
-    if (m_direct_irradiance_shader)
+    if (m_copy_irradiance_cs)
     {
-        m_direct_irradiance_program = renderer->create_program({ m_direct_irradiance_shader });
+        m_copy_irradiance_program = renderer->create_program({ m_copy_irradiance_cs });
 
-        if (!m_direct_irradiance_program)
+        if (!m_copy_irradiance_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -98,13 +89,13 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
         return false;
     }
 
-    m_indirect_irradiance_shader = res_mgr->load_shader("shader/bruneton_sky_model/compute_indirect_irradiance_cs.glsl", GL_COMPUTE_SHADER, defines);
+	m_inscatter_1_cs = res_mgr->load_shader("shader/sky_models/bruneton/inscatter_1_cs.glsl", GL_COMPUTE_SHADER);
 
-    if (m_indirect_irradiance_shader)
+    if (m_inscatter_1_cs)
     {
-        m_indirect_irradiance_program = renderer->create_program({ m_indirect_irradiance_shader });
+        m_inscatter_1_program = renderer->create_program({ m_inscatter_1_cs });
 
-        if (!m_indirect_irradiance_program)
+        if (!m_inscatter_1_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -116,13 +107,13 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
         return false;
     }
 
-    m_multiple_scattering_shader = res_mgr->load_shader("shader/bruneton_sky_model/compute_multiple_scattering_cs.glsl", GL_COMPUTE_SHADER, defines);
+	m_inscatter_n_cs = res_mgr->load_shader("shader/sky_models/bruneton/inscatter_n_cs.glsl", GL_COMPUTE_SHADER);
 
-    if (m_multiple_scattering_shader)
+    if (m_inscatter_n_cs)
     {
-        m_multiple_scattering_program = renderer->create_program({ m_multiple_scattering_shader });
+        m_inscatter_n_program = renderer->create_program({ m_inscatter_n_cs });
 
-        if (!m_multiple_scattering_program)
+        if (!m_inscatter_n_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -134,13 +125,13 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
         return false;
     }
 
-    m_scattering_density_shader = res_mgr->load_shader("shader/bruneton_sky_model/compute_scattering_density_cs.glsl", GL_COMPUTE_SHADER, defines);
+	m_inscatter_s_cs = res_mgr->load_shader("shader/sky_models/bruneton/inscatter_s_cs.glsl", GL_COMPUTE_SHADER);
 
-    if (m_scattering_density_shader)
+    if (m_inscatter_s_cs)
     {
-        m_scattering_density_program = renderer->create_program({ m_scattering_density_shader });
+        m_inscatter_s_program = renderer->create_program({ m_inscatter_s_cs });
 
-        if (!m_scattering_density_program)
+        if (!m_inscatter_s_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -152,13 +143,13 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
         return false;
     }
 
-    m_single_scattering_shader = res_mgr->load_shader("shader/bruneton_sky_model/compute_single_scattering_cs.glsl", GL_COMPUTE_SHADER, defines);
+	m_irradiance_1_cs = res_mgr->load_shader("shader/sky_models/bruneton/irradiance_1_cs.glsl", GL_COMPUTE_SHADER);
 
-    if (m_single_scattering_shader)
+    if (m_irradiance_1_cs)
     {
-        m_single_scattering_program = renderer->create_program({ m_single_scattering_shader });
+        m_irradiance_1_program = renderer->create_program({ m_irradiance_1_cs });
 
-        if (!m_single_scattering_program)
+        if (!m_irradiance_1_program)
         {
             NIMBLE_LOG_ERROR("Failed to create program");
             return false;
@@ -170,11 +161,28 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
         return false;
     }
 
-    m_transmittance_shader = res_mgr->load_shader("shader/bruneton_sky_model/compute_transmittance_cs.glsl", GL_COMPUTE_SHADER, defines);
+	m_irradiance_n_cs = res_mgr->load_shader("shader/sky_models/bruneton/irradiance_n_cs.glsl", GL_COMPUTE_SHADER);
 
-    if (m_transmittance_shader)
+    if (m_irradiance_n_cs)
     {
-        m_transmittance_program = renderer->create_program({ m_transmittance_shader });
+        m_irradiance_n_program = renderer->create_program({ m_irradiance_n_cs });
+
+        if (!m_irradiance_n_program)
+        {
+            NIMBLE_LOG_ERROR("Failed to create program");
+            return false;
+        }
+    }
+    else
+    {
+        NIMBLE_LOG_ERROR("Failed to load shaders");
+        return false;
+    }
+	m_transmittance_cs = res_mgr->load_shader("shader/sky_models/bruneton/transmittance_cs.glsl", GL_COMPUTE_SHADER);
+
+    if (m_transmittance_cs)
+    {
+        m_transmittance_program = renderer->create_program({ m_transmittance_cs });
 
         if (!m_transmittance_program)
         {
@@ -188,537 +196,439 @@ bool BrunetonSkyModel::initialize(int num_scattering_orders, Renderer* renderer,
         return false;
     }
 
-    TextureBuffer* buffer = new TextureBuffer(m_half_precision);
-    buffer->clear(m_clear_2d_program.get(), m_clear_3d_program.get());
+	m_transmittance_t = new_texture_2d(TRANSMITTANCE_W, TRANSMITTANCE_H);
 
-    // The actual precomputations depend on whether we want to store precomputed
-    // irradiance or illuminance values.
-    if (num_precomputed_wavelengths() <= 3)
-        precompute(buffer, nullptr, nullptr, false, num_scattering_orders);
-    else
+    m_irradiance_t[0] = new_texture_2d(IRRADIANCE_W, IRRADIANCE_H);
+    m_irradiance_t[1] = new_texture_2d(IRRADIANCE_W, IRRADIANCE_H);
+
+    m_inscatter_t[0] = new_texture_3d(INSCATTER_MU_S * INSCATTER_NU, INSCATTER_MU, INSCATTER_R);
+    m_inscatter_t[1] = new_texture_3d(INSCATTER_MU_S * INSCATTER_NU, INSCATTER_MU, INSCATTER_R);
+
+    m_delta_et = new_texture_2d(IRRADIANCE_W, IRRADIANCE_H);
+    m_delta_srt = new_texture_3d(INSCATTER_MU_S * INSCATTER_NU, INSCATTER_MU, INSCATTER_R);
+    m_delta_smt = new_texture_3d(INSCATTER_MU_S * INSCATTER_NU, INSCATTER_MU, INSCATTER_R);
+    m_delta_jt = new_texture_3d(INSCATTER_MU_S * INSCATTER_NU, INSCATTER_MU, INSCATTER_R);
+
+    if (!load_cached_textures())
+        precompute();
+
+	return true;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+
+void BrunetonSkyModel::set_render_uniforms(Program* program, glm::vec3 direction)
+{
+	program->set_uniform("betaR", m_beta_r / SCALE);
+    program->set_uniform("mieG", m_mie_g);
+	program->set_uniform("SUN_INTENSITY", m_sun_intensity);
+	program->set_uniform("EARTH_POS", glm::vec3(0.0f, 6360010.0f, 0.0f));
+	program->set_uniform("SUN_DIR", direction * 1.0f);
+
+	if (program->set_uniform("s_Transmittance", 0))
+		m_transmittance_t->bind(0);
+
+	if (program->set_uniform("s_Irradiance", 1))
+		m_irradiance_t[READ]->bind(1);
+
+	if (program->set_uniform("s_Inscatter", 2))
+		m_inscatter_t[READ]->bind(2);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void BrunetonSkyModel::set_uniforms(Program* program)
+{
+	program->set_uniform("Rg", Rg);
+	program->set_uniform("Rt", Rt);
+	program->set_uniform("RL", RL);
+	program->set_uniform("TRANSMITTANCE_W", TRANSMITTANCE_W);
+	program->set_uniform("TRANSMITTANCE_H", TRANSMITTANCE_H);
+	program->set_uniform("SKY_W", IRRADIANCE_W);
+	program->set_uniform("SKY_H", IRRADIANCE_H);
+	program->set_uniform("RES_R", INSCATTER_R);
+	program->set_uniform("RES_MU", INSCATTER_MU);
+	program->set_uniform("RES_MU_S", INSCATTER_MU_S);
+	program->set_uniform("RES_NU", INSCATTER_NU);
+	program->set_uniform("AVERAGE_GROUND_REFLECTANCE", AVERAGE_GROUND_REFLECTANCE);
+	program->set_uniform("HR", HR);
+	program->set_uniform("HM", HM);
+	program->set_uniform("betaR", BETA_R);
+	program->set_uniform("betaMSca", BETA_MSca);
+	program->set_uniform("betaMEx", BETA_MEx);
+	program->set_uniform("mieG", glm::clamp(MIE_G, 0.0f, 0.99f));
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+bool BrunetonSkyModel::load_cached_textures()
+{
+	FILE* transmittance = fopen("transmittance.raw", "r");
+
+	if (transmittance)
+	{
+		size_t n = sizeof(float) * TRANSMITTANCE_W * TRANSMITTANCE_H * 4;
+
+		void* data = malloc(n);
+		fread(data, n, 1, transmittance);
+
+		m_transmittance_t->set_data(0, 0, data);
+
+		fclose(transmittance);
+		free(data);
+	}
+	else
+		return false;
+
+    FILE* irradiance = fopen("irradiance.raw", "r");
+
+    if (irradiance)
     {
-        int    num_iterations = (num_precomputed_wavelengths() + 2) / 3;
-        double dlambda        = (kLambdaMax - kLambdaMin) / (3.0 * num_iterations);
+        size_t n = sizeof(float) * IRRADIANCE_W * IRRADIANCE_H * 4;
 
-        for (int i = 0; i < num_iterations; ++i)
-        {
-            double lambdas[] = {
-                kLambdaMin + (3 * i + 0.5) * dlambda,
-                kLambdaMin + (3 * i + 1.5) * dlambda,
-                kLambdaMin + (3 * i + 2.5) * dlambda
-            };
+        void* data = malloc(n);
+		fread(data, n, 1, irradiance);
 
-            double luminance_from_radiance[] = {
-                coeff(lambdas[0], 0) * dlambda, coeff(lambdas[1], 0) * dlambda, coeff(lambdas[2], 0) * dlambda, coeff(lambdas[0], 1) * dlambda, coeff(lambdas[1], 1) * dlambda, coeff(lambdas[2], 1) * dlambda, coeff(lambdas[0], 2) * dlambda, coeff(lambdas[1], 2) * dlambda, coeff(lambdas[2], 2) * dlambda
-            };
+        m_irradiance_t[READ]->set_data(0, 0, data);
 
-            bool blend = i > 0;
-            precompute(buffer, lambdas, luminance_from_radiance, blend, num_scattering_orders);
-        }
-
-        // After the above iterations, the transmittance texture contains the
-        // transmittance for the 3 wavelengths used at the last iteration. But we
-        // want the transmittance at kLambdaR, kLambdaG, kLambdaB instead, so we
-        // must recompute it here for these 3 wavelengths:
-        m_transmittance_program->use();
-
-        bind_compute_uniforms(m_transmittance_program.get(), nullptr, nullptr);
-
-        buffer->m_transmittance_array[WRITE]->bind_image(0, 0, 0, GL_READ_WRITE, buffer->m_transmittance_array[WRITE]->internal_format());
-
-        m_transmittance_program->set_uniform("blend", glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-
-        int NUM = CONSTANTS::NUM_THREADS;
-
-        GL_CHECK_ERROR(glDispatchCompute(CONSTANTS::TRANSMITTANCE_WIDTH / NUM, CONSTANTS::TRANSMITTANCE_HEIGHT / NUM, 1));
-        GL_CHECK_ERROR(glFinish());
-
-        swap(buffer->m_transmittance_array);
+        fclose(irradiance);
+        free(data);
     }
+	else
+		return false;
 
-    //Grab ref to textures and mark as null in buffer so they are not released.
-    m_transmittance_texture = buffer->m_transmittance_array[READ];
-    m_scattering_texture    = buffer->m_scattering_array[READ];
-    m_irradiance_texture    = buffer->m_irradiance_array[READ];
+    FILE* inscatter = fopen("inscatter.raw", "r");
 
-    if (m_combine_scattering_textures)
-        m_optional_single_mie_scattering_texture = nullptr;
-    else
-        m_optional_single_mie_scattering_texture = buffer->m_optional_single_mie_scattering_array[READ];
+    if (inscatter)
+    {
+        size_t n = sizeof(float) * INSCATTER_MU_S * INSCATTER_NU * INSCATTER_MU * INSCATTER_R * 4;
 
-    m_texture_buffer = buffer;
+        void* data = malloc(n);
+		fread(data, n, 1, inscatter);
+
+        m_inscatter_t[READ]->set_data(0, data);
+
+        fclose(inscatter);
+        free(data);
+    }
+	else
+		return false;
 
     return true;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void BrunetonSkyModel::bind_rendering_uniforms(Program* program)
+void BrunetonSkyModel::write_textures()
 {
-    if (program->set_uniform("transmittance_texture", 0))
-        m_transmittance_texture->bind(0);
+	{
+		FILE* transmittance = fopen("transmittance.raw", "wb");
+	
+		size_t n = sizeof(float) * TRANSMITTANCE_W * TRANSMITTANCE_H * 4;
+		void* data = malloc(n);
 
-    if (program->set_uniform("scattering_texture", 1))
-        m_scattering_texture->bind(1);
+		m_transmittance_t->data(0, 0, data);
 
-    if (program->set_uniform("irradiance_texture", 2))
-        m_irradiance_texture->bind(2);
+		fwrite(data, n, 1, transmittance);
 
-    if (!m_combine_scattering_textures)
-    {
-        if (program->set_uniform("single_mie_scattering_texture", 3))
-            m_optional_single_mie_scattering_texture->bind(3);
-    }
+		fclose(transmittance);
+		free(data);
+	}
 
-    program->set_uniform("TRANSMITTANCE_TEXTURE_WIDTH", CONSTANTS::TRANSMITTANCE_WIDTH);
-    program->set_uniform("TRANSMITTANCE_TEXTURE_HEIGHT", CONSTANTS::TRANSMITTANCE_HEIGHT);
-    program->set_uniform("SCATTERING_TEXTURE_R_SIZE", CONSTANTS::SCATTERING_R);
-    program->set_uniform("SCATTERING_TEXTURE_MU_SIZE", CONSTANTS::SCATTERING_MU);
-    program->set_uniform("SCATTERING_TEXTURE_MU_S_SIZE", CONSTANTS::SCATTERING_MU_S);
-    program->set_uniform("SCATTERING_TEXTURE_NU_SIZE", CONSTANTS::SCATTERING_NU);
-    program->set_uniform("SCATTERING_TEXTURE_WIDTH", CONSTANTS::SCATTERING_WIDTH);
-    program->set_uniform("SCATTERING_TEXTURE_HEIGHT", CONSTANTS::SCATTERING_HEIGHT);
-    program->set_uniform("SCATTERING_TEXTURE_DEPTH", CONSTANTS::SCATTERING_DEPTH);
-    program->set_uniform("IRRADIANCE_TEXTURE_WIDTH", CONSTANTS::IRRADIANCE_WIDTH);
-    program->set_uniform("IRRADIANCE_TEXTURE_HEIGHT", CONSTANTS::IRRADIANCE_HEIGHT);
+	{
+		FILE* irradiance = fopen("irradiance.raw", "wb");
+	
+		size_t n = sizeof(float) * IRRADIANCE_W * IRRADIANCE_H * 4;
+		void* data = malloc(n);
 
-    program->set_uniform("sun_angular_radius", (float)m_sun_angular_radius);
-    program->set_uniform("bottom_radius", (float)(m_bottom_radius / m_length_unit_in_meters));
-    program->set_uniform("top_radius", (float)(m_top_radius / m_length_unit_in_meters));
-    program->set_uniform("mie_phase_function_g", (float)m_mie_phase_function_g);
-    program->set_uniform("mu_s_min", (float)cos(m_max_sun_zenith_angle));
+		m_irradiance_t[READ]->data(0, 0, data);
 
-    glm::vec3 sky_spectral_radiance_to_luminance, sun_spectral_radiance_to_luminance;
-    sky_sun_radiance_to_luminance(sky_spectral_radiance_to_luminance, sun_spectral_radiance_to_luminance);
+		fwrite(data, n, 1, irradiance);
 
-    program->set_uniform("SKY_SPECTRAL_RADIANCE_TO_LUMINANCE", sky_spectral_radiance_to_luminance);
-    program->set_uniform("SUN_SPECTRAL_RADIANCE_TO_LUMINANCE", sun_spectral_radiance_to_luminance);
+		fclose(irradiance);
+		free(data);
+	}
 
-    double lambdas[] = { kLambdaR, kLambdaG, kLambdaB };
+	{
+		FILE* inscatter = fopen("inscatter.raw", "wb");
+	
+		size_t n = sizeof(float) * INSCATTER_MU_S * INSCATTER_NU * INSCATTER_MU * INSCATTER_R * 4;
+		void* data = malloc(n);
 
-    glm::vec3 solar_irradiance = to_vector(m_wave_lengths, m_solar_irradiance, lambdas, 1.0);
-    program->set_uniform("solar_irradiance", solar_irradiance);
+		m_inscatter_t[READ]->data(0, data);
 
-    glm::vec3 rayleigh_scattering = to_vector(m_wave_lengths, m_rayleigh_scattering, lambdas, m_length_unit_in_meters);
-    program->set_uniform("rayleigh_scattering", rayleigh_scattering);
+		fwrite(data, n, 1, inscatter);
 
-    glm::vec3 mie_scattering = to_vector(m_wave_lengths, m_mie_scattering, lambdas, m_length_unit_in_meters);
-    program->set_uniform("mie_scattering", mie_scattering);
+		fclose(inscatter);
+		free(data);
+	}
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void BrunetonSkyModel::convert_spectrum_to_linear_srgb(double& r, double& g, double& b)
+void BrunetonSkyModel::precompute()
 {
-    double    x       = 0.0;
-    double    y       = 0.0;
-    double    z       = 0.0;
-    const int dlambda = 1;
-    for (int lambda = kLambdaMin; lambda < kLambdaMax; lambda += dlambda)
-    {
-        double value = interpolate(m_wave_lengths, m_solar_irradiance, lambda);
-        x += cie_color_matching_function_table_value(lambda, 1) * value;
-        y += cie_color_matching_function_table_value(lambda, 2) * value;
-        z += cie_color_matching_function_table_value(lambda, 3) * value;
-    }
-
-    const double* XYZ_TO_SRGB = &kXYZ_TO_SRGB[0];
-    r                         = static_cast<double>(CONSTANTS::MAX_LUMINOUS_EFFICACY) * (XYZ_TO_SRGB[0] * x + XYZ_TO_SRGB[1] * y + XYZ_TO_SRGB[2] * z) * dlambda;
-    g                         = static_cast<double>(CONSTANTS::MAX_LUMINOUS_EFFICACY) * (XYZ_TO_SRGB[3] * x + XYZ_TO_SRGB[4] * y + XYZ_TO_SRGB[5] * z) * dlambda;
-    b                         = static_cast<double>(CONSTANTS::MAX_LUMINOUS_EFFICACY) * (XYZ_TO_SRGB[6] * x + XYZ_TO_SRGB[7] * y + XYZ_TO_SRGB[8] * z) * dlambda;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-double BrunetonSkyModel::coeff(double lambda, int component)
-{
-    // Note that we don't include MAX_LUMINOUS_EFFICACY here, to avoid
-    // artefacts due to too large values when using half precision on GPU.
-    // We add this term back in kAtmosphereShader, via
-    // SKY_SPECTRAL_RADIANCE_TO_LUMINANCE (see also the comments in the
-    // Model constructor).
-    double x    = cie_color_matching_function_table_value(lambda, 1);
-    double y    = cie_color_matching_function_table_value(lambda, 2);
-    double z    = cie_color_matching_function_table_value(lambda, 3);
-    double sRGB = kXYZ_TO_SRGB[component * 3 + 0] * x + kXYZ_TO_SRGB[component * 3 + 1] * y + kXYZ_TO_SRGB[component * 3 + 2] * z;
-
-    return sRGB;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void BrunetonSkyModel::bind_compute_uniforms(Program* program, double* lambdas, double* luminance_from_radiance)
-{
-    if (lambdas == nullptr)
-        lambdas = kDefaultLambdas;
-
-    if (luminance_from_radiance == nullptr)
-        luminance_from_radiance = kDefaultLuminanceFromRadiance;
-
-    program->set_uniform("TRANSMITTANCE_TEXTURE_WIDTH", CONSTANTS::TRANSMITTANCE_WIDTH);
-    program->set_uniform("TRANSMITTANCE_TEXTURE_HEIGHT", CONSTANTS::TRANSMITTANCE_HEIGHT);
-    program->set_uniform("SCATTERING_TEXTURE_R_SIZE", CONSTANTS::SCATTERING_R);
-    program->set_uniform("SCATTERING_TEXTURE_MU_SIZE", CONSTANTS::SCATTERING_MU);
-    program->set_uniform("SCATTERING_TEXTURE_MU_S_SIZE", CONSTANTS::SCATTERING_MU_S);
-    program->set_uniform("SCATTERING_TEXTURE_NU_SIZE", CONSTANTS::SCATTERING_NU);
-    program->set_uniform("SCATTERING_TEXTURE_WIDTH", CONSTANTS::SCATTERING_WIDTH);
-    program->set_uniform("SCATTERING_TEXTURE_HEIGHT", CONSTANTS::SCATTERING_HEIGHT);
-    program->set_uniform("SCATTERING_TEXTURE_DEPTH", CONSTANTS::SCATTERING_DEPTH);
-    program->set_uniform("IRRADIANCE_TEXTURE_WIDTH", CONSTANTS::IRRADIANCE_WIDTH);
-    program->set_uniform("IRRADIANCE_TEXTURE_HEIGHT", CONSTANTS::IRRADIANCE_HEIGHT);
-
-    glm::vec3 sky_spectral_radiance_to_luminance, sun_spectral_radiance_to_luminance;
-    sky_sun_radiance_to_luminance(sky_spectral_radiance_to_luminance, sun_spectral_radiance_to_luminance);
-
-    program->set_uniform("SKY_SPECTRAL_RADIANCE_TO_LUMINANCE", sky_spectral_radiance_to_luminance);
-    program->set_uniform("SUN_SPECTRAL_RADIANCE_TO_LUMINANCE", sun_spectral_radiance_to_luminance);
-
-    glm::vec3 solar_irradiance = to_vector(m_wave_lengths, m_solar_irradiance, lambdas, 1.0);
-    program->set_uniform("solar_irradiance", solar_irradiance);
-
-    glm::vec3 rayleigh_scattering = to_vector(m_wave_lengths, m_rayleigh_scattering, lambdas, m_length_unit_in_meters);
-    bind_density_layer(program, m_rayleigh_density);
-    program->set_uniform("rayleigh_scattering", rayleigh_scattering);
-
-    glm::vec3 mie_scattering = to_vector(m_wave_lengths, m_mie_scattering, lambdas, m_length_unit_in_meters);
-    glm::vec3 mie_extinction = to_vector(m_wave_lengths, m_mie_extinction, lambdas, m_length_unit_in_meters);
-    bind_density_layer(program, m_mie_density);
-    program->set_uniform("mie_scattering", mie_scattering);
-    program->set_uniform("mie_extinction", mie_extinction);
-
-    glm::vec3 absorption_extinction = to_vector(m_wave_lengths, m_absorption_extinction, lambdas, m_length_unit_in_meters);
-    bind_density_layer(program, m_absorption_density[0]);
-    bind_density_layer(program, m_absorption_density[1]);
-    program->set_uniform("absorption_extinction", absorption_extinction);
-
-    glm::vec3 groundAlbedo = to_vector(m_wave_lengths, m_ground_albedo, lambdas, 1.0);
-    program->set_uniform("ground_albedo", groundAlbedo);
-
-    program->set_uniform("luminanceFromRadiance", to_matrix(luminance_from_radiance));
-    program->set_uniform("sun_angular_radius", (float)m_sun_angular_radius);
-    program->set_uniform("bottom_radius", (float)(m_bottom_radius / m_length_unit_in_meters));
-    program->set_uniform("top_radius", (float)(m_top_radius / m_length_unit_in_meters));
-    program->set_uniform("mie_phase_function_g", (float)m_mie_phase_function_g);
-    program->set_uniform("mu_s_min", (float)cos(m_max_sun_zenith_angle));
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void BrunetonSkyModel::bind_density_layer(Program* program, DensityProfileLayer* layer)
-{
-    program->set_uniform(layer->name + "_width", (float)(layer->width / m_length_unit_in_meters));
-    program->set_uniform(layer->name + "_exp_term", (float)layer->exp_term);
-    program->set_uniform(layer->name + "_exp_scale", (float)(layer->exp_scale * m_length_unit_in_meters));
-    program->set_uniform(layer->name + "_linear_term", (float)(layer->linear_term * m_length_unit_in_meters));
-    program->set_uniform(layer->name + "_constant_term", (float)layer->constant_term);
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void BrunetonSkyModel::sky_sun_radiance_to_luminance(glm::vec3& sky_spectral_radiance_to_luminance, glm::vec3& sun_spectral_radiance_to_luminance)
-{
-    bool   precompute_illuminance = num_precomputed_wavelengths() > 3;
-    double sky_k_r, sky_k_g, sky_k_b;
-
-    if (precompute_illuminance)
-        sky_k_r = sky_k_g = sky_k_b = static_cast<double>(CONSTANTS::MAX_LUMINOUS_EFFICACY);
-    else
-        compute_spectral_radiance_to_luminance_factors(m_wave_lengths, m_solar_irradiance, -3, sky_k_r, sky_k_g, sky_k_b);
-
-    // Compute the values for the SUN_RADIANCE_TO_LUMINANCE constant.
-    double sun_k_r, sun_k_g, sun_k_b;
-    compute_spectral_radiance_to_luminance_factors(m_wave_lengths, m_solar_irradiance, 0, sun_k_r, sun_k_g, sun_k_b);
-
-    sky_spectral_radiance_to_luminance = glm::vec3((float)sky_k_r, (float)sky_k_g, (float)sky_k_b);
-    sun_spectral_radiance_to_luminance = glm::vec3((float)sun_k_r, (float)sun_k_g, (float)sun_k_b);
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void BrunetonSkyModel::precompute(TextureBuffer* buffer, double* lambdas, double* luminance_from_radiance, bool blend, int num_scattering_orders)
-{
-    int BLEND       = blend ? 1 : 0;
-    int NUM_THREADS = CONSTANTS::NUM_THREADS;
-
-    // ------------------------------------------------------------------
-    // Compute Transmittance
-    // ------------------------------------------------------------------
+	// -----------------------------------------------------------------------------
+    // 1. Compute Transmittance Texture T
+    // -----------------------------------------------------------------------------
 
     m_transmittance_program->use();
+    set_uniforms(m_transmittance_program.get());
 
-    bind_compute_uniforms(m_transmittance_program.get(), lambdas, luminance_from_radiance);
+    m_transmittance_t->bind_image(0, 0, 0, GL_READ_WRITE, m_transmittance_t->internal_format());
 
-    // Compute the transmittance, and store it in transmittance_texture
-    buffer->m_transmittance_array[WRITE]->bind_image(0, 0, 0, GL_READ_WRITE, buffer->m_transmittance_array[WRITE]->internal_format());
+    GL_CHECK_ERROR(glDispatchCompute(TRANSMITTANCE_W/NUM_THREADS, TRANSMITTANCE_H/NUM_THREADS, 1));
+	GL_CHECK_ERROR(glFinish());
 
-    m_transmittance_program->set_uniform("blend", glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    // -----------------------------------------------------------------------------
+    // 2. Compute Irradiance Texture deltaE
+    // -----------------------------------------------------------------------------
 
-    GL_CHECK_ERROR(glDispatchCompute(CONSTANTS::TRANSMITTANCE_WIDTH / NUM_THREADS, CONSTANTS::TRANSMITTANCE_HEIGHT / NUM_THREADS, 1));
-    GL_CHECK_ERROR(glFinish());
+    m_irradiance_1_program->use();
+    set_uniforms(m_irradiance_1_program.get());
 
-    swap(buffer->m_transmittance_array);
+	m_delta_et->bind_image(0, 0, 0, GL_READ_WRITE, m_delta_et->internal_format());
 
-    // ------------------------------------------------------------------
-    // Compute Direct Irradiance
-    // ------------------------------------------------------------------
+	if (m_irradiance_1_program->set_uniform("s_TransmittanceRead", 0))
+		m_transmittance_t->bind(0);
 
-    m_direct_irradiance_program->use();
+    GL_CHECK_ERROR(glDispatchCompute(IRRADIANCE_W/NUM_THREADS, IRRADIANCE_H/NUM_THREADS, 1));
+	GL_CHECK_ERROR(glFinish());
 
-    bind_compute_uniforms(m_direct_irradiance_program.get(), lambdas, luminance_from_radiance);
+    // -----------------------------------------------------------------------------
+    // 3. Compute Single Scattering Texture
+    // -----------------------------------------------------------------------------
 
-    // Compute the direct irradiance, store it in delta_irradiance_texture and,
-    // depending on 'blend', either initialize irradiance_texture_ with zeros or
-    // leave it unchanged (we don't want the direct irradiance in
-    // irradiance_texture_, but only the irradiance from the sky).
-    buffer->m_irradiance_array[READ]->bind_image(0, 0, 0, GL_READ_WRITE, buffer->m_irradiance_array[READ]->internal_format());
-    buffer->m_irradiance_array[WRITE]->bind_image(1, 0, 0, GL_READ_WRITE, buffer->m_irradiance_array[WRITE]->internal_format());
-    buffer->m_delta_irradiance_texture->bind_image(2, 0, 0, GL_READ_WRITE, buffer->m_delta_irradiance_texture->internal_format());
+    m_inscatter_1_program->use();
+    set_uniforms(m_inscatter_1_program.get());
 
-    if (m_direct_irradiance_program->set_uniform("transmittance", 3))
-        buffer->m_transmittance_array[READ]->bind(3);
+	m_delta_srt->bind_image(0, 0, 0, GL_READ_WRITE, m_delta_srt->internal_format());
+    m_delta_smt->bind_image(1, 0, 0, GL_READ_WRITE, m_delta_smt->internal_format());
 
-    m_direct_irradiance_program->set_uniform("blend", glm::vec4(0.0f, BLEND, 0.0f, 0.0f));
+	if (m_inscatter_1_program->set_uniform("s_TransmittanceRead", 0))
+		m_transmittance_t->bind(0);
 
-    GL_CHECK_ERROR(glDispatchCompute(CONSTANTS::IRRADIANCE_WIDTH / NUM_THREADS, CONSTANTS::IRRADIANCE_HEIGHT / NUM_THREADS, 1));
-    GL_CHECK_ERROR(glFinish());
-
-    swap(buffer->m_irradiance_array);
-
-    // ------------------------------------------------------------------
-    // Compute Single Scattering
-    // ------------------------------------------------------------------
-
-    m_single_scattering_program->use();
-
-    bind_compute_uniforms(m_single_scattering_program.get(), lambdas, luminance_from_radiance);
-
-    // Compute the rayleigh and mie single scattering, store them in
-    // delta_rayleigh_scattering_texture and delta_mie_scattering_texture, and
-    // either store them or accumulate them in scattering_texture_ and
-    // optional_single_mie_scattering_texture_.
-    buffer->m_delta_rayleigh_scattering_texture->bind_image(0, 0, 0, GL_READ_WRITE, buffer->m_delta_rayleigh_scattering_texture->internal_format());
-    buffer->m_delta_mie_scattering_texture->bind_image(1, 0, 0, GL_READ_WRITE, buffer->m_delta_mie_scattering_texture->internal_format());
-    buffer->m_scattering_array[READ]->bind_image(2, 0, 0, GL_READ_WRITE, buffer->m_scattering_array[READ]->internal_format());
-    buffer->m_scattering_array[WRITE]->bind_image(3, 0, 0, GL_READ_WRITE, buffer->m_scattering_array[WRITE]->internal_format());
-    buffer->m_optional_single_mie_scattering_array[READ]->bind_image(4, 0, 0, GL_READ_WRITE, buffer->m_optional_single_mie_scattering_array[READ]->internal_format());
-    buffer->m_optional_single_mie_scattering_array[WRITE]->bind_image(5, 0, 0, GL_READ_WRITE, buffer->m_optional_single_mie_scattering_array[WRITE]->internal_format());
-
-    if (m_single_scattering_program->set_uniform("transmittance", 6))
-        buffer->m_transmittance_array[READ]->bind(6);
-
-    m_single_scattering_program->set_uniform("blend", glm::vec4(0.0f, 0.0f, BLEND, BLEND));
-
-    for (int layer = 0; layer < CONSTANTS::SCATTERING_DEPTH; ++layer)
+    for (int i = 0; i < INSCATTER_R; i++) 
     {
-        m_single_scattering_program->set_uniform("layer", layer);
-
-        GL_CHECK_ERROR(glDispatchCompute(CONSTANTS::SCATTERING_WIDTH / NUM_THREADS, CONSTANTS::SCATTERING_HEIGHT / NUM_THREADS, 1));
+	    m_inscatter_1_program->set_uniform("u_Layer", i);
+		GL_CHECK_ERROR(glDispatchCompute((INSCATTER_MU_S*INSCATTER_NU)/NUM_THREADS, INSCATTER_MU/NUM_THREADS, 1));
         GL_CHECK_ERROR(glFinish());
-    }
+	}
 
-    swap(buffer->m_scattering_array);
-    swap(buffer->m_optional_single_mie_scattering_array);
+    // -----------------------------------------------------------------------------
+    // 4. Copy deltaE into Irradiance Texture E 
+    // -----------------------------------------------------------------------------
 
-    // Compute the 2nd, 3rd and 4th order of scattering, in sequence.
-    for (int scattering_order = 2; scattering_order <= num_scattering_orders; ++scattering_order)
+    m_copy_irradiance_program->use();
+    set_uniforms(m_copy_irradiance_program.get());
+
+    m_copy_irradiance_program->set_uniform("u_K", 0.0f);
+
+    m_irradiance_t[WRITE]->bind_image(0, 0, 0, GL_READ_WRITE, m_irradiance_t[WRITE]->internal_format());
+
+	if (m_copy_irradiance_program->set_uniform("s_DeltaERead", 0))
+		m_delta_et->bind(0);
+
+	if (m_copy_irradiance_program->set_uniform("s_IrradianceRead", 1))
+		m_irradiance_t[READ]->bind(1);
+
+    GL_CHECK_ERROR(glDispatchCompute(IRRADIANCE_W/NUM_THREADS, IRRADIANCE_H/NUM_THREADS, 1));
+	GL_CHECK_ERROR(glFinish());
+
+    for (int order = 2; order < 4; order++)
     {
-        // ------------------------------------------------------------------
-        // Compute Scattering Density
-        // ------------------------------------------------------------------
+        // -----------------------------------------------------------------------------
+        // 5. Copy deltaS into Inscatter Texture S 
+        // -----------------------------------------------------------------------------
 
-        m_scattering_density_program->use();
+        m_copy_inscatter_1_program->use();
+        set_uniforms(m_copy_inscatter_1_program.get());
 
-        bind_compute_uniforms(m_scattering_density_program.get(), lambdas, luminance_from_radiance);
+        m_inscatter_t[WRITE]->bind_image(0, 0, 0, GL_READ_WRITE, m_inscatter_t[WRITE]->internal_format());
 
-        // Compute the scattering density, and store it in
-        // delta_scattering_density_texture.
-        buffer->m_delta_scattering_density_texture->bind_image(0, 0, 0, GL_READ_WRITE, buffer->m_delta_scattering_density_texture->internal_format());
+		if (m_copy_inscatter_1_program->set_uniform("s_DeltaSRRead", 0))
+			m_delta_srt->bind(0);
 
-        if (m_scattering_density_program->set_uniform("transmittance", 1))
-            buffer->m_transmittance_array[READ]->bind(1);
+		if (m_copy_inscatter_1_program->set_uniform("s_DeltaSMRead", 1))
+			m_delta_smt->bind(1);
 
-        if (m_scattering_density_program->set_uniform("single_rayleigh_scattering", 2))
-            buffer->m_delta_rayleigh_scattering_texture->bind(2);
-
-        if (m_scattering_density_program->set_uniform("single_mie_scattering", 3))
-            buffer->m_delta_mie_scattering_texture->bind(3);
-
-        if (m_scattering_density_program->set_uniform("multiple_scattering", 4))
-            buffer->m_delta_multiple_scattering_texture->bind(4);
-
-        if (m_scattering_density_program->set_uniform("irradiance", 5))
-            buffer->m_delta_irradiance_texture->bind(5);
-
-        m_scattering_density_program->set_uniform("scattering_order", scattering_order);
-        m_scattering_density_program->set_uniform("blend", glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-
-        for (int layer = 0; layer < CONSTANTS::SCATTERING_DEPTH; ++layer)
+        for (int i = 0; i < INSCATTER_R; i++) 
         {
-            m_scattering_density_program->set_uniform("layer", layer);
-            GL_CHECK_ERROR(glDispatchCompute(CONSTANTS::SCATTERING_WIDTH / NUM_THREADS, CONSTANTS::SCATTERING_HEIGHT / NUM_THREADS, 1));
+            m_copy_inscatter_1_program->set_uniform("u_Layer", i);
+            GL_CHECK_ERROR(glDispatchCompute((INSCATTER_MU_S*INSCATTER_NU)/NUM_THREADS, INSCATTER_MU/NUM_THREADS, 1));
             GL_CHECK_ERROR(glFinish());
         }
 
-        // ------------------------------------------------------------------
-        // Compute Indirect Irradiance
-        // ------------------------------------------------------------------
+        swap(m_inscatter_t);
 
-        m_indirect_irradiance_program->use();
+        // -----------------------------------------------------------------------------
+        // 6. Compute deltaJ
+        // -----------------------------------------------------------------------------
 
-        bind_compute_uniforms(m_indirect_irradiance_program.get(), lambdas, luminance_from_radiance);
+        m_inscatter_s_program->use();
+        set_uniforms(m_inscatter_s_program.get());
 
-        // Compute the indirect irradiance, store it in delta_irradiance_texture and
-        // accumulate it in irradiance_texture_.
-        buffer->m_delta_irradiance_texture->bind_image(0, 0, 0, GL_READ_WRITE, buffer->m_delta_irradiance_texture->internal_format());
-        buffer->m_irradiance_array[READ]->bind_image(1, 0, 0, GL_READ_WRITE, buffer->m_irradiance_array[READ]->internal_format());
-        buffer->m_irradiance_array[WRITE]->bind_image(2, 0, 0, GL_READ_WRITE, buffer->m_irradiance_array[WRITE]->internal_format());
+        m_inscatter_s_program->set_uniform("first", (order == 2) ? 1 : 0);
 
-        if (m_indirect_irradiance_program->set_uniform("single_rayleigh_scattering", 3))
-            buffer->m_delta_rayleigh_scattering_texture->bind(3);
+		m_delta_jt->bind_image(0, 0, 0, GL_READ_WRITE, m_delta_jt->internal_format());
 
-        if (m_indirect_irradiance_program->set_uniform("single_mie_scattering", 4))
-            buffer->m_delta_mie_scattering_texture->bind(4);
+		if (m_inscatter_s_program->set_uniform("s_TransmittanceRead", 0))
+			m_transmittance_t->bind(0);
 
-        if (m_indirect_irradiance_program->set_uniform("multiple_scattering", 5))
-            buffer->m_delta_multiple_scattering_texture->bind(5);
+		if (m_inscatter_s_program->set_uniform("s_DeltaERead", 1))
+			m_delta_et->bind(1);
 
-        m_indirect_irradiance_program->set_uniform("scattering_order", scattering_order - 1);
-        m_indirect_irradiance_program->set_uniform("blend", glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
+		if (m_inscatter_s_program->set_uniform("s_DeltaSRRead", 2))
+			m_delta_srt->bind(2);
 
-        GL_CHECK_ERROR(glDispatchCompute(CONSTANTS::IRRADIANCE_WIDTH / NUM_THREADS, CONSTANTS::IRRADIANCE_HEIGHT / NUM_THREADS, 1));
-        GL_CHECK_ERROR(glFinish());
-
-        swap(buffer->m_irradiance_array);
-
-        // ------------------------------------------------------------------
-        // Compute Multiple Scattering
-        // ------------------------------------------------------------------
-
-        m_multiple_scattering_program->use();
-
-        bind_compute_uniforms(m_multiple_scattering_program.get(), lambdas, luminance_from_radiance);
-
-        // Compute the multiple scattering, store it in
-        // delta_multiple_scattering_texture, and accumulate it in
-        // scattering_texture_.
-        buffer->m_delta_multiple_scattering_texture->bind_image(0, 0, 0, GL_READ_WRITE, buffer->m_delta_multiple_scattering_texture->internal_format());
-        buffer->m_scattering_array[READ]->bind_image(1, 0, 0, GL_READ_WRITE, buffer->m_scattering_array[READ]->internal_format());
-        buffer->m_scattering_array[WRITE]->bind_image(2, 0, 0, GL_READ_WRITE, buffer->m_scattering_array[WRITE]->internal_format());
-
-        if (m_multiple_scattering_program->set_uniform("transmittance", 3))
-            buffer->m_transmittance_array[READ]->bind(3);
-
-        if (m_multiple_scattering_program->set_uniform("delta_scattering_density", 4))
-            buffer->m_delta_scattering_density_texture->bind(4);
-
-        m_multiple_scattering_program->set_uniform("blend", glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
-
-        for (int layer = 0; layer < CONSTANTS::SCATTERING_DEPTH; ++layer)
+		if (m_inscatter_s_program->set_uniform("s_DeltaSMRead", 3))
+			m_delta_smt->bind(3);
+        
+        for (int i = 0; i < INSCATTER_R; i++) 
         {
-            m_multiple_scattering_program->set_uniform("layer", layer);
-            GL_CHECK_ERROR(glDispatchCompute(CONSTANTS::SCATTERING_WIDTH / NUM_THREADS, CONSTANTS::SCATTERING_HEIGHT / NUM_THREADS, 1));
+            m_inscatter_s_program->set_uniform("u_Layer", i);
+            GL_CHECK_ERROR(glDispatchCompute((INSCATTER_MU_S*INSCATTER_NU)/NUM_THREADS, INSCATTER_MU/NUM_THREADS, 1));
             GL_CHECK_ERROR(glFinish());
         }
 
-        swap(buffer->m_scattering_array);
-    }
-}
+        // -----------------------------------------------------------------------------
+        // 7. Compute deltaE
+        // -----------------------------------------------------------------------------
 
-// -----------------------------------------------------------------------------------------------------------------------------------
+        m_irradiance_n_program->use();
+        set_uniforms(m_irradiance_n_program.get());
 
-void BrunetonSkyModel::swap(Texture** arr)
-{
-    Texture* tmp = arr[READ];
-    arr[READ]    = arr[WRITE];
-    arr[WRITE]   = tmp;
-}
+        m_irradiance_n_program->set_uniform("first", (order == 2) ? 1 : 0);
 
-// -----------------------------------------------------------------------------------------------------------------------------------
+		m_delta_et->bind_image(0, 0, 0, GL_READ_WRITE, m_delta_et->internal_format());
 
-glm::vec3 BrunetonSkyModel::to_vector(const std::vector<double>& wavelengths, const std::vector<double>& v, double lambdas[], double scale)
-{
-    double r = interpolate(wavelengths, v, lambdas[0]) * scale;
-    double g = interpolate(wavelengths, v, lambdas[1]) * scale;
-    double b = interpolate(wavelengths, v, lambdas[2]) * scale;
+		if (m_irradiance_n_program->set_uniform("s_DeltaSRRead", 0))
+			m_delta_srt->bind(0);
 
-    return glm::vec3((float)r, (float)g, (float)b);
-}
+		if (m_irradiance_n_program->set_uniform("s_DeltaSMRead", 1))
+			m_delta_smt->bind(1);
 
-// -----------------------------------------------------------------------------------------------------------------------------------
+        GL_CHECK_ERROR(glDispatchCompute(IRRADIANCE_W/NUM_THREADS, IRRADIANCE_H/NUM_THREADS, 1));
+        GL_CHECK_ERROR(glFinish());
 
-glm::mat4 BrunetonSkyModel::to_matrix(double arr[])
-{
-    return glm::mat4(
-        (float)arr[0], (float)arr[3], (float)arr[6], 0.0f, (float)arr[1], (float)arr[4], (float)arr[7], 0.0f, (float)arr[2], (float)arr[5], (float)arr[8], 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-}
+        // -----------------------------------------------------------------------------
+        // 8. Compute deltaS
+        // -----------------------------------------------------------------------------
 
-// -----------------------------------------------------------------------------------------------------------------------------------
+        m_inscatter_n_program->use();
+        set_uniforms(m_inscatter_n_program.get());
 
-double BrunetonSkyModel::cie_color_matching_function_table_value(double wavelength, int column)
-{
-    if (wavelength <= kLambdaMin || wavelength >= kLambdaMax)
-        return 0.0;
+        m_inscatter_n_program->set_uniform("first", (order == 2) ? 1 : 0);
 
-    double u   = (wavelength - kLambdaMin) / 5.0;
-    int    row = (int)floor(u);
+		m_delta_srt->bind_image(0, 0, 0, GL_READ_WRITE, m_delta_srt->internal_format());
 
-    u -= row;
-    return kCIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * row + column] * (1.0 - u) + kCIE_2_DEG_COLOR_MATCHING_FUNCTIONS[4 * (row + 1) + column] * u;
-}
+		if (m_inscatter_n_program->set_uniform("s_TransmittanceRead", 0))
+			m_transmittance_t->bind(0);
 
-// -----------------------------------------------------------------------------------------------------------------------------------
+		if (m_inscatter_n_program->set_uniform("s_DeltaJRead", 1))
+			m_delta_jt->bind(1);
 
-double BrunetonSkyModel::interpolate(const std::vector<double>& wavelengths, const std::vector<double>& wavelength_function, double wavelength)
-{
-    if (wavelength < wavelengths[0])
-        return wavelength_function[0];
-
-    for (int i = 0; i < wavelengths.size() - 1; ++i)
-    {
-        if (wavelength < wavelengths[i + 1])
+        for (int i = 0; i < INSCATTER_R; i++) 
         {
-            double u = (wavelength - wavelengths[i]) / (wavelengths[i + 1] - wavelengths[i]);
-            return wavelength_function[i] * (1.0 - u) + wavelength_function[i + 1] * u;
+            m_inscatter_n_program->set_uniform("u_Layer", i);
+            GL_CHECK_ERROR(glDispatchCompute((INSCATTER_MU_S*INSCATTER_NU)/NUM_THREADS, INSCATTER_MU/NUM_THREADS, 1));
+            GL_CHECK_ERROR(glFinish());
         }
+
+        // -----------------------------------------------------------------------------
+        // 9. Adds deltaE into Irradiance Texture E
+        // -----------------------------------------------------------------------------
+
+        m_copy_irradiance_program->use();
+        set_uniforms(m_copy_irradiance_program.get());
+
+        m_copy_irradiance_program->set_uniform("u_K", 1.0f);
+
+		m_irradiance_t[WRITE]->bind_image(0, 0, 0, GL_READ_WRITE, m_irradiance_t[WRITE]->internal_format());
+
+		if (m_copy_irradiance_program->set_uniform("s_DeltaERead", 0))
+			m_delta_et->bind(0);
+
+		if (m_copy_irradiance_program->set_uniform("s_IrradianceRead", 1))
+			m_irradiance_t[READ]->bind(1);
+
+        GL_CHECK_ERROR(glDispatchCompute(IRRADIANCE_W/NUM_THREADS, IRRADIANCE_H/NUM_THREADS, 1));
+        GL_CHECK_ERROR(glFinish());
+
+        swap(m_irradiance_t);
+
+        // -----------------------------------------------------------------------------
+        // 10. Adds deltaS into Inscatter Texture S
+        // -----------------------------------------------------------------------------
+
+        m_copy_inscatter_n_program->use();
+        set_uniforms(m_copy_inscatter_n_program.get());
+
+		m_inscatter_t[WRITE]->bind_image(0, 0, 0, GL_READ_WRITE, m_inscatter_t[WRITE]->internal_format());
+
+		if (m_copy_inscatter_n_program->set_uniform("s_InscatterRead", 0))
+			m_inscatter_t[READ]->bind(0);
+
+		if (m_copy_inscatter_n_program->set_uniform("s_DeltaSRead", 1))
+			m_delta_srt->bind(1);
+
+        for (int i = 0; i < INSCATTER_R; i++) 
+        {
+            m_copy_inscatter_n_program->set_uniform("u_Layer", i);
+            GL_CHECK_ERROR(glDispatchCompute((INSCATTER_MU_S*INSCATTER_NU)/NUM_THREADS, INSCATTER_MU/NUM_THREADS, 1));
+            GL_CHECK_ERROR(glFinish());
+        }
+
+        swap(m_inscatter_t);
     }
 
-    return wavelength_function[wavelength_function.size() - 1];
+    // -----------------------------------------------------------------------------
+    // 11. Save to disk
+    // -----------------------------------------------------------------------------
+
+	write_textures();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void BrunetonSkyModel::compute_spectral_radiance_to_luminance_factors(const std::vector<double>& wavelengths, const std::vector<double>& solar_irradiance, double lambda_power, double& k_r, double& k_g, double& k_b)
+Texture2D* BrunetonSkyModel::new_texture_2d(int width, int height)
 {
-    k_r            = 0.0;
-    k_g            = 0.0;
-    k_b            = 0.0;
-    double solar_r = interpolate(wavelengths, solar_irradiance, kLambdaR);
-    double solar_g = interpolate(wavelengths, solar_irradiance, kLambdaG);
-    double solar_b = interpolate(wavelengths, solar_irradiance, kLambdaB);
-    int    dlambda = 1;
+	Texture2D* texture = new Texture2D(width, height, 1, 1, 1, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+    texture->set_min_filter(GL_LINEAR);
+	texture->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
-    for (int lambda = kLambdaMin; lambda < kLambdaMax; lambda += dlambda)
-    {
-        double x_bar = cie_color_matching_function_table_value(lambda, 1);
-        double y_bar = cie_color_matching_function_table_value(lambda, 2);
-        double z_bar = cie_color_matching_function_table_value(lambda, 3);
-
-        const double* xyz2srgb   = &kXYZ_TO_SRGB[0];
-        double        r_bar      = xyz2srgb[0] * x_bar + xyz2srgb[1] * y_bar + xyz2srgb[2] * z_bar;
-        double        g_bar      = xyz2srgb[3] * x_bar + xyz2srgb[4] * y_bar + xyz2srgb[5] * z_bar;
-        double        b_bar      = xyz2srgb[6] * x_bar + xyz2srgb[7] * y_bar + xyz2srgb[8] * z_bar;
-        double        irradiance = interpolate(wavelengths, solar_irradiance, lambda);
-
-        k_r += r_bar * irradiance / solar_r * pow(lambda / kLambdaR, lambda_power);
-        k_g += g_bar * irradiance / solar_g * pow(lambda / kLambdaG, lambda_power);
-        k_b += b_bar * irradiance / solar_b * pow(lambda / kLambdaB, lambda_power);
-    }
-
-    k_r *= static_cast<double>(CONSTANTS::MAX_LUMINOUS_EFFICACY) * dlambda;
-    k_g *= static_cast<double>(CONSTANTS::MAX_LUMINOUS_EFFICACY) * dlambda;
-    k_b *= static_cast<double>(CONSTANTS::MAX_LUMINOUS_EFFICACY) * dlambda;
+	return texture;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+Texture3D* BrunetonSkyModel::new_texture_3d(int width, int height, int depth)
+{
+	Texture3D* texture = new Texture3D(width, height, depth, 1, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+    texture->set_min_filter(GL_LINEAR);
+    texture->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+    return texture;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void BrunetonSkyModel::swap(Texture2D** arr)
+{
+	Texture2D* tmp = arr[READ];
+    arr[READ] = arr[WRITE];
+    arr[WRITE] = tmp;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void BrunetonSkyModel::swap(Texture3D** arr)
+{
+	Texture3D* tmp = arr[READ];
+    arr[READ] = arr[WRITE];
+    arr[WRITE] = tmp;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 } // namespace nimble

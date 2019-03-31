@@ -1,16 +1,16 @@
-#include <constants.glsl>
+#include <atmosphere.glsl>
 
 // ------------------------------------------------------------------
-// INPUTS -----------------------------------------------------------
+// OUPUT ------------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (local_size_x = LOCAL_SIZE, local_size_y = LOCAL_SIZE, local_size_z = LOCAL_SIZE) in;
+out vec4 FS_OUT_Color;
 
 // ------------------------------------------------------------------
-// UNIFORMS ---------------------------------------------------------
+// INPUT ------------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (binding = 0, rgba32f) uniform image3D targetImage;
+in vec3 FS_IN_WorldPos;
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -18,8 +18,17 @@ layout (binding = 0, rgba32f) uniform image3D targetImage;
 
 void main()
 {
-    ivec3 uv = ivec3(gl_GlobalInvocationID);
-    imageStore(targetImage, uv, vec4(0.0, 0.0, 0.0, 0.0));
+	vec3 dir = normalize(FS_IN_WorldPos);
+
+	float sun = step(cos(M_PI / 360.0), dot(dir, SUN_DIR));
+					
+	vec3 sunColor = vec3(sun,sun,sun) * SUN_INTENSITY;
+
+	vec3 extinction;
+	vec3 inscatter = SkyRadiance(vec3(0.0), dir, extinction);
+	vec3 col = sunColor * extinction + inscatter;
+
+	FS_OUT_Color = vec4(col, 1.0);
 }
 
 // ------------------------------------------------------------------

@@ -3,256 +3,106 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "bruneton_sky_model_constants.h"
-#include "texture_buffer.h"
+#include "../../ogl.h"
 
 namespace nimble
 {
 class ResourceManager;
 class Renderer;
 
-/// <summary>
-/// An atmosphere layer of width 'width' (in m), and whose density is defined as
-/// 'exp_term' * exp('exp_scale' * h) + 'linear_term' * h + 'constant_term',
-/// clamped to [0,1], and where h is the altitude (in m). 'exp_term' and
-/// 'constant_term' are unitless, while 'exp_scale' and 'linear_term' are in m^-1.
-/// </summary>
-struct DensityProfileLayer
-{
-    std::string name;
-    double      width;
-    double      exp_term;
-    double      exp_scale;
-    double      linear_term;
-    double      constant_term;
-
-    DensityProfileLayer(std::string _name, double _width, double _exp_term, double _exp_scale, double _linear_term, double _constant_term)
-    {
-        name          = _name;
-        width         = _width;
-        exp_term      = _exp_term;
-        exp_scale     = _exp_scale;
-        linear_term   = _linear_term;
-        constant_term = _constant_term;
-    }
-};
-
 class BrunetonSkyModel
 {
 private:
-#define READ 0
-#define WRITE 1
+	//Dont change these
+	const int NUM_THREADS = 8;
+	const int READ = 0;
+	const int WRITE = 1;
+	const float SCALE = 1000.0f;
 
-#define kLambdaR 680.0
-#define kLambdaG 550.0
-#define kLambdaB 440.0
+	//Will save the tables as 8 bit png files so they can be
+	//viewed in photoshop. Used for debugging.
+	const bool WRITE_DEBUG_TEX = false;
 
-#define kLambdaMin 360
-#define kLambdaMax 830
+	//You can change these
+	//The radius of the planet (Rg), radius of the atmosphere (Rt)
+	const float Rg = 6360.0f;
+	const float Rt = 6420.0f;
+	const float RL = 6421.0f;
 
-public:
-    /// <summary>
-    /// The wavelength values, in nanometers, and sorted in increasing order, for
-    /// which the solar_irradiance, rayleigh_scattering, mie_scattering,
-    /// mie_extinction and ground_albedo samples are provided. If your shaders
-    /// use luminance values (as opposed to radiance values, see above), use a
-    /// large number of wavelengths (e.g. between 15 and 50) to get accurate
-    /// results (this number of wavelengths has absolutely no impact on the
-    /// shader performance).
-    /// </summary>
-    std::vector<double> m_wave_lengths;
+	//Dimensions of the tables
+	const int TRANSMITTANCE_W = 256;
+	const int TRANSMITTANCE_H = 64;
 
-    /// <summary>
-    /// The solar irradiance at the top of the atmosphere, in W/m^2/nm. This
-    /// vector must have the same size as the wavelengths parameter.
-    /// </summary>
-    std::vector<double> m_solar_irradiance;
+	const int IRRADIANCE_W = 64;
+	const int IRRADIANCE_H = 16;
 
-    /// <summary>
-    /// The sun's angular radius, in radians. Warning: the implementation uses
-    /// approximations that are valid only if this value is smaller than 0.1.
-    /// </summary>
-    double m_sun_angular_radius;
+	const int INSCATTER_R = 32;
+	const int INSCATTER_MU = 128;
+	const int INSCATTER_MU_S = 32;
+	const int INSCATTER_NU = 8;
 
-    /// <summary>
-    /// The distance between the planet center and the bottom of the atmosphere in m.
-    /// </summary>
-    double m_bottom_radius;
+	//Physical settings, Mie and Rayliegh values
+	const float AVERAGE_GROUND_REFLECTANCE = 0.1f;
+	const glm::vec4 BETA_R = glm::vec4(5.8e-3f, 1.35e-2f, 3.31e-2f, 0.0f);
+	const glm::vec4 BETA_MSca = glm::vec4(4e-3f, 4e-3f, 4e-3f, 0.0f);
+	const glm::vec4 BETA_MEx = glm::vec4(4.44e-3f, 4.44e-3f, 4.44e-3f, 0.0f);
 
-    /// <summary>
-    /// The distance between the planet center and the top of the atmosphere in m.
-    /// </summary>
-    double m_top_radius;
+	//Asymmetry factor for the mie phase function
+	//A higher number meands more light is scattered in the forward direction
+	const float MIE_G = 0.8f;
 
-    /// <summary>
-    /// The density profile of air molecules, i.e. a function from altitude to
-    /// dimensionless values between 0 (null density) and 1 (maximum density).
-    /// Layers must be sorted from bottom to top. The width of the last layer is
-    /// ignored, i.e. it always extend to the top atmosphere boundary. At most 2
-    /// layers can be specified.
-    /// </summary>
-    DensityProfileLayer* m_rayleigh_density;
+	//Half heights for the atmosphere air density (HR) and particle density (HM)
+	//This is the height in km that half the particles are found below
+	const float HR = 8.0f;
+	const float HM = 1.2f;
 
-    /// <summary>
-    /// The scattering coefficient of air molecules at the altitude where their
-    /// density is maximum (usually the bottom of the atmosphere), as a function
-    /// of wavelength, in m^-1. The scattering coefficient at altitude h is equal
-    /// to 'rayleigh_scattering' times 'rayleigh_density' at this altitude. This
-    /// vector must have the same size as the wavelengths parameter.
-    /// </summary>
-    std::vector<double> m_rayleigh_scattering;
+	glm::vec3 m_beta_r = glm::vec3(0.0058f, 0.0135f, 0.0331f);
+    float m_mie_g = 0.75f;
+    float m_sun_intensity = 100.0f;
 
-    /// <summary>
-    /// The density profile of aerosols, i.e. a function from altitude to
-    /// dimensionless values between 0 (null density) and 1 (maximum density).
-    /// Layers must be sorted from bottom to top. The width of the last layer is
-    /// ignored, i.e. it always extend to the top atmosphere boundary. At most 2
-    /// layers can be specified.
-    /// </summary>
-    DensityProfileLayer* m_mie_density;
+	Texture2D* m_transmittance_t;
+	Texture2D* m_delta_et;
+	Texture3D* m_delta_srt;
+	Texture3D* m_delta_smt;
+	Texture3D* m_delta_jt;
+	Texture2D* m_irradiance_t[2];
+	Texture3D* m_inscatter_t[2];
 
-    /// <summary>
-    /// The scattering coefficient of aerosols at the altitude where their
-    /// density is maximum (usually the bottom of the atmosphere), as a function
-    /// of wavelength, in m^-1. The scattering coefficient at altitude h is equal
-    /// to 'mie_scattering' times 'mie_density' at this altitude. This vector
-    /// must have the same size as the wavelengths parameter.
-    /// </summary>
-    std::vector<double> m_mie_scattering;
+	std::shared_ptr<Shader> m_copy_inscatter_1_cs;
+	std::shared_ptr<Shader> m_copy_inscatter_n_cs;
+	std::shared_ptr<Shader> m_copy_irradiance_cs;
+	std::shared_ptr<Shader> m_inscatter_1_cs;
+	std::shared_ptr<Shader> m_inscatter_n_cs;
+	std::shared_ptr<Shader> m_inscatter_s_cs;
+	std::shared_ptr<Shader> m_irradiance_1_cs;
+	std::shared_ptr<Shader> m_irradiance_n_cs;
+	std::shared_ptr<Shader> m_transmittance_cs;
 
-    /// <summary>
-    /// The extinction coefficient of aerosols at the altitude where their
-    /// density is maximum (usually the bottom of the atmosphere), as a function
-    /// of wavelength, in m^-1. The extinction coefficient at altitude h is equal
-    /// to 'mie_extinction' times 'mie_density' at this altitude. This vector
-    /// must have the same size as the wavelengths parameter.
-    /// </summary>
-    std::vector<double> m_mie_extinction;
-
-    /// <summary>
-    /// The asymetry parameter for the Cornette-Shanks phase function for the aerosols.
-    /// </summary>
-    double m_mie_phase_function_g;
-
-    /// <summary>
-    /// The density profile of air molecules that absorb light (e.g. ozone), i.e.
-    /// a function from altitude to dimensionless values between 0 (null density)
-    /// and 1 (maximum density). Layers must be sorted from bottom to top. The
-    /// width of the last layer is ignored, i.e. it always extend to the top
-    /// atmosphere boundary. At most 2 layers can be specified.
-    /// </summary>
-    std::vector<DensityProfileLayer*> m_absorption_density;
-
-    /// <summary>
-    /// The extinction coefficient of molecules that absorb light (e.g. ozone) at
-    /// the altitude where their density is maximum, as a function of wavelength,
-    /// in m^-1. The extinction coefficient at altitude h is equal to
-    /// 'absorption_extinction' times 'absorption_density' at this altitude. This
-    /// vector must have the same size as the wavelengths parameter.
-    /// </summary>
-    std::vector<double> m_absorption_extinction;
-
-    /// <summary>
-    /// The average albedo of the ground, as a function of wavelength. This
-    /// vector must have the same size as the wavelengths parameter.
-    /// </summary>
-    std::vector<double> m_ground_albedo;
-
-    /// <summary>
-    /// The maximum Sun zenith angle for which atmospheric scattering must be
-    /// precomputed, in radians (for maximum precision, use the smallest Sun
-    /// zenith angle yielding negligible sky light radiance values. For instance,
-    /// for the Earth case, 102 degrees is a good choice for most cases (120
-    /// degrees is necessary for very high exposure values).
-    /// </summary>
-    double m_max_sun_zenith_angle;
-
-    /// <summary>
-    /// The length unit used in your shaders and meshes. This is the length unit
-    /// which must be used when calling the atmosphere model shader functions.
-    /// </summary>
-    double m_length_unit_in_meters;
-
-    /// <summary>
-    /// Use radiance or luminance mode.
-    /// </summary>
-    LUMINANCE m_use_luminance;
-
-    /// <summary>
-    /// The number of wavelengths for which atmospheric scattering must be
-    /// precomputed (the temporary GPU memory used during precomputations, and
-    /// the GPU memory used by the precomputed results, is independent of this
-    /// number, but the precomputation time is directly proportional to this number):
-    /// - if this number is less than or equal to 3, scattering is precomputed
-    /// for 3 wavelengths, and stored as irradiance values. Then both the
-    /// radiance-based and the luminance-based API functions are provided (see
-    /// the above note).
-    /// - otherwise, scattering is precomputed for this number of wavelengths
-    /// (rounded up to a multiple of 3), integrated with the CIE color matching
-    /// functions, and stored as illuminance values. Then only the
-    /// luminance-based API functions are provided (see the above note).
-    /// </summary>
-    inline int num_precomputed_wavelengths() { return m_use_luminance == LUMINANCE::PRECOMPUTED ? 15 : 3; }
-
-    /// <summary>
-    /// Whether to pack the (red component of the) single Mie scattering with the
-    /// Rayleigh and multiple scattering in a single texture, or to store the
-    /// (3 components of the) single Mie scattering in a separate texture.
-    /// </summary>
-    bool m_combine_scattering_textures;
-
-    /// <summary>
-    /// Whether to use half precision floats (16 bits) or single precision floats
-    /// (32 bits) for the precomputed textures. Half precision is sufficient for
-    /// most cases, except for very high exposure values.
-    /// </summary>
-    bool m_half_precision;
-
-    TextureBuffer* m_texture_buffer;
-
-    Texture* m_transmittance_texture                  = nullptr;
-    Texture* m_scattering_texture                     = nullptr;
-    Texture* m_irradiance_texture                     = nullptr;
-    Texture* m_optional_single_mie_scattering_texture = nullptr;
-
-    std::shared_ptr<Shader> m_clear_2d_shader            = nullptr;
-    std::shared_ptr<Shader> m_clear_3d_shader            = nullptr;
-    std::shared_ptr<Shader> m_transmittance_shader       = nullptr;
-    std::shared_ptr<Shader> m_direct_irradiance_shader   = nullptr;
-    std::shared_ptr<Shader> m_indirect_irradiance_shader = nullptr;
-    std::shared_ptr<Shader> m_multiple_scattering_shader = nullptr;
-    std::shared_ptr<Shader> m_scattering_density_shader  = nullptr;
-    std::shared_ptr<Shader> m_single_scattering_shader   = nullptr;
-
-    std::shared_ptr<Program> m_clear_2d_program            = nullptr;
-    std::shared_ptr<Program> m_clear_3d_program            = nullptr;
-    std::shared_ptr<Program> m_transmittance_program       = nullptr;
-    std::shared_ptr<Program> m_direct_irradiance_program   = nullptr;
-    std::shared_ptr<Program> m_indirect_irradiance_program = nullptr;
-    std::shared_ptr<Program> m_multiple_scattering_program = nullptr;
-    std::shared_ptr<Program> m_scattering_density_program  = nullptr;
-    std::shared_ptr<Program> m_single_scattering_program   = nullptr;
+	std::shared_ptr<Program> m_copy_inscatter_1_program;
+	std::shared_ptr<Program> m_copy_inscatter_n_program;
+	std::shared_ptr<Program> m_copy_irradiance_program;
+	std::shared_ptr<Program> m_inscatter_1_program;
+	std::shared_ptr<Program> m_inscatter_n_program;
+	std::shared_ptr<Program> m_inscatter_s_program;
+	std::shared_ptr<Program> m_irradiance_1_program;
+	std::shared_ptr<Program> m_irradiance_n_program;
+	std::shared_ptr<Program> m_transmittance_program;
 
 public:
-    BrunetonSkyModel();
-    ~BrunetonSkyModel();
+	BrunetonSkyModel();
+	~BrunetonSkyModel();
 
-    bool initialize(int num_scattering_orders, Renderer* renderer, ResourceManager* res_mgr);
-    void bind_rendering_uniforms(Program* program);
-    void convert_spectrum_to_linear_srgb(double& r, double& g, double& b);
-
+	bool initialize(Renderer* renderer, ResourceManager* res_mgr);
+	void set_render_uniforms(Program* program, glm::vec3 direction);
+	
 private:
-    double    coeff(double lambda, int component);
-    void      bind_compute_uniforms(Program* program, double* lambdas, double* luminance_from_radiance);
-    void      bind_density_layer(Program* program, DensityProfileLayer* layer);
-    void      sky_sun_radiance_to_luminance(glm::vec3& sky_spectral_radiance_to_luminance, glm::vec3& sun_spectral_radiance_to_luminance);
-    void      precompute(TextureBuffer* buffer, double* lambdas, double* luminance_from_radiance, bool blend, int num_scattering_orders);
-    void      swap(Texture** arr);
-    glm::vec3 to_vector(const std::vector<double>& wavelengths, const std::vector<double>& v, double lambdas[], double scale);
-    glm::mat4 to_matrix(double arr[]);
-
-    static double cie_color_matching_function_table_value(double wavelength, int column);
-    static double interpolate(const std::vector<double>& wavelengths, const std::vector<double>& wavelength_function, double wavelength);
-    static void   compute_spectral_radiance_to_luminance_factors(const std::vector<double>& wavelengths, const std::vector<double>& solar_irradiance, double lambda_power, double& k_r, double& k_g, double& k_b);
+	void set_uniforms(Program* program);
+	bool load_cached_textures();
+	void write_textures();
+	void precompute();
+	Texture2D* new_texture_2d(int width, int height);
+	Texture3D* new_texture_3d(int width, int height, int depth);
+	void swap(Texture2D** arr);
+	void swap(Texture3D** arr);
 };
 } // namespace nimble

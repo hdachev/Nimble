@@ -21,15 +21,6 @@ protected:
     std::string probe_contribution_shader_path() override;
 
 private:
-    float                    m_sun_angular_radius          = 0.01935f; // / 2.0f;
-    float                    m_bottom_radius               = 6360000.0f;
-    float                    m_length_unit_in_meters       = 1000.0f;
-    float                    m_exposure                    = 10.0f;
-    bool                     m_use_constant_solar_spectrum = false;
-    bool                     m_use_ozone                   = true;
-    bool                     m_use_combined_textures       = true;
-    bool                     m_use_half_precision          = false;
-    LUMINANCE                m_use_luminance               = LUMINANCE::NONE;
     BrunetonSkyModel         m_sky_model;
     glm::mat4                m_cubemap_views[6];
     RenderTargetView         m_cubemap_rtv[6];
