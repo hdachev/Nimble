@@ -225,6 +225,7 @@ public:
     bool    set_uniform(std::string name, int count, glm::mat2* value);
     bool    set_uniform(std::string name, int count, glm::mat3* value);
     bool    set_uniform(std::string name, int count, glm::mat4* value);
+	GLint	id();
 
 private:
     GLuint                                  m_gl_program;

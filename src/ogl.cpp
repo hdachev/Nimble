@@ -1486,6 +1486,13 @@ bool Program::set_uniform(std::string name, int count, glm::mat4* value)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+GLint Program::id()
+{
+	return m_gl_program;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 Buffer::Buffer(GLenum type, GLenum usage, size_t size, void* data) :
     m_type(type), m_size(size)
 {
