@@ -22,6 +22,7 @@ private:
 	// Inputs
     std::shared_ptr<RenderTarget> m_hiz_depth_rt;
     std::shared_ptr<RenderTarget> m_metallic_rt;
+    std::shared_ptr<RenderTarget> m_normal_rt;
 
 	// Outputs
     std::shared_ptr<RenderTarget> m_ssr_rt;

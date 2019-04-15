@@ -30,6 +30,7 @@ void ScreenSpaceReflectionNode::declare_connections()
 {
     register_input_render_target("HiZDepth");
     register_input_render_target("Metallic");
+    register_input_render_target("Normal");
 
     m_ssr_rt = register_scaled_output_render_target("SSR", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 }
@@ -39,6 +40,10 @@ void ScreenSpaceReflectionNode::declare_connections()
 bool ScreenSpaceReflectionNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Enabled", m_enabled);
+
+	m_hiz_depth_rt = find_input_render_target("HiZDepth");
+    m_metallic_rt  = find_input_render_target("Metallic");
+    m_normal_rt    = find_input_render_target("Normal");
 
     m_ssr_rtv = RenderTargetView(0, 0, 0, m_ssr_rt->texture);
 
@@ -68,6 +73,9 @@ void ScreenSpaceReflectionNode::execute(double delta, Renderer* renderer, Scene*
 
 		if (m_ssr_program->set_uniform("s_Metallic", 1))
 			m_metallic_rt->texture->bind(1);
+
+		if (m_ssr_program->set_uniform("s_Normal", 2))
+			m_normal_rt->texture->bind(2);
 
 		m_ssr_rt->texture->bind_image(0, 0, 0, GL_WRITE_ONLY, GL_RGB16F);
 
