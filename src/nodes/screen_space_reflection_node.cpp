@@ -47,7 +47,7 @@ bool ScreenSpaceReflectionNode::initialize(Renderer* renderer, ResourceManager* 
 
     m_ssr_rtv = RenderTargetView(0, 0, 0, m_ssr_rt->texture);
 
-    m_ssr_cs = res_mgr->load_shader("shader/post_process/screen_space_reflections/ssr_cs.glsl", GL_COMPUTE_SHADER);
+    m_ssr_cs = res_mgr->load_shader("shader/post_process/ssr/ssr_cs.glsl", GL_COMPUTE_SHADER);
 
     if (m_ssr_cs)
     {

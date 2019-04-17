@@ -103,18 +103,30 @@ void main()
 	// Compute reflection vector
 	vec3 reflection_dir = reflect(view_dir, normal);
 
-	// Compute second screen space point in order to calculate SS reflection vector
-	vec4 point_along_refl_dir = vec4(10.0 * reflection_dir + world_pos, 1.0);
-	vec4 screen_space_refl_pos = view_proj * point_along_refl_dir;
-	screen_space_refl_pos /= screen_space_refl_pos.w;
-	screen_space_refl_pos.xy = screen_space_refl_pos.xy * vec2(0.5) + vec2(0.5);
+	float camera_facing_refl_attenuation = 1.0 - smoothstep(0.25, 0.5, dot(-view_dir, reflection_dir));
 
-	// Compute screen space reflection direction
-	vec3 screen_space_refl_dir = normalize(screen_space_refl_pos.xyz - world_pos);
+	if (camera_facing_refl_attenuation <= 0.0)
+		imageStore(i_SSR, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), vec4(0.0));
+	else
+	{
+		// Compute second screen space point in order to calculate SS reflection vector
+		vec4 point_along_refl_dir = vec4(10.0 * reflection_dir + world_pos, 1.0);
+		vec4 screen_space_refl_pos = view_proj * point_along_refl_dir;
+		screen_space_refl_pos /= screen_space_refl_pos.w;
+		screen_space_refl_pos.xy = screen_space_refl_pos.xy * vec2(0.5) + vec2(0.5);
 
-	vec3 ssr = ray_march(screen_space_refl_dir.xyz, screen_pos.xyz);
+		// Compute screen space reflection direction
+		vec3 screen_space_refl_dir = normalize(screen_space_refl_pos.xyz - world_pos);
 
-	imageStore(i_SSR, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), vec4(ssr, 1.0));
+		vec3 ssr = ray_march(screen_space_refl_dir.xyz, screen_pos.xyz);
+
+		vec2 uv_sampling_attenuation = smoothstep(0.05, 0.1, ssr.xy) * (1 - smoothstep(0.95, 1, ssr.xy));
+		uv_sampling_attenuation.x *= uv_sampling_attenuation.y;
+
+		float total_attenuation = camera_facing_refl_attenuation * uv_sampling_attenuation.x;
+
+		imageStore(i_SSR, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), vec4(ssr.xy, total_attenuation, 1.0));
+	}
 }
 
 // ------------------------------------------------------------------
