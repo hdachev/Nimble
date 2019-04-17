@@ -21,6 +21,31 @@
             ]
         },
         {
+            "name" : "ScreenSpaceReflectionNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "HiZDepth",
+                    "prev_node_name" : "HiZNode",
+                    "prev_output_name" : "HiZDepth"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Normal",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer2"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Metallic",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer4"
+                }
+            ]
+        },
+        {
             "name" : "SSAONode",
             "defines" : [],
             "inputs" : 

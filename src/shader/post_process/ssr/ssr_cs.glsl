@@ -25,7 +25,7 @@ const int 	MAX_BINARY_SEARCH_SAMPLES = 5;
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (binding = 0, rgba16f) uniform image2D i_SSR;
+layout (binding = 0, rgba32f) uniform image2D i_SSR;
 
 uniform sampler2D s_HiZDepth;
 uniform sampler2D s_Metallic;
