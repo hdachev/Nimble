@@ -70,16 +70,16 @@ void ScreenSpaceReflectionNode::execute(double delta, Renderer* renderer, Scene*
 
 		m_ssr_program->set_uniform("u_HiZLevels", (int32_t)m_hiz_depth_rt->texture->mip_levels());
 
-		if (m_ssr_program->set_uniform("s_HiZDepth", 0))
-            m_hiz_depth_rt->texture->bind(0);
+		if (m_ssr_program->set_uniform("s_HiZDepth", 1))
+            m_hiz_depth_rt->texture->bind(1);
 
-		if (m_ssr_program->set_uniform("s_Metallic", 1))
-			m_metallic_rt->texture->bind(1);
+		if (m_ssr_program->set_uniform("s_Metallic", 2))
+			m_metallic_rt->texture->bind(2);
 
-		if (m_ssr_program->set_uniform("s_Normal", 2))
-			m_normal_rt->texture->bind(2);
+		if (m_ssr_program->set_uniform("s_Normal", 3))
+			m_normal_rt->texture->bind(3);
 
-		m_ssr_rt->texture->bind_image(0, 0, 0, GL_WRITE_ONLY, GL_RGB16F);
+		m_ssr_rt->texture->bind_image(0, 0, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
 		glDispatchCompute(m_graph->window_width() / NUM_SSR_THREADS, m_graph->window_height() / NUM_SSR_THREADS, 1);
     }

@@ -104,6 +104,12 @@
                     "slot_name" : "SSAO",
                     "prev_node_name" : "SSAONode",
                     "prev_output_name" : "SSAO"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "SSR",
+                    "prev_node_name" : "ScreenSpaceReflectionNode",
+                    "prev_output_name" : "SSR"
                 }
             ]
         },

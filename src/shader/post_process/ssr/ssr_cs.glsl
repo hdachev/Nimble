@@ -46,7 +46,7 @@ vec3 binary_search(in vec3 pos, in vec3 prev_pos)
 	for (int i = 0; i < MAX_BINARY_SEARCH_SAMPLES; i++)
 	{
 		mid_sample = mix(min_sample, max_sample, 0.5);
-		float z_val = texture(s_Depth, mid_sample.xy).x;
+		float z_val = textureLod(s_HiZDepth, mid_sample.xy, 0).x;
 
 		if (mid_sample.z > z_val)
 			max_sample = mid_sample;
@@ -66,7 +66,7 @@ vec3 ray_march(in vec3 dir, in vec3 pos)
 	for (int ray_step_idx = 0; ray_step_idx < MAX_RAY_MARCH_SAMPLES; ray_step_idx++)
 	{
 		vec3 ray_sample = (ray_step_idx * RAY_STEP_SIZE) * dir + pos;
-		float z_val = texture(s_Depth, ray_sample.xy).x;
+		float z_val = textureLod(s_HiZDepth, ray_sample.xy, 0).x;
 
 		if (ray_sample.z > z_val)
 			return binary_search(ray_sample, prev_ray_sample);
@@ -74,7 +74,7 @@ vec3 ray_march(in vec3 dir, in vec3 pos)
 		prev_ray_sample = ray_sample;
 	}
 
-	return vec3(0.0);
+	return vec3(1.0, 0.0, 0.0);
 }
 
 // ------------------------------------------------------------------
@@ -106,21 +106,21 @@ void main()
 	float camera_facing_refl_attenuation = 1.0 - smoothstep(0.25, 0.5, dot(-view_dir, reflection_dir));
 
 	if (camera_facing_refl_attenuation <= 0.0)
-		imageStore(i_SSR, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), vec4(0.0));
+		imageStore(i_SSR, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), vec4(0.0, 0.0, 0.0, 1.0));
 	else
 	{
 		// Compute second screen space point in order to calculate SS reflection vector
 		vec4 point_along_refl_dir = vec4(10.0 * reflection_dir + world_pos, 1.0);
 		vec4 screen_space_refl_pos = view_proj * point_along_refl_dir;
 		screen_space_refl_pos /= screen_space_refl_pos.w;
-		screen_space_refl_pos.xy = screen_space_refl_pos.xy * vec2(0.5) + vec2(0.5);
+		screen_space_refl_pos.xyz = screen_space_refl_pos.xyz * vec3(0.5) + vec3(0.5);
 
 		// Compute screen space reflection direction
-		vec3 screen_space_refl_dir = normalize(screen_space_refl_pos.xyz - world_pos);
+		vec3 screen_space_refl_dir = normalize(screen_space_refl_pos.xyz - screen_pos.xyz);
 
 		vec3 ssr = ray_march(screen_space_refl_dir.xyz, screen_pos.xyz);
 
-		vec2 uv_sampling_attenuation = smoothstep(0.05, 0.1, ssr.xy) * (1 - smoothstep(0.95, 1, ssr.xy));
+		vec2 uv_sampling_attenuation = smoothstep(vec2(0.05), vec2(0.1), ssr.xy) * (vec2(1.0) - smoothstep(vec2(0.95), vec2(1.0), ssr.xy));
 		uv_sampling_attenuation.x *= uv_sampling_attenuation.y;
 
 		float total_attenuation = camera_facing_refl_attenuation * uv_sampling_attenuation.x;
