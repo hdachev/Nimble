@@ -209,7 +209,7 @@ void BloomNode::upsample(Renderer* renderer)
         glViewport(0, 0, m_graph->window_width() / scale, m_graph->window_height() / scale);
 
 #ifndef BLOOM_ADDITIVE_BLEND
-		glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
 #endif
         render_fullscreen_triangle(renderer, nullptr);
     }

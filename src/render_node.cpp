@@ -145,7 +145,7 @@ void RenderNode::set_input(const std::string& name, OutputRenderTarget* rt, std:
         if (input.slot_name == name)
         {
             input.prev_slot_name     = rt->slot_name;
-			input.prev_render_target = rt->render_target;
+            input.prev_render_target = rt->render_target;
             input.prev_node          = owner;
             return;
         }

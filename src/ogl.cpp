@@ -441,23 +441,23 @@ void Texture2D::set_compressed_data(int array_index, int mip_level, size_t size,
 
 void Texture2D::data(int mip_level, int array_index, void* data)
 {
-	GL_CHECK_ERROR(glActiveTexture(GL_TEXTURE0));
-	GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
-	GL_CHECK_ERROR(glGetTexImage(m_target, mip_level, m_format, m_type, data));
-	GL_CHECK_ERROR(glBindTexture(m_target, 0));
+    GL_CHECK_ERROR(glActiveTexture(GL_TEXTURE0));
+    GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
+    GL_CHECK_ERROR(glGetTexImage(m_target, mip_level, m_format, m_type, data));
+    GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void Texture2D::extents(int mip_level, int& width, int& height)
 {
-	GL_CHECK_ERROR(glActiveTexture(GL_TEXTURE0));
-	GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
+    GL_CHECK_ERROR(glActiveTexture(GL_TEXTURE0));
+    GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
 
-	GL_CHECK_ERROR(glGetTexLevelParameteriv(m_target, mip_level, GL_TEXTURE_WIDTH, &width));
-	GL_CHECK_ERROR(glGetTexLevelParameteriv(m_target, mip_level, GL_TEXTURE_HEIGHT, &height));
+    GL_CHECK_ERROR(glGetTexLevelParameteriv(m_target, mip_level, GL_TEXTURE_WIDTH, &width));
+    GL_CHECK_ERROR(glGetTexLevelParameteriv(m_target, mip_level, GL_TEXTURE_HEIGHT, &height));
 
-	GL_CHECK_ERROR(glBindTexture(m_target, 0));
+    GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -684,24 +684,24 @@ void Texture3D::set_data(int mip_level, void* data)
 
 void Texture3D::data(int mip_level, void* data)
 {
-	GL_CHECK_ERROR(glActiveTexture(GL_TEXTURE0));
-	GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
-	GL_CHECK_ERROR(glGetTexImage(m_target, mip_level, m_format, m_type, data));
-	GL_CHECK_ERROR(glBindTexture(m_target, 0));
+    GL_CHECK_ERROR(glActiveTexture(GL_TEXTURE0));
+    GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
+    GL_CHECK_ERROR(glGetTexImage(m_target, mip_level, m_format, m_type, data));
+    GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void Texture3D::extents(int mip_level, int& width, int& height, int& depth)
 {
-	GL_CHECK_ERROR(glActiveTexture(GL_TEXTURE0));
-	GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
+    GL_CHECK_ERROR(glActiveTexture(GL_TEXTURE0));
+    GL_CHECK_ERROR(glBindTexture(m_target, m_gl_tex));
 
-	GL_CHECK_ERROR(glGetTexLevelParameteriv(m_target, mip_level, GL_TEXTURE_WIDTH, &width));
-	GL_CHECK_ERROR(glGetTexLevelParameteriv(m_target, mip_level, GL_TEXTURE_HEIGHT, &height));
-	GL_CHECK_ERROR(glGetTexLevelParameteriv(m_target, mip_level, GL_TEXTURE_DEPTH, &depth));
+    GL_CHECK_ERROR(glGetTexLevelParameteriv(m_target, mip_level, GL_TEXTURE_WIDTH, &width));
+    GL_CHECK_ERROR(glGetTexLevelParameteriv(m_target, mip_level, GL_TEXTURE_HEIGHT, &height));
+    GL_CHECK_ERROR(glGetTexLevelParameteriv(m_target, mip_level, GL_TEXTURE_DEPTH, &depth));
 
-	GL_CHECK_ERROR(glBindTexture(m_target, 0));
+    GL_CHECK_ERROR(glBindTexture(m_target, 0));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -1488,7 +1488,7 @@ bool Program::set_uniform(std::string name, int count, glm::mat4* value)
 
 GLint Program::id()
 {
-	return m_gl_program;
+    return m_gl_program;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
