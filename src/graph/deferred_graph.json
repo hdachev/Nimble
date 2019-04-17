@@ -104,12 +104,25 @@
                     "slot_name" : "SSAO",
                     "prev_node_name" : "SSAONode",
                     "prev_output_name" : "SSAO"
-                },
+                }
+            ]
+        },
+        {
+            "name" : "ReflectionNode",
+            "defines" : [],
+            "inputs" : 
+            [
                 {
                     "type" : "RENDER_TARGET",
                     "slot_name" : "SSR",
                     "prev_node_name" : "ScreenSpaceReflectionNode",
                     "prev_output_name" : "SSR"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "DeferredNode",
+                    "prev_output_name" : "Color"
                 }
             ]
         },
@@ -121,8 +134,8 @@
                 {
                     "type" : "RENDER_TARGET",
                     "slot_name" : "Color",
-                    "prev_node_name" : "DeferredNode",
-                    "prev_output_name" : "Color"
+                    "prev_node_name" : "ReflectionNode",
+                    "prev_output_name" : "Reflection"
                 },
                 {
                     "type" : "RENDER_TARGET",

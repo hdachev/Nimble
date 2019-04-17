@@ -33,7 +33,6 @@ void DeferredNode::declare_connections()
     register_input_render_target("G-Buffer4");
     register_input_render_target("SSAO");
     register_input_render_target("Depth");
-    register_input_render_target("SSR");
 
     // Since we're rendering to the render targets provided as input, we'll simply forward the input
     // render targets as outputs.
