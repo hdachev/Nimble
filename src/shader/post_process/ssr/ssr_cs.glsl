@@ -65,7 +65,7 @@ vec3 ray_march(in vec3 dir, in vec3 pos)
 
 	for (int ray_step_idx = 0; ray_step_idx < MAX_RAY_MARCH_SAMPLES; ray_step_idx++)
 	{
-		vec3 ray_sample = (ray_step_idx * RAY_STEP_SIZE) * dir + pos;
+		vec3 ray_sample = (float(ray_step_idx) * RAY_STEP_SIZE) * dir + pos;
 		float z_val = textureLod(s_HiZDepth, ray_sample.xy, 0).x;
 
 		if (ray_sample.z > z_val)
@@ -74,7 +74,7 @@ vec3 ray_march(in vec3 dir, in vec3 pos)
 		prev_ray_sample = ray_sample;
 	}
 
-	return vec3(1.0, 0.0, 0.0);
+	return vec3(0.0, 0.0, 0.0);
 }
 
 // ------------------------------------------------------------------
@@ -84,7 +84,7 @@ vec3 ray_march(in vec3 dir, in vec3 pos)
 void main()
 {
 	ivec2 size = textureSize(s_HiZDepth, 0);
-	vec2 tex_coord = vec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y) / vec2(size);
+	vec2 tex_coord = vec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y) / vec2(size.x - 1, size.y - 1);
 
 	// Fetch depth from hardware depth buffer
 	float depth = textureLod(s_HiZDepth, tex_coord, 0).x;

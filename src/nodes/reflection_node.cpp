@@ -28,7 +28,6 @@ void ReflectionNode::declare_connections()
 {
     register_input_render_target("Color");
     register_input_render_target("SSR");
-    register_input_render_target("SSR");
 
     m_reflection_rt = register_scaled_output_render_target("Reflection", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 }
