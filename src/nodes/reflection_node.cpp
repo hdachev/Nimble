@@ -36,6 +36,8 @@ void ReflectionNode::declare_connections()
 
 bool ReflectionNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
+    register_bool_parameter("Screen Space Reflections", m_ssr);
+
     m_color_rt = find_input_render_target("Color");
     m_ssr_rt   = find_input_render_target("SSR");
 
@@ -74,6 +76,8 @@ void ReflectionNode::execute(double delta, Renderer* renderer, Scene* scene, Vie
 
     if (m_reflection_program->set_uniform("s_Color", 1) && m_color_rt)
         m_color_rt->texture->bind(1);
+
+	m_reflection_program->set_uniform("u_SSR", (float)m_ssr);
 
     render_fullscreen_triangle(renderer, view);
 }

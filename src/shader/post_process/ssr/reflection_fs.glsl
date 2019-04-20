@@ -17,6 +17,8 @@ in vec2 FS_IN_TexCoord;
 uniform sampler2D s_SSR;
 uniform sampler2D s_Color;
 
+uniform float u_SSR;
+
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -28,7 +30,7 @@ void main()
 
 	vec3 reflection = texture(s_Color, ssr.xy).rgb;
 
-	FS_OUT_FragColor = mix(color, reflection, ssr.z);
+	FS_OUT_FragColor = mix(color, reflection, ssr.z * u_SSR);
 }
 
 // ------------------------------------------------------------------

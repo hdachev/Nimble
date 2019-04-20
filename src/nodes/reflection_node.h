@@ -17,6 +17,8 @@ public:
     std::string name() override;
 
 private:
+    bool m_ssr = true;
+
     // Inputs
     std::shared_ptr<RenderTarget> m_color_rt;
     std::shared_ptr<RenderTarget> m_ssr_rt;
