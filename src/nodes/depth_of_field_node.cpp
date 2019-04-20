@@ -215,7 +215,7 @@ void DepthOfFieldNode::downsample(double delta, Renderer* renderer, Scene* scene
         m_coc_rt->texture->bind(1);
 
     int32_t tex_unit = 0;
-    render_fullscreen_triangle(renderer, view, m_coc_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
+    render_fullscreen_triangle(renderer, view, m_downsample_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
 
     glPopDebugGroup();
 }
@@ -237,14 +237,14 @@ void DepthOfFieldNode::near_coc_max(double delta, Renderer* renderer, Scene* sce
 
     m_near_coc_max_x_program->use();
 
-    glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width() * 0.5f), 1.0f / float(m_graph->window_height() * 0.5f));
+    glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width() / 2), 1.0f / float(m_graph->window_height() / 2));
     m_near_coc_max_x_program->set_uniform("u_PixelSize", pixel_size);
 
     if (m_near_coc_max_x_program->set_uniform("s_Texture", 0))
         m_coc4_rt->texture->bind(0);
 
     int32_t tex_unit = 0;
-    render_fullscreen_triangle(renderer, view, m_coc_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
+    render_fullscreen_triangle(renderer, view, m_near_coc_max_x_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
 
     // Vertical
     renderer->bind_render_targets(1, &m_near_coc_max4_rtv, nullptr);
@@ -260,7 +260,7 @@ void DepthOfFieldNode::near_coc_max(double delta, Renderer* renderer, Scene* sce
     if (m_near_coc_max_program->set_uniform("s_Texture", 0))
         m_near_coc_max_x4_rt->texture->bind(0);
 
-    render_fullscreen_triangle(renderer, view, m_coc_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
+    render_fullscreen_triangle(renderer, view, m_near_coc_max_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
 
     glPopDebugGroup();
 }
@@ -282,14 +282,14 @@ void DepthOfFieldNode::near_coc_blur(double delta, Renderer* renderer, Scene* sc
 
     m_near_coc_blur_x_program->use();
 
-    glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width() * 0.5f), 1.0f / float(m_graph->window_height() * 0.5f));
+    glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width() / 2), 1.0f / float(m_graph->window_height() / 2));
     m_near_coc_blur_x_program->set_uniform("u_PixelSize", pixel_size);
 
     if (m_near_coc_blur_x_program->set_uniform("s_Texture", 0))
         m_near_coc_max4_rt->texture->bind(0);
 
     int32_t tex_unit = 0;
-    render_fullscreen_triangle(renderer, view, m_coc_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
+    render_fullscreen_triangle(renderer, view, m_near_coc_blur_x_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
 
     // Vertical
     renderer->bind_render_targets(1, &m_near_coc_blur4_rtv, nullptr);
@@ -305,7 +305,7 @@ void DepthOfFieldNode::near_coc_blur(double delta, Renderer* renderer, Scene* sc
     if (m_near_coc_blur_program->set_uniform("s_Texture", 0))
         m_near_coc_blur_x4_rt->texture->bind(0);
 
-    render_fullscreen_triangle(renderer, view, m_coc_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
+    render_fullscreen_triangle(renderer, view, m_near_coc_blur_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
 
     glPopDebugGroup();
 }
@@ -318,6 +318,34 @@ void DepthOfFieldNode::dof_computation(double delta, Renderer* renderer, Scene* 
 
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "DoF Computation");
 
+    RenderTargetView rtvs[] = { m_near_dof4_rtv, m_far_dof4_rtv };
+    renderer->bind_render_targets(2, rtvs, nullptr);
+
+    glViewport(0, 0, m_graph->window_width() * 0.5f, m_graph->window_height() * 0.5f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    m_computation_program->use();
+
+    glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width() / 2), 1.0f / float(m_graph->window_height() / 2));
+    m_computation_program->set_uniform("u_PixelSize", pixel_size);
+    m_computation_program->set_uniform("u_KernelSize", m_kernel_size);
+
+    if (m_computation_program->set_uniform("s_CoC4", 0))
+        m_coc4_rt->texture->bind(0);
+
+    if (m_computation_program->set_uniform("s_NearBlurCoC4", 1))
+        m_near_coc_blur4_rt->texture->bind(1);
+
+    if (m_computation_program->set_uniform("s_Color4", 2))
+        m_color4_rt->texture->bind(2);
+
+    if (m_computation_program->set_uniform("s_ColorFarCoC4", 3))
+        m_mul_coc_far4_rt->texture->bind(3);
+
+    int32_t tex_unit = 0;
+    render_fullscreen_triangle(renderer, view, m_computation_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
+
     glPopDebugGroup();
 }
 
@@ -329,6 +357,33 @@ void DepthOfFieldNode::fill(double delta, Renderer* renderer, Scene* scene, View
 
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Fill");
 
+    RenderTargetView rtvs[] = { m_near_fill_dof4_rtv, m_far_fill_dof4_rtv };
+    renderer->bind_render_targets(2, rtvs, nullptr);
+
+    glViewport(0, 0, m_graph->window_width() * 0.5f, m_graph->window_height() * 0.5f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    m_fill_program->use();
+
+    glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width() / 2), 1.0f / float(m_graph->window_height() / 2));
+    m_fill_program->set_uniform("u_PixelSize", pixel_size);
+
+    if (m_fill_program->set_uniform("s_CoC4", 0))
+        m_coc4_rt->texture->bind(0);
+
+    if (m_fill_program->set_uniform("s_NearBlurCoC4", 1))
+        m_near_coc_blur4_rt->texture->bind(1);
+
+    if (m_fill_program->set_uniform("s_NearDoF4", 2))
+        m_near_dof4_rt->texture->bind(2);
+
+    if (m_fill_program->set_uniform("s_FarDoF4", 3))
+        m_far_dof4_rt->texture->bind(3);
+
+    int32_t tex_unit = 0;
+    render_fullscreen_triangle(renderer, view, m_fill_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
+
     glPopDebugGroup();
 }
 
@@ -339,6 +394,38 @@ void DepthOfFieldNode::composite(double delta, Renderer* renderer, Scene* scene,
     NIMBLE_SCOPED_SAMPLE("Composite");
 
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Composite");
+
+    renderer->bind_render_targets(1, &m_composite_rtv, nullptr);
+
+    glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    m_composite_program->use();
+
+    glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width() / 2), 1.0f / float(m_graph->window_height() / 2));
+    m_composite_program->set_uniform("u_PixelSize", pixel_size);
+
+    if (m_composite_program->set_uniform("s_Color", 0))
+        m_color_rt->texture->bind(0);
+
+    if (m_composite_program->set_uniform("s_CoC", 1))
+        m_coc_rt->texture->bind(1);
+
+    if (m_composite_program->set_uniform("s_CoC4", 2))
+        m_coc4_rt->texture->bind(2);
+
+    if (m_composite_program->set_uniform("s_CoCBlur4", 3))
+        m_near_coc_blur4_rt->texture->bind(3);
+
+    if (m_composite_program->set_uniform("s_NearDoF4", 4))
+        m_near_fill_dof4_rt->texture->bind(4);
+
+    if (m_composite_program->set_uniform("s_FarDoF4", 5))
+        m_far_fill_dof4_rt->texture->bind(5);
+
+    int32_t tex_unit = 0;
+    render_fullscreen_triangle(renderer, view, m_composite_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
 
     glPopDebugGroup();
 }
