@@ -37,13 +37,13 @@ bool TAANode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Enabled", m_enabled);
 
-    m_color_rt = find_input_render_target("Color");
+    m_color_rt    = find_input_render_target("Color");
     m_velocity_rt = find_input_render_target("Velocity");
 
     m_taa_rtv = RenderTargetView(0, 0, 0, m_taa_rt->texture);
 
     m_fullscreen_triangle_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
-    m_taa_fs                = res_mgr->load_shader("shader/post_process/taa/taa_fs.glsl", GL_FRAGMENT_SHADER);
+    m_taa_fs                 = res_mgr->load_shader("shader/post_process/taa/taa_fs.glsl", GL_FRAGMENT_SHADER);
 
     if (m_fullscreen_triangle_vs && m_taa_fs)
     {
@@ -73,7 +73,7 @@ void TAANode::execute(double delta, Renderer* renderer, Scene* scene, View* view
         if (m_taa_program->set_uniform("s_Color", 0) && m_color_rt)
             m_color_rt->texture->bind(0);
 
-		if (m_taa_program->set_uniform("s_Velocity", 1) && m_velocity_rt)
+        if (m_taa_program->set_uniform("s_Velocity", 1) && m_velocity_rt)
             m_velocity_rt->texture->bind(1);
 
         render_fullscreen_triangle(renderer, view);

@@ -22,13 +22,13 @@ private:
     // Inputs
     std::shared_ptr<RenderTarget> m_color_rt;
     std::shared_ptr<RenderTarget> m_ssr_rt;
- 
+
     // Outputs
     std::shared_ptr<RenderTarget> m_reflection_rt;
 
     RenderTargetView m_reflection_rtv;
 
-	std::shared_ptr<Shader>  m_fullscreen_triangle_vs;
+    std::shared_ptr<Shader>  m_fullscreen_triangle_vs;
     std::shared_ptr<Shader>  m_reflection_fs;
     std::shared_ptr<Program> m_reflection_program;
 };

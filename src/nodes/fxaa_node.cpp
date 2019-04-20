@@ -41,7 +41,7 @@ bool FXAANode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     m_fxaa_rtv = RenderTargetView(0, 0, 0, m_fxaa_rt->texture);
 
     m_fullscreen_triangle_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
-    m_fxaa_fs          = res_mgr->load_shader("shader/post_process/fxaa/fxaa_fs.glsl", GL_FRAGMENT_SHADER);
+    m_fxaa_fs                = res_mgr->load_shader("shader/post_process/fxaa/fxaa_fs.glsl", GL_FRAGMENT_SHADER);
 
     if (m_fullscreen_triangle_vs && m_fxaa_fs)
     {

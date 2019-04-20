@@ -26,7 +26,7 @@ private:
     void composite(double delta, Renderer* renderer, Scene* scene, View* view);
 
 private:
-    bool m_enabled = true;
+    bool  m_enabled     = true;
     float m_near_begin  = 0.0f;
     float m_near_end    = 0.0f;
     float m_far_begin   = 200.0f;
@@ -40,7 +40,7 @@ private:
     // CoC Pass
     std::shared_ptr<RenderTarget> m_coc_rt;
 
-    RenderTargetView              m_coc_rtv;
+    RenderTargetView m_coc_rtv;
 
     std::shared_ptr<Shader>  m_coc_fs;
     std::shared_ptr<Program> m_coc_program;
@@ -50,9 +50,9 @@ private:
     std::shared_ptr<RenderTarget> m_mul_coc_far4_rt;
     std::shared_ptr<RenderTarget> m_coc4_rt;
 
-    RenderTargetView              m_color4_rtv;
-    RenderTargetView			  m_mul_coc_far4_rtv;
-    RenderTargetView              m_coc4_rtv;
+    RenderTargetView m_color4_rtv;
+    RenderTargetView m_mul_coc_far4_rtv;
+    RenderTargetView m_coc4_rtv;
 
     std::shared_ptr<Shader>  m_downsample_fs;
     std::shared_ptr<Program> m_downsample_program;
@@ -60,7 +60,7 @@ private:
     // Near CoC Max X Pass
     std::shared_ptr<RenderTarget> m_near_coc_max_x4_rt;
 
-    RenderTargetView              m_near_coc_max_x4_rtv;
+    RenderTargetView m_near_coc_max_x4_rtv;
 
     std::shared_ptr<Shader>  m_near_coc_max_x4_fs;
     std::shared_ptr<Program> m_near_coc_max_x_program;

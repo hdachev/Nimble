@@ -28,12 +28,12 @@ void DepthOfFieldNode::declare_connections()
     register_input_render_target("Color");
     register_input_render_target("Depth");
 
-    m_coc_rt = register_scaled_output_render_target("CoC", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RG8, GL_RG, GL_UNSIGNED_BYTE);
-    m_color4_rt = register_scaled_output_render_target("Color4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB32F, GL_RGB, GL_FLOAT);
-    m_mul_coc_far4_rt = register_scaled_output_render_target("MulCoCFar4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB32F, GL_RGB, GL_FLOAT);
-    m_coc4_rt         = register_scaled_output_render_target("CoC4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RG8, GL_RG, GL_UNSIGNED_BYTE);
-    m_near_coc_max_x4_rt = register_scaled_output_render_target("NearCoCMaxX4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-    m_near_coc_max4_rt   = register_scaled_output_render_target("NearCoCMax4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+    m_coc_rt              = register_scaled_output_render_target("CoC", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RG8, GL_RG, GL_UNSIGNED_BYTE);
+    m_color4_rt           = register_scaled_output_render_target("Color4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB32F, GL_RGB, GL_FLOAT);
+    m_mul_coc_far4_rt     = register_scaled_output_render_target("MulCoCFar4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB32F, GL_RGB, GL_FLOAT);
+    m_coc4_rt             = register_scaled_output_render_target("CoC4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RG8, GL_RG, GL_UNSIGNED_BYTE);
+    m_near_coc_max_x4_rt  = register_scaled_output_render_target("NearCoCMaxX4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+    m_near_coc_max4_rt    = register_scaled_output_render_target("NearCoCMax4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
     m_near_coc_blur_x4_rt = register_scaled_output_render_target("NearCoCBlurX4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
     m_near_coc_blur4_rt   = register_scaled_output_render_target("NearCoCBlur4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
     m_near_dof4_rt        = register_scaled_output_render_target("NearDoF4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB32F, GL_RGB, GL_FLOAT);
@@ -52,12 +52,12 @@ bool DepthOfFieldNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     m_color_rt = find_input_render_target("Color");
     m_depth_rt = find_input_render_target("Depth");
 
-    m_coc_rtv = RenderTargetView(0, 0, 0, m_coc_rt->texture);
-    m_color4_rtv = RenderTargetView(0, 0, 0, m_color4_rt->texture);
-    m_mul_coc_far4_rtv = RenderTargetView(0, 0, 0, m_mul_coc_far4_rt->texture);
-    m_coc4_rtv         = RenderTargetView(0, 0, 0, m_coc4_rt->texture);
-    m_near_coc_max_x4_rtv = RenderTargetView(0, 0, 0, m_near_coc_max_x4_rt->texture);
-    m_near_coc_max4_rtv   = RenderTargetView(0, 0, 0, m_near_coc_max4_rt->texture);
+    m_coc_rtv              = RenderTargetView(0, 0, 0, m_coc_rt->texture);
+    m_color4_rtv           = RenderTargetView(0, 0, 0, m_color4_rt->texture);
+    m_mul_coc_far4_rtv     = RenderTargetView(0, 0, 0, m_mul_coc_far4_rt->texture);
+    m_coc4_rtv             = RenderTargetView(0, 0, 0, m_coc4_rt->texture);
+    m_near_coc_max_x4_rtv  = RenderTargetView(0, 0, 0, m_near_coc_max_x4_rt->texture);
+    m_near_coc_max4_rtv    = RenderTargetView(0, 0, 0, m_near_coc_max4_rt->texture);
     m_near_coc_blur_x4_rtv = RenderTargetView(0, 0, 0, m_near_coc_blur_x4_rt->texture);
     m_near_coc_blur4_rtv   = RenderTargetView(0, 0, 0, m_near_coc_blur4_rt->texture);
     m_near_dof4_rtv        = RenderTargetView(0, 0, 0, m_near_dof4_rt->texture);
@@ -165,27 +165,27 @@ void DepthOfFieldNode::coc_generation(double delta, Renderer* renderer, Scene* s
 {
     NIMBLE_SCOPED_SAMPLE("CoC Generation");
 
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "CoC Generation");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "CoC Generation");
 
-	renderer->bind_render_targets(1, &m_coc_rtv, nullptr);
+    renderer->bind_render_targets(1, &m_coc_rtv, nullptr);
 
-	glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
+    glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-	m_coc_program->use();
+    m_coc_program->use();
 
-	glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width()), 1.0f / float(m_graph->window_height()));
+    glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width()), 1.0f / float(m_graph->window_height()));
     m_coc_program->set_uniform("u_PixelSize", pixel_size);
     m_coc_program->set_uniform("u_NearBegin", m_near_begin);
     m_coc_program->set_uniform("u_NearEnd", m_near_end);
     m_coc_program->set_uniform("u_FarBegin", m_far_begin);
     m_coc_program->set_uniform("u_FarEnd", m_far_end);
 
-	int32_t tex_unit = 0;
-	render_fullscreen_triangle(renderer, view, m_coc_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
-    
-	glPopDebugGroup();
+    int32_t tex_unit = 0;
+    render_fullscreen_triangle(renderer, view, m_coc_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
+
+    glPopDebugGroup();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -194,9 +194,9 @@ void DepthOfFieldNode::downsample(double delta, Renderer* renderer, Scene* scene
 {
     NIMBLE_SCOPED_SAMPLE("Downsample");
 
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Downsample");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Downsample");
 
-	RenderTargetView rtvs[] = { m_color4_rtv, m_mul_coc_far4_rtv, m_coc4_rtv };
+    RenderTargetView rtvs[] = { m_color4_rtv, m_mul_coc_far4_rtv, m_coc4_rtv };
     renderer->bind_render_targets(3, rtvs, nullptr);
 
     glViewport(0, 0, m_graph->window_width() * 0.5f, m_graph->window_height() * 0.5f);
@@ -205,16 +205,16 @@ void DepthOfFieldNode::downsample(double delta, Renderer* renderer, Scene* scene
 
     m_downsample_program->use();
 
-	glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width()), 1.0f / float(m_graph->window_height()));
+    glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width()), 1.0f / float(m_graph->window_height()));
     m_downsample_program->set_uniform("u_PixelSize", pixel_size);
 
     if (m_downsample_program->set_uniform("s_Color", 0))
-		m_color_rt->texture->bind(0);
+        m_color_rt->texture->bind(0);
 
-	if (m_downsample_program->set_uniform("s_CoC", 1))
+    if (m_downsample_program->set_uniform("s_CoC", 1))
         m_coc_rt->texture->bind(1);
 
-	int32_t tex_unit = 0;
+    int32_t tex_unit = 0;
     render_fullscreen_triangle(renderer, view, m_coc_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
 
     glPopDebugGroup();
@@ -226,10 +226,10 @@ void DepthOfFieldNode::near_coc_max(double delta, Renderer* renderer, Scene* sce
 {
     NIMBLE_SCOPED_SAMPLE("Near CoC Max");
 
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Near CoC Max");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Near CoC Max");
 
-	// Horizontal
-	renderer->bind_render_targets(1, &m_near_coc_max_x4_rtv, nullptr);
+    // Horizontal
+    renderer->bind_render_targets(1, &m_near_coc_max_x4_rtv, nullptr);
 
     glViewport(0, 0, m_graph->window_width() * 0.5f, m_graph->window_height() * 0.5f);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -271,41 +271,41 @@ void DepthOfFieldNode::near_coc_blur(double delta, Renderer* renderer, Scene* sc
 {
     NIMBLE_SCOPED_SAMPLE("Near CoC Blur");
 
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Near CoC Blur");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Near CoC Blur");
 
-	// Horizontal
-	renderer->bind_render_targets(1, &m_near_coc_blur_x4_rtv, nullptr);
-	
-	glViewport(0, 0, m_graph->window_width() * 0.5f, m_graph->window_height() * 0.5f);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	m_near_coc_blur_x_program->use();
-	
-	glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width() * 0.5f), 1.0f / float(m_graph->window_height() * 0.5f));
+    // Horizontal
+    renderer->bind_render_targets(1, &m_near_coc_blur_x4_rtv, nullptr);
+
+    glViewport(0, 0, m_graph->window_width() * 0.5f, m_graph->window_height() * 0.5f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    m_near_coc_blur_x_program->use();
+
+    glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width() * 0.5f), 1.0f / float(m_graph->window_height() * 0.5f));
     m_near_coc_blur_x_program->set_uniform("u_PixelSize", pixel_size);
-	
-	if (m_near_coc_blur_x_program->set_uniform("s_Texture", 0))
-		m_near_coc_max4_rt->texture->bind(0);
-	
-	int32_t tex_unit = 0;
-	render_fullscreen_triangle(renderer, view, m_coc_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
-	
-	// Vertical
-	renderer->bind_render_targets(1, &m_near_coc_blur4_rtv, nullptr);
-	
-	glViewport(0, 0, m_graph->window_width() * 0.5f, m_graph->window_height() * 0.5f);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	m_near_coc_blur_program->use();
-	
-	m_near_coc_blur_program->set_uniform("u_PixelSize", pixel_size);
-	
-	if (m_near_coc_blur_program->set_uniform("s_Texture", 0))
-		m_near_coc_blur_x4_rt->texture->bind(0);
-	
-	render_fullscreen_triangle(renderer, view, m_coc_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
+
+    if (m_near_coc_blur_x_program->set_uniform("s_Texture", 0))
+        m_near_coc_max4_rt->texture->bind(0);
+
+    int32_t tex_unit = 0;
+    render_fullscreen_triangle(renderer, view, m_coc_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
+
+    // Vertical
+    renderer->bind_render_targets(1, &m_near_coc_blur4_rtv, nullptr);
+
+    glViewport(0, 0, m_graph->window_width() * 0.5f, m_graph->window_height() * 0.5f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    m_near_coc_blur_program->use();
+
+    m_near_coc_blur_program->set_uniform("u_PixelSize", pixel_size);
+
+    if (m_near_coc_blur_program->set_uniform("s_Texture", 0))
+        m_near_coc_blur_x4_rt->texture->bind(0);
+
+    render_fullscreen_triangle(renderer, view, m_coc_program.get(), tex_unit, NODE_USAGE_PER_VIEW_UBO);
 
     glPopDebugGroup();
 }
@@ -316,7 +316,7 @@ void DepthOfFieldNode::dof_computation(double delta, Renderer* renderer, Scene* 
 {
     NIMBLE_SCOPED_SAMPLE("DoF Computation");
 
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "DoF Computation");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "DoF Computation");
 
     glPopDebugGroup();
 }
@@ -327,7 +327,7 @@ void DepthOfFieldNode::fill(double delta, Renderer* renderer, Scene* scene, View
 {
     NIMBLE_SCOPED_SAMPLE("Fill");
 
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Fill");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Fill");
 
     glPopDebugGroup();
 }
@@ -338,7 +338,7 @@ void DepthOfFieldNode::composite(double delta, Renderer* renderer, Scene* scene,
 {
     NIMBLE_SCOPED_SAMPLE("Composite");
 
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Composite");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Composite");
 
     glPopDebugGroup();
 }

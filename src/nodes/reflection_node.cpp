@@ -13,7 +13,6 @@ DEFINE_RENDER_NODE_FACTORY(ReflectionNode)
 ReflectionNode::ReflectionNode(RenderGraph* graph) :
     RenderNode(graph)
 {
-    
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -43,7 +42,7 @@ bool ReflectionNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
     m_reflection_rtv = RenderTargetView(0, 0, 0, m_reflection_rt->texture);
 
-	m_fullscreen_triangle_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
+    m_fullscreen_triangle_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
     m_reflection_fs          = res_mgr->load_shader("shader/post_process/ssr/reflection_fs.glsl", GL_FRAGMENT_SHADER);
 
     if (m_fullscreen_triangle_vs && m_reflection_fs)
@@ -77,7 +76,7 @@ void ReflectionNode::execute(double delta, Renderer* renderer, Scene* scene, Vie
     if (m_reflection_program->set_uniform("s_Color", 1) && m_color_rt)
         m_color_rt->texture->bind(1);
 
-	m_reflection_program->set_uniform("u_SSR", (float)m_ssr);
+    m_reflection_program->set_uniform("u_SSR", (float)m_ssr);
 
     render_fullscreen_triangle(renderer, view);
 }

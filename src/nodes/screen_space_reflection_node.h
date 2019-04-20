@@ -17,14 +17,14 @@ public:
     std::string name() override;
 
 private:
-    bool  m_enabled;
+    bool m_enabled;
 
-	// Inputs
+    // Inputs
     std::shared_ptr<RenderTarget> m_hiz_depth_rt;
     std::shared_ptr<RenderTarget> m_metallic_rt;
     std::shared_ptr<RenderTarget> m_normal_rt;
 
-	// Outputs
+    // Outputs
     std::shared_ptr<RenderTarget> m_ssr_rt;
 
     RenderTargetView m_ssr_rtv;

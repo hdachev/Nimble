@@ -15,7 +15,7 @@ DEFINE_RENDER_NODE_FACTORY(ScreenSpaceReflectionNode)
 ScreenSpaceReflectionNode::ScreenSpaceReflectionNode(RenderGraph* graph) :
     RenderNode(graph)
 {
-    m_enabled   = true;
+    m_enabled = true;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ bool ScreenSpaceReflectionNode::initialize(Renderer* renderer, ResourceManager* 
 {
     register_bool_parameter("Enabled", m_enabled);
 
-	m_hiz_depth_rt = find_input_render_target("HiZDepth");
+    m_hiz_depth_rt = find_input_render_target("HiZDepth");
     m_metallic_rt  = find_input_render_target("Metallic");
     m_normal_rt    = find_input_render_target("Normal");
 
@@ -68,20 +68,20 @@ void ScreenSpaceReflectionNode::execute(double delta, Renderer* renderer, Scene*
 
         m_ssr_program->use();
 
-		m_ssr_program->set_uniform("u_HiZLevels", (int32_t)m_hiz_depth_rt->texture->mip_levels());
+        m_ssr_program->set_uniform("u_HiZLevels", (int32_t)m_hiz_depth_rt->texture->mip_levels());
 
-		if (m_ssr_program->set_uniform("s_HiZDepth", 1))
+        if (m_ssr_program->set_uniform("s_HiZDepth", 1))
             m_hiz_depth_rt->texture->bind(1);
 
-		if (m_ssr_program->set_uniform("s_Metallic", 2))
-			m_metallic_rt->texture->bind(2);
+        if (m_ssr_program->set_uniform("s_Metallic", 2))
+            m_metallic_rt->texture->bind(2);
 
-		if (m_ssr_program->set_uniform("s_Normal", 3))
-			m_normal_rt->texture->bind(3);
+        if (m_ssr_program->set_uniform("s_Normal", 3))
+            m_normal_rt->texture->bind(3);
 
-		m_ssr_rt->texture->bind_image(0, 0, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        m_ssr_rt->texture->bind_image(0, 0, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
-		glDispatchCompute(m_graph->window_width() / NUM_SSR_THREADS, m_graph->window_height() / NUM_SSR_THREADS, 1);
+        glDispatchCompute(m_graph->window_width() / NUM_SSR_THREADS, m_graph->window_height() / NUM_SSR_THREADS, 1);
     }
 }
 
