@@ -619,6 +619,8 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
 
                     nodes.push_back(new_node);
                 }
+				else
+					NIMBLE_LOG_ERROR("Failed to find factory for node type: " + node_name);
             }
         }
 

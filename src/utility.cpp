@@ -247,7 +247,13 @@ bool preprocess_shader(const std::string& path, const std::string& src, std::str
     {
         if (line.find("#include") != std::string::npos)
         {
-            size_t      start        = line.find_first_of("<") + 1;
+            size_t start = line.find_first_of("<");
+			
+			if (start == std::string::npos)
+                continue;
+
+            start += 1;
+
             size_t      end          = line.find_last_of(">");
             std::string include_path = line.substr(start, end - start);
 

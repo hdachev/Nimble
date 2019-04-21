@@ -1326,8 +1326,11 @@ int32_t Renderer::find_render_target_last_usage(std::shared_ptr<RenderTarget> rt
             {
                 std::shared_ptr<RenderTarget> input_rt = node->input_render_target(rt_idx);
 
-                if (rt->id == input_rt->id)
-                    last_node_id = node_gid;
+				if (input_rt)
+				{
+					if (rt->id == input_rt->id)
+						last_node_id = node_gid;
+				}
             }
 
             node_gid++;

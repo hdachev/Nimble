@@ -35,13 +35,15 @@ void FXAANode::declare_connections()
 bool FXAANode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Enabled", m_enabled);
+    register_float_parameter("Quality Edge Threshold", m_quality_edge_threshold);
+    register_float_parameter("Quality Edge Threshold Min", m_quality_edge_threshold_min);
 
     m_color_rt = find_input_render_target("Color");
 
     m_fxaa_rtv = RenderTargetView(0, 0, 0, m_fxaa_rt->texture);
 
     m_fullscreen_triangle_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
-    m_fxaa_fs                = res_mgr->load_shader("shader/post_process/fxaa/fxaa_fs.glsl", GL_FRAGMENT_SHADER);
+    m_fxaa_fs                = res_mgr->load_shader("shader/post_process/fxaa/fxaa_fs.glsl", GL_FRAGMENT_SHADER, { "FXAA_PC 1", "FXAA_GLSL_130 1", "FXAA_QUALITY__PRESET 39", "FXAA_GREEN_AS_LUMA 1" });
 
     if (m_fullscreen_triangle_vs && m_fxaa_fs)
     {
@@ -68,8 +70,12 @@ void FXAANode::execute(double delta, Renderer* renderer, Scene* scene, View* vie
         glClear(GL_COLOR_BUFFER_BIT);
         glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
 
-        if (m_fxaa_program->set_uniform("s_Color", 0) && m_color_rt)
+        if (m_fxaa_program->set_uniform("s_Texture", 0) && m_color_rt)
             m_color_rt->texture->bind(0);
+
+		m_fxaa_program->set_uniform("u_QualityEdgeThreshold", m_quality_edge_threshold);
+        m_fxaa_program->set_uniform("u_QualityEdgeThresholdMin", m_quality_edge_threshold_min);
+        m_fxaa_program->set_uniform("u_QualityRcpFrame", glm::vec2(1.0f / m_graph->window_width(), 1.0f / m_graph->window_height()));
 
         render_fullscreen_triangle(renderer, view);
     }

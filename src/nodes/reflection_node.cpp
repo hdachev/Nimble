@@ -58,8 +58,6 @@ bool ReflectionNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 void ReflectionNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
@@ -70,13 +68,18 @@ void ReflectionNode::execute(double delta, Renderer* renderer, Scene* scene, Vie
     glClear(GL_COLOR_BUFFER_BIT);
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
 
-    if (m_reflection_program->set_uniform("s_SSR", 0) && m_ssr_rt)
-        m_ssr_rt->texture->bind(0);
+	if (m_ssr_rt)
+	{
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		if (m_reflection_program->set_uniform("s_SSR", 0))
+			m_ssr_rt->texture->bind(0);
+	}
 
     if (m_reflection_program->set_uniform("s_Color", 1) && m_color_rt)
         m_color_rt->texture->bind(1);
 
-    m_reflection_program->set_uniform("u_SSR", (float)m_ssr);
+    m_reflection_program->set_uniform("u_SSR", m_ssr_rt ? (float)m_ssr : 0.0f);
 
     render_fullscreen_triangle(renderer, view);
 }

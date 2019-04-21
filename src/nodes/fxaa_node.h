@@ -18,6 +18,8 @@ public:
 
 private:
     bool m_enabled = true;
+    float m_quality_edge_threshold     = 0.166f;
+    float m_quality_edge_threshold_min = 0.0833f;
 
     // Inputs
     std::shared_ptr<RenderTarget> m_color_rt;
