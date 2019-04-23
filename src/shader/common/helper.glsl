@@ -161,7 +161,7 @@ vec2 motion_vector(vec4 prev_pos, vec4 current_pos)
 
     // Remap to [0, 1] range
     vec2 velocity = (current - prev);// * 0.5 + 0.5;
-    return velocity;//vec2(pow(velocity.x, 3.0), pow(velocity.y, 3.0));
+    return velocity;
 }
 
 // ------------------------------------------------------------------

@@ -1412,6 +1412,9 @@ void Renderer::bake_render_graphs()
             {
                 std::shared_ptr<RenderTarget> rt = node->output_render_target(rt_idx);
 
+				if (!rt)
+                    continue;
+
                 if (rt->forward_slot == "")
                 {
                     // Find last usage of output
