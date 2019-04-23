@@ -2,6 +2,8 @@
 // HELPER FUNCTIONS -------------------------------------------------
 // ------------------------------------------------------------------
 
+#define UNJITTER_TEX_COORDS(tc) (tc - current_prev_jitter.xy)
+
 // https://aras-p.info/texts/CompactNormalStorage.html
 // Method #4: Spheremap Transform
 
@@ -160,8 +162,11 @@ vec2 motion_vector(vec4 prev_pos, vec4 current_pos)
     prev -= current_prev_jitter.zw;
 
     // Remap to [0, 1] range
-    vec2 velocity = (current - prev);// * 0.5 + 0.5;
-    return velocity;
+    current = current * 0.5 + 0.5;
+    prev = prev * 0.5 + 0.5;
+
+    // Calculate velocity (prev -> current)
+    return (current - prev);
 }
 
 // ------------------------------------------------------------------

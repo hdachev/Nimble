@@ -1,0 +1,23 @@
+1. Temporary Render Targets
+
+A refactoring of the render target cache/aliasing system.
+Remove intermediate render targets are replace them with "Temporary Render Targets" ala Unity.
+You simply fill a TempRenderTargetDesc structure with the render target dimensions and format and the render target cache will return a render target
+that fits the given description from the cache. If there's no suitable RT in the cache, allocate a new one. Inputs/Outputs of RenderNodes will also be 
+"Temporary Render Targets" once they are outside of their lifetimes. RT's that have no lifetimes are "Pure Temporary".
+
+The render target cache will be made up of a HashMap which will be looked up using a hash of the TempRenderTargetDesc structure.
+Each element of this HashMap will be of type RenderTargetPool.
+
+struct RenderTargetPool
+{
+    std::vector<RenderTarget> input_output_rts;
+    std::vector<RenderTarget> pure_temp_rts;
+};
+
+When a temp RT is requested, the cache will first take the hash of the TempRenderTargetDesc structure and use that to lookup the relevant RenderTargetPool. If it doesn't exist, create it.
+Once obtained it'll take the first element of the pure_temp_rts array and swap-and-pop the element with the last element. If it is empty, check the RT's in the input_output_rts array one by one 
+and see if there is any RT that is outside of its' lifetime. If there is, swap-and-pop it with the last element. If unable to find an RT from here as well, create a new "Pure Temporary" render target
+and return it. Once a temp RT is used, you must return it to the cache, where it'll be added to the end of either the pure_temp_rts array or input_output_rts array.
+
+2. Viewport Manager
