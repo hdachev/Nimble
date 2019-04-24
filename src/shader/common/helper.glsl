@@ -4,6 +4,22 @@
 
 #define UNJITTER_TEX_COORDS(tc) (tc - current_prev_jitter.xy)
 
+// Z buffer to linear 0..1 depth
+float linear_01_depth(float z)
+{
+    return 1.0 / (z_buffer_params.x * z + z_buffer_params.y);
+}
+
+// ------------------------------------------------------------------
+
+// Z buffer to linear depth
+float linear_eye_depth(float z)
+{
+    return 1.0 / (z_buffer_params.z * z + z_buffer_params.w);
+}
+
+// ------------------------------------------------------------------
+
 // https://aras-p.info/texts/CompactNormalStorage.html
 // Method #4: Spheremap Transform
 

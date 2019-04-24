@@ -17,6 +17,7 @@ layout(std430, binding = 0) buffer u_PerView
 	vec4	 	  view_pos;
 	vec4	 	  view_dir;
 	vec4	 	  current_prev_jitter;
+	vec4		  z_buffer_params;
 	float 		  cascade_far_plane[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
 	float		  tan_half_fov;
 	float		  aspect_ratio;
