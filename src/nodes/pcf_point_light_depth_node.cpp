@@ -47,7 +47,8 @@ void PCFPointLightDepthNode::execute(double delta, Renderer* renderer, Scene* sc
 
     glEnable(GL_DEPTH_TEST);
 
-    glDisable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
 
     glClear(GL_DEPTH_BUFFER_BIT);
 

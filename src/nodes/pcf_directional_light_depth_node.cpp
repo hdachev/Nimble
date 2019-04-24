@@ -61,7 +61,8 @@ void PCFDirectionalLightDepthNode::execute(double delta, Renderer* renderer, Sce
 
     glEnable(GL_DEPTH_TEST);
 
-    glDisable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 
     glClear(GL_DEPTH_BUFFER_BIT);
 

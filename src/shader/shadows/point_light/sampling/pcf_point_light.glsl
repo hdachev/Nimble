@@ -12,7 +12,7 @@ float point_light_shadows(in FragmentProperties f, int shadow_map_idx, int light
     // now get current linear depth as the length between the fragment and light position
     float current_depth = length(frag_to_light);
     // now test for shadows
-    float bias = 0.05; 
+    float bias = shadow_map_bias[light_idx].z;
     float shadow = current_depth -  bias > closest_depth ? 1.0 : 0.0;
 
     return 1.0 - shadow;

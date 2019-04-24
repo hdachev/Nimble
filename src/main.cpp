@@ -334,6 +334,7 @@ private:
                     ImGui::Separator();
 
                     ImGui::Checkbox("Casts Shadows", &light.casts_shadow);
+                    ImGui::InputFloat("Shadow Map Bias", &light.shadow_map_bias);
                     ImGui::InputFloat("Intensity", &light.intensity);
                     ImGui::ColorPicker3("Color", &light.color.x);
                 }
@@ -347,6 +348,7 @@ private:
                     ImGui::Separator();
 
                     ImGui::Checkbox("Casts Shadows", &light.casts_shadow);
+                    ImGui::InputFloat("Shadow Map Bias", &light.shadow_map_bias);
                     ImGui::InputFloat("Intensity", &light.intensity);
                     ImGui::InputFloat("Range", &light.range);
                     ImGui::ColorPicker3("Color", &light.color.x);
@@ -363,6 +365,7 @@ private:
                     ImGui::Separator();
 
                     ImGui::Checkbox("Casts Shadows", &light.casts_shadow);
+                    ImGui::InputFloat("Shadow Map Bias", &light.shadow_map_bias);
                     ImGui::InputFloat("Intensity", &light.intensity);
                     ImGui::InputFloat("Range", &light.range);
                     ImGui::InputFloat("Inner Cone Angle", &light.inner_cone_angle);

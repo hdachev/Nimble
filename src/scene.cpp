@@ -185,7 +185,7 @@ void Scene::destroy_gi_probe(const GIProbe::ID& id)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-PointLight::ID Scene::create_point_light(const glm::vec3& position, const glm::vec3& color, const float& range, const float& intensity, const bool& casts_shadows)
+PointLight::ID Scene::create_point_light(const glm::vec3& position, const glm::vec3& color, const float& range, const float& intensity, const bool& casts_shadows, const float& shadow_map_bias)
 {
     PointLight::ID id = m_point_lights.add();
 
@@ -198,6 +198,7 @@ PointLight::ID Scene::create_point_light(const glm::vec3& position, const glm::v
     p.intensity          = intensity;
     p.enabled            = true;
     p.casts_shadow       = casts_shadows;
+    p.shadow_map_bias    = shadow_map_bias;
     p.transform.update();
 
     return id;
@@ -219,7 +220,7 @@ void Scene::destroy_point_light(const PointLight::ID& id)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-SpotLight::ID Scene::create_spot_light(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color, const float& inner_cone_angle, const float& outer_cone_angle, const float& range, const float& intensity, const bool& casts_shadows)
+SpotLight::ID Scene::create_spot_light(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color, const float& inner_cone_angle, const float& outer_cone_angle, const float& range, const float& intensity, const bool& casts_shadows, const float& shadow_map_bias)
 {
     SpotLight::ID id = m_spot_lights.add();
 
@@ -234,6 +235,7 @@ SpotLight::ID Scene::create_spot_light(const glm::vec3& position, const glm::vec
     p.outer_cone_angle   = outer_cone_angle;
     p.enabled            = true;
     p.casts_shadow       = casts_shadows;
+    p.shadow_map_bias    = shadow_map_bias;
     p.transform.set_orientation_from_euler_yxz(rotation);
     p.transform.update();
 

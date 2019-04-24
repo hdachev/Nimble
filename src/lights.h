@@ -9,6 +9,7 @@ struct Light
 {
     bool      enabled;
     bool      casts_shadow;
+    float     shadow_map_bias;
     glm::vec3 color;
     float     intensity;
     Transform transform;

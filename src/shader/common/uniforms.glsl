@@ -41,6 +41,7 @@ layout (std140) uniform u_PerEntity
 layout(std430, binding = 2) buffer u_PerScene
 {
 	mat4 spot_light_shadow_matrix[MAX_SHADOW_CASTING_SPOT_LIGHTS];
+	vec4 shadow_map_bias[MAX_POINT_LIGHTS];
     vec4 point_light_position_range[MAX_POINT_LIGHTS];
     vec4 point_light_color_intensity[MAX_POINT_LIGHTS];
     vec4 spot_light_position[MAX_SPOT_LIGHTS];

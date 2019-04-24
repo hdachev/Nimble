@@ -103,8 +103,8 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
     m_directional_light_shadow_maps->set_min_filter(GL_NEAREST);
     m_directional_light_shadow_maps->set_mag_filter(GL_NEAREST);
     m_directional_light_shadow_maps->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-    m_spot_light_shadow_maps->set_min_filter(GL_LINEAR);
-    m_point_light_shadow_maps->set_min_filter(GL_LINEAR);
+    m_spot_light_shadow_maps->set_min_filter(GL_NEAREST);
+    m_point_light_shadow_maps->set_min_filter(GL_NEAREST);
 
     // Create shadow map Render Target Views
     for (uint32_t i = 0; i < MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS; i++)
@@ -1560,6 +1560,7 @@ void Renderer::update_uniforms()
         {
             DirectionalLight& light = dir_lights[light_idx];
 
+			m_per_scene_uniforms.shadow_map_bias[light_idx].x                 = light.shadow_map_bias;
             m_per_scene_uniforms.directional_light_direction[light_idx]       = glm::vec4(light.transform.forward(), 0.0f);
             m_per_scene_uniforms.directional_light_color_intensity[light_idx] = glm::vec4(light.color, light.intensity);
             m_per_scene_uniforms.directional_light_casts_shadow[light_idx]    = light.casts_shadow ? 1 : 0;
@@ -1573,6 +1574,7 @@ void Renderer::update_uniforms()
         {
             SpotLight& light = spot_lights[light_idx];
 
+			m_per_scene_uniforms.shadow_map_bias[light_idx].y             = light.shadow_map_bias;
             m_per_scene_uniforms.spot_light_direction_range[light_idx]    = glm::vec4(light.transform.forward(), light.range);
             m_per_scene_uniforms.spot_light_color_intensity[light_idx]    = glm::vec4(light.color, light.intensity);
             m_per_scene_uniforms.spot_light_position[light_idx]           = glm::vec4(light.transform.position, 0.0f);
@@ -1588,6 +1590,7 @@ void Renderer::update_uniforms()
         {
             PointLight& light = point_lights[light_idx];
 
+			m_per_scene_uniforms.shadow_map_bias[light_idx].z           = light.shadow_map_bias;
             m_per_scene_uniforms.point_light_position_range[light_idx]  = glm::vec4(light.transform.position, light.range);
             m_per_scene_uniforms.point_light_color_intensity[light_idx] = glm::vec4(light.color, light.intensity);
             m_per_scene_uniforms.point_light_casts_shadow[light_idx]    = light.casts_shadow ? 1 : 0;

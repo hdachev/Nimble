@@ -60,7 +60,7 @@ struct PerViewUniforms
     int32_t   num_cascades;
     int32_t   viewport_width;
     int32_t   viewport_height;
-    uint8_t   padding[20];
+    uint8_t   padding[4];
 };
 
 struct PerEntityUniforms
@@ -75,6 +75,7 @@ struct PerEntityUniforms
 struct PerSceneUniforms
 {
     glm::mat4 spot_light_shadow_matrix[MAX_SHADOW_CASTING_SPOT_LIGHTS];
+    glm::vec4 shadow_map_bias[MAX_POINT_LIGHTS]; // x = directional, y = spot, z = point
     glm::vec4 point_light_position_range[MAX_POINT_LIGHTS];
     glm::vec4 point_light_color_intensity[MAX_POINT_LIGHTS];
     glm::vec4 spot_light_position[MAX_SPOT_LIGHTS];

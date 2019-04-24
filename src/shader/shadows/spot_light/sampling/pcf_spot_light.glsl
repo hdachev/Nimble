@@ -18,7 +18,7 @@ float spot_light_shadows(in FragmentProperties f, int shadow_map_idx, int light_
     float linear_closest_depth = depth_exp_to_linear_01(1.0, spot_light_direction_range[light_idx].w, closest_depth);
     float linear_current_depth = depth_exp_to_linear_01(1.0, spot_light_direction_range[light_idx].w, current_depth);
     // check whether current frag pos is in shadow
-    float bias = 0.0005;
+    float bias = shadow_map_bias[light_idx].y;
     float shadow = linear_current_depth - bias > linear_closest_depth  ? 1.0 : 0.0;
 
     return 1.0 - shadow;
