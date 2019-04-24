@@ -1,100 +1,10 @@
-// ------------------------------------------------------------------
-// HELPER FUNCTIONS -------------------------------------------------
-// ------------------------------------------------------------------
+#include <depth_conversion.glsl>
+#include <normal_packing.glsl>
 
 #define UNJITTER_TEX_COORDS(tc) (tc - current_prev_jitter.xy)
 
-// Z buffer to linear 0..1 depth
-float linear_01_depth(float z)
-{
-    return 1.0 / (z_buffer_params.x * z + z_buffer_params.y);
-}
-
 // ------------------------------------------------------------------
-
-// Z buffer to linear depth
-float linear_eye_depth(float z)
-{
-    return 1.0 / (z_buffer_params.z * z + z_buffer_params.w);
-}
-
-// ------------------------------------------------------------------
-
-// https://aras-p.info/texts/CompactNormalStorage.html
-// Method #4: Spheremap Transform
-
-vec2 encode_normal(vec3 n)
-{
-    float f = sqrt(8.0 * n.z + 8.0);
-    return n.xy / f + 0.5;
-}
-
-// ------------------------------------------------------------------
-
-// https://aras-p.info/texts/CompactNormalStorage.html
-// Method #4: Spheremap Transform
-
-vec3 decode_normal(vec2 enc)
-{
-    vec2 fenc = enc * 4.0 - 2.0;
-    float f = dot(fenc, fenc);
-    float g = sqrt(1.0 - f / 4.0);
-    vec3 n;
-    n.xy = fenc * g;
-    n.z = 1 - f / 2.0;
-    return n;
-}
-
-// ------------------------------------------------------------------
-
-// Take exponential depth and convert into linear depth.
-
-float get_linear_depth(sampler2D depth_sampler, vec2 tex_coord, float far, float near)
-{
-    float z = (2 * near) / (far + near - texture( depth_sampler, tex_coord ).x * (far - near));
-    return z;
-}
-
-// ------------------------------------------------------------------
-
-// Take exponential depth and convert into linear depth.
-
-float depth_exp_to_view(mat4 inverse_proj, float exp_depth)
-{
-    exp_depth = exp_depth * 2.0 - 1.0;
-    float w = inverse_proj[2][3] * exp_depth + inverse_proj[3][3];
-    return (1.0 / w);
-}
-
-// ------------------------------------------------------------------
-
-float depth_exp_to_view(float near, float far, float exp_depth)
-{
-   return (2.0 * near * far) / (far + near - exp_depth * (far - near));
-}
-
-// ------------------------------------------------------------------
-
-float depth_view_to_linear_01(float near, float far, float depth)
-{
-	return (depth - near) / (far - near);
-}
-
-// ------------------------------------------------------------------
-
-float depth_linear_01_to_view(float near, float far, float depth)
-{
-	return near + depth * (far - near);
-}
-
-// ------------------------------------------------------------------
-
-float depth_exp_to_linear_01(float near, float far, float depth)
-{
-    float view_depth = depth_exp_to_view(near, far, depth);
-    return depth_view_to_linear_01(near, far, view_depth);
-}
-
+// HELPER FUNCTIONS -------------------------------------------------
 // ------------------------------------------------------------------
 
 vec3 get_normal_from_map(vec3 tangent, vec3 bitangent, vec3 normal, vec2 tex_coord, sampler2D normal_map)
@@ -226,40 +136,44 @@ vec3 world_position_from_depth(vec2 tex_coords, float ndc_depth)
 
 // ------------------------------------------------------------------
 
-vec3 get_view_space_position(vec2 tex_coords, float depth)
+vec3 view_position_from_depth(vec2 tex_coords, float ndc_depth)
 {
-    vec3 clip_space_position = vec3(tex_coords, depth) * 2.0 - vec3(1.0);
+	// Remap depth to [-1.0, 1.0] range. 
+	float depth = ndc_depth * 2.0 - 1.0;
 
-    //vec4 view_position = vec4(vec2(inv_proj[0][0], inv_proj[1][1]) * clip_space_position.xy, -1.0,
-    //                               inv_proj[2][3] * clip_space_position.z + inv_proj[3][3]);
-    vec4 view_position = inv_proj * vec4(clip_space_position, 1.0);
-    return (view_position.xyz / view_position.w);
+	// Take texture coordinate and remap to [-1.0, 1.0] range. 
+	vec2 screen_pos = tex_coords * 2.0 - 1.0;
+
+	// // Create NDC position.
+	vec4 ndc_pos = vec4(screen_pos, depth, 1.0);
+
+	// Transform back into view position.
+	vec4 view_pos = inv_proj * ndc_pos;
+
+	// Undo projection.
+	view_pos = view_pos / view_pos.w;
+
+	return view_pos.xyz;
 }
 
 // ------------------------------------------------------------------
 
-float get_view_space_depth(vec2 tex_coords, float depth)
+vec3 world_to_view_space_normal(vec3 n)
 {
-    depth = depth * 2.0 - 1.0;
-    float w = inv_proj[2][3] * depth + inv_proj[3][3];
-    return (-1.0 / w);
+    return mat3(view_mat) * n;
 }
 
 // ------------------------------------------------------------------
 
-vec3 get_view_space_normal(vec2 tex_coords, sampler2D g_buffer_normals)
+vec3 view_to_world_space_normal(vec3 n)
 {
-	//vec2 encoded_normal = texture(g_buffer_normals, tex_coords).rg;
-    //vec3 n = mat3(viewMat) * decode_normal(encoded_normal);
-    vec3 n = mat3(view_mat) * normalize(texture(g_buffer_normals, tex_coords).rgb);
-    return n;
+    return mat3(inv_view) * n;
 }
 
 // ------------------------------------------------------------------
 
 float luminance(vec3 color)
 {
-    //return dot(vec3(0.2125, 0.7154, 0.0721), color);
     return max(dot(color, vec3(0.299, 0.587, 0.114)), 0.0001);
 }
 

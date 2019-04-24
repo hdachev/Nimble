@@ -44,12 +44,13 @@ uniform float u_Power;
 void main()
 {
     // Decode normal from G-Buffer in view-space
-    vec3 normal = get_view_space_normal(FS_IN_TexCoord, s_Normals);
+    vec3 world_normal = texture(s_Normals, FS_IN_TexCoord).rgb;
+    vec3 normal = world_to_view_space_normal(world_normal);
 
     // Sample depth at current fragment from hardware depth buffer
     float frag_depth = textureLod(s_Depth, FS_IN_TexCoord, DEPTH_LOD).r; 
     // Reconstruct view-space position
-    vec3 position = get_view_space_position(FS_IN_TexCoord, frag_depth);    
+    vec3 position = view_position_from_depth(FS_IN_TexCoord, frag_depth);    
     // SSAO Scale
     vec2 scale = vec2(u_ViewportSize.x / 4.0, u_ViewportSize.y / 4.0);   
     // Fetch random vector
@@ -75,7 +76,7 @@ void main()
         // Remap to the [0, 1] range
         offset.xyz = offset.xyz * 0.5 + 0.5;    
         // Use offset to sample depth texture
-        float sample_depth = get_view_space_position(offset.xy, textureLod(s_Depth, offset.xy, DEPTH_LOD).r).z;  
+        float sample_depth = view_position_from_depth(offset.xy, textureLod(s_Depth, offset.xy, DEPTH_LOD).r).z;  
         float range_check = smoothstep(0.0, 1.0, u_Radius / abs(position.z - sample_depth));
         occlusion += (sample_depth >= (ssao_sample.z + u_Bias) ? 1.0 : 0.0) * range_check;
     }   

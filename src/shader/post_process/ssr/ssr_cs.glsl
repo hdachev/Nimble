@@ -267,7 +267,7 @@ vec3 binary_search(inout vec3 dir, inout vec3 hit_coord, inout float out_depth)
 		projected_coord.xy /= projected_coord.w;
 		projected_coord.xy = projected_coord.xy * 0.5 + 0.5;
 
-		depth = get_view_space_depth(projected_coord.xy, texture(s_HiZDepth, projected_coord.xy).r);
+		depth = linear_eye_depth(texture(s_HiZDepth, projected_coord.xy).r);
 
 		out_depth = hit_coord.z - depth;
 
@@ -303,7 +303,7 @@ vec3 ray_march(in vec3 dir, inout vec3 hit_coord, out float out_depth)
 		projected_coord.xy /= projected_coord.w;
 		projected_coord.xy = projected_coord.xy * 0.5 + 0.5;
 
-		depth = get_view_space_depth(projected_coord.xy, texture(s_HiZDepth, projected_coord.xy).r);
+		depth = linear_eye_depth(texture(s_HiZDepth, projected_coord.xy).r);
 
 		if (depth > 1000.0)
 			continue;
@@ -357,10 +357,11 @@ void main()
 	float depth = texture(s_HiZDepth, tex_coord).r;
 
 	// Reconstruct view space position
-	vec3 view_pos = get_view_space_position(tex_coord, depth);
+	vec3 view_pos = view_position_from_depth(tex_coord, depth);
 
 	// Get normal from G-Buffer in View Space
-	vec3 view_normal = get_view_space_normal(tex_coord, s_Normal);
+	vec3 world_normal = texture(s_Normal, tex_coord).rgb;
+	vec3 view_normal = world_to_view_space_normal(world_normal);
 
 	// Retrieve metalness and roughness values
 	float metallic = texture(s_Metallic, tex_coord).r;

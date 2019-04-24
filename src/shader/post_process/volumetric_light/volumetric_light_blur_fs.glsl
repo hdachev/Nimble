@@ -51,7 +51,7 @@ vec3 bilateral_blur(vec2 tex_coord, vec2 direction, int radius, vec2 pixel_size)
 	vec4 center_color = texture(s_Volumetric, tex_coord);
 	vec3 color = center_color.xyz;
 	//return float4(color, 1);
-	float center_depth = depth_exp_to_view(near_plane, far_plane, textureLod(s_Depth, tex_coord, DEPTH_LOD).r);
+	float center_depth = linear_eye_depth(textureLod(s_Depth, tex_coord, DEPTH_LOD).r);
 
 	float weight_sum = 0;
 
@@ -66,7 +66,7 @@ vec3 bilateral_blur(vec2 tex_coord, vec2 direction, int radius, vec2 pixel_size)
 	{
         vec2 uv = tex_coord + offset_direction * float(i);
         vec3 sample_color = texture(s_Volumetric, uv).rgb;
-        float sample_depth = depth_exp_to_view(near_plane, far_plane, textureLod(s_Depth, uv, DEPTH_LOD).r);
+        float sample_depth = linear_eye_depth(textureLod(s_Depth, uv, DEPTH_LOD).r);
 
 		float depth_diff = abs(center_depth - sample_depth);
         float dFactor = depth_diff * BLUR_DEPTH_FACTOR;
@@ -83,7 +83,7 @@ vec3 bilateral_blur(vec2 tex_coord, vec2 direction, int radius, vec2 pixel_size)
 	{
 		vec2 uv = tex_coord + offset_direction * float(i);
         vec3 sample_color = texture(s_Volumetric, uv).rgb;
-        float sample_depth = depth_exp_to_view(near_plane, far_plane, textureLod(s_Depth, uv, DEPTH_LOD).r);
+        float sample_depth = linear_eye_depth(textureLod(s_Depth, uv, DEPTH_LOD).r);
 
 		float depth_diff = abs(center_depth - sample_depth);
         float dFactor = depth_diff * BLUR_DEPTH_FACTOR;

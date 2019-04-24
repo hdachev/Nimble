@@ -31,7 +31,7 @@ uniform vec2 u_PixelSize;
 vec3 bilateral_upsample(vec2 tex_coord)
 {
     const float threshold = UPSAMPLE_DEPTH_THRESHOLD;
-    vec4 highResDepth = vec4(depth_exp_to_view(near_plane, far_plane, textureLod(s_Depth, tex_coord, 0.0).r));
+    vec4 highResDepth = vec4(linear_eye_depth(textureLod(s_Depth, tex_coord, 0.0).r));
 	
 	vec2 uv00 = tex_coord - 0.5 * u_PixelSize;
 	vec2 uv10 = uv00 + vec2(u_PixelSize.x, 0.0);
@@ -40,10 +40,10 @@ vec3 bilateral_upsample(vec2 tex_coord)
 
 	vec4 lowResDepth;
 
-    lowResDepth[0] = depth_exp_to_view(near_plane, far_plane, textureLod(s_Depth, uv00, 1.0).r);
-    lowResDepth[1] = depth_exp_to_view(near_plane, far_plane, textureLod(s_Depth, uv10, 1.0).r);
-    lowResDepth[2] = depth_exp_to_view(near_plane, far_plane, textureLod(s_Depth, uv01, 1.0).r);
-    lowResDepth[3] = depth_exp_to_view(near_plane, far_plane, textureLod(s_Depth, uv11, 1.0).r);
+    lowResDepth[0] = linear_eye_depth(textureLod(s_Depth, uv00, 1.0).r);
+    lowResDepth[1] = linear_eye_depth(textureLod(s_Depth, uv10, 1.0).r);
+    lowResDepth[2] = linear_eye_depth(textureLod(s_Depth, uv01, 1.0).r);
+    lowResDepth[3] = linear_eye_depth(textureLod(s_Depth, uv11, 1.0).r);
 
 	vec4 depthDiff = abs(lowResDepth - highResDepth);
 	float accumDiff = dot(depthDiff, vec4(1, 1, 1, 1));
