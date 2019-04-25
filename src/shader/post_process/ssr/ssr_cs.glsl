@@ -1,3 +1,5 @@
+// https://github.com/simeonradivoev/ComputeStochasticReflections
+
 #include <../../common/uniforms.glsl>
 #include <../../common/helper.glsl>
 
@@ -6,6 +8,7 @@
 // ------------------------------------------------------------------
 
 #define SSR_NUM_THREADS 8
+#define MAX_HIZ_LEVEL 6
 
 // ------------------------------------------------------------------
 // INPUTS -----------------------------------------------------------
@@ -14,172 +17,112 @@
 layout (local_size_x = SSR_NUM_THREADS, local_size_y = SSR_NUM_THREADS) in;
 
 // ------------------------------------------------------------------
-// CONSTANTS --------------------------------------------------------
-// ------------------------------------------------------------------
-
-#ifdef OLD_SSR
-const float RAY_STEP_SIZE = 0.1;
-const int 	MAX_RAY_MARCH_SAMPLES = 32;
-const int 	MAX_BINARY_SEARCH_SAMPLES = 16;
-#endif
-
-// ------------------------------------------------------------------
-// UNIFORMS ---------------------------------------------------------
+// OUTPUTS ----------------------------------------------------------
 // ------------------------------------------------------------------
 
 layout (binding = 0, rgba32f) uniform image2D i_SSR;
+
+// ------------------------------------------------------------------
+// SAMPLERS ---------------------------------------------------------
+// ------------------------------------------------------------------
 
 uniform sampler2D s_HiZDepth;
 uniform sampler2D s_Metallic;
 uniform sampler2D s_Normal;
 
-uniform float u_HiZLevels;
+// ------------------------------------------------------------------
+// UNIFORMS ---------------------------------------------------------
+// ------------------------------------------------------------------
+
+uniform vec4 u_RayCastSize;
+uniform float u_Thickness;
+uniform int u_NumSteps;
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
 // ------------------------------------------------------------------
 
-#ifdef OLD_SSR
-float read_depth(vec2 uv)
+float ssr_clamp(vec2 start, vec2 end, vec2 delta)
 {
-    return textureLod(s_HiZDepth, uv.xy, 0).x;
-}
-
-vec3 binary_search(in vec3 pos, in vec3 prev_pos)
-{
-	vec3 min_sample = prev_pos;
-	vec3 max_sample = pos;
-	vec3 mid_sample;
-
-	for (int i = 0; i < MAX_BINARY_SEARCH_SAMPLES; i++)
-	{
-		mid_sample = mix(min_sample, max_sample, 0.5);
-		float z_val = read_depth(mid_sample.xy);
-
-		if (mid_sample.z > z_val)
-			max_sample = mid_sample;
-		else
-			min_sample = mid_sample;
-	}
-
-	return mid_sample;
+    vec2 dir = abs(end - start);
+    return length(vec2(min(dir.x, delta.x), min(dir.y,delta.y)));
 }
 
 // ------------------------------------------------------------------
 
-vec3 ray_march(in vec3 dir, in vec3 pos)
+vec4 ray_march(vec3 view_dir, int num_steps, vec3 view_pos, vec3 screen_pos, vec2 uv, float thickness)
 {
-	vec3 prev_ray_sample = pos;
+    // Compute a point along the reflection direction and project into clip space.
+    vec4 ray_proj = proj_mat * vec4(view_pos + view_dir, 1.0);
 
-	for (int ray_step_idx = 0; ray_step_idx < MAX_RAY_MARCH_SAMPLES; ray_step_idx++)
-	{
-		vec3 ray_sample = (float(ray_step_idx) * RAY_STEP_SIZE) * dir + pos;
-		float z_val = read_depth(ray_sample.xy);
+    // Map the new point into NDC range (divide by w) and compute a screen space direction vector from current frag -> ray_proj.
+    vec3 ray_dir = normalize(ray_proj.xyz / ray_proj.w - screen_pos);
 
-		if (ray_sample.z > z_val)
-			return binary_search(ray_sample, prev_ray_sample);
-		
-		prev_ray_sample = ray_sample;
-	}
+    // Scale by 0.5 to map it to texture space.
+    ray_dir.xy *= 0.5;
 
-	return vec3(0.0, 0.0, 0.0);
-}
+    // Compute ray start position in texture space while using NDC depth.
+    vec3 ray_start = vec3(uv, screen_pos.z);
 
-vec3 trace_ray(vec3 ray_dir, vec3 ray_start)
-{
+    // Texel size.
+    vec2 screen_delta_2 = u_RayCastSize.zw;
 
-    if (ray_dir.z < 0.0)
-        return vec3(0.0, 0.0, 0.0);
+    // Clamp ray step size to the texel size of the current mip level.
+    float d = ssr_clamp(ray_start.xy, ray_start.xy + ray_dir.xy, screen_delta_2);
 
-    ray_dir = normalize(ray_dir);
-    ivec2 work_size = textureSize(s_HiZDepth, 0);
+    // Compute first sample.
+    vec3 sample_pos = ray_start + ray_dir * d;
 
-    const int loop_max = 150;
-    int mipmap = 0;
-    int max_iter = loop_max;
+    // Set Hi-Z mip level to the base mip (0).
+    int level = 0;
 
-    vec3 pos = ray_start;
-
-    // Move pos by a small bias
-    pos += ray_dir * 0.008;
-
-    float hit_bias = 0.0017;
-
-    while (mipmap > -1 && max_iter-- > 0)
+    // Hit mask set to 0 initially since there are no hits.
+    float mask = 0;
+	
+    // Begin ray march...
+    for (int i = 0; i < num_steps; i++)
     {
+        // Compute texel offset for the current mip level.
+        vec2 current_delta = screen_delta_2 * exp2(level + 1);
 
-        // Check if we are out of screen bounds, if so, return
-        if (pos.x < 0.0 || pos.y < 0.0 || pos.x > 1.0 || pos.y > 1.0 || pos.z < 0.0 || pos.z > 1.0)
-            return vec3(0,0,0);
+        // Clamp ray step size to the texel size of the current mip level.
+        float dist = ssr_clamp(sample_pos.xy, sample_pos.xy + ray_dir.xy, current_delta);
 
-        // Fetch the current minimum cell plane height
-        float cell_z = textureLod(s_HiZDepth, pos.xy, mipmap).x;
+        // March ray forward.
+        vec3 current_ray_pos = sample_pos + ray_dir * dist;
 
-        // Compute the fractional part of the coordinate (scaled by the working size)
-        // so the values will be between 0.0 and 1.0
-        vec2 fract_coord = mod(pos.xy * work_size, 1.0);
+        // Sample scene depth from depth buffer at the current ray coordinates. 
+#ifdef SSR_DEPTH_ZERO_TO_ONE
+        // float scene_depth_at_ray_pos = textureLod(s_HiZDepth, current_ray_pos.xy, level).r;
+#else
+        float scene_depth_at_ray_pos = textureLod(s_HiZDepth, current_ray_pos.xy, level).r * 2.0 - 1.0;
+#endif
+        // Get depth of current ray position.
+        float current_ray_depth = current_ray_pos.z;
 
-        // Modify fract coord based on which direction we are stepping in.
-        // Fract coord now contains the percentage how far we moved already in
-        // the current cell in each direction.  
-        fract_coord.x = ray_dir.x > 0.0 ? fract_coord.x : 1.0 - fract_coord.x;
-        fract_coord.y = ray_dir.y > 0.0 ? fract_coord.y : 1.0 - fract_coord.y;
-
-        // Compute maximum k and minimum k for which the ray would still be
-        // inside of the cell.
-        vec2 max_k_v = (1.0 / abs(ray_dir.xy)) / work_size.xy;
-        vec2 min_k_v = -max_k_v * fract_coord.xy;
-
-        // Scale the maximum k by the percentage we already processed in the current cell,
-        // since e.g. if we already moved 50%, we can only move another 50%.
-        max_k_v *= 1.0 - fract_coord.xy;
-
-        // The maximum k is the minimum of the both sub-k's since if one component-maximum
-        // is reached, the ray is out of the cell
-        float max_k = min(max_k_v.x, max_k_v.y);
-
-        // Same applies to the min_k, but because min_k is negative we have to use max()
-        float min_k = max(min_k_v.x, min_k_v.y);
-
-        // Check if the ray intersects with the cell plane. We have the following
-        // equation: 
-        // pos.z + k * ray_dir.z = cell.z
-        // So k is:
-        float k = (cell_z - pos.z) / ray_dir.z;
-
-        // Optional: Abort when ray didn't exactly intersect:
-        // if (k < min_k && mipmap <= 0) {
-        //     return vec3(0);
-        // } 
-
-        // Check if we intersected the cell
-        if (k < max_k + hit_bias)
+        // If ray does NOT intersect the depth buffer, move to the next mip-level
+        if (current_ray_depth < scene_depth_at_ray_pos)
         {
-            // Clamp k
-            k = max(min_k, k);
-
-            if (mipmap < 1) 
-            {
-                pos += k * ray_dir;
-                return pos;
-            }
-
-            // If we hit anything at a higher mipmap, step up to a higher detailed
-            // mipmap:
-            mipmap -= 2;
-            work_size *= 4;
-        } 
-        else 
-        {
-            // If we hit nothing, move to the next cell, with a small bias
-            pos += max_k * ray_dir * 1.04;
+            level = min(level + 1, MAX_HIZ_LEVEL);
+            sample_pos = current_ray_pos;
         }
+        else // Else, go back a mip-level in order to check if the ray still intersects the depth buffer. If not, march the ray forward.
+            level--;
 
-        mipmap += 1;
-        work_size /= 2;
+        // If Hi-Z mip level is less than 0, we have converged the ray or could not find any intersections.
+        if (level < 0)
+        {
+#ifdef SSR_DEPTH_ZERO_TO_ONE
+            float delta = (-linear_eye_depth(scene_depth_at_ray_pos)) - (-linear_eye_depth(sample_pos.z));
+#else
+            float delta = (-linear_eye_depth(scene_depth_at_ray_pos * 0.5 + 0.5)) - (-linear_eye_depth(sample_pos.z * 0.5 + 0.5));
+#endif
+            mask = float(delta <= thickness && i > 0);
+            return vec4(sample_pos, mask);
+        }
     }
 
-    return vec3(0.0, 0.0, 0.0);
+    return vec4(sample_pos, mask);
 }
 
 // ------------------------------------------------------------------
@@ -188,216 +131,42 @@ vec3 trace_ray(vec3 ray_dir, vec3 ray_start)
 
 void main()
 {
-	ivec2 size = textureSize(s_HiZDepth, 0);
-	vec2 tex_coord = vec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y) / vec2(size.x - 1, size.y - 1);
+    vec2 uv = (vec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y) + vec2(0.5)) * u_RayCastSize.zw;
 
-	// Fetch depth from hardware depth buffer
-	float depth = textureLod(s_HiZDepth, tex_coord, 0).x;
+    vec3 world_normal = texture(s_Normal, uv).rgb;
+    vec3 view_normal = world_to_view_space_normal(world_normal);
 
-	// Reconstruct world space position
-	vec3 world_pos = world_position_from_depth(tex_coord, depth);
+    float depth = texture(s_HiZDepth, uv).r;
 
-	// Get world space normal from G-Buffer
-	vec3 normal = textureLod(s_Normal, tex_coord, 0).xyz;
-
-	vec4 screen_pos = vec4(tex_coord, depth, 1.0);
-
-	// Compute view direction
-	vec3 view_dir = normalize(world_pos - view_pos.xyz);
-
-	// Compute reflection vector
-	vec3 reflection_dir = reflect(view_dir, normal);
+#ifdef SSR_DEPTH_ZERO_TO_ONE
+    vec3 screen_pos = vec3(uv * 2.0 - 1.0, depth);
+#else
+    vec3 screen_pos = vec3(uv, depth) * 2.0 - vec3(1.0);
+#endif
+    
+    vec3 world_pos = world_position_from_depth(uv, depth);
+    vec3 view_pos = view_position_from_depth(uv, depth);
+    vec3 view_dir = normalize(view_pos);
+    vec3 dir = reflect(view_dir, view_normal);
 
     // Retrieve metalness and roughness values
-	float metallic = texture(s_Metallic, tex_coord).r;
+	float metallic = texture(s_Metallic, uv).r;
 
-	float camera_facing_refl_attenuation = 1.0 - smoothstep(0.25, 0.5, dot(-view_dir, reflection_dir));
+	float camera_facing_refl_attenuation = 1.0 - smoothstep(0.25, 0.5, dot(-view_dir, dir));
 
 	if (camera_facing_refl_attenuation <= 0.0 || metallic < 0.1)
 		imageStore(i_SSR, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), vec4(0.0, 0.0, 0.0, 1.0));
 	else
 	{
-		// Compute second screen space point in order to calculate SS reflection vector
-		vec4 point_along_refl_dir = vec4(10.0 * reflection_dir + world_pos, 1.0);
-		vec4 screen_space_refl_pos = view_proj * point_along_refl_dir;
-		screen_space_refl_pos /= screen_space_refl_pos.w;
-		screen_space_refl_pos.xyz = screen_space_refl_pos.xyz * vec3(0.5) + vec3(0.5);
+        vec4 hit_coord = ray_march(dir, u_NumSteps, view_pos, screen_pos, uv, u_Thickness);
 
-		// Compute screen space reflection direction
-		vec3 screen_space_refl_dir = normalize(screen_space_refl_pos.xyz - screen_pos.xyz);
-
-		vec3 ssr = trace_ray(screen_space_refl_dir.xyz, screen_pos.xyz);
-
-		vec2 tex_coord = smoothstep(0.2, 0.6, abs(vec2(0.5, 0.5) - ssr.xy));
-		float screen_edge_factor = clamp(1.0 - (tex_coord.x + tex_coord.y), 0.0, 1.0);
+		vec2 tc = smoothstep(0.2, 0.6, abs(vec2(0.5, 0.5) - hit_coord.xy));
+		float screen_edge_factor = clamp(1.0 - (tc.x + tc.y), 0.0, 1.0);
 
 		float total_attenuation = camera_facing_refl_attenuation * screen_edge_factor;
 
-		imageStore(i_SSR, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), vec4(ssr.xy, total_attenuation, 1.0));
-	}
-}
-#endif
-
-// ------------------------------------------------------------------
-
-// ------------------------------------------------------------------
-// CONSTANTS --------------------------------------------------------
-// ------------------------------------------------------------------
-
-#ifndef OLD_SSR
-const float kRayStep = 0.1;
-const float kMinRayStep = 0.1;
-const int kMaxSteps = 32;
-const float kSearchDist = 5.0;
-const int kNumBinarySearchSteps = 5;
-const float kReflectionSpecularFalloffExponent = 3.0;
-
-// ------------------------------------------------------------------
-// FUNCTIONS --------------------------------------------------------
-// ------------------------------------------------------------------
-
-vec3 binary_search(inout vec3 dir, inout vec3 hit_coord, inout float out_depth)
-{
-	float depth;
-	vec4 projected_coord;
-
-	for (int i = 0; i < kNumBinarySearchSteps; i++)
-	{
-		projected_coord = proj_mat * vec4(hit_coord, 1.0);
-		projected_coord.xy /= projected_coord.w;
-		projected_coord.xy = projected_coord.xy * 0.5 + 0.5;
-
-		depth = linear_eye_depth(texture(s_HiZDepth, projected_coord.xy).r);
-
-		out_depth = hit_coord.z - depth;
-
-		dir *= 0.5;
-
-		if (out_depth > 0.0)
-			hit_coord += dir;
-		else
-			hit_coord -= dir;
-	}
-
-	projected_coord = proj_mat * vec4(hit_coord, 1.0);
-	projected_coord.xy /= projected_coord.w;
-	projected_coord.xy = projected_coord.xy * 0.5 + 0.5;
-
-	return vec3(projected_coord.xy, depth);
-}
-
-// ------------------------------------------------------------------
-
-vec3 ray_march(in vec3 dir, inout vec3 hit_coord, out float out_depth)
-{
-	dir *= kRayStep;
-
-	float depth;
-	vec4 projected_coord;
-
-	for (int i = 0; i < kMaxSteps; i++)
-	{
-		hit_coord += dir;
-
-		projected_coord = proj_mat * vec4(hit_coord, 1.0);
-		projected_coord.xy /= projected_coord.w;
-		projected_coord.xy = projected_coord.xy * 0.5 + 0.5;
-
-		depth = linear_eye_depth(texture(s_HiZDepth, projected_coord.xy).r);
-
-		if (depth > 1000.0)
-			continue;
-
-		out_depth = hit_coord.z - depth;
-
-		if ((dir.z - out_depth) < 1.2)
-		{
-			if (out_depth <= 0.0)
-			{
-				vec3 result;
-				result = binary_search(dir, hit_coord, out_depth);
-				
-				return result;
-			}
-		}
-	}
-
-	return vec3(projected_coord.xy, depth);
-}
-
-// ------------------------------------------------------------------
-
-vec3 fresnel_schlick(float cos_theta, vec3 F0)
-{	
-	return F0 + (1.0 - F0) * pow(1.0 - cos_theta, 5.0);
-}
-
-// ------------------------------------------------------------------
-
-#define Scale vec3(.8, .8, .8)
-#define K 19.19
-
-vec3 hash(vec3 a)
-{
-    a = fract(a * Scale);
-    a += dot(a, a.yxz + K);
-    return fract((a.xxy + a.yxx)*a.zyx);
-}
-
-// ------------------------------------------------------------------
-// MAIN -------------------------------------------------------------
-// ------------------------------------------------------------------
-
-void main()
-{
-	ivec2 size = textureSize(s_HiZDepth, 0);
-	vec2 tex_coord = vec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y) / vec2(size.x - 1, size.y - 1);
-
-	// Fetch depth from hardware depth buffer
-	float depth = texture(s_HiZDepth, tex_coord).r;
-
-	// Reconstruct view space position
-	vec3 view_pos = view_position_from_depth(tex_coord, depth);
-
-	// Get normal from G-Buffer in View Space
-	vec3 world_normal = texture(s_Normal, tex_coord).rgb;
-	vec3 view_normal = world_to_view_space_normal(world_normal);
-
-	// Retrieve metalness and roughness values
-	float metallic = texture(s_Metallic, tex_coord).r;
-
-	vec3 view_dir = normalize(view_pos);
-
-	// Calculate reflection vector
-	vec3 reflection = normalize(reflect(view_dir, view_normal));
-
-	float camera_facing_refl_attenuation = 1.0 - smoothstep(0.25, 0.5, dot(-view_dir, reflection));
-
-	if (camera_facing_refl_attenuation <= 0.0 || metallic < 0.1)
-		imageStore(i_SSR, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), vec4(0.0, 0.0, 0.0, 0.0));
-	else
-	{
-		vec3 wp = vec3(inv_view * vec4(view_pos, 1.0));
-		//vec3 jitt = mix(vec3(0.0), vec3(hash(wp)), roughness);
-
-		vec3 hit_pos = view_pos;
-		float out_depth;
-		vec3 ray = reflection * max(kMinRayStep, -view_pos.z);
-
-		vec3 hit_coord = ray_march(ray, hit_pos, out_depth);
-
-		vec2 tex_coord = smoothstep(0.2, 0.6, abs(vec2(0.5, 0.5) - hit_coord.xy));
-		float screen_edge_factor = clamp(1.0 - (tex_coord.x + tex_coord.y), 0.0, 1.0);
-		// float reflection_multiplier = screen_edge_factor * -reflection.z;
-
-		vec2 uv_sampling_attenuation = smoothstep(vec2(0.05), vec2(0.1), hit_coord.xy) * (vec2(1.0) - smoothstep(vec2(0.95), vec2(1.0), hit_coord.xy));
-		uv_sampling_attenuation.x *= uv_sampling_attenuation.y;
-
-		float total_attenuation = camera_facing_refl_attenuation * screen_edge_factor;//uv_sampling_attenuation.x;
-
 		imageStore(i_SSR, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), vec4(hit_coord.xy, total_attenuation, 1.0));
-	}
+    }
 }
-#endif
 
 // ------------------------------------------------------------------

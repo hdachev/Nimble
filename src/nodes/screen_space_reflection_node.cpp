@@ -40,6 +40,8 @@ void ScreenSpaceReflectionNode::declare_connections()
 bool ScreenSpaceReflectionNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Enabled", m_enabled);
+    register_float_parameter("Thickness", m_thickness);
+    register_int_parameter("Num Steps", m_num_steps, 1, 100);
 
     m_hiz_depth_rt = find_input_render_target("HiZDepth");
     m_metallic_rt  = find_input_render_target("Metallic");
@@ -68,7 +70,9 @@ void ScreenSpaceReflectionNode::execute(double delta, Renderer* renderer, Scene*
 
         m_ssr_program->use();
 
-        m_ssr_program->set_uniform("u_HiZLevels", (int32_t)m_hiz_depth_rt->texture->mip_levels());
+        m_ssr_program->set_uniform("u_RayCastSize", glm::vec4(m_graph->window_width(), m_graph->window_height(), 1.0f / m_graph->window_width(), 1.0f / m_graph->window_height()));
+        m_ssr_program->set_uniform("u_Thickness", m_thickness);
+        m_ssr_program->set_uniform("u_NumSteps", m_num_steps);
 
         if (m_ssr_program->set_uniform("s_HiZDepth", 1))
             m_hiz_depth_rt->texture->bind(1);

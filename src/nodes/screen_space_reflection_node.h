@@ -18,6 +18,8 @@ public:
 
 private:
     bool m_enabled;
+    float m_thickness = 0.2f;
+    int32_t m_num_steps = 32;
 
     // Inputs
     std::shared_ptr<RenderTarget> m_hiz_depth_rt;

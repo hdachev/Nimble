@@ -1535,10 +1535,9 @@ void Renderer::update_uniforms()
             m_per_view_uniforms[i].viewport_height     = m_window_height;
             m_per_view_uniforms[i].current_prev_jitter = view->jitter;
 
-			float z_buffer_params_y = view->far_plane / view->near_plane;
-            float z_buffer_params_x = 1.0f - z_buffer_params_y;
+            float z_buffer_params_x = -1.0 + (view->near_plane / view->far_plane);
 
-            m_per_view_uniforms[i].z_buffer_params = glm::vec4(z_buffer_params_x, z_buffer_params_y, z_buffer_params_x / view->far_plane, z_buffer_params_y / view->far_plane);
+            m_per_view_uniforms[i].z_buffer_params = glm::vec4(z_buffer_params_x, 1.0f, z_buffer_params_x / view->near_plane, 1.0f / view->near_plane);
          
             for (uint32_t j = 0; j < view->num_cascade_frustums; j++)
             {
