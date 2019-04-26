@@ -33,6 +33,10 @@ void Camera::reset(float fov, float near, float far, float aspect_ratio, glm::ve
     m_fov          = fov;
     m_near         = near;
     m_far          = far;
+    m_near_begin   = near;
+    m_near_end     = near;
+    m_far_begin    = far;
+    m_far_end      = far;
     m_aspect_ratio = aspect_ratio;
     m_position     = position;
     m_forward      = glm::normalize(forward);
@@ -82,6 +86,14 @@ void Camera::reset(float fov, float near, float far, float aspect_ratio, glm::ve
 
 void Camera::update_projection(float fov, float near, float far, float aspect_ratio)
 {
+    m_fov            = fov;
+    m_near           = near;
+    m_far            = far;
+    m_near_begin     = near;
+    m_near_end       = near;
+    m_far_begin      = far;
+    m_far_end        = far;
+    m_aspect_ratio   = aspect_ratio;
     m_projection     = glm::perspective(glm::radians(fov), aspect_ratio, near, far);
     m_raw_projection = m_projection;
 }

@@ -32,6 +32,11 @@ struct Camera
     glm::mat4 m_rotate;
     glm::mat4 m_translate;
 
+	float m_near_begin = 0.0f;
+    float m_near_end   = 0.0f;
+    float m_far_begin  = 0.0f;
+    float m_far_end    = 0.0f;
+
     Plane m_near_plane;
     Plane m_far_plane;
     Plane m_left_plane;

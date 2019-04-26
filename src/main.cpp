@@ -26,6 +26,7 @@
 #include "nodes/screen_space_reflection_node.h"
 #include "nodes/reflection_node.h"
 #include "nodes/fxaa_node.h"
+#include "nodes/depth_of_field_node.h"
 #include "debug_draw.h"
 #include "imgui_helpers.h"
 #include "external/nfd/nfd.h"
@@ -215,6 +216,7 @@ private:
         REGISTER_RENDER_NODE(ScreenSpaceReflectionNode, m_resource_manager);
         REGISTER_RENDER_NODE(ReflectionNode, m_resource_manager);
         REGISTER_RENDER_NODE(FXAANode, m_resource_manager);
+        REGISTER_RENDER_NODE(DepthOfFieldNode, m_resource_manager);
 
         // Create Forward render graph
         m_forward_graph = m_resource_manager.load_render_graph("graph/deferred_graph.json", &m_renderer);
@@ -438,6 +440,16 @@ private:
                     }
                 }
             }
+
+			if (ImGui::CollapsingHeader("Camera"))
+            {
+				std::shared_ptr<Camera> camera = m_scene->camera();
+
+				ImGui::SliderFloat("Near Field Begin", &camera->m_near_begin, camera->m_near, camera->m_far);
+                ImGui::SliderFloat("Near Field End", &camera->m_near_end, camera->m_near, camera->m_far);
+                ImGui::SliderFloat("Far Field Begin", &camera->m_far_begin, camera->m_near, camera->m_far);
+                ImGui::SliderFloat("Far Field End", &camera->m_far_end, camera->m_near, camera->m_far);
+			}
 
             if (ImGui::CollapsingHeader("Point Lights"))
             {
