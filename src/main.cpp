@@ -76,7 +76,8 @@ protected:
         // Update camera.
         update_camera();
 
-        gui();
+		if (m_debug_gui)
+			gui();
 
 #ifdef NIMBLE_EDITOR
         if (!m_edit_mode)
