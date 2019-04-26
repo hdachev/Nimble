@@ -21,3 +21,12 @@ and see if there is any RT that is outside of its' lifetime. If there is, swap-a
 and return it. Once a temp RT is used, you must return it to the cache, where it'll be added to the end of either the pure_temp_rts array or input_output_rts array.
 
 2. Viewport Manager
+
+3. Replace GlobalProbeRenderer with IBL
+
+The scene file will now have an attribute called "environment" will can either be "SOLID_COLOR" or "IBL". IBL is a base class that is responsible for creating the images required for Image-Based Lighting such as an environement map, prefiltering and SH projection. Examples of this are CubemapIBL, BrunetonSkyIBL, PreethamSkyIBL, HosekWilkieSkyIBL etc. These classes will also have a "bind()" function that will allow the renderer to bind the related resources. The IBL resources that are currently created by the Scene will now be moved into these IBL classes. Each IBL class will contain one cubemap for the environment map, one cubemap for the prefiltered map and one 1x9 2D texture for SH coefficients.
+
+4. Replace LocalProbeRenderer with GI
+
+The LocalProbeRenderer classes will be replaced by the GI base class. This will have child classes such as ProbeBasedGI, RelightingProbeBasedGI, VoxelConeTracingGI etc. These classes can have arbitrary 
+The scene file will now have an attribute called "environment" will can either be "SOLID_COLOR" or "IBL". IBL is a base class that is responsible for creating the images required for Image-Based Lighting such as an environement map, prefiltering and SH projection. Examples of this are CubemapIBL, BrunetonSkyIBL, PreethamSkyIBL, HosekWilkieSkyIBL etc. These classes will also have a "bind()" function that will allow the renderer to bind the related resources. The IBL resources that are currently created by the Scene will now be moved into these IBL classes. Each IBL class will contain one cubemap for the environment map, one cubemap for the prefiltered map and one 1x9 2D texture for SH coefficients  resources and can be bound by overriding the virtual "bind()" function. These classses also must contain a path to the shader containing the code for calculating Diffuse and Specular lighting contribution using the bound resources.
