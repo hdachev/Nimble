@@ -93,7 +93,7 @@ vec4 ray_march(vec3 view_dir, int num_steps, vec3 view_pos, vec3 screen_pos, vec
 
         // Sample scene depth from depth buffer at the current ray coordinates. 
 #ifdef SSR_DEPTH_ZERO_TO_ONE
-        // float scene_depth_at_ray_pos = textureLod(s_HiZDepth, current_ray_pos.xy, level).r;
+        float scene_depth_at_ray_pos = textureLod(s_HiZDepth, current_ray_pos.xy, level).r;
 #else
         float scene_depth_at_ray_pos = textureLod(s_HiZDepth, current_ray_pos.xy, level).r * 2.0 - 1.0;
 #endif
@@ -163,7 +163,7 @@ void main()
 		vec2 tc = smoothstep(0.2, 0.6, abs(vec2(0.5, 0.5) - hit_coord.xy));
 		float screen_edge_factor = clamp(1.0 - (tc.x + tc.y), 0.0, 1.0);
 
-		float total_attenuation = camera_facing_refl_attenuation * screen_edge_factor;
+		float total_attenuation = camera_facing_refl_attenuation * screen_edge_factor * hit_coord.w;
 
 		imageStore(i_SSR, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), vec4(hit_coord.xy, total_attenuation, 1.0));
     }
