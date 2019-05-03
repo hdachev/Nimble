@@ -12,6 +12,8 @@ A simple and lightweight OpenGL rendering engine built on top of dwSampleFramewo
 * Temporal Anti-Aliasing (TAA)
 * Per-Object Motion Blur
 * Screen Space Reflections
+* Bokeh Depth of Field
+* Bruneton Atmospheric Scattering
 * Bloom
 * Variety of Tone-Mapping operators (Reinhard, Uncharted 2, Filmic etc)
 * GPU Profiling
