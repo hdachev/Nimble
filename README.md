@@ -21,19 +21,9 @@ A simple and lightweight OpenGL rendering engine built on top of dwSampleFramewo
 
 ## Screenshots
 
-![Nimble](data/main1.jpg)
+![Nimble](data/main_1.jpg)
 
-![Nimble](data/main2.jpg)
-
-![Nimble](data/ssr.jpg)
-
-![Nimble](data/mb1.jpg)
-
-![Nimble](data/mb2.jpg)
-
-![Nimble](data/ssao.jpg)
-
-![Nimble](data/deferred.jpg)
+![Nimble](data/main_2.jpg)
 
 ## Dependencies
 * [dwSampleFramework](https://github.com/diharaw/dwSampleFramework) 
