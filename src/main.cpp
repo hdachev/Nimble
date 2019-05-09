@@ -111,7 +111,7 @@ protected:
         settings.resizable = true;
         settings.width     = 1280;
         settings.height    = 720;
-        settings.title     = "Nimble - Dihara Wijetunga (c) 2018";
+        settings.title     = "Nimble - Dihara Wijetunga (c) 2019";
 
         return settings;
     }
