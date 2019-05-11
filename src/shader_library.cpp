@@ -276,7 +276,7 @@ Program* ShaderLibrary::create_program(const MeshType& type, const uint32_t& fla
             source += "#ifndef FRAGMENT_SHADER_FUNC\n";
             source += "#define FRAGMENT_SHADER_FUNC\n";
             source += material->fragment_shader_func();
-            source += "#endif\n\n";
+            source += "\n\n#endif\n\n";
         }
 
         source += fs_template;

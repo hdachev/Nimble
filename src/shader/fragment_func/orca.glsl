@@ -1,14 +1,11 @@
-#include <../common/material.glsl>
-
-#ifndef FRAGMENT_SHADER_FUNC
-#define FRAGMENT_SHADER_FUNC
-
 void fragment_func(inout MaterialProperties m, inout FragmentProperties f)
 {
+#ifdef MATERIAL_GLSL
 	m.albedo = get_albedo(f.TexCoords);
 	m.normal = get_normal(f);
+#ifdef TEXTURE_METAL_SPEC
 	m.metallic = texture(s_MetalSpec, f.TexCoords).b;
 	m.roughness = texture(s_MetalSpec, f.TexCoords).g;
-}
-
 #endif
+#endif
+}

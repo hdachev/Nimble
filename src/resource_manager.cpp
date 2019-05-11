@@ -261,8 +261,6 @@ std::shared_ptr<Material> ResourceManager::load_material(const std::string& path
             material->set_name(ast_material.name);
             material->set_metallic_workflow(ast_material.metallic_workflow);
             material->set_double_sided(ast_material.double_sided);
-            material->set_vertex_shader_func(ast_material.vertex_shader_func_src);
-            material->set_fragment_shader_func(ast_material.fragment_shader_func_src);
             material->set_blend_mode((BlendMode)ast_material.blend_mode);
             material->set_displacement_type((DisplacementType)ast_material.displacement_type);
             material->set_shading_model((ShadingModel)ast_material.shading_model);
@@ -293,16 +291,28 @@ std::shared_ptr<Material> ResourceManager::load_material(const std::string& path
 
             uint32_t vertex_func_id = 1023;
 
-            if (ast_material.vertex_shader_func_id.size() > 0)
+            if (ast_material.vertex_shader_func_path.size() > 0)
             {
-                if (m_vertex_func_id_map.find(ast_material.vertex_shader_func_id) != m_vertex_func_id_map.end())
-                    vertex_func_id = m_vertex_func_id_map[ast_material.vertex_shader_func_id];
-                else
+                if (m_vertex_func_id_map.find(ast_material.vertex_shader_func_path) != m_vertex_func_id_map.end())
                 {
-                    uint32_t id                                              = g_vertex_func_id_counter++;
-                    m_vertex_func_id_map[ast_material.vertex_shader_func_id] = id;
+                    vertex_func_id = m_vertex_func_id_map[ast_material.vertex_shader_func_path];
+                    std::string src = m_vertex_func_cache[ast_material.vertex_shader_func_path];
+                    material->set_vertex_shader_func(src);
+				}
+                else
+                {    
+					std::string folder_path = utility::path_without_file(path);
+					std::string src = "";
 
-                    vertex_func_id = id;
+					if (utility::read_text(ast_material.vertex_shader_func_path, src))
+					{
+						uint32_t id                                                = g_vertex_func_id_counter++;
+						m_vertex_func_id_map[ast_material.vertex_shader_func_path] = id;
+						m_vertex_func_cache[ast_material.vertex_shader_func_path] = src;
+
+						vertex_func_id = id;
+						material->set_vertex_shader_func(src);
+					}
                 }
             }
 
@@ -310,16 +320,28 @@ std::shared_ptr<Material> ResourceManager::load_material(const std::string& path
 
             uint32_t fragment_func_id = 1023;
 
-            if (ast_material.fragment_shader_func_id.size() > 0)
+            if (ast_material.fragment_shader_func_path.size() > 0)
             {
-                if (m_fragment_func_id_map.find(ast_material.fragment_shader_func_id) != m_fragment_func_id_map.end())
-                    fragment_func_id = m_fragment_func_id_map[ast_material.fragment_shader_func_id];
+                if (m_fragment_func_id_map.find(ast_material.fragment_shader_func_path) != m_fragment_func_id_map.end())
+                {
+                    fragment_func_id = m_fragment_func_id_map[ast_material.fragment_shader_func_path];
+                    std::string src = m_fragment_func_cache[ast_material.fragment_shader_func_path];
+                    material->set_fragment_shader_func(src);
+                }
                 else
                 {
-                    uint32_t id                                                  = g_fragment_func_id_counter++;
-                    m_fragment_func_id_map[ast_material.fragment_shader_func_id] = id;
+                    std::string folder_path = utility::path_without_file(path);
+                    std::string src = "";
 
-                    fragment_func_id = id;
+                    if (utility::read_text(ast_material.fragment_shader_func_path, src))
+                    {
+                        uint32_t id                                                = g_fragment_func_id_counter++;
+                        m_fragment_func_id_map[ast_material.fragment_shader_func_path] = id;
+                        m_fragment_func_cache[ast_material.fragment_shader_func_path]  = src;
+
+                        fragment_func_id = id;
+                        material->set_fragment_shader_func(src);
+                    }
                 }
             }
 
