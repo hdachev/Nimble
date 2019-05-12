@@ -18,6 +18,8 @@ public:
 
 private:
     int32_t                       m_tone_map_operator = 4;
+    std::shared_ptr<RenderTarget> m_tonemap_rt;
+    RenderTargetView              m_tonemap_rtv;
     std::shared_ptr<Shader>       m_vs;
     std::shared_ptr<Shader>       m_fs;
     std::shared_ptr<Program>      m_program;

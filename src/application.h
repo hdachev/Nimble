@@ -15,6 +15,7 @@
 #include "timer.h"
 #include "renderer.h"
 #include "resource_manager.h"
+#include "viewport_manager.h"
 
 // Main method macro. Use this at the bottom of any cpp file.
 #define NIMBLE_DECLARE_MAIN(class_name)    \
@@ -114,6 +115,7 @@ protected:
     Timer                               m_timer;
     DebugDraw                           m_debug_draw;
     ResourceManager                     m_resource_manager;
+    ViewportManager                     m_viewport_manager;
     Renderer                            m_renderer;
 };
 } // namespace nimble

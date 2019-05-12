@@ -3,10 +3,13 @@
 #include <glm.hpp>
 #include <gtc/quaternion.hpp>
 #include <vector>
+#include <memory>
 #include "geometry.h"
 
 namespace nimble
 {
+struct Viewport;
+
 struct Camera
 {
     float     m_fov;
@@ -32,7 +35,7 @@ struct Camera
     glm::mat4 m_rotate;
     glm::mat4 m_translate;
 
-	float m_near_begin = 0.0f;
+    float m_near_begin = 0.0f;
     float m_near_end   = 0.0f;
     float m_far_begin  = 0.0f;
     float m_far_end    = 0.0f;
@@ -46,13 +49,14 @@ struct Camera
 
     Frustum m_frustum;
 
-    uint32_t               m_index;
-    std::vector<glm::vec2> m_jitter_samples;
-    bool                   m_half_pixel_jitter;
-    glm::vec2              m_current_jitter;
-    glm::vec2              m_prev_jitter;
-    uint32_t               m_width;
-    uint32_t               m_height;
+    uint32_t                  m_index;
+    std::vector<glm::vec2>    m_jitter_samples;
+    bool                      m_half_pixel_jitter;
+    glm::vec2                 m_current_jitter;
+    glm::vec2                 m_prev_jitter;
+    uint32_t                  m_width;
+    uint32_t                  m_height;
+    std::shared_ptr<Viewport> m_viewport = nullptr;
 
     Camera(float fov, float near, float far, float aspect_ratio, glm::vec3 position, glm::vec3 forward);
     void reset(float fov, float near, float far, float aspect_ratio, glm::vec3 position, glm::vec3 forward);

@@ -160,6 +160,7 @@ bool Application::init_base(int argc, const char* argv[])
         return false;
 
     profiler::initialize();
+    m_viewport_manager.initialize(m_width, m_height);
     m_renderer.initialize(&m_resource_manager, m_width, m_height);
 
     return true;

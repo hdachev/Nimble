@@ -19,6 +19,7 @@ class ShadowRenderGraph;
 class ResourceManager;
 class GlobalProbeRenderer;
 class LocalProbeRenderer;
+class ViewportManager;
 
 enum ShadowMapQuality : uint32_t
 {
@@ -45,7 +46,7 @@ public:
     ~Renderer();
 
     bool initialize(ResourceManager* res_mgr, const uint32_t& w, const uint32_t& h);
-    void render(double delta);
+    void render(double delta, ViewportManager* viewport_mgr);
     void shutdown();
 
     void  set_settings(Settings settings);

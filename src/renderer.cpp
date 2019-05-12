@@ -14,6 +14,7 @@
 #include "resource_manager.h"
 #include "global_probe_renderer.h"
 #include "local_probe_renderer.h"
+#include "viewport_manager.h"
 
 #include <gtc/matrix_transform.hpp>
 #include <fstream>
@@ -155,7 +156,7 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::render(double delta)
+void Renderer::render(double delta, ViewportManager* viewport_mgr)
 {
     render_probes(delta);
 
@@ -166,6 +167,8 @@ void Renderer::render(double delta)
     cull_scene();
 
     render_all_views(delta);
+
+	viewport_mgr->render_viewports(this, m_num_rendered_views, &m_rendered_views[0]);
 
     clear_all_views();
 }
@@ -1730,6 +1733,7 @@ void Renderer::queue_default_views()
         scene_view->inv_vp_mat              = glm::inverse(camera->m_view_projection);
         scene_view->jitter                  = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
         scene_view->dest_render_target_view = nullptr;
+        scene_view->viewport                = camera->m_viewport;
         scene_view->graph                   = m_scene_render_graph;
         scene_view->type                    = VIEW_STANDARD;
         scene_view->fov                     = camera->m_fov;

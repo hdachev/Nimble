@@ -8,6 +8,7 @@
 namespace nimble
 {
 struct RenderTargetView;
+struct Viewport;
 class RenderGraph;
 class Scene;
 
@@ -43,6 +44,7 @@ struct View
     float                        far_plane;
     float                        near_plane;
     std::shared_ptr<RenderGraph> graph;
+    std::shared_ptr<Viewport>    viewport;
     RenderTargetView*            dest_render_target_view;
     ViewType                     type;
 
@@ -58,6 +60,7 @@ struct View
 
     View()
     {
+        viewport                = nullptr;
         dest_render_target_view = nullptr;
         num_cascade_frustums    = 0;
         num_cascade_views       = 0;

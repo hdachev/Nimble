@@ -88,7 +88,7 @@ protected:
 #ifdef NIMBLE_EDITOR
         }
 #endif
-        m_renderer.render(delta);
+        m_renderer.render(delta, &m_viewport_manager);
 
         if (m_scene)
             m_debug_draw.render(nullptr, m_width, m_height, m_scene->camera()->m_view_projection);
@@ -129,6 +129,7 @@ protected:
             m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
         }
 
+		m_viewport_manager.on_window_resized(width, height);
         m_renderer.on_window_resized(width, height);
     }
 
@@ -194,6 +195,10 @@ private:
         m_scene->camera()->m_height            = m_height;
         m_scene->camera()->m_half_pixel_jitter = false;
         m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
+
+		m_viewport = m_viewport_manager.create_viewport("Main", 0.0f, 0.0f, 0.5f, 0.5f, 0);
+
+		m_scene->camera()->m_viewport = m_viewport;
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -780,6 +785,7 @@ private:
     float m_camera_speed       = 0.1f;
 
     std::shared_ptr<Scene>                 m_scene;
+    std::shared_ptr<Viewport>              m_viewport;
     std::shared_ptr<RenderGraph>           m_forward_graph;
     std::shared_ptr<ShadowRenderGraph>     m_pcf_point_light_graph;
     std::shared_ptr<ShadowRenderGraph>     m_pcf_spot_light_graph;

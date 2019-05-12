@@ -125,6 +125,18 @@ void RenderGraph::trigger_cascade_view_render(View* view)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+std::shared_ptr<RenderTarget> RenderGraph::output_render_target()
+{
+    const auto& last_node = m_flattened_graph[m_flattened_graph.size() - 1];
+    
+	if (last_node->output_render_target_count() > 0)
+        return last_node->output_render_target(0);
+
+	return nullptr;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void RenderGraph::on_window_resized(const uint32_t& w, const uint32_t& h)
 {
     m_window_width  = w;
