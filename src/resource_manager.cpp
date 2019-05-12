@@ -295,24 +295,24 @@ std::shared_ptr<Material> ResourceManager::load_material(const std::string& path
             {
                 if (m_vertex_func_id_map.find(ast_material.vertex_shader_func_path) != m_vertex_func_id_map.end())
                 {
-                    vertex_func_id = m_vertex_func_id_map[ast_material.vertex_shader_func_path];
+                    vertex_func_id  = m_vertex_func_id_map[ast_material.vertex_shader_func_path];
                     std::string src = m_vertex_func_cache[ast_material.vertex_shader_func_path];
                     material->set_vertex_shader_func(src);
-				}
+                }
                 else
-                {    
-					std::string folder_path = utility::path_without_file(path);
-					std::string src = "";
+                {
+                    std::string folder_path = utility::path_without_file(path);
+                    std::string src         = "";
 
-					if (utility::read_text(ast_material.vertex_shader_func_path, src))
-					{
-						uint32_t id                                                = g_vertex_func_id_counter++;
-						m_vertex_func_id_map[ast_material.vertex_shader_func_path] = id;
-						m_vertex_func_cache[ast_material.vertex_shader_func_path] = src;
+                    if (utility::read_text(ast_material.vertex_shader_func_path, src))
+                    {
+                        uint32_t id                                                = g_vertex_func_id_counter++;
+                        m_vertex_func_id_map[ast_material.vertex_shader_func_path] = id;
+                        m_vertex_func_cache[ast_material.vertex_shader_func_path]  = src;
 
-						vertex_func_id = id;
-						material->set_vertex_shader_func(src);
-					}
+                        vertex_func_id = id;
+                        material->set_vertex_shader_func(src);
+                    }
                 }
             }
 
@@ -325,17 +325,17 @@ std::shared_ptr<Material> ResourceManager::load_material(const std::string& path
                 if (m_fragment_func_id_map.find(ast_material.fragment_shader_func_path) != m_fragment_func_id_map.end())
                 {
                     fragment_func_id = m_fragment_func_id_map[ast_material.fragment_shader_func_path];
-                    std::string src = m_fragment_func_cache[ast_material.fragment_shader_func_path];
+                    std::string src  = m_fragment_func_cache[ast_material.fragment_shader_func_path];
                     material->set_fragment_shader_func(src);
                 }
                 else
                 {
                     std::string folder_path = utility::path_without_file(path);
-                    std::string src = "";
+                    std::string src         = "";
 
                     if (utility::read_text(ast_material.fragment_shader_func_path, src))
                     {
-                        uint32_t id                                                = g_fragment_func_id_counter++;
+                        uint32_t id                                                    = g_fragment_func_id_counter++;
                         m_fragment_func_id_map[ast_material.fragment_shader_func_path] = id;
                         m_fragment_func_cache[ast_material.fragment_shader_func_path]  = src;
 
@@ -641,8 +641,8 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
 
                     nodes.push_back(new_node);
                 }
-				else
-					NIMBLE_LOG_ERROR("Failed to find factory for node type: " + node_name);
+                else
+                    NIMBLE_LOG_ERROR("Failed to find factory for node type: " + node_name);
             }
         }
 

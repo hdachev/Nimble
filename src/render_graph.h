@@ -20,15 +20,15 @@ public:
     RenderGraph();
     ~RenderGraph();
 
-    void                        build(std::shared_ptr<RenderNode> end_node);
-    void                        execute(double delta, Renderer* renderer, Scene* scene, View* view);
-    void                        shutdown();
-    void                        clear();
-    std::shared_ptr<RenderNode> node_by_name(const std::string& name);
-    void                        trigger_cascade_view_render(View* view);
+    void                          build(std::shared_ptr<RenderNode> end_node);
+    void                          execute(double delta, Renderer* renderer, Scene* scene, View* view);
+    void                          shutdown();
+    void                          clear();
+    std::shared_ptr<RenderNode>   node_by_name(const std::string& name);
+    void                          trigger_cascade_view_render(View* view);
     std::shared_ptr<RenderTarget> output_render_target();
-    void                        on_window_resized(const uint32_t& w, const uint32_t& h);
-    
+    void                          on_window_resized(const uint32_t& w, const uint32_t& h);
+
     inline void                        set_name(const std::string& name) { m_name = name; }
     inline std::string                 name() { return m_name; }
     inline uint32_t                    node_count() { return (uint32_t)m_flattened_graph.size(); }

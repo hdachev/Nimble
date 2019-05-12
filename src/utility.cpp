@@ -248,8 +248,8 @@ bool preprocess_shader(const std::string& path, const std::string& src, std::str
         if (line.find("#include") != std::string::npos)
         {
             size_t start = line.find_first_of("<");
-			
-			if (start == std::string::npos)
+
+            if (start == std::string::npos)
                 continue;
 
             start += 1;

@@ -17,8 +17,8 @@ public:
     std::string name() override;
 
 private:
-    bool m_enabled;
-    float m_thickness = 0.2f;
+    bool    m_enabled;
+    float   m_thickness = 0.2f;
     int32_t m_num_steps = 32;
 
     // Inputs

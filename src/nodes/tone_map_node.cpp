@@ -29,7 +29,7 @@ void ToneMapNode::declare_connections()
     register_input_render_target("Color");
     register_input_render_target("Luminance");
 
-	m_tonemap_rt = register_scaled_output_render_target("ToneMap", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+    m_tonemap_rt = register_scaled_output_render_target("ToneMap", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ bool ToneMapNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     m_texture  = find_input_render_target("Color");
     m_avg_luma = find_input_render_target("Luminance");
 
-	m_tonemap_rtv = RenderTargetView(0, 0, 0, m_tonemap_rt->texture);
+    m_tonemap_rtv = RenderTargetView(0, 0, 0, m_tonemap_rt->texture);
 
     m_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
     m_fs = res_mgr->load_shader("shader/post_process/tone_map_fs.glsl", GL_FRAGMENT_SHADER);

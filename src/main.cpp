@@ -76,8 +76,8 @@ protected:
         // Update camera.
         update_camera();
 
-		if (m_debug_gui)
-			gui();
+        if (m_debug_gui)
+            gui();
 
 #ifdef NIMBLE_EDITOR
         if (!m_edit_mode)
@@ -129,7 +129,7 @@ protected:
             m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
         }
 
-		m_viewport_manager.on_window_resized(width, height);
+        m_viewport_manager.on_window_resized(width, height);
         m_renderer.on_window_resized(width, height);
     }
 
@@ -196,9 +196,9 @@ private:
         m_scene->camera()->m_half_pixel_jitter = false;
         m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
 
-		m_viewport = m_viewport_manager.create_viewport("Main", 0.0f, 0.0f, 0.5f, 0.5f, 0);
+        m_viewport = m_viewport_manager.create_viewport("Main", 0.0f, 0.0f, 0.5f, 0.5f, 0);
 
-		m_scene->camera()->m_viewport = m_viewport;
+        m_scene->camera()->m_viewport = m_viewport;
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -447,15 +447,15 @@ private:
                 }
             }
 
-			if (ImGui::CollapsingHeader("Camera"))
+            if (ImGui::CollapsingHeader("Camera"))
             {
-				std::shared_ptr<Camera> camera = m_scene->camera();
+                std::shared_ptr<Camera> camera = m_scene->camera();
 
-				ImGui::SliderFloat("Near Field Begin", &camera->m_near_begin, camera->m_near, camera->m_far);
+                ImGui::SliderFloat("Near Field Begin", &camera->m_near_begin, camera->m_near, camera->m_far);
                 ImGui::SliderFloat("Near Field End", &camera->m_near_end, camera->m_near, camera->m_far);
                 ImGui::SliderFloat("Far Field Begin", &camera->m_far_begin, camera->m_near, camera->m_far);
                 ImGui::SliderFloat("Far Field End", &camera->m_far_end, camera->m_near, camera->m_far);
-			}
+            }
 
             if (ImGui::CollapsingHeader("Point Lights"))
             {

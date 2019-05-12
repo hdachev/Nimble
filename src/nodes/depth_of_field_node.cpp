@@ -137,7 +137,7 @@ void DepthOfFieldNode::execute(double delta, Renderer* renderer, Scene* scene, V
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
-	if (m_enabled)
+    if (m_enabled)
     {
         coc_generation(delta, renderer, scene, view);
         downsample(delta, renderer, scene, view);
@@ -180,13 +180,13 @@ void DepthOfFieldNode::coc_generation(double delta, Renderer* renderer, Scene* s
 
     m_coc_program->use();
 
-	if (m_coc_program->set_uniform("s_Depth", 0))
+    if (m_coc_program->set_uniform("s_Depth", 0))
         m_depth_rt->texture->bind(0);
 
     glm::vec2 pixel_size = glm::vec2(1.0f / float(m_graph->window_width()), 1.0f / float(m_graph->window_height()));
     m_coc_program->set_uniform("u_PixelSize", pixel_size);
 
-	std::shared_ptr<Camera> camera = scene->camera();
+    std::shared_ptr<Camera> camera = scene->camera();
     m_coc_program->set_uniform("u_NearBegin", camera->m_near_begin);
     m_coc_program->set_uniform("u_NearEnd", camera->m_near_end);
     m_coc_program->set_uniform("u_FarBegin", camera->m_far_begin);

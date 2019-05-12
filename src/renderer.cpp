@@ -168,7 +168,7 @@ void Renderer::render(double delta, ViewportManager* viewport_mgr)
 
     render_all_views(delta);
 
-	viewport_mgr->render_viewports(this, m_num_rendered_views, &m_rendered_views[0]);
+    viewport_mgr->render_viewports(this, m_num_rendered_views, &m_rendered_views[0]);
 
     clear_all_views();
 }
@@ -1329,11 +1329,11 @@ int32_t Renderer::find_render_target_last_usage(std::shared_ptr<RenderTarget> rt
             {
                 std::shared_ptr<RenderTarget> input_rt = node->input_render_target(rt_idx);
 
-				if (input_rt)
-				{
-					if (rt->id == input_rt->id)
-						last_node_id = node_gid;
-				}
+                if (input_rt)
+                {
+                    if (rt->id == input_rt->id)
+                        last_node_id = node_gid;
+                }
             }
 
             node_gid++;
@@ -1415,7 +1415,7 @@ void Renderer::bake_render_graphs()
             {
                 std::shared_ptr<RenderTarget> rt = node->output_render_target(rt_idx);
 
-				if (!rt)
+                if (!rt)
                     continue;
 
                 if (rt->forward_slot == "")
@@ -1541,7 +1541,7 @@ void Renderer::update_uniforms()
             float z_buffer_params_x = -1.0 + (view->near_plane / view->far_plane);
 
             m_per_view_uniforms[i].z_buffer_params = glm::vec4(z_buffer_params_x, 1.0f, z_buffer_params_x / view->near_plane, 1.0f / view->near_plane);
-         
+
             for (uint32_t j = 0; j < view->num_cascade_frustums; j++)
             {
                 m_per_view_uniforms[i].cascade_matrix[j]    = view->cascade_matrix[j];
@@ -1562,7 +1562,7 @@ void Renderer::update_uniforms()
         {
             DirectionalLight& light = dir_lights[light_idx];
 
-			m_per_scene_uniforms.shadow_map_bias[light_idx].x                 = light.shadow_map_bias;
+            m_per_scene_uniforms.shadow_map_bias[light_idx].x                 = light.shadow_map_bias;
             m_per_scene_uniforms.directional_light_direction[light_idx]       = glm::vec4(light.transform.forward(), 0.0f);
             m_per_scene_uniforms.directional_light_color_intensity[light_idx] = glm::vec4(light.color, light.intensity);
             m_per_scene_uniforms.directional_light_casts_shadow[light_idx]    = light.casts_shadow ? 1 : 0;
@@ -1576,7 +1576,7 @@ void Renderer::update_uniforms()
         {
             SpotLight& light = spot_lights[light_idx];
 
-			m_per_scene_uniforms.shadow_map_bias[light_idx].y             = light.shadow_map_bias;
+            m_per_scene_uniforms.shadow_map_bias[light_idx].y             = light.shadow_map_bias;
             m_per_scene_uniforms.spot_light_direction_range[light_idx]    = glm::vec4(light.transform.forward(), light.range);
             m_per_scene_uniforms.spot_light_color_intensity[light_idx]    = glm::vec4(light.color, light.intensity);
             m_per_scene_uniforms.spot_light_position[light_idx]           = glm::vec4(light.transform.position, 0.0f);
@@ -1592,7 +1592,7 @@ void Renderer::update_uniforms()
         {
             PointLight& light = point_lights[light_idx];
 
-			m_per_scene_uniforms.shadow_map_bias[light_idx].z           = light.shadow_map_bias;
+            m_per_scene_uniforms.shadow_map_bias[light_idx].z           = light.shadow_map_bias;
             m_per_scene_uniforms.point_light_position_range[light_idx]  = glm::vec4(light.transform.position, light.range);
             m_per_scene_uniforms.point_light_color_intensity[light_idx] = glm::vec4(light.color, light.intensity);
             m_per_scene_uniforms.point_light_casts_shadow[light_idx]    = light.casts_shadow ? 1 : 0;

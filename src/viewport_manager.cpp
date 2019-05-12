@@ -54,32 +54,32 @@ void ViewportManager::render_viewports(Renderer* renderer, uint32_t num_viewport
     // Sort viewports by Z-Order
     std::sort(m_onscreen_views.begin(), m_onscreen_views.begin() + num_onscreen_views, viewport_sort_func);
 
-	std::shared_ptr<Program> program = renderer->copy_program();
+    std::shared_ptr<Program> program = renderer->copy_program();
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     program->use();
 
-	for (uint32_t i = 0; i < num_onscreen_views; i++)
+    for (uint32_t i = 0; i < num_onscreen_views; i++)
     {
-		const auto& view = m_onscreen_views[i];
+        const auto& view = m_onscreen_views[i];
 
-		glViewport(view->viewport->x_scale * m_window_width, view->viewport->y_scale * m_window_height, view->viewport->w_scale * m_window_width, view->viewport->h_scale * m_window_height);
+        glViewport(view->viewport->x_scale * m_window_width, view->viewport->y_scale * m_window_height, view->viewport->w_scale * m_window_width, view->viewport->h_scale * m_window_height);
 
-		if (program->set_uniform("s_Texture", 0))
-		{
-			auto& rt = view->graph->output_render_target();
+        if (program->set_uniform("s_Texture", 0))
+        {
+            auto& rt = view->graph->output_render_target();
 
-			if (rt)
-				rt->texture->bind(0);
-		}
+            if (rt)
+                rt->texture->bind(0);
+        }
 
-		// Render fullscreen triangle
+        // Render fullscreen triangle
         glDrawArrays(GL_TRIANGLES, 0, 3);
     }
 }

@@ -17,7 +17,7 @@ public:
     std::string name() override;
 
 private:
-    bool m_enabled = true;
+    bool  m_enabled                    = true;
     float m_quality_edge_threshold     = 0.166f;
     float m_quality_edge_threshold_min = 0.0833f;
 

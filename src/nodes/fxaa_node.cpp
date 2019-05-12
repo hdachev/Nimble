@@ -73,7 +73,7 @@ void FXAANode::execute(double delta, Renderer* renderer, Scene* scene, View* vie
         if (m_fxaa_program->set_uniform("s_Texture", 0) && m_color_rt)
             m_color_rt->texture->bind(0);
 
-		m_fxaa_program->set_uniform("u_QualityEdgeThreshold", m_quality_edge_threshold);
+        m_fxaa_program->set_uniform("u_QualityEdgeThreshold", m_quality_edge_threshold);
         m_fxaa_program->set_uniform("u_QualityEdgeThresholdMin", m_quality_edge_threshold_min);
         m_fxaa_program->set_uniform("u_QualityRcpFrame", glm::vec2(1.0f / m_graph->window_width(), 1.0f / m_graph->window_height()));
 
