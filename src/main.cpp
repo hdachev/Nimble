@@ -196,7 +196,7 @@ private:
         m_scene->camera()->m_half_pixel_jitter = false;
         m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
 
-        m_viewport = m_viewport_manager.create_viewport("Main", 0.0f, 0.0f, 0.5f, 0.5f, 0);
+        m_viewport = m_viewport_manager.create_viewport("Main", 0.0f, 0.0f, 1.0f, 1.0f, 0);
 
         m_scene->camera()->m_viewport = m_viewport;
     }
