@@ -14,6 +14,7 @@ A simple and lightweight OpenGL rendering engine built on top of dwSampleFramewo
 * Screen Space Reflections
 * Bokeh Depth of Field
 * Bruneton Atmospheric Scattering
+* Volumetric Lighting
 * Bloom
 * Variety of Tone-Mapping operators (Reinhard, Uncharted 2, Filmic etc)
 * GPU Profiling
