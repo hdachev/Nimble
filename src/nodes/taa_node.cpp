@@ -29,6 +29,7 @@ void TAANode::declare_connections()
     register_input_render_target("Velocity");
 
     m_taa_rt = register_scaled_output_render_target("TAA", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+    m_prev_rt = register_scaled_intermediate_render_target("Previous", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -73,10 +74,16 @@ void TAANode::execute(double delta, Renderer* renderer, Scene* scene, View* view
         if (m_taa_program->set_uniform("s_Color", 0) && m_color_rt)
             m_color_rt->texture->bind(0);
 
-        if (m_taa_program->set_uniform("s_Velocity", 1) && m_velocity_rt)
-            m_velocity_rt->texture->bind(1);
+		if (m_taa_program->set_uniform("s_Prev", 1) && m_prev_rt)
+            m_prev_rt->texture->bind(1);
+
+        if (m_taa_program->set_uniform("s_Velocity", 2) && m_velocity_rt)
+            m_velocity_rt->texture->bind(2);
 
         render_fullscreen_triangle(renderer, view);
+
+		// Copy Current Target to Previous
+        blit_render_target(renderer, m_taa_rt, m_prev_rt);
     }
     else
         blit_render_target(renderer, m_color_rt, m_taa_rt);

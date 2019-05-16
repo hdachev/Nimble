@@ -21,6 +21,7 @@ private:
 
     // Inputs
     std::shared_ptr<RenderTarget> m_color_rt;
+    std::shared_ptr<RenderTarget> m_prev_rt;
     std::shared_ptr<RenderTarget> m_velocity_rt;
 
     // Outputs
