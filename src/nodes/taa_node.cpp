@@ -92,6 +92,11 @@ void TAANode::execute(double delta, Renderer* renderer, Scene* scene, View* view
         if (m_taa_program->set_uniform("s_Velocity", 2) && m_velocity_rt)
             m_velocity_rt->texture->bind(2);
 
+		m_taa_program->set_uniform("u_TexelSize", glm::vec4(1.0f / m_graph->window_width(), 1.0f / m_graph->window_height(), m_graph->window_width(), m_graph->window_height()));
+        m_taa_program->set_uniform("u_FeedbackMin", m_feedback_min);
+        m_taa_program->set_uniform("u_FeedbackMax", m_feedback_max);
+        m_taa_program->set_uniform("u_MotionScale", m_motion_blur_strength);
+
         render_fullscreen_triangle(renderer, view);
 
         // Copy Current Target to Previous

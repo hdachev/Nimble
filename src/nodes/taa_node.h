@@ -36,6 +36,7 @@ private:
     bool m_use_optimizations = true;
     float        m_feedback_min          = 0.88f;
     float        m_feedback_max          = 0.97f;
+    float        m_motion_blur_strength   = 1.0f;
 
     // Inputs
     std::shared_ptr<RenderTarget> m_color_rt;
