@@ -36,9 +36,9 @@ struct EnumValue
 
 struct EnumParameter
 {
-    int32_t*    ptr;
-    std::string name;
-	std::vector<EnumValue> values;
+    int32_t*               ptr;
+    std::string            name;
+    std::vector<EnumValue> values;
 };
 
 class Parameterizable

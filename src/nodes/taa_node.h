@@ -24,18 +24,18 @@ public:
     std::string name() override;
 
 private:
-    bool m_enabled = true;
-    Neighborhood m_neighborhood = MIN_MAX_3X3_ROUNDED;
-    bool m_unjitter_color_samples = true;
-    bool m_unjitter_neighborhood = false;
-    bool m_unjitter_reprojection = false;
-    bool m_use_ycocg= false;
-    bool m_use_clipping = true;
-    bool m_use_dilation = true;
-    bool m_use_motion_blur = true;
-    bool m_use_optimizations = true;
-    float        m_feedback_min          = 0.88f;
-    float        m_feedback_max          = 0.97f;
+    bool         m_enabled                = true;
+    Neighborhood m_neighborhood           = MIN_MAX_3X3_ROUNDED;
+    bool         m_unjitter_color_samples = true;
+    bool         m_unjitter_neighborhood  = false;
+    bool         m_unjitter_reprojection  = false;
+    bool         m_use_ycocg              = false;
+    bool         m_use_clipping           = true;
+    bool         m_use_dilation           = true;
+    bool         m_use_motion_blur        = true;
+    bool         m_use_optimizations      = true;
+    float        m_feedback_min           = 0.88f;
+    float        m_feedback_max           = 0.97f;
     float        m_motion_blur_strength   = 1.0f;
 
     // Inputs
