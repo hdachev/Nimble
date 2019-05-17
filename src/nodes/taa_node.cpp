@@ -56,7 +56,33 @@ bool TAANode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     m_taa_rtv = RenderTargetView(0, 0, 0, m_taa_rt->texture);
 
     m_fullscreen_triangle_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
-    m_taa_fs                 = res_mgr->load_shader("shader/post_process/taa/taa_fs.glsl", GL_FRAGMENT_SHADER);
+
+	std::vector<std::string> defines;
+
+	if (m_neighborhood == MIN_MAX_3X3)
+		defines.push_back("MINMAX_3X3");
+	if (m_neighborhood == MIN_MAX_3X3_ROUNDED)
+	    defines.push_back("MINMAX_3X3_ROUNDED");
+	if (m_neighborhood == MIN_MAX_4_TAP_VARYING)
+	    defines.push_back("MINMAX_4TAP_VARYING");
+	if (m_unjitter_color_samples)
+		defines.push_back("UNJITTER_COLORSAMPLES");
+	if (m_unjitter_neighborhood)
+	    defines.push_back("UNJITTER_NEIGHBORHOOD");
+	if (m_unjitter_reprojection)
+	    defines.push_back("UNJITTER_REPROJECTION");
+	if (m_use_ycocg)
+	    defines.push_back("USE_YCOCG");
+	if (m_use_clipping)
+	    defines.push_back("USE_CLIPPING");
+	if (m_use_dilation)
+	    defines.push_back("USE_DILATION");
+	if (m_use_motion_blur)
+	    defines.push_back("USE_MOTION_BLUR");
+	if (m_use_optimizations)
+	    defines.push_back("USE_OPTIMIZATIONS");
+
+    m_taa_fs = res_mgr->load_shader("shader/post_process/taa/taa_fs.glsl", GL_FRAGMENT_SHADER, defines);
 
     if (m_fullscreen_triangle_vs && m_taa_fs)
     {
