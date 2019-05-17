@@ -28,7 +28,7 @@ void TAANode::declare_connections()
     register_input_render_target("Color");
     register_input_render_target("Velocity");
 
-    m_taa_rt = register_scaled_output_render_target("TAA", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+    m_taa_rt  = register_scaled_output_render_target("TAA", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
     m_prev_rt = register_scaled_intermediate_render_target("Previous", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 }
 
@@ -37,8 +37,20 @@ void TAANode::declare_connections()
 bool TAANode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Enabled", m_enabled);
+    register_enum_parameter("Neighborhood", &m_neighborhood, { { MIN_MAX_3X3, "Min Max 3x3" }, { MIN_MAX_3X3_ROUNDED, "Min Max 3x3 Rounded" }, { MIN_MAX_4_TAP_VARYING, "Min Max 4 Tap Varying" } });
+    register_bool_parameter("Unjitter Color Samples", m_unjitter_color_samples);
+    register_bool_parameter("Unjitter Neighborhood", m_unjitter_neighborhood);
+    register_bool_parameter("Unjitter Reprojection", m_unjitter_reprojection);
+    register_bool_parameter("Use YCoCg", m_use_ycocg);
+    register_bool_parameter("Use Clipping", m_use_clipping);
+    register_bool_parameter("Use Dilation", m_use_dilation);
+    register_bool_parameter("Use Motion Blur", m_use_motion_blur);
+    register_bool_parameter("Use Optimizations", m_use_optimizations);
+    register_bool_parameter("Use Dilation", m_use_dilation);
+    register_float_parameter("Feedback Min", m_feedback_min, 0.0f, 1.0f);
+    register_float_parameter("Feedback Max", m_feedback_max, 0.0, 1.0f);
 
-    m_color_rt    = find_input_render_target("Color");
+    m_color_rt = find_input_render_target("Color");
     m_velocity_rt = find_input_render_target("Velocity");
 
     m_taa_rtv = RenderTargetView(0, 0, 0, m_taa_rt->texture);
@@ -74,7 +86,7 @@ void TAANode::execute(double delta, Renderer* renderer, Scene* scene, View* view
         if (m_taa_program->set_uniform("s_Color", 0) && m_color_rt)
             m_color_rt->texture->bind(0);
 
-		if (m_taa_program->set_uniform("s_Prev", 1) && m_prev_rt)
+        if (m_taa_program->set_uniform("s_Prev", 1) && m_prev_rt)
             m_prev_rt->texture->bind(1);
 
         if (m_taa_program->set_uniform("s_Velocity", 2) && m_velocity_rt)
@@ -82,7 +94,7 @@ void TAANode::execute(double delta, Renderer* renderer, Scene* scene, View* view
 
         render_fullscreen_triangle(renderer, view);
 
-		// Copy Current Target to Previous
+        // Copy Current Target to Previous
         blit_render_target(renderer, m_taa_rt, m_prev_rt);
     }
     else

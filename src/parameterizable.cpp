@@ -58,6 +58,20 @@ void Parameterizable::set_float_parameter(const std::string& name, float value)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+void Parameterizable::set_enum_parameter(const std::string& name, int32_t value)
+{
+    for (auto& param : m_enum_parameters)
+    {
+        if (name == param.name && param.ptr)
+        {
+            *param.ptr = value;
+            return;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 BoolParameter* Parameterizable::bool_parameters(int32_t& count)
 {
     count = m_bool_parameters.size();
@@ -94,6 +108,18 @@ FloatParameter* Parameterizable::float_parameters(int32_t& count)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+EnumParameter* Parameterizable::enum_parameters(int32_t& count)
+{
+    count = m_enum_parameters.size();
+
+    if (count == 0)
+        return nullptr;
+
+    return &m_enum_parameters[0];
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void Parameterizable::register_bool_parameter(const std::string& name, bool& parameter)
 {
     m_bool_parameters.push_back({ &parameter, name });
@@ -111,6 +137,13 @@ void Parameterizable::register_int_parameter(const std::string& name, int32_t& p
 void Parameterizable::register_float_parameter(const std::string& name, float& parameter, float min, float max)
 {
     m_float_parameters.push_back({ &parameter, name, min, max });
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void Parameterizable::register_enum_parameter(const std::string& name, void* parameter, std::vector<EnumValue> values)
+{
+    m_enum_parameters.push_back({ (int32_t*)parameter, name, values });
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
