@@ -53,6 +53,7 @@ struct PerViewUniforms
     glm::vec4 current_prev_jitter;
     glm::vec4 z_buffer_params;
     glm::vec4 time_params;
+    glm::vec4 viewport_params;
     float     cascade_far_plane[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
     float     tan_half_fov;
     float     aspect_ratio;

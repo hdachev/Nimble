@@ -45,6 +45,8 @@ struct View
     float                        near_plane;
     std::shared_ptr<RenderGraph> graph;
     std::shared_ptr<Viewport>    viewport;
+    int32_t                      viewport_width;
+    int32_t                      viewport_height;
     RenderTargetView*            dest_render_target_view;
     ViewType                     type;
 

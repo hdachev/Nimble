@@ -1539,6 +1539,7 @@ void Renderer::update_uniforms(double delta)
             m_per_view_uniforms[i].viewport_height     = m_window_height;
             m_per_view_uniforms[i].current_prev_jitter = view->jitter;
             m_per_view_uniforms[i].time_params         = glm::vec4(static_cast<float>(glfwGetTime()), sinf(static_cast<float>(glfwGetTime())), cosf(static_cast<float>(glfwGetTime())), static_cast<float>(delta));
+            m_per_view_uniforms[i].viewport_params     = glm::vec4(static_cast<float>(view->viewport_width), static_cast<float>(view->viewport_height), 1.0f / static_cast<float>(view->viewport_width), 1.0f / static_cast<float>(view->viewport_height));
 
             float z_buffer_params_x = -1.0 + (view->near_plane / view->far_plane);
 
@@ -1742,6 +1743,8 @@ void Renderer::queue_default_views()
         scene_view->ratio                   = camera->m_aspect_ratio;
         scene_view->near_plane              = camera->m_near;
         scene_view->far_plane               = camera->m_far;
+        scene_view->viewport_width          = m_window_width;
+        scene_view->viewport_height			= m_window_height;
 
         // Queue shadow views
         queue_spot_light_views();
