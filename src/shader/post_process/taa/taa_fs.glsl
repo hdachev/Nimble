@@ -1,3 +1,6 @@
+#include <../../common/uniforms.glsl>
+#include <../../common/noise.glsl>
+
 // GLSL port of the Temporal Anti-Aliasing implementation from Playdead
 // https://github.com/playdeadgames/temporal/
 
@@ -5,7 +8,8 @@
 // OUTPUT VARIABLES  ------------------------------------------------
 // ------------------------------------------------------------------
 
-out vec3 FS_OUT_Color;
+layout (location = 0) out vec3 FS_OUT_Buffer;
+layout (location = 1) out vec3 FS_OUT_Screen;
 
 // ------------------------------------------------------------------
 // INPUT VARIABLES  -------------------------------------------------
@@ -35,7 +39,7 @@ uniform float u_FeedbackMax;
 // CONSTANTS  -------------------------------------------------------
 // ------------------------------------------------------------------
 
-const float FLT_EPS = 0.00000001f;
+const float FLT_EPS = 0.00000001;
 
 // ------------------------------------------------------------------
 // FUNCTIONS  -------------------------------------------------------
@@ -160,7 +164,7 @@ vec4 sample_color_motion(sampler2D tex, vec2 uv, vec2 ss_vel)
 {
 	const vec2 v = 0.5 * ss_vel;
 	const int taps = 3;// on either side!
-	float srand = PDsrand(uv + _SinTime.xx);
+	float srand = srand(uv + _SinTime.xx);
 	vec2 vtap = v / taps;
 	vec2 pos0 = uv + vtap * (0.5 * srand);
 	vec4 accu = 0.0;
@@ -342,12 +346,9 @@ void main()
 	//to_screen.g += 100.0 * length(ss_vel);
 	//to_screen = vec4(100.0 * abs(ss_vel), 0.0, 0.0);
 	// add noise
-	vec4 noise4 = PDsrand4(FS_IN_TexCoord + _SinTime.x + 0.6959174) / 510.0;
-	OUT.buffer = clamp(to_buffer + noise4, 0.0, 1.0);
-	OUT.screen = clamp(to_screen + noise4, 0.0, 1.0);
-
-	// done
-	return OUT;
+	vec4 noise4 = srand4(FS_IN_TexCoord + _SinTime.x + 0.6959174) / 510.0;
+	FS_OUT_Buffer = clamp(to_buffer + noise4, 0.0, 1.0);
+	FS_OUT_Screen = clamp(to_screen + noise4, 0.0, 1.0);
 }
 
 // ------------------------------------------------------------------

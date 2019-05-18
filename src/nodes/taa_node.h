@@ -37,16 +37,18 @@ private:
     float        m_feedback_min           = 0.88f;
     float        m_feedback_max           = 0.97f;
     float        m_motion_blur_strength   = 1.0f;
+    int32_t      m_reprojection_index     = -1;
 
     // Inputs
     std::shared_ptr<RenderTarget> m_color_rt;
-    std::shared_ptr<RenderTarget> m_prev_rt;
     std::shared_ptr<RenderTarget> m_velocity_rt;
 
     // Outputs
     std::shared_ptr<RenderTarget> m_taa_rt;
+    std::shared_ptr<RenderTarget> m_reprojection_rt[2];
 
     RenderTargetView m_taa_rtv;
+    RenderTargetView m_reprojection_rtv[2];
 
     std::shared_ptr<Shader>  m_fullscreen_triangle_vs;
     std::shared_ptr<Shader>  m_taa_fs;
