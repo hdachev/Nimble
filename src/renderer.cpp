@@ -16,6 +16,7 @@
 #include "local_probe_renderer.h"
 #include "viewport_manager.h"
 
+#include <GLFW/glfw3.h>
 #include <gtc/matrix_transform.hpp>
 #include <fstream>
 
@@ -162,7 +163,7 @@ void Renderer::render(double delta, ViewportManager* viewport_mgr)
 
     queue_default_views();
 
-    update_uniforms();
+    update_uniforms(delta);
 
     cull_scene();
 
@@ -1496,7 +1497,7 @@ void Renderer::bake_render_graphs()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::update_uniforms()
+void Renderer::update_uniforms(double delta)
 {
     if (!m_scene.expired())
     {
@@ -1537,6 +1538,7 @@ void Renderer::update_uniforms()
             m_per_view_uniforms[i].viewport_width      = m_window_width;
             m_per_view_uniforms[i].viewport_height     = m_window_height;
             m_per_view_uniforms[i].current_prev_jitter = view->jitter;
+            m_per_view_uniforms[i].time_params         = glm::vec4(static_cast<float>(glfwGetTime()), sinf(static_cast<float>(glfwGetTime())), cosf(static_cast<float>(glfwGetTime())), static_cast<float>(delta));
 
             float z_buffer_params_x = -1.0 + (view->near_plane / view->far_plane);
 

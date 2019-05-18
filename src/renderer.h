@@ -108,7 +108,7 @@ private:
     bool     is_aliasing_candidate(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node, const RenderTargetDesc& rt_desc);
     void     create_texture_for_render_target(std::shared_ptr<RenderTarget> rt, uint32_t write_node, uint32_t read_node);
     void     bake_render_graphs();
-    void     update_uniforms();
+    void     update_uniforms(double delta);
     void     cull_scene();
     bool     queue_rendered_view(View* view);
     uint32_t queue_update_view(View* view);
