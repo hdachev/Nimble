@@ -1,7 +1,7 @@
 [![License: MIT](https://img.shields.io/packagist/l/doctrine/orm.svg)](https://opensource.org/licenses/MIT)
 
 # Nimble
-A simple and lightweight OpenGL rendering engine built on top of dwSampleFramework.
+An OpenGL renderer with a modern and extensible rendering pipeline.
 
 ## Features
 * Forward and Deferred rendering paths.
