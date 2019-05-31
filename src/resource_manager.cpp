@@ -210,6 +210,12 @@ std::shared_ptr<Texture> ResourceManager::load_texture(const std::string& path, 
 
                     m_texture_cache[path] = texture;
 
+					if (image.data[0][0].width != image.data[0][0].height)
+                    {
+                        texture->set_min_filter(GL_LINEAR);
+                        texture->set_mag_filter(GL_LINEAR);
+                    }
+
                     return texture;
                 }
                 else
@@ -231,6 +237,12 @@ std::shared_ptr<Texture> ResourceManager::load_texture(const std::string& path, 
                     }
 
                     m_texture_cache[path] = texture;
+
+					if (image.data[0][0].width != image.data[0][0].height)
+					{
+						texture->set_min_filter(GL_LINEAR);
+						texture->set_mag_filter(GL_LINEAR);
+					}
 
                     return texture;
                 }
