@@ -54,7 +54,7 @@ bool TAANode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     m_color_rt    = find_input_render_target("Color");
     m_velocity_rt = find_input_render_target("Velocity");
 
-    m_taa_rtv = RenderTargetView(0, 0, 0, m_taa_rt->texture);
+    m_taa_rtv             = RenderTargetView(0, 0, 0, m_taa_rt->texture);
     m_reprojection_rtv[0] = RenderTargetView(0, 0, 0, m_reprojection_rt[0]->texture);
     m_reprojection_rtv[1] = RenderTargetView(0, 0, 0, m_reprojection_rt[1]->texture);
 
@@ -102,14 +102,14 @@ void TAANode::execute(double delta, Renderer* renderer, Scene* scene, View* view
 {
     if (m_enabled)
     {
-		if (m_reprojection_index == -1)
-		{
-			// Copy Current Target to Previous
-			m_reprojection_index = 0;
-			blit_render_target(renderer, m_color_rt, m_reprojection_rt[m_reprojection_index]);
-		}
+        if (m_reprojection_index == -1)
+        {
+            // Copy Current Target to Previous
+            m_reprojection_index = 0;
+            blit_render_target(renderer, m_color_rt, m_reprojection_rt[m_reprojection_index]);
+        }
 
-		int index_read  = m_reprojection_index;
+        int index_read  = m_reprojection_index;
         int index_write = (m_reprojection_index + 1) % 2;
 
         glDisable(GL_DEPTH_TEST);
@@ -117,7 +117,7 @@ void TAANode::execute(double delta, Renderer* renderer, Scene* scene, View* view
 
         m_taa_program->use();
 
-		RenderTargetView rts[] = { m_taa_rtv, m_reprojection_rtv[index_write] };
+        RenderTargetView rts[] = { m_taa_rtv, m_reprojection_rtv[index_write] };
 
         renderer->bind_render_targets(2, rts, nullptr);
 
@@ -140,7 +140,7 @@ void TAANode::execute(double delta, Renderer* renderer, Scene* scene, View* view
 
         render_fullscreen_triangle(renderer, view);
 
-		m_reprojection_index = index_write;
+        m_reprojection_index = index_write;
     }
     else
         blit_render_target(renderer, m_color_rt, m_taa_rt);

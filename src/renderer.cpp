@@ -1635,11 +1635,11 @@ void Renderer::cull_scene()
 #ifdef ENABLE_SUBMESH_CULLING
                     for (uint32_t k = 0; k < entity.mesh->submesh_count(); k++)
                     {
-                        SubMesh&  submesh = entity.mesh->submesh(k);
-                        glm::vec3 center  = (submesh.min_extents + submesh.max_extents) / 2.0f;
-						glm::vec4 transformed_center = entity.transform.model * glm::vec4(center, 1.0f);
+                        SubMesh&  submesh            = entity.mesh->submesh(k);
+                        glm::vec3 center             = (submesh.min_extents + submesh.max_extents) / 2.0f;
+                        glm::vec4 transformed_center = entity.transform.model * glm::vec4(center, 1.0f);
 
-                        entity.submesh_spheres[k].position =  transformed_center;
+                        entity.submesh_spheres[k].position = transformed_center;
 
                         if (intersects(m_active_frustums[j], entity.submesh_spheres[k]))
                             entity.set_submesh_visible(k, j);
@@ -1745,7 +1745,7 @@ void Renderer::queue_default_views()
         scene_view->near_plane              = camera->m_near;
         scene_view->far_plane               = camera->m_far;
         scene_view->viewport_width          = m_window_width;
-        scene_view->viewport_height			= m_window_height;
+        scene_view->viewport_height         = m_window_height;
 
         // Queue shadow views
         queue_spot_light_views();
