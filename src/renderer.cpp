@@ -1637,8 +1637,9 @@ void Renderer::cull_scene()
                     {
                         SubMesh&  submesh = entity.mesh->submesh(k);
                         glm::vec3 center  = (submesh.min_extents + submesh.max_extents) / 2.0f;
+						glm::vec4 transformed_center = entity.transform.model * glm::vec4(center, 1.0f);
 
-                        entity.submesh_spheres[k].position = center + entity.transform.position;
+                        entity.submesh_spheres[k].position =  transformed_center;
 
                         if (intersects(m_active_frustums[j], entity.submesh_spheres[k]))
                             entity.set_submesh_visible(k, j);

@@ -39,7 +39,7 @@
 
 namespace nimble
 {
-#define CAMERA_FAR_PLANE 5000.0f
+#define CAMERA_FAR_PLANE 6000.0f
 
 class Nimble : public Application
 {

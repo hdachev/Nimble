@@ -96,15 +96,15 @@ layout (std140) uniform u_PerSkeleton
 #endif
 
 #ifdef UNIFORM_ALBEDO
-	vec4 u_Albedo;
+	uniform vec4 u_Albedo;
 #endif
 
 #if defined(UNIFORM_METAL_SPEC) || defined(UNIFORM_ROUGH_SMOOTH)
-	vec4 u_MetalRough;
+	uniform vec4 u_MetalRough;
 #endif
 
 #ifdef UNIFORM_EMISSIVE
-	vec4 u_Emissive;
+	uniform vec4 u_Emissive;
 #endif
 
 #ifdef DIRECTIONAL_LIGHT_SHADOW_MAPPING

@@ -328,6 +328,16 @@ std::shared_ptr<Material> ResourceManager::load_material(const std::string& path
                 }
             }
 
+			for (int i = 0; i < ast_material.properties.size(); i++)
+			{
+				if (ast_material.properties[i].type == ast::PROPERTY_ALBEDO)
+				    material->set_uniform_albedo(glm::vec4(ast_material.properties[i].vec4_value[0], ast_material.properties[i].vec4_value[1], ast_material.properties[i].vec4_value[2], ast_material.properties[i].vec4_value[3]));
+				if (ast_material.properties[i].type == ast::PROPERTY_METALNESS)
+				    material->set_uniform_metallic(ast_material.properties[i].float_value);
+				if (ast_material.properties[i].type == ast::PROPERTY_ROUGHNESS)
+					material->set_uniform_roughness(ast_material.properties[i].float_value);
+			}
+
             vs_key.set_vertex_func_id(vertex_func_id);
 
             uint32_t fragment_func_id = 1023;
@@ -494,6 +504,7 @@ std::shared_ptr<Scene> ResourceManager::load_scene(const std::string& path, cons
 
                 e.transform.update();
 
+				e.transform.prev_model = e.transform.model;
                 e.obb.min      = e.mesh->aabb().min;
                 e.obb.max      = e.mesh->aabb().max;
                 e.obb.position = e.transform.position;

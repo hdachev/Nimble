@@ -481,6 +481,11 @@ void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, Shad
                             program->set_uniform("u_MetalRough", glm::vec4(s.material->uniform_metallic(), s.material->uniform_roughness(), 0.0f, 0.0f));
 
                         s.material->bind(program, tex_unit);
+                        
+						if (s.material->is_double_sided())
+                            glDisable(GL_CULL_FACE);
+                        else
+                            glEnable(GL_CULL_FACE);
 
                         bind_shadow_maps(renderer, program, tex_unit, flags);
 
