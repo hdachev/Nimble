@@ -701,6 +701,7 @@ private:
 
         glm::vec3 temp;
         ImGuizmo::DecomposeMatrixToComponents((float*)&t->model, &t->position.x, &temp.x, &t->scale.x);
+        t->prev_model = t->model;
         t->orientation = glm::quat(glm::radians(temp));
     }
 
