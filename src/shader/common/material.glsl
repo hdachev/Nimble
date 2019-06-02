@@ -47,6 +47,16 @@ vec3 get_normal(in FragmentProperties f)
 	return f.Normal;
 #endif
 }
+// ------------------------------------------------------------------
+
+vec3 get_normal_ex(in FragmentProperties f, in vec3 normal_from_map)
+{
+#ifdef TEXTURE_NORMAL
+	return get_normal_from_map_ex(f.Tangent, f.Bitangent, f.Normal, f.TexCoords, normal_from_map);
+#else
+	return f.Normal;
+#endif
+}
 
 // ------------------------------------------------------------------
 

@@ -23,6 +23,21 @@ vec3 get_normal_from_map(vec3 tangent, vec3 bitangent, vec3 normal, vec2 tex_coo
 
 // ------------------------------------------------------------------
 
+vec3 get_normal_from_map_ex(vec3 tangent, vec3 bitangent, vec3 normal, vec2 tex_coord, vec3 normal_from_map)
+{
+	// Create TBN matrix.
+    mat3 TBN = mat3(normalize(tangent), normalize(bitangent), normalize(normal));
+
+    vec3 n =  normalize(normal_from_map);
+
+    // Multiple vector by the TBN matrix to transform the normal from tangent space to world space.
+    n = normalize(TBN * n);
+
+    return n;
+}
+
+// ------------------------------------------------------------------
+
 vec2 parallax_occlusion(vec3 view_dir, vec2 tex_coord, float height_scale, sampler2D displacement_map)
 { 
     // number of depth layers
