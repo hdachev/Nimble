@@ -39,7 +39,9 @@
 
 namespace nimble
 {
-#define CAMERA_FAR_PLANE 6000.0f
+#define CAMERA_DEFAULT_FOV 60.0f
+#define CAMERA_DEFAULT_NEAR_PLANE 1.0f
+#define CAMERA_DEFAULT_FAR_PLANE 6000.0f
 
 class Nimble : public Application
 {
@@ -126,7 +128,7 @@ protected:
             m_scene->camera()->m_height = m_height;
 
             // Override window resized method to update camera projection.
-            m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
+            m_scene->camera()->update_projection(m_scene->camera()->m_fov, m_scene->camera()->m_near, m_scene->camera()->m_far, float(m_width) / float(m_height));
         }
 
         m_viewport_manager.on_window_resized(width, height);
@@ -194,7 +196,7 @@ private:
         m_scene->camera()->m_width             = m_width;
         m_scene->camera()->m_height            = m_height;
         m_scene->camera()->m_half_pixel_jitter = false;
-        m_scene->camera()->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
+        m_scene->camera()->update_projection(CAMERA_DEFAULT_FOV, CAMERA_DEFAULT_NEAR_PLANE, CAMERA_DEFAULT_FAR_PLANE, float(m_width) / float(m_height));
 
         m_viewport = m_viewport_manager.create_viewport("Main", 0.0f, 0.0f, 1.0f, 1.0f, 0);
 
@@ -450,6 +452,17 @@ private:
             if (ImGui::CollapsingHeader("Camera"))
             {
                 std::shared_ptr<Camera> camera = m_scene->camera();
+
+				float near_plane = camera->m_near;
+				float far_plane = camera->m_far;
+				float fov        = camera->m_fov;
+
+				ImGui::InputFloat("Near Plane", &near_plane);
+                ImGui::InputFloat("Far Plane", &far_plane);
+				ImGui::SliderFloat("FOV", &fov, 1.0f, 90.0f);
+
+				if (near_plane != camera->m_near || far_plane != camera->m_far || fov != camera->m_fov)
+					camera->update_projection(fov, near_plane, far_plane, float(m_width) / float(m_height));
 
                 ImGui::SliderFloat("Near Field Begin", &camera->m_near_begin, camera->m_near, camera->m_far);
                 ImGui::SliderFloat("Near Field End", &camera->m_near_end, camera->m_near, camera->m_far);
