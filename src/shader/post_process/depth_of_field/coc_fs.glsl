@@ -26,7 +26,7 @@ uniform sampler2D s_Depth;
 
 void main()
 {
-	float z = texture(s_Depth, FS_IN_TexCoord).x;
+	float z = texelFetch(s_Depth, ivec2(gl_FragCoord.xy), 0).x;
 	float depth = linear_eye_depth(z);
 	
 	// Calculate Near CoC

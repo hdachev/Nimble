@@ -40,7 +40,7 @@ void main()
 		vec2 tex_coord_11 = FS_IN_TexCoord + vec2(u_PixelSize.x, u_PixelSize.y);
 
 		float coc_far = texture(s_CoC, FS_IN_TexCoord).y;
-		vec4 cocs_far_x4 = vec4(0.0, texture(s_CoC4, tex_coord_00).y, 0.0, 0.0);
+		vec4 cocs_far_x4 = textureGather(s_CoC4, tex_coord_00, 1).wzxy;
 		vec4 cocs_far_diffs = abs(vec4(coc_far) - cocs_far_x4);
 
 		vec3 dof_far_00 = texture(s_FarDoF4, tex_coord_00).xyz;
