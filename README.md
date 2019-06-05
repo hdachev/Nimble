@@ -27,13 +27,15 @@ An OpenGL renderer with a modern and extensible rendering pipeline.
 ![Nimble](data/main_2.jpg)
 
 ## Dependencies
-* [dwSampleFramework](https://github.com/diharaw/dwSampleFramework) 
-* [json](https://github.com/nlohmann/json) 
+* [glfw](https://github.com/glfw/glfw)
+* [imgui](https://github.com/ocornut/imgui)
+* [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo)
+* [AssetCore](https://github.com/diharaw/AssetCore) 
 * [nativefiledialog](https://github.com/mlabbe/nativefiledialog)
 
 ## License
 ```
-Copyright (c) 2018 Dihara Wijetunga
+Copyright (c) 2019 Dihara Wijetunga
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and 
 associated documentation files (the "Software"), to deal in the Software without restriction, 
