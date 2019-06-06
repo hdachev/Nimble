@@ -29,18 +29,18 @@ void DepthOfFieldNode::declare_connections()
     register_input_render_target("Depth");
 
     m_coc_rt              = register_scaled_intermediate_render_target("CoC", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RG8, GL_RG, GL_UNSIGNED_BYTE);
-    m_color4_rt           = register_scaled_intermediate_render_target("Color4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB32F, GL_RGB, GL_FLOAT);
-    m_mul_coc_far4_rt     = register_scaled_intermediate_render_target("MulCoCFar4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB32F, GL_RGB, GL_FLOAT);
+    m_color4_rt           = register_scaled_intermediate_render_target("Color4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+    m_mul_coc_far4_rt     = register_scaled_intermediate_render_target("MulCoCFar4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
     m_coc4_rt             = register_scaled_intermediate_render_target("CoC4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RG8, GL_RG, GL_UNSIGNED_BYTE);
     m_near_coc_max_x4_rt  = register_scaled_intermediate_render_target("NearCoCMaxX4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
     m_near_coc_max4_rt    = register_scaled_intermediate_render_target("NearCoCMax4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
     m_near_coc_blur_x4_rt = register_scaled_intermediate_render_target("NearCoCBlurX4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
     m_near_coc_blur4_rt   = register_scaled_intermediate_render_target("NearCoCBlur4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-    m_near_dof4_rt        = register_scaled_intermediate_render_target("NearDoF4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB32F, GL_RGB, GL_FLOAT);
-    m_far_dof4_rt         = register_scaled_intermediate_render_target("FarDoF4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB32F, GL_RGB, GL_FLOAT);
-    m_near_fill_dof4_rt   = register_scaled_intermediate_render_target("NearFillDoF4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB32F, GL_RGB, GL_FLOAT);
-    m_far_fill_dof4_rt    = register_scaled_intermediate_render_target("FarFillDoF4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB32F, GL_RGB, GL_FLOAT);
-    m_composite_rt        = register_scaled_output_render_target("DoFComposite", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB32F, GL_RGB, GL_FLOAT);
+    m_near_dof4_rt        = register_scaled_intermediate_render_target("NearDoF4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+    m_far_dof4_rt         = register_scaled_intermediate_render_target("FarDoF4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+    m_near_fill_dof4_rt   = register_scaled_intermediate_render_target("NearFillDoF4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+    m_far_fill_dof4_rt    = register_scaled_intermediate_render_target("FarFillDoF4", 0.5f, 0.5f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+    m_composite_rt        = register_scaled_output_render_target("DoFComposite", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
