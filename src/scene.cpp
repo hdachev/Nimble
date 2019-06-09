@@ -60,6 +60,7 @@ Entity& Scene::lookup_entity(const std::string& name)
 Entity& Scene::lookup_entity(const Entity::ID& id)
 {
     return m_entities.lookup(id);
+
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

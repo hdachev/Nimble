@@ -56,8 +56,6 @@ protected:
         // If failed, prompt user to select scene to be loaded.
         if (!scene && !load_scene_from_dialog())
             return false;
-        else
-            m_scene = scene;
 
         m_scene->create_directional_light(glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), 10.0f);
         //create_random_point_lights();
