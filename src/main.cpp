@@ -451,16 +451,16 @@ private:
             {
                 std::shared_ptr<Camera> camera = m_scene->camera();
 
-				float near_plane = camera->m_near;
-				float far_plane = camera->m_far;
-				float fov        = camera->m_fov;
+                float near_plane = camera->m_near;
+                float far_plane  = camera->m_far;
+                float fov        = camera->m_fov;
 
-				ImGui::InputFloat("Near Plane", &near_plane);
+                ImGui::InputFloat("Near Plane", &near_plane);
                 ImGui::InputFloat("Far Plane", &far_plane);
-				ImGui::SliderFloat("FOV", &fov, 1.0f, 90.0f);
+                ImGui::SliderFloat("FOV", &fov, 1.0f, 90.0f);
 
-				if (near_plane != camera->m_near || far_plane != camera->m_far || fov != camera->m_fov)
-					camera->update_projection(fov, near_plane, far_plane, float(m_width) / float(m_height));
+                if (near_plane != camera->m_near || far_plane != camera->m_far || fov != camera->m_fov)
+                    camera->update_projection(fov, near_plane, far_plane, float(m_width) / float(m_height));
 
                 ImGui::SliderFloat("Near Field Begin", &camera->m_near_begin, camera->m_near, camera->m_far);
                 ImGui::SliderFloat("Near Field End", &camera->m_near_end, camera->m_near, camera->m_far);

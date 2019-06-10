@@ -52,11 +52,11 @@ bool DepthOfFieldNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     m_color_rt = find_input_render_target("Color");
     m_depth_rt = find_input_render_target("Depth");
 
-	m_coc_rt->texture->set_min_filter(GL_NEAREST);
+    m_coc_rt->texture->set_min_filter(GL_NEAREST);
     m_near_coc_max_x4_rt->texture->set_min_filter(GL_NEAREST);
-	m_near_coc_max4_rt->texture->set_min_filter(GL_NEAREST);
+    m_near_coc_max4_rt->texture->set_min_filter(GL_NEAREST);
     m_near_coc_blur_x4_rt->texture->set_min_filter(GL_NEAREST);
-	m_near_coc_blur4_rt->texture->set_min_filter(GL_NEAREST);
+    m_near_coc_blur4_rt->texture->set_min_filter(GL_NEAREST);
 
     m_coc_rtv              = RenderTargetView(0, 0, 0, m_coc_rt->texture);
     m_color4_rtv           = RenderTargetView(0, 0, 0, m_color4_rt->texture);
