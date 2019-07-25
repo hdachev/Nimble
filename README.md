@@ -16,6 +16,7 @@ An OpenGL renderer with a modern and extensible rendering pipeline.
 * Bruneton Atmospheric Scattering
 * Volumetric Lighting
 * Bloom
+* Adaptive Exposure
 * Variety of Tone-Mapping operators (Reinhard, Uncharted 2, Filmic etc)
 * GPU Profiling
 * Experimental Render Graph implementation
