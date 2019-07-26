@@ -21,6 +21,8 @@ An OpenGL renderer with a modern and extensible rendering pipeline.
 * GPU Profiling
 * Experimental Render Graph implementation
 
+### NOTE: Still in development. A proper guide will be available soon!
+
 ## Screenshots
 
 ![Nimble](data/main_1.jpg)
