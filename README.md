@@ -29,6 +29,11 @@ An OpenGL renderer with a modern and extensible rendering pipeline.
 
 ![Nimble](data/main_2.jpg)
 
+## Roadmap
+
+* Subsurface Scattering
+* Light mapping
+
 ## Dependencies
 * [glfw](https://github.com/glfw/glfw)
 * [imgui](https://github.com/ocornut/imgui)
