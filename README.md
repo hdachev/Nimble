@@ -33,6 +33,7 @@ An OpenGL renderer with a modern and extensible rendering pipeline.
 
 * Subsurface Scattering
 * Light mapping
+* GUI Render Graph Editor
 
 ## Dependencies
 * [glfw](https://github.com/glfw/glfw)
