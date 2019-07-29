@@ -33,6 +33,7 @@ An OpenGL renderer with a modern and extensible rendering pipeline.
 
 * Subsurface Scattering
 * Light mapping
+* Local Reflection and Irradiance Probes
 * GUI Render Graph Editor
 
 ## Dependencies
