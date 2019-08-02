@@ -138,6 +138,16 @@ bool Application::init_base(int argc, const char* argv[])
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
 
+	GLFWmonitor* primary = glfwGetPrimaryMonitor();
+
+    float xscale, yscale;
+    glfwGetMonitorContentScale(primary, &xscale, &yscale);
+
+    ImGuiStyle* style = &ImGui::GetStyle();
+
+    style->ScaleAllSizes(xscale > yscale ? xscale : yscale);
+    io.FontGlobalScale = xscale > yscale ? xscale : yscale;
+
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsClassic();
