@@ -134,9 +134,6 @@ bool Application::init_base(int argc, const char* argv[])
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    (void)io;
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
 
 	GLFWmonitor* primary = glfwGetPrimaryMonitor();
 
@@ -150,7 +147,6 @@ bool Application::init_base(int argc, const char* argv[])
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsClassic();
 
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(m_window, true);
