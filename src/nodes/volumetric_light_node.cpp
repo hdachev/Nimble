@@ -17,7 +17,7 @@ DEFINE_RENDER_NODE_FACTORY(VolumetricLightNode)
 VolumetricLightNode::VolumetricLightNode(RenderGraph* graph) :
     RenderNode(graph)
 {
-    m_flags = NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS | NODE_USAGE_DIRECTIONAL_LIGHTS;
+    m_flags = NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS | NODE_USAGE_DIRECTIONAL_LIGHTS | NODE_USAGE_SHADOW_MAPPING;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

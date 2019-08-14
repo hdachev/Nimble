@@ -102,17 +102,19 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
     m_spot_light_shadow_maps        = std::make_shared<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_SPOT_LIGHTS, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
     m_point_light_shadow_maps       = std::make_shared<TextureCube>(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_POINT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
 
-    m_directional_light_shadow_maps->set_min_filter(GL_NEAREST);
-    m_directional_light_shadow_maps->set_mag_filter(GL_NEAREST);
+    m_directional_light_shadow_maps->set_min_filter(GL_LINEAR);
+    m_directional_light_shadow_maps->set_mag_filter(GL_LINEAR);
     m_directional_light_shadow_maps->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
     m_directional_light_shadow_maps->set_compare_mode(GL_COMPARE_REF_TO_TEXTURE);
     m_directional_light_shadow_maps->set_compare_func(GL_LEQUAL);
 
-    m_spot_light_shadow_maps->set_min_filter(GL_NEAREST);
+    m_spot_light_shadow_maps->set_min_filter(GL_LINEAR);
+    m_spot_light_shadow_maps->set_mag_filter(GL_LINEAR);
     m_spot_light_shadow_maps->set_compare_mode(GL_COMPARE_REF_TO_TEXTURE);
     m_spot_light_shadow_maps->set_compare_func(GL_LEQUAL);
 
-    m_point_light_shadow_maps->set_min_filter(GL_NEAREST);
+    m_point_light_shadow_maps->set_min_filter(GL_LINEAR);
+    m_point_light_shadow_maps->set_mag_filter(GL_LINEAR);
     m_point_light_shadow_maps->set_compare_mode(GL_COMPARE_REF_TO_TEXTURE);
     m_point_light_shadow_maps->set_compare_func(GL_LEQUAL);
 

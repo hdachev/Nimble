@@ -109,8 +109,6 @@ layout (std140) uniform u_PerSkeleton
 
 #ifdef DIRECTIONAL_LIGHT_SHADOW_MAPPING
 	uniform sampler2DArrayShadow   s_DirectionalLightShadowMaps;
-#else
-	uniform sampler2DArray   s_DirectionalLightShadowMaps;
 #endif
 
 #ifdef SPOT_LIGHT_SHADOW_MAPPING
