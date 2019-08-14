@@ -72,14 +72,11 @@ float directional_light_shadows(in FragmentProperties f, int shadow_map_idx, int
 	for(int x = -1; x <= 1; ++x)
 	{
 	    for(int y = -1; y <= 1; ++y)
-	    {
-	        float pcfDepth = texture(s_DirectionalLightShadowMaps, vec3(light_space_pos.xy + vec2(x, y) * texelSize, float(index))).r; 
-	        shadow += current_depth - bias > pcfDepth ? 1.0 : 0.0;        
-	    }    
+	        shadow += texture(s_DirectionalLightShadowMaps, vec4(light_space_pos.xy + vec2(x, y) * texelSize, float(index), current_depth - bias));          
 	}
 	shadow /= 9.0;
 	
-	return (1.0 - shadow);
+	return shadow;
 
     // if (options.x == 1.0)
     // {
