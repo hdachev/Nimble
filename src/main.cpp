@@ -53,14 +53,14 @@ protected:
         // Attempt to load startup scene.
         std::shared_ptr<Scene> scene = m_resource_manager.load_scene("scene/startup.json");
 
-		if (scene)
+        if (scene)
             m_scene = scene;
-		else
-		{
-			// If failed, prompt user to select scene to be loaded.
-			if (!scene && !load_scene_from_dialog())
-			    return false;
-		}
+        else
+        {
+            // If failed, prompt user to select scene to be loaded.
+            if (!scene && !load_scene_from_dialog())
+                return false;
+        }
 
         m_scene->create_directional_light(glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), 10.0f);
         //create_random_point_lights();

@@ -21,17 +21,17 @@ std::shared_ptr<ShaderLibrary> ShaderCache::load_library(std::vector<std::pair<G
 {
     std::string id = "";
 
-	for (auto& pair : shaders)
-	{
-		if (pair.first == GL_VERTEX_SHADER)
-		    id += "-vs:";
-		else if (pair.first == GL_FRAGMENT_SHADER)
-		    id += "-fs:";
-		else if (pair.first == GL_COMPUTE_SHADER)
-		    id += "-cs:";
-		
-		id += pair.second;
-	}
+    for (auto& pair : shaders)
+    {
+        if (pair.first == GL_VERTEX_SHADER)
+            id += "-vs:";
+        else if (pair.first == GL_FRAGMENT_SHADER)
+            id += "-fs:";
+        else if (pair.first == GL_COMPUTE_SHADER)
+            id += "-cs:";
+
+        id += pair.second;
+    }
 
     if (m_library_cache.find(id) != m_library_cache.end() && !m_library_cache[id].expired())
         return m_library_cache[id].lock();

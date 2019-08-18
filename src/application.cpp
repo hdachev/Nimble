@@ -135,7 +135,7 @@ bool Application::init_base(int argc, const char* argv[])
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
 
-	GLFWmonitor* primary = glfwGetPrimaryMonitor();
+    GLFWmonitor* primary = glfwGetPrimaryMonitor();
 
     float xscale, yscale;
     glfwGetMonitorContentScale(primary, &xscale, &yscale);

@@ -17,7 +17,7 @@ public:
     ~ShaderLibrary();
 
     Program* create_program(const std::vector<std::string>& defines);
-	
+
 private:
     StaticHashMap<uint64_t, Program*, MAX_PROGRAM_CACHE_SIZE> m_program_cache;
     std::vector<std::pair<GLenum, std::string>>               m_sources;
