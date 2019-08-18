@@ -17,7 +17,7 @@ public:
     std::string name() override;
 
 private:
-    std::shared_ptr<ShaderLibrary> m_library;
+    std::shared_ptr<GeometryShaderLibrary> m_library;
 };
 
 DECLARE_RENDER_NODE_FACTORY(PCFDirectionalLightDepthNode);

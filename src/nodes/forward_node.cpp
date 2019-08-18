@@ -32,7 +32,7 @@ void ForwardNode::declare_connections()
 
 bool ForwardNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-    m_library = renderer->shader_cache().load_library("shader/forward/forward_vs.glsl", "shader/forward/forward_fs.glsl");
+    m_library = renderer->shader_cache().load_geometry_shader_library("shader/forward/forward_vs.glsl", "shader/forward/forward_fs.glsl");
 
     m_color_rtv[0] = RenderTargetView(0, 0, 0, m_color_rt->texture);
     m_color_rtv[1] = RenderTargetView(0, 0, 0, m_velocity_rt->texture);

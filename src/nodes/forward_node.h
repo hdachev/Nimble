@@ -17,7 +17,7 @@ public:
     std::string name() override;
 
 private:
-    std::shared_ptr<ShaderLibrary> m_library;
+    std::shared_ptr<GeometryShaderLibrary> m_library;
     std::shared_ptr<RenderTarget>  m_color_rt;
     std::shared_ptr<RenderTarget>  m_depth_rt;
     std::shared_ptr<RenderTarget>  m_velocity_rt;

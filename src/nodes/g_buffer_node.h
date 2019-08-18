@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../render_node.h"
-#include "../shader_library.h"
+#include "../geometry_shader_library.h"
 
 namespace nimble
 {
@@ -23,7 +23,7 @@ private:
     std::shared_ptr<RenderTarget>  m_gbuffer3_rt; // RGBA16F = RG: Velocity (Packed as 16x2)
     std::shared_ptr<RenderTarget>  m_gbuffer4_rt; // RGBA8 = R: Metallic, G: Roughness, B: Displacement, A: -
     std::shared_ptr<RenderTarget>  m_depth_rt;
-    std::shared_ptr<ShaderLibrary> m_library;
+    std::shared_ptr<GeometryShaderLibrary> m_library;
     RenderTargetView               m_gbuffer_rtv[4];
     RenderTargetView               m_depth_rtv;
 };

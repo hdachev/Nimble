@@ -3,7 +3,7 @@
 #include "profiler.h"
 #include "view.h"
 #include "scene.h"
-#include "shader_library.h"
+#include "geometry_shader_library.h"
 #include "logger.h"
 #include "renderer.h"
 
@@ -419,7 +419,7 @@ void RenderNode::blit_render_target(Renderer* renderer, std::shared_ptr<RenderTa
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, ShaderLibrary* library, uint32_t flags, std::function<void(View*, Program*, int32_t&)> function)
+void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, GeometryShaderLibrary* library, uint32_t flags, std::function<void(View*, Program*, int32_t&)> function)
 {
     if (scene)
     {
