@@ -49,28 +49,22 @@ Program* ShaderLibrary::create_program(const std::vector<std::string>& defines)
 	for (auto& pair : m_sources)
 	{
 		std::string source = defines_string + pair.second;
+        Shader* shader = new Shader(pair.first, source);
+		shaders.push_back(shader);
+
+		if (!shader->compiled())
+		{
+			NIMBLE_LOG_ERROR("FAiled to compile shader: \n\n" + source);
+			return nullptr;
+		}
 	}
 	
-	std::string fs_source = defines_string + m_fs_source;
+    Program* program = new Program(shaders.size(), shaders.data());
 
-	vs = new Shader(GL_VERTEX_SHADER, vs_source);
-	fs = new Shader(GL_FRAGMENT_SHADER, fs_source);
-
-    Shader* shaders[] = { vs, fs };
-
-    if (vs->compiled() && fs->compiled())
-    {
-        Program* program = new Program(2, shaders);
-
-        program->uniform_block_binding("u_PerEntity", 1);
-
-		uint64_t hash = NIMBLE_HASH(defines_string.c_str());
-        m_program_cache.set(hash, program);
-
-        return program;
-    }
-    else
-        return false;
+	uint64_t hash = NIMBLE_HASH(defines_string.c_str());
+	m_program_cache.set(hash, program);
+	
+	return program;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <memory>
 #include <string>
+#include "ogl.h"
 
 namespace nimble
 {
@@ -13,7 +14,7 @@ class ShaderCache
 {
 public:
     void                           shutdown();
-    std::shared_ptr<ShaderLibrary> load_library(const std::string& vs, const std::string& fs);
+    std::shared_ptr<ShaderLibrary> load_library(std::vector<std::pair<GLenum, std::string>> shaders);
     std::shared_ptr<GeometryShaderLibrary> load_geometry_library(const std::string& vs, const std::string& fs);
 
 private:
