@@ -128,7 +128,7 @@ vec3 pbr_point_lights(in MaterialProperties m, in FragmentProperties f,  in PBRP
 
 	for (int i = 0; i < point_light_count; i++)
 	{
-		vec3 L = normalize(point_light_position_range[i].xyz - f.Position); // FragPos -> LightPos vector
+		vec3 L = normalize(point_light_position[i].xyz - f.Position); // FragPos -> LightPos vector
 		vec3 H = normalize(pbr.V + L);
 		float HdotV = clamp(dot(H, pbr.V), 0.0, 1.0);
 		float NdotH = max(dot(pbr.N, H), 0.0);
@@ -147,8 +147,8 @@ vec3 pbr_point_lights(in MaterialProperties m, in FragmentProperties f,  in PBRP
 #endif
 
 		// Radiance -----------------------------------------------------------------
-		float distance = length(point_light_position_range[i].xyz - f.Position);
-		float attenuation = smoothstep(point_light_position_range[i].w, 0, distance);
+		float distance = length(point_light_position[i].xyz - f.Position);
+		float attenuation = smoothstep(spot_light_cutoff_inner_outer_near_far[i].w, 0, distance);
 		vec3 Li = point_light_color_intensity[i].xyz * point_light_color_intensity[i].w * attenuation;
 		// --------------------------------------------------------------------------
 
