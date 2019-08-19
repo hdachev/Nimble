@@ -148,7 +148,7 @@ vec3 pbr_point_lights(in MaterialProperties m, in FragmentProperties f,  in PBRP
 
 		// Radiance -----------------------------------------------------------------
 		float distance = length(point_light_position[i].xyz - f.Position);
-		float attenuation = smoothstep(spot_light_cutoff_inner_outer_near_far[i].w, 0, distance);
+		float attenuation = smoothstep(point_light_near_far[i].y, 0, distance);
 		vec3 Li = point_light_color_intensity[i].xyz * point_light_color_intensity[i].w * attenuation;
 		// --------------------------------------------------------------------------
 

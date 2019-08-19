@@ -60,7 +60,7 @@ public:
     void                destroy_gi_probe(const GIProbe::ID& id);
 
     // Light manipulation methods.
-    PointLight::ID       create_point_light(const glm::vec3& position, const glm::vec3& color, const float& range, const float& intensity, const bool& casts_shadows = false, const float& shadow_map_bias = 0.05f);
+    PointLight::ID       create_point_light(const glm::vec3& position, const glm::vec3& color, const float& range, const float& intensity, const bool& casts_shadows = false, const float& shadow_map_bias = 0.0f);
     PointLight&          lookup_point_light(const PointLight::ID& id);
     void                 destroy_point_light(const PointLight::ID& id);
     SpotLight::ID        create_spot_light(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& color, const float& inner_cone_angle, const float& outer_cone_angle, const float& range, const float& intensity, const bool& casts_shadows = false, const float& shadow_map_bias = 0.05f);

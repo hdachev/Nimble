@@ -44,11 +44,12 @@ layout(std430, binding = 2) buffer u_PerScene
 {
 	mat4 spot_light_shadow_matrix[MAX_SHADOW_CASTING_SPOT_LIGHTS];
 	vec4 shadow_map_bias[MAX_POINT_LIGHTS];
-    vec4 point_light_position_range[MAX_POINT_LIGHTS];
+    vec4 point_light_position[MAX_POINT_LIGHTS];
+	vec4 point_light_near_far[MAX_POINT_LIGHTS];
     vec4 point_light_color_intensity[MAX_POINT_LIGHTS];
     vec4 spot_light_position[MAX_SPOT_LIGHTS];
-	vec4 spot_light_cutoff_inner_outer_near_far[MAX_SPOT_LIGHTS];
-    vec4 spot_light_direction[MAX_SPOT_LIGHTS];
+	vec4 spot_light_cutoff_inner_outer[MAX_SPOT_LIGHTS];
+    vec4 spot_light_direction_range[MAX_SPOT_LIGHTS];
     vec4 spot_light_color_intensity[MAX_SPOT_LIGHTS];
     vec4 directional_light_direction[MAX_DIRECTIONAL_LIGHTS];
     vec4 directional_light_color_intensity[MAX_DIRECTIONAL_LIGHTS];
