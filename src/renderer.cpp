@@ -22,6 +22,8 @@
 
 namespace nimble
 {
+#define SPOT_LIGHT_NEAR_PLANE 0.1f
+
 static const uint32_t kDirectionalLightShadowMapSizes[] = {
     512,
     1024,
@@ -508,7 +510,7 @@ void Renderer::queue_point_light_views()
                     light_view->direction               = light.transform.forward();
                     light_view->position                = light.transform.position;
                     light_view->view_mat                = glm::lookAt(light.transform.position, light.transform.position + s_cube_view_params[face_idx][0], s_cube_view_params[face_idx][1]);
-                    light_view->projection_mat          = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, light.range);
+                    light_view->projection_mat          = glm::perspective(glm::radians(90.0f), 1.0f, SPOT_LIGHT_NEAR_PLANE, light.range);
                     light_view->vp_mat                  = light_view->projection_mat * light_view->view_mat;
                     light_view->prev_vp_mat             = glm::mat4(1.0f);
                     light_view->inv_view_mat            = glm::inverse(light_view->view_mat);
@@ -1590,11 +1592,11 @@ void Renderer::update_uniforms(double delta)
             SpotLight& light = spot_lights[light_idx];
 
             m_per_scene_uniforms.shadow_map_bias[light_idx].y             = light.shadow_map_bias;
-            m_per_scene_uniforms.spot_light_direction_range[light_idx]    = glm::vec4(light.transform.forward(), light.range);
+            m_per_scene_uniforms.spot_light_direction[light_idx]    = glm::vec4(light.transform.forward(), 0.0f);
             m_per_scene_uniforms.spot_light_color_intensity[light_idx]    = glm::vec4(light.color, light.intensity);
             m_per_scene_uniforms.spot_light_position[light_idx]           = glm::vec4(light.transform.position, 0.0f);
             m_per_scene_uniforms.spot_light_casts_shadow[light_idx]       = light.casts_shadow ? 1 : 0;
-            m_per_scene_uniforms.spot_light_cutoff_inner_outer[light_idx] = glm::vec4(cosf(glm::radians(light.inner_cone_angle)), cosf(glm::radians(light.outer_cone_angle)), 0.0f, 0.0f);
+            m_per_scene_uniforms.spot_light_cutoff_inner_outer_near_far[light_idx] = glm::vec4(cosf(glm::radians(light.inner_cone_angle)), cosf(glm::radians(light.outer_cone_angle)), SPOT_LIGHT_NEAR_PLANE, light.range);
         }
 
         PointLight* point_lights = scene->point_lights();
