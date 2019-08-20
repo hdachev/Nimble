@@ -308,7 +308,7 @@ private:
     {
         float cpu_time = 0.0f;
         float gpu_time = 0.0f;
-
+        ImGui::ShowDemoWindow();
         ImGuizmo::BeginFrame();
 
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
@@ -426,6 +426,9 @@ private:
 
             if (ImGui::CollapsingHeader("Render Graph"))
                 render_node_params();
+
+			if (ImGui::CollapsingHeader("Render Target Inspector"))
+                render_target_inspector();
 
             if (m_renderer.global_probe_renderer())
             {
@@ -644,6 +647,40 @@ private:
             }
         }
     }
+
+    // -----------------------------------------------------------------------------------------------------------------------------------
+
+	void render_target_inspector()
+	{
+		for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
+		{
+		    auto node = m_forward_graph->node(i);
+		
+		    if (ImGui::TreeNode(node->name().c_str()))
+		    {
+                auto& rts = node->output_render_targets();
+
+				for (auto& output : rts)
+				{
+					if (ImGui::Selectable(output.slot_name.c_str(), false))
+					{
+					}
+				}
+
+				for (int j = 0; j < node->intermediate_render_target_count(); j++)
+				{
+                    std::string name = node->name() + "_intermediate_" + std::to_string(j);
+										
+					if (ImGui::Selectable(name.c_str(), false))
+					{
+
+					}
+				}
+
+		        ImGui::TreePop();
+		    }
+		}
+	}
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
