@@ -184,6 +184,8 @@ void Renderer::render(double delta, ViewportManager* viewport_mgr)
     viewport_mgr->render_viewports(this, m_num_rendered_views, &m_rendered_views[0]);
 
     clear_all_views();
+
+	render_debug_output();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -1798,6 +1800,36 @@ void Renderer::render_all_views(double delta)
     }
     else
         glClear(GL_COLOR_BUFFER_BIT);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::render_debug_output()
+{
+    if (!m_debug_render_target || !m_debug_render_target->texture)
+        return;
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
+    m_copy_program->use();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (m_scaled_debug_output)
+		glViewport(0, 0, m_window_width, m_window_height);
+	else
+	{
+		Texture2D* tex = (Texture2D*)m_debug_render_target->texture.get();
+		glViewport(0, 0, tex->width(), tex->height());
+	}
+
+    if (m_copy_program->set_uniform("s_Texture", 0))
+        m_debug_render_target->texture->bind(0);
+
+	 // Render fullscreen triangle
+    glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

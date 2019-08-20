@@ -652,6 +652,10 @@ private:
 
 	void render_target_inspector()
 	{
+		bool scaled = m_renderer.scaled_debug_output();
+		ImGui::Checkbox("Scaled Debug Output", &scaled);
+		m_renderer.set_scaled_debug_output(scaled);
+
 		for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
 		{
 		    auto node = m_forward_graph->node(i);
@@ -662,8 +666,12 @@ private:
 
 				for (auto& output : rts)
 				{
-					if (ImGui::Selectable(output.slot_name.c_str(), false))
+					if (ImGui::Selectable(output.slot_name.c_str(), m_renderer.debug_render_target() == output.render_target))
 					{
+						if (m_renderer.debug_render_target() == output.render_target)
+							m_renderer.set_debug_render_target(nullptr);
+						else
+							m_renderer.set_debug_render_target(output.render_target);
 					}
 				}
 
@@ -671,9 +679,12 @@ private:
 				{
                     std::string name = node->name() + "_intermediate_" + std::to_string(j);
 										
-					if (ImGui::Selectable(name.c_str(), false))
-					{
-
+					if (ImGui::Selectable(name.c_str(), m_renderer.debug_render_target() == node->intermediate_render_target(j)))
+                    {
+						if (m_renderer.debug_render_target() == node->intermediate_render_target(j))
+                            m_renderer.set_debug_render_target(nullptr);
+						else
+							m_renderer.set_debug_render_target(node->intermediate_render_target(j));
 					}
 				}
 

@@ -91,6 +91,12 @@ public:
     inline UniformBuffer*                       per_entity_ubo() { return m_per_entity.get(); }
     inline ShaderStorageBuffer*                 per_scene_ssbo() { return m_per_scene.get(); }
     inline std::shared_ptr<VertexArray>         cube_vao() { return m_cube_vao; }
+    inline std::shared_ptr<RenderTarget>        debug_render_target() { return m_debug_render_target; }
+    inline bool                                 scaled_debug_output() { return m_scaled_debug_output; }
+
+	// Inline setters
+    inline void set_debug_render_target(std::shared_ptr<RenderTarget> rt) { m_debug_render_target = rt; }
+    inline void set_scaled_debug_output(bool scaled) { m_scaled_debug_output = scaled; }
 
 private:
     using TextureLifetimes = std::vector<std::pair<uint32_t, uint32_t>>;
@@ -115,6 +121,7 @@ private:
     uint32_t queue_culled_view(Frustum f);
     void     queue_default_views();
     void     render_all_views(double delta);
+	void	 render_debug_output();
 
 private:
     // Resource caches
@@ -169,5 +176,9 @@ private:
     std::shared_ptr<Shader>  m_copy_vs;
     std::shared_ptr<Shader>  m_copy_fs;
     std::shared_ptr<Program> m_copy_program;
+
+	// Deebug render target
+    std::shared_ptr<RenderTarget> m_debug_render_target = nullptr;
+    bool                          m_scaled_debug_output = false;
 };
 } // namespace nimble
