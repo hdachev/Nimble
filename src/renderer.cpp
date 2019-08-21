@@ -156,10 +156,18 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
     if (m_global_probe_renderer)
         m_global_probe_renderer->initialize(this, res_mgr);
 
-    m_copy_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
+    m_debug_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
+    m_debug_fs = res_mgr->load_shader("shader/post_process/debug_fs.glsl", GL_FRAGMENT_SHADER);
+
+    if (m_debug_vs && m_debug_fs)
+        m_debug_program = create_program(m_debug_vs, m_debug_fs);
+    else
+        return false;
+
+	m_copy_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
     m_copy_fs = res_mgr->load_shader("shader/post_process/copy_fs.glsl", GL_FRAGMENT_SHADER);
 
-    if (m_copy_vs && m_copy_fs)
+    if (m_copy_vs && m_debug_fs)
         m_copy_program = create_program(m_copy_vs, m_copy_fs);
     else
         return false;
@@ -1812,7 +1820,7 @@ void Renderer::render_debug_output()
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
-    m_copy_program->use();
+    m_debug_program->use();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1825,8 +1833,10 @@ void Renderer::render_debug_output()
 		glViewport(0, 0, tex->width(), tex->height());
 	}
 
-    if (m_copy_program->set_uniform("s_Texture", 0))
+    if (m_debug_program->set_uniform("s_Texture", 0))
         m_debug_render_target->texture->bind(0);
+
+	m_debug_program->set_uniform("u_Mask", m_debug_color_mask);
 
 	 // Render fullscreen triangle
     glDrawArrays(GL_TRIANGLES, 0, 3);

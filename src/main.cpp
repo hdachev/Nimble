@@ -656,6 +656,26 @@ private:
 		ImGui::Checkbox("Scaled Debug Output", &scaled);
 		m_renderer.set_scaled_debug_output(scaled);
 
+		bool      mask_bool[4];
+		glm::vec4 mask = m_renderer.debug_color_mask();
+		
+		mask_bool[0] = (bool)mask.x;
+		mask_bool[1] = (bool)mask.y;
+		mask_bool[2] = (bool)mask.z;
+		mask_bool[3] = (bool)mask.w;
+
+        ImGui::Checkbox("Red", &mask_bool[0]);
+		ImGui::Checkbox("Green", &mask_bool[1]);
+        ImGui::Checkbox("Blue", &mask_bool[2]);
+		ImGui::Checkbox("Alpha", &mask_bool[3]);
+
+		mask.x = (float)mask_bool[0];
+        mask.y = (float)mask_bool[1];
+        mask.z = (float)mask_bool[2];
+        mask.w = (float)mask_bool[3];
+
+        m_renderer.set_debug_color_mask(mask);
+
 		for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
 		{
 		    auto node = m_forward_graph->node(i);
