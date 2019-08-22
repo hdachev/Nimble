@@ -164,7 +164,7 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
     else
         return false;
 
-	m_copy_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
+    m_copy_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
     m_copy_fs = res_mgr->load_shader("shader/post_process/copy_fs.glsl", GL_FRAGMENT_SHADER);
 
     if (m_copy_vs && m_debug_fs)
@@ -193,7 +193,7 @@ void Renderer::render(double delta, ViewportManager* viewport_mgr)
 
     clear_all_views();
 
-	render_debug_output();
+    render_debug_output();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -1618,7 +1618,7 @@ void Renderer::update_uniforms(double delta)
             PointLight& light = point_lights[light_idx];
 
             m_per_scene_uniforms.shadow_map_bias[light_idx].z           = light.shadow_map_bias;
-            m_per_scene_uniforms.point_light_position[light_idx]		= glm::vec4(light.transform.position, 0.0f);
+            m_per_scene_uniforms.point_light_position[light_idx]        = glm::vec4(light.transform.position, 0.0f);
             m_per_scene_uniforms.point_light_near_far[light_idx]        = glm::vec4(POINT_LIGHT_NEAR_PLANE, light.range, 0.0f, 0.0f);
             m_per_scene_uniforms.point_light_color_intensity[light_idx] = glm::vec4(light.color, light.intensity);
             m_per_scene_uniforms.point_light_casts_shadow[light_idx]    = light.casts_shadow ? 1 : 0;
@@ -1825,20 +1825,20 @@ void Renderer::render_debug_output()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (m_scaled_debug_output)
-		glViewport(0, 0, m_window_width, m_window_height);
-	else
-	{
-		Texture2D* tex = (Texture2D*)m_debug_render_target->texture.get();
-		glViewport(0, 0, tex->width(), tex->height());
-	}
+    if (m_scaled_debug_output)
+        glViewport(0, 0, m_window_width, m_window_height);
+    else
+    {
+        Texture2D* tex = (Texture2D*)m_debug_render_target->texture.get();
+        glViewport(0, 0, tex->width(), tex->height());
+    }
 
     if (m_debug_program->set_uniform("s_Texture", 0))
         m_debug_render_target->texture->bind(0);
 
-	m_debug_program->set_uniform("u_Mask", m_debug_color_mask);
+    m_debug_program->set_uniform("u_Mask", m_debug_color_mask);
 
-	 // Render fullscreen triangle
+    // Render fullscreen triangle
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 

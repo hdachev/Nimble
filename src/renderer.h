@@ -95,7 +95,7 @@ public:
     inline bool                                 scaled_debug_output() { return m_scaled_debug_output; }
     inline glm::vec4                            debug_color_mask() { return m_debug_color_mask; }
 
-	// Inline setters
+    // Inline setters
     inline void set_debug_render_target(std::shared_ptr<RenderTarget> rt) { m_debug_render_target = rt; }
     inline void set_scaled_debug_output(bool scaled) { m_scaled_debug_output = scaled; }
     inline void set_debug_color_mask(glm::vec4 mask) { m_debug_color_mask = mask; }
@@ -123,7 +123,7 @@ private:
     uint32_t queue_culled_view(Frustum f);
     void     queue_default_views();
     void     render_all_views(double delta);
-	void	 render_debug_output();
+    void     render_debug_output();
 
 private:
     // Resource caches
@@ -175,7 +175,7 @@ private:
     std::shared_ptr<VertexArray>  m_cube_vao;
     std::shared_ptr<VertexBuffer> m_cube_vbo;
 
-	std::shared_ptr<Shader>  m_copy_vs;
+    std::shared_ptr<Shader>  m_copy_vs;
     std::shared_ptr<Shader>  m_copy_fs;
     std::shared_ptr<Program> m_copy_program;
 
@@ -183,9 +183,9 @@ private:
     std::shared_ptr<Shader>  m_debug_fs;
     std::shared_ptr<Program> m_debug_program;
 
-	// Deebug render target
+    // Deebug render target
     std::shared_ptr<RenderTarget> m_debug_render_target = nullptr;
     bool                          m_scaled_debug_output = false;
-    glm::vec4                     m_debug_color_mask = glm::vec4(1.0f);
+    glm::vec4                     m_debug_color_mask    = glm::vec4(1.0f);
 };
 } // namespace nimble

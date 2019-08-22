@@ -427,7 +427,7 @@ private:
             if (ImGui::CollapsingHeader("Render Graph"))
                 render_node_params();
 
-			if (ImGui::CollapsingHeader("Render Target Inspector"))
+            if (ImGui::CollapsingHeader("Render Target Inspector"))
                 render_target_inspector();
 
             if (m_renderer.global_probe_renderer())
@@ -650,68 +650,68 @@ private:
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
-	void render_target_inspector()
-	{
-		bool scaled = m_renderer.scaled_debug_output();
-		ImGui::Checkbox("Scaled Debug Output", &scaled);
-		m_renderer.set_scaled_debug_output(scaled);
+    void render_target_inspector()
+    {
+        bool scaled = m_renderer.scaled_debug_output();
+        ImGui::Checkbox("Scaled Debug Output", &scaled);
+        m_renderer.set_scaled_debug_output(scaled);
 
-		bool      mask_bool[4];
-		glm::vec4 mask = m_renderer.debug_color_mask();
-		
-		mask_bool[0] = (bool)mask.x;
-		mask_bool[1] = (bool)mask.y;
-		mask_bool[2] = (bool)mask.z;
-		mask_bool[3] = (bool)mask.w;
+        bool      mask_bool[4];
+        glm::vec4 mask = m_renderer.debug_color_mask();
+
+        mask_bool[0] = (bool)mask.x;
+        mask_bool[1] = (bool)mask.y;
+        mask_bool[2] = (bool)mask.z;
+        mask_bool[3] = (bool)mask.w;
 
         ImGui::Checkbox("Red", &mask_bool[0]);
-		ImGui::Checkbox("Green", &mask_bool[1]);
+        ImGui::Checkbox("Green", &mask_bool[1]);
         ImGui::Checkbox("Blue", &mask_bool[2]);
-		ImGui::Checkbox("Alpha", &mask_bool[3]);
+        ImGui::Checkbox("Alpha", &mask_bool[3]);
 
-		mask.x = (float)mask_bool[0];
+        mask.x = (float)mask_bool[0];
         mask.y = (float)mask_bool[1];
         mask.z = (float)mask_bool[2];
         mask.w = (float)mask_bool[3];
 
         m_renderer.set_debug_color_mask(mask);
 
-		for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
-		{
-		    auto node = m_forward_graph->node(i);
-		
-		    if (ImGui::TreeNode(node->name().c_str()))
-		    {
+        for (uint32_t i = 0; i < m_forward_graph->node_count(); i++)
+        {
+            auto node = m_forward_graph->node(i);
+
+            if (ImGui::TreeNode(node->name().c_str()))
+            {
                 auto& rts = node->output_render_targets();
 
-				for (auto& output : rts)
-				{
-					if (ImGui::Selectable(output.slot_name.c_str(), m_renderer.debug_render_target() == output.render_target))
-					{
-						if (m_renderer.debug_render_target() == output.render_target)
-							m_renderer.set_debug_render_target(nullptr);
-						else
-							m_renderer.set_debug_render_target(output.render_target);
-					}
-				}
-
-				for (int j = 0; j < node->intermediate_render_target_count(); j++)
-				{
-                    std::string name = node->name() + "_intermediate_" + std::to_string(j);
-										
-					if (ImGui::Selectable(name.c_str(), m_renderer.debug_render_target() == node->intermediate_render_target(j)))
+                for (auto& output : rts)
+                {
+                    if (ImGui::Selectable(output.slot_name.c_str(), m_renderer.debug_render_target() == output.render_target))
                     {
-						if (m_renderer.debug_render_target() == node->intermediate_render_target(j))
+                        if (m_renderer.debug_render_target() == output.render_target)
                             m_renderer.set_debug_render_target(nullptr);
-						else
-							m_renderer.set_debug_render_target(node->intermediate_render_target(j));
-					}
-				}
+                        else
+                            m_renderer.set_debug_render_target(output.render_target);
+                    }
+                }
 
-		        ImGui::TreePop();
-		    }
-		}
-	}
+                for (int j = 0; j < node->intermediate_render_target_count(); j++)
+                {
+                    std::string name = node->name() + "_intermediate_" + std::to_string(j);
+
+                    if (ImGui::Selectable(name.c_str(), m_renderer.debug_render_target() == node->intermediate_render_target(j)))
+                    {
+                        if (m_renderer.debug_render_target() == node->intermediate_render_target(j))
+                            m_renderer.set_debug_render_target(nullptr);
+                        else
+                            m_renderer.set_debug_render_target(node->intermediate_render_target(j));
+                    }
+                }
+
+                ImGui::TreePop();
+            }
+        }
+    }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
