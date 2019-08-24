@@ -4,35 +4,51 @@
 
 namespace nimble
 {
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 static uint32_t g_rt_idx = 0;
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 RenderTargetCache::RenderTargetCache()
 {
 }
 
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 RenderTargetCache::~RenderTargetCache()
 {
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 TemporaryRenderTarget* RenderTargetCache::request_temporary(uint32_t w, uint32_t h, GLenum format)
 {
 }
 
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void RenderTargetCache::release_temporary(TemporaryRenderTarget* rt)
 {
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 void RenderTargetCache::clear()
 {
     m_cache.clear();
 }
 
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 RenderTargetCache::TemporaryRenderTargetBank::TemporaryRenderTargetBank()
 {
     allocated_count = 0;
     created_count   = 0;
-    rts.resize(TEMP_RT_CACHE_SIZE);
+    rts.reserve(TEMP_RT_CACHE_SIZE);
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 RenderTargetCache::TemporaryRenderTargetBank::~TemporaryRenderTargetBank()
 {
@@ -44,6 +60,8 @@ RenderTargetCache::TemporaryRenderTargetBank::~TemporaryRenderTargetBank()
 
 	rts.clear();
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 TemporaryRenderTarget* RenderTargetCache::TemporaryRenderTargetBank::request_temporary(uint32_t w, uint32_t h, GLenum format)
 {
@@ -63,6 +81,8 @@ TemporaryRenderTarget* RenderTargetCache::TemporaryRenderTargetBank::request_tem
     return rts[allocated_count++];
 }
 
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void RenderTargetCache::TemporaryRenderTargetBank::release_temporary(TemporaryRenderTarget*& rt)
 {
     // Make sure the provided render target has not been already released
@@ -72,6 +92,8 @@ void RenderTargetCache::TemporaryRenderTargetBank::release_temporary(TemporaryRe
     rts[--allocated_count] = rt;
     rt                     = nullptr;
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 
 bool RenderTargetCache::TemporaryRenderTargetBank::exists(uint32_t id)
 {
@@ -83,4 +105,6 @@ bool RenderTargetCache::TemporaryRenderTargetBank::exists(uint32_t id)
 
     return false;
 }
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 } // namespace nimble
