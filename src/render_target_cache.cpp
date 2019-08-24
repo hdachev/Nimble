@@ -78,19 +78,21 @@ TemporaryRenderTarget* RenderTargetCache::TemporaryRenderTargetBank::request_tem
         created_count++;
     }
 
-    return rts[allocated_count++];
+    TemporaryRenderTarget* rt = rts[allocated_count++];
+    rts[allocated_count++]    = nullptr;
+
+	return rt;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void RenderTargetCache::TemporaryRenderTargetBank::release_temporary(TemporaryRenderTarget*& rt)
+void RenderTargetCache::TemporaryRenderTargetBank::release_temporary(TemporaryRenderTarget* rt)
 {
     // Make sure the provided render target has not been already released
     if (allocated_count == 0 || exists(rt->id))
         return;
 
     rts[--allocated_count] = rt;
-    rt                     = nullptr;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

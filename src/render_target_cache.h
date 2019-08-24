@@ -42,7 +42,7 @@ private:
 		TemporaryRenderTargetBank();
 		~TemporaryRenderTargetBank();
 		TemporaryRenderTarget* request_temporary(uint32_t w, uint32_t h, GLenum format);
-		void                   release_temporary(TemporaryRenderTarget*& rt);
+		void                   release_temporary(TemporaryRenderTarget* rt);
 		bool                   exists(uint32_t id);
 	};
 
