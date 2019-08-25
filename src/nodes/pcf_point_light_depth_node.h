@@ -18,7 +18,7 @@ public:
     void        set_shader_uniforms(View* view, Program* program, int32_t& tex_unit);
 
 private:
-    std::shared_ptr<GeometryShaderLibrary> m_library;
+    std::shared_ptr<GeneratedShaderLibrary> m_library;
 };
 
 DECLARE_RENDER_NODE_FACTORY(PCFPointLightDepthNode);

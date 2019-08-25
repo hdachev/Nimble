@@ -1,4 +1,4 @@
-#include "geometry_shader_library.h"
+#include "generated_shader_library.h"
 #include "utility.h"
 #include "logger.h"
 #include "render_node.h"
@@ -57,7 +57,7 @@ static const RenderNodeFlags kRenderNodeFlags[] = {
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-GeometryShaderLibrary::GeometryShaderLibrary(const std::string& vs, const std::string& fs)
+GeneratedShaderLibrary::GeneratedShaderLibrary(const std::string& vs, const std::string& fs)
 {
     if (!utility::read_shader_separate(utility::path_for_resource("assets/" + vs), m_vs_template_includes, m_vs_template_source, m_vs_template_defines))
         NIMBLE_LOG_ERROR("Failed load Shader Library VS Source: " + vs);
@@ -68,7 +68,7 @@ GeometryShaderLibrary::GeometryShaderLibrary(const std::string& vs, const std::s
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-GeometryShaderLibrary::~GeometryShaderLibrary()
+GeneratedShaderLibrary::~GeneratedShaderLibrary()
 {
     for (uint32_t i = 0; i < m_program_cache.size(); i++)
     {
@@ -88,7 +88,7 @@ GeometryShaderLibrary::~GeometryShaderLibrary()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-Program* GeometryShaderLibrary::lookup_program(const ProgramKey& key)
+Program* GeneratedShaderLibrary::lookup_program(const ProgramKey& key)
 {
     Program* program = nullptr;
 
@@ -100,7 +100,7 @@ Program* GeometryShaderLibrary::lookup_program(const ProgramKey& key)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-Program* GeometryShaderLibrary::create_program(const MeshType& type, const uint32_t& flags, const std::shared_ptr<Material>& material, std::shared_ptr<ShadowRenderGraph> directional_light_render_graph, std::shared_ptr<ShadowRenderGraph> spot_light_render_graph, std::shared_ptr<ShadowRenderGraph> point_light_render_graph)
+Program* GeneratedShaderLibrary::create_program(const MeshType& type, const uint32_t& flags, const std::shared_ptr<Material>& material, std::shared_ptr<ShadowRenderGraph> directional_light_render_graph, std::shared_ptr<ShadowRenderGraph> spot_light_render_graph, std::shared_ptr<ShadowRenderGraph> point_light_render_graph)
 {
     std::string vs_template = m_vs_template_source;
     std::string fs_template = m_fs_template_source;

@@ -24,6 +24,7 @@ RenderTargetCache::~RenderTargetCache()
 
 TemporaryRenderTarget* RenderTargetCache::request_temporary(uint32_t w, uint32_t h, GLenum format)
 {
+	return nullptr;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

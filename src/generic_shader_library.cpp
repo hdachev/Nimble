@@ -1,4 +1,4 @@
-#include "shader_library.h"
+#include "generic_shader_library.h"
 #include "utility.h"
 #include "logger.h"
 #include "render_node.h"
@@ -9,7 +9,7 @@ namespace nimble
 {
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-ShaderLibrary::ShaderLibrary(std::vector<std::pair<GLenum, std::string>> shaders)
+GenericShaderLibrary::GenericShaderLibrary(std::vector<std::pair<GLenum, std::string>> shaders)
 {
     for (auto& pair : shaders)
     {
@@ -24,7 +24,7 @@ ShaderLibrary::ShaderLibrary(std::vector<std::pair<GLenum, std::string>> shaders
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-ShaderLibrary::~ShaderLibrary()
+GenericShaderLibrary::~GenericShaderLibrary()
 {
     for (uint32_t i = 0; i < m_program_cache.size(); i++)
     {
@@ -34,7 +34,7 @@ ShaderLibrary::~ShaderLibrary()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-Program* ShaderLibrary::create_program(const std::vector<std::string>& defines)
+Program* GenericShaderLibrary::create_program(const std::vector<std::string>& defines)
 {
     std::vector<Shader*> shaders;
 

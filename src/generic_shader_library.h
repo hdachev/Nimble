@@ -10,11 +10,11 @@ namespace nimble
 #define MAX_SHADER_CACHE_SIZE 10000
 #define MAX_PROGRAM_CACHE_SIZE 10000
 
-class ShaderLibrary
+class GenericShaderLibrary
 {
 public:
-    ShaderLibrary(std::vector<std::pair<GLenum, std::string>> shaders);
-    ~ShaderLibrary();
+    GenericShaderLibrary(std::vector<std::pair<GLenum, std::string>> shaders);
+    ~GenericShaderLibrary();
 
     Program* create_program(const std::vector<std::string>& defines);
 

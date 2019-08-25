@@ -23,7 +23,7 @@ namespace nimble
 struct View;
 class RenderGraph;
 class Scene;
-class GeometryShaderLibrary;
+class GeneratedShaderLibrary;
 class ResourceManager;
 class Renderer;
 
@@ -134,7 +134,7 @@ protected:
 
     // Geometry render helpers
     void blit_render_target(Renderer* renderer, std::shared_ptr<RenderTarget> src, std::shared_ptr<RenderTarget> dst);
-    void render_scene(Renderer* renderer, Scene* scene, View* view, GeometryShaderLibrary* library, uint32_t flags = 0, std::function<void(View*, Program*, int32_t&)> function = nullptr);
+    void render_scene(Renderer* renderer, Scene* scene, View* view, GeneratedShaderLibrary* library, uint32_t flags = 0, std::function<void(View*, Program*, int32_t&)> function = nullptr);
     void render_fullscreen_triangle(Renderer* renderer, View* view, Program* program = nullptr, int32_t tex_unit = 0, uint32_t flags = 0);
     void render_fullscreen_quad(Renderer* renderer, View* view, Program* program = nullptr, int32_t tex_unit = 0, uint32_t flags = 0);
 

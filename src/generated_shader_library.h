@@ -12,11 +12,11 @@ namespace nimble
 
 class ShadowRenderGraph;
 
-class GeometryShaderLibrary
+class GeneratedShaderLibrary
 {
 public:
-    GeometryShaderLibrary(const std::string& vs, const std::string& fs);
-    ~GeometryShaderLibrary();
+    GeneratedShaderLibrary(const std::string& vs, const std::string& fs);
+    ~GeneratedShaderLibrary();
 
     Program* lookup_program(const ProgramKey& key);
     Program* create_program(const MeshType& type, const uint32_t& flags, const std::shared_ptr<Material>& material, std::shared_ptr<ShadowRenderGraph> directional_light_render_graph, std::shared_ptr<ShadowRenderGraph> spot_light_render_graph, std::shared_ptr<ShadowRenderGraph> point_light_render_graph);
