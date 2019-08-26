@@ -14,6 +14,11 @@ enum RenderGraphType : uint32_t
     RENDER_GRAPH_SHADOW
 };
 
+class RenderGraphBase
+{
+
+};
+
 class RenderGraph
 {
 public:
@@ -72,6 +77,7 @@ public:
     RenderGraphType type() override;
 
     std::string sampling_source();
+    void        bind_shadow_map_textures();
 
     inline void set_sampling_source_path(const std::string& path) { m_sampling_source_path = path; }
 

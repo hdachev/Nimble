@@ -150,4 +150,10 @@ private:
     std::vector<OutputBuffer>                                          m_output_buffers;
     std::vector<InputBuffer>                                           m_input_buffers;
 };
+
+class ShadowRenderNode : public RenderNode
+{
+
+};
+
 } // namespace nimble

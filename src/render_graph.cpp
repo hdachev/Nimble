@@ -222,6 +222,13 @@ std::string ShadowRenderGraph::sampling_source()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+void ShadowRenderGraph::bind_shadow_map_textures()
+{
+
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 RenderGraphType ShadowRenderGraph::type()
 {
     return RENDER_GRAPH_SHADOW;
