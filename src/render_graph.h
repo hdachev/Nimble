@@ -14,11 +14,6 @@ enum RenderGraphType : uint32_t
     RENDER_GRAPH_SHADOW
 };
 
-class RenderGraphBase
-{
-
-};
-
 class RenderGraph
 {
 public:

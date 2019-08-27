@@ -112,7 +112,10 @@ public:
     inline void disable() { m_enabled = false; }
 
     // Virtual methods
+    virtual bool        is_shadow_node();
     virtual void        declare_connections();
+    virtual std::vector<GLenum> shadow_map_attachment_formats();
+    virtual void        bind_shadow_map_textures(Program* program) = 0;
     virtual bool        initialize(Renderer* renderer, ResourceManager* res_mgr)            = 0;
     virtual void        execute(double delta, Renderer* renderer, Scene* scene, View* view) = 0;
     virtual void        shutdown()                                                          = 0;
@@ -149,11 +152,6 @@ private:
     std::vector<InputRenderTarget>                                     m_input_rts;
     std::vector<OutputBuffer>                                          m_output_buffers;
     std::vector<InputBuffer>                                           m_input_buffers;
-};
-
-class ShadowRenderNode : public RenderNode
-{
-
 };
 
 } // namespace nimble
