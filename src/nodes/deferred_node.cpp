@@ -41,7 +41,7 @@ void DeferredNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool DeferredNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
+bool DeferredNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_gbuffer1_rt = find_input_render_target("G-Buffer1");
     m_gbuffer2_rt = find_input_render_target("G-Buffer2");

@@ -39,7 +39,7 @@ void SSAONode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool SSAONode::initialize(Renderer* renderer, ResourceManager* res_mgr)
+bool SSAONode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Enabled", m_enabled);
     register_int_parameter("Num Samples", m_num_samples, 0, 64);

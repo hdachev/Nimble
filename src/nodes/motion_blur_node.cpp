@@ -33,7 +33,7 @@ void MotionBlurNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool MotionBlurNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
+bool MotionBlurNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Enabled", m_enabled);
     register_int_parameter("Num Samples", m_num_samples, 0, 32);

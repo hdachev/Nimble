@@ -13,7 +13,7 @@ public:
     ~BloomNode();
 
     void        declare_connections() override;
-    bool        initialize(Renderer* renderer, ResourceManager* res_mgr) override;
+    bool        initialize_private(Renderer* renderer, ResourceManager* res_mgr) override;
     void        execute(double delta, Renderer* renderer, Scene* scene, View* view) override;
     void        shutdown() override;
     std::string name() override;

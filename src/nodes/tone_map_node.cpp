@@ -34,7 +34,7 @@ void ToneMapNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool ToneMapNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
+bool ToneMapNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_int_parameter("Operator", m_tone_map_operator, 0, 4);
 

@@ -35,7 +35,7 @@ void TAANode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool TAANode::initialize(Renderer* renderer, ResourceManager* res_mgr)
+bool TAANode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Enabled", m_enabled);
     register_enum_parameter("Neighborhood", &m_neighborhood, { { MIN_MAX_3X3, "Min Max 3x3" }, { MIN_MAX_3X3_ROUNDED, "Min Max 3x3 Rounded" }, { MIN_MAX_4_TAP_VARYING, "Min Max 4 Tap Varying" } });

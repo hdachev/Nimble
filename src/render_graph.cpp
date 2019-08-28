@@ -25,7 +25,7 @@ bool RenderGraph::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     for (auto& node : m_flattened_graph)
     {
-        if (!node->initialize(renderer, res_mgr))
+        if (!node->initialize_private(renderer, res_mgr))
             return false;
     }
 

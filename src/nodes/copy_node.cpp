@@ -31,7 +31,7 @@ void CopyNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool CopyNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
+bool CopyNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_texture = find_input_render_target("Color");
 

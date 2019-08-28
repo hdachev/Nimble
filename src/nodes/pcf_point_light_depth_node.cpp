@@ -63,7 +63,7 @@ void PCFPointLightDepthNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool PCFPointLightDepthNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
+bool PCFPointLightDepthNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_library = renderer->shader_cache().load_generated_library("shader/shadows/point_light/shadow_map/point_light_depth_vs.glsl", "shader/shadows/point_light/shadow_map/point_light_depth_fs.glsl");
     return true;
