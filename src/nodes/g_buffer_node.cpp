@@ -32,7 +32,7 @@ void GBufferNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool GBufferNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
+bool GBufferNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_library = renderer->shader_cache().load_generated_library("shader/g_buffer/g_buffer_vs.glsl", "shader/g_buffer/g_buffer_fs.glsl");
 

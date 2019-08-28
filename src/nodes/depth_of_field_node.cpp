@@ -45,7 +45,7 @@ void DepthOfFieldNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool DepthOfFieldNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
+bool DepthOfFieldNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Enabled", m_enabled);
 

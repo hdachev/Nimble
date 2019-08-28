@@ -41,7 +41,7 @@ void VolumetricLightNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool VolumetricLightNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
+bool VolumetricLightNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Dither", m_dither);
     register_bool_parameter("Blur", m_blur);

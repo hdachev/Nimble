@@ -37,7 +37,7 @@ void ScreenSpaceReflectionNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool ScreenSpaceReflectionNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
+bool ScreenSpaceReflectionNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Enabled", m_enabled);
     register_float_parameter("Thickness", m_thickness);

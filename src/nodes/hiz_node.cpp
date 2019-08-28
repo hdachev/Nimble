@@ -32,7 +32,7 @@ void HiZNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool HiZNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
+bool HiZNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_depth_rt = find_input_render_target("Depth");
 

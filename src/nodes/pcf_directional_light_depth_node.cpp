@@ -27,7 +27,7 @@ void PCFDirectionalLightDepthNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool PCFDirectionalLightDepthNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
+bool PCFDirectionalLightDepthNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_library = renderer->shader_cache().load_generated_library("shader/shadows/directional_light/shadow_map/directional_light_depth_vs.glsl", "shader/shadows/directional_light/shadow_map/directional_light_depth_fs.glsl");
     return true;

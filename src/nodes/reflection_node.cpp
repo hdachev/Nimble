@@ -33,7 +33,7 @@ void ReflectionNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool ReflectionNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
+bool ReflectionNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Screen Space Reflections", m_ssr);
 

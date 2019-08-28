@@ -38,7 +38,7 @@ void AdaptiveExposureNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool AdaptiveExposureNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
+bool AdaptiveExposureNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_float_parameter("Middle Grey", m_middle_grey);
     register_float_parameter("Rate", m_rate);

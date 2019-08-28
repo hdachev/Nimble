@@ -37,7 +37,7 @@ void CubemapSkyboxNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool CubemapSkyboxNode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
+bool CubemapSkyboxNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_scene_rtv = RenderTargetView(0, 0, 0, m_color_rt->texture);
     m_depth_rtv = RenderTargetView(0, 0, 0, m_depth_rt->texture);

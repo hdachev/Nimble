@@ -117,7 +117,7 @@ public:
     virtual GLenum              shadow_map_depth_format();
     virtual std::vector<GLenum> shadow_map_color_formats();
     virtual void        bind_shadow_test_uniforms(Program* program);
-    virtual bool        initialize_private(Renderer* renderer, ResourceManager* res_mgr)            = 0;
+    virtual bool        initialize(Renderer* renderer, ResourceManager* res_mgr)            = 0;
     virtual void        execute(double delta, Renderer* renderer, Scene* scene, View* view) = 0;
     virtual void        shutdown()                                                          = 0;
     virtual std::string name()                                                              = 0;

@@ -32,7 +32,7 @@ void FXAANode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool FXAANode::initialize_private(Renderer* renderer, ResourceManager* res_mgr)
+bool FXAANode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Enabled", m_enabled);
     register_float_parameter("Quality Edge Threshold", m_quality_edge_threshold);
