@@ -95,16 +95,16 @@ public:
     inline bool                                 scaled_debug_output() { return m_scaled_debug_output; }
     inline glm::vec4                            debug_color_mask() { return m_debug_color_mask; }
 
-	// New shadow map API
-	inline std::shared_ptr<Texture> directional_light_shadow_map_depth_attachment() { return nullptr; }
-    inline uint32_t                     directional_light_shadow_map_color_attachment_count() { return 0; }
+    // New shadow map API
+    inline std::shared_ptr<Texture> directional_light_shadow_map_depth_attachment() { return nullptr; }
+    inline uint32_t                 directional_light_shadow_map_color_attachment_count() { return 0; }
     inline std::shared_ptr<Texture> directional_light_shadow_map_color_attachment(uint32_t idx) { return nullptr; }
     inline std::shared_ptr<Texture> spot_light_shadow_map_depth_attachment() { return nullptr; }
-    inline uint32_t                     spot_light_shadow_map_color_attachment_count() { return 0; }
-    inline std::shared_ptr<Texture>     spot_light_shadow_map_color_attachment(uint32_t idx) { return nullptr; }
+    inline uint32_t                 spot_light_shadow_map_color_attachment_count() { return 0; }
+    inline std::shared_ptr<Texture> spot_light_shadow_map_color_attachment(uint32_t idx) { return nullptr; }
     inline std::shared_ptr<Texture> point_light_shadow_map_depth_attachment() { return nullptr; }
-    inline uint32_t                     point_light_shadow_map_color_attachment_count() { return 0; }
-    inline std::shared_ptr<Texture>     point_light_shadow_map_color_attachment(uint32_t idx) { return nullptr; }
+    inline uint32_t                 point_light_shadow_map_color_attachment_count() { return 0; }
+    inline std::shared_ptr<Texture> point_light_shadow_map_color_attachment(uint32_t idx) { return nullptr; }
 
     // Inline setters
     inline void set_debug_render_target(std::shared_ptr<RenderTarget> rt) { m_debug_render_target = rt; }

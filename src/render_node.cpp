@@ -214,7 +214,6 @@ std::vector<GLenum> RenderNode::shadow_map_color_formats()
 
 void RenderNode::bind_shadow_test_uniforms(Program* program)
 {
-
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

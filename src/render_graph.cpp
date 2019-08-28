@@ -224,7 +224,6 @@ std::string ShadowRenderGraph::sampling_source()
 
 void ShadowRenderGraph::bind_shadow_map_textures()
 {
-
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

@@ -13,8 +13,8 @@ class GeneratedShaderLibrary;
 class ShaderCache
 {
 public:
-    void                                   shutdown();
-    std::shared_ptr<GenericShaderLibrary>  load_generic_library(std::vector<std::pair<GLenum, std::string>> shaders);
+    void                                    shutdown();
+    std::shared_ptr<GenericShaderLibrary>   load_generic_library(std::vector<std::pair<GLenum, std::string>> shaders);
     std::shared_ptr<GeneratedShaderLibrary> load_generated_library(const std::string& vs, const std::string& fs);
 
 private:

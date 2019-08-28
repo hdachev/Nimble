@@ -18,11 +18,11 @@ public:
 
 private:
     std::shared_ptr<GeneratedShaderLibrary> m_library;
-    std::shared_ptr<RenderTarget>          m_color_rt;
-    std::shared_ptr<RenderTarget>          m_depth_rt;
-    std::shared_ptr<RenderTarget>          m_velocity_rt;
-    RenderTargetView                       m_color_rtv[2];
-    RenderTargetView                       m_depth_rtv;
+    std::shared_ptr<RenderTarget>           m_color_rt;
+    std::shared_ptr<RenderTarget>           m_depth_rt;
+    std::shared_ptr<RenderTarget>           m_velocity_rt;
+    RenderTargetView                        m_color_rtv[2];
+    RenderTargetView                        m_depth_rtv;
 };
 
 DECLARE_RENDER_NODE_FACTORY(ForwardNode);

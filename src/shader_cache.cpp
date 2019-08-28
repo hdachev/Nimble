@@ -57,7 +57,7 @@ std::shared_ptr<GeneratedShaderLibrary> ShaderCache::load_generated_library(cons
         return m_generated_library_cache[id].lock();
     else
     {
-        auto library                 = std::make_shared<GeneratedShaderLibrary>(vs, fs);
+        auto library                  = std::make_shared<GeneratedShaderLibrary>(vs, fs);
         m_generated_library_cache[id] = library;
 
         return library;
