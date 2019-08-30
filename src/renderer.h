@@ -84,9 +84,9 @@ public:
     inline std::shared_ptr<ShadowRenderGraph>   point_light_render_graph() { return m_point_light_render_graph; }
     inline std::shared_ptr<GlobalProbeRenderer> global_probe_renderer() { return m_global_probe_renderer; }
     inline std::shared_ptr<LocalProbeRenderer>  local_probe_renderer() { return m_local_probe_renderer; }
-    inline std::shared_ptr<Texture>             directional_light_shadow_maps() { return m_directional_light_shadow_maps; }
-    inline std::shared_ptr<Texture>             spot_light_shadow_maps() { return m_spot_light_shadow_maps; }
-    inline std::shared_ptr<Texture>             point_light_shadow_maps() { return m_point_light_shadow_maps; }
+    inline std::shared_ptr<Texture>             directional_light_shadow_maps() { return m_directional_light_shadow_map_depth_attachment; }
+    inline std::shared_ptr<Texture>             spot_light_shadow_maps() { return m_spot_light_shadow_map_depth_attachment; }
+    inline std::shared_ptr<Texture>             point_light_shadow_maps() { return m_point_light_shadow_map_depth_attachment; }
     inline ShaderStorageBuffer*                 per_view_ssbo() { return m_per_view.get(); }
     inline UniformBuffer*                       per_entity_ubo() { return m_per_entity.get(); }
     inline ShaderStorageBuffer*                 per_scene_ssbo() { return m_per_scene.get(); }
@@ -96,15 +96,15 @@ public:
     inline glm::vec4                            debug_color_mask() { return m_debug_color_mask; }
 
     // New shadow map API
-    inline std::shared_ptr<Texture> directional_light_shadow_map_depth_attachment() { return nullptr; }
-    inline uint32_t                 directional_light_shadow_map_color_attachment_count() { return 0; }
-    inline std::shared_ptr<Texture> directional_light_shadow_map_color_attachment(uint32_t idx) { return nullptr; }
-    inline std::shared_ptr<Texture> spot_light_shadow_map_depth_attachment() { return nullptr; }
-    inline uint32_t                 spot_light_shadow_map_color_attachment_count() { return 0; }
-    inline std::shared_ptr<Texture> spot_light_shadow_map_color_attachment(uint32_t idx) { return nullptr; }
-    inline std::shared_ptr<Texture> point_light_shadow_map_depth_attachment() { return nullptr; }
-    inline uint32_t                 point_light_shadow_map_color_attachment_count() { return 0; }
-    inline std::shared_ptr<Texture> point_light_shadow_map_color_attachment(uint32_t idx) { return nullptr; }
+    inline std::shared_ptr<Texture> directional_light_shadow_map_depth_attachment() { return m_directional_light_shadow_map_depth_attachment; }
+    inline uint32_t                 directional_light_shadow_map_color_attachment_count() { return m_directional_light_shadow_map_color_attachments.size(); }
+    inline std::shared_ptr<Texture> directional_light_shadow_map_color_attachment(uint32_t idx) { return m_directional_light_shadow_map_color_attachments[idx]; }
+    inline std::shared_ptr<Texture> spot_light_shadow_map_depth_attachment() { return m_spot_light_shadow_map_depth_attachment; }
+    inline uint32_t                 spot_light_shadow_map_color_attachment_count() { return m_spot_light_shadow_map_color_attachments.size(); }
+    inline std::shared_ptr<Texture> spot_light_shadow_map_color_attachment(uint32_t idx) { return m_spot_light_shadow_map_color_attachments[idx]; }
+    inline std::shared_ptr<Texture> point_light_shadow_map_depth_attachment() { m_point_light_shadow_map_depth_attachment; }
+    inline uint32_t                 point_light_shadow_map_color_attachment_count() { return m_point_light_shadow_map_color_attachments.size(); }
+    inline std::shared_ptr<Texture> point_light_shadow_map_color_attachment(uint32_t idx) { return m_point_light_shadow_map_color_attachments[idx]; }
 
     // Inline setters
     inline void set_debug_render_target(std::shared_ptr<RenderTarget> rt) { m_debug_render_target = rt; }
@@ -120,6 +120,7 @@ private:
         TextureLifetimes              lifetimes;
     };
 
+    void     create_shadow_maps();
     void     render_probes(double delta);
     void     setup_cascade_views(DirectionalLight& dir_light, View* dependent_view, View** cascade_views, View* parent = nullptr);
     void     create_cube();
@@ -170,9 +171,12 @@ private:
     std::unique_ptr<ShaderStorageBuffer> m_per_scene;
 
     // Shadow Maps
-    std::shared_ptr<Texture>      m_directional_light_shadow_maps;
-    std::shared_ptr<Texture>      m_spot_light_shadow_maps;
-    std::shared_ptr<Texture>      m_point_light_shadow_maps;
+    std::shared_ptr<Texture>              m_directional_light_shadow_map_depth_attachment;
+    std::shared_ptr<Texture>              m_spot_light_shadow_map_depth_attachment;
+    std::shared_ptr<Texture>              m_point_light_shadow_map_depth_attachment;
+    std::vector<std::shared_ptr<Texture>> m_directional_light_shadow_map_color_attachments;
+    std::vector<std::shared_ptr<Texture>> m_spot_light_shadow_map_color_attachments;
+    std::vector<std::shared_ptr<Texture>> m_point_light_shadow_map_color_attachments;
     std::vector<RenderTargetView> m_directionl_light_rt_views;
     std::vector<RenderTargetView> m_point_light_rt_views;
     std::vector<RenderTargetView> m_spot_light_rt_views;
