@@ -200,7 +200,7 @@ bool RenderNode::is_shadow_node()
 
 GLenum RenderNode::shadow_map_depth_format()
 {
-    return GL_R32F;
+    return GL_DEPTH_COMPONENT32F;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

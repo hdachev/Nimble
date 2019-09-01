@@ -52,7 +52,7 @@ private:
     void traverse_and_push_node(std::shared_ptr<RenderNode> node);
     bool is_node_pushed(std::shared_ptr<RenderNode> node);
 
-private:
+protected:
     std::string                              m_name;
     uint32_t                                 m_window_width;
     uint32_t                                 m_window_height;
@@ -74,6 +74,7 @@ public:
     std::string sampling_source();
     void        bind_shadow_map_textures();
 
+	inline std::shared_ptr<RenderNode> shadow_node() { return m_flattened_graph[0]; } 
     inline void set_sampling_source_path(const std::string& path) { m_sampling_source_path = path; }
 
 private:
