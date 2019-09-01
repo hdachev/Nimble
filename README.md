@@ -35,6 +35,8 @@ An OpenGL renderer with a modern and extensible rendering pipeline.
 * Light mapping
 * Local Reflection and Irradiance Probes
 * GUI Render Graph Editor
+* SMAA
+* HBAO
 
 ## Dependencies
 * [glfw](https://github.com/glfw/glfw)
