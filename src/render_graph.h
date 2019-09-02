@@ -74,8 +74,8 @@ public:
     std::string sampling_source();
     void        bind_shadow_map_textures();
 
-	inline std::shared_ptr<RenderNode> shadow_node() { return m_flattened_graph[0]; } 
-    inline void set_sampling_source_path(const std::string& path) { m_sampling_source_path = path; }
+    inline std::shared_ptr<RenderNode> shadow_node() { return m_flattened_graph[0]; }
+    inline void                        set_sampling_source_path(const std::string& path) { m_sampling_source_path = path; }
 
 private:
     std::string m_sampling_source_path;

@@ -112,17 +112,17 @@ public:
     inline void disable() { m_enabled = false; }
 
     // Virtual methods
-    virtual bool                is_shadow_node();
-    virtual void                declare_connections();
-    virtual GLenum              shadow_map_depth_format();
-    virtual std::vector<GLenum> shadow_map_color_formats();
-    virtual std::string         shadow_test_source();
+    virtual bool                     is_shadow_node();
+    virtual void                     declare_connections();
+    virtual GLenum                   shadow_map_depth_format();
+    virtual std::vector<GLenum>      shadow_map_color_formats();
+    virtual std::string              shadow_test_source();
     virtual std::vector<std::string> shadow_test_source_defines();
-    virtual void                bind_shadow_test_uniforms(Program* program);
-    virtual bool                initialize(Renderer* renderer, ResourceManager* res_mgr)            = 0;
-    virtual void                execute(double delta, Renderer* renderer, Scene* scene, View* view) = 0;
-    virtual void                shutdown()                                                          = 0;
-    virtual std::string         name()                                                              = 0;
+    virtual void                     bind_shadow_test_uniforms(Program* program);
+    virtual bool                     initialize(Renderer* renderer, ResourceManager* res_mgr)            = 0;
+    virtual void                     execute(double delta, Renderer* renderer, Scene* scene, View* view) = 0;
+    virtual void                     shutdown()                                                          = 0;
+    virtual std::string              name()                                                              = 0;
 
     // Event callbacks
     virtual void on_window_resized(const uint32_t& w, const uint32_t& h);

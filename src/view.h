@@ -64,12 +64,12 @@ struct View
 
     View()
     {
-        viewport                = nullptr;
+        viewport                            = nullptr;
         dest_color_render_target_view_count = 0;
-        dest_color_render_target_views = nullptr;
-        dest_depth_render_target_view = nullptr;
-        num_cascade_frustums    = 0;
-        num_cascade_views       = 0;
+        dest_color_render_target_views      = nullptr;
+        dest_depth_render_target_view       = nullptr;
+        num_cascade_frustums                = 0;
+        num_cascade_views                   = 0;
 
         for (uint32_t i = 0; i < MAX_SHADOW_MAP_CASCADES; i++)
             cascade_views[i] = nullptr;
