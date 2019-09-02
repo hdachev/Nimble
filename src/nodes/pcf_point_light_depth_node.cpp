@@ -26,22 +26,22 @@ void PCFPointLightDepthNode::execute(double delta, Renderer* renderer, Scene* sc
     int32_t w = 0;
     int32_t h = 0;
 
-    if (view->dest_render_target_view->texture->target() == GL_TEXTURE_2D)
+    if (view->dest_depth_render_target_view->texture->target() == GL_TEXTURE_2D)
     {
-        Texture2D* texture = (Texture2D*)view->dest_render_target_view->texture.get();
+        Texture2D* texture = (Texture2D*)view->dest_depth_render_target_view->texture.get();
 
         w = texture->width();
         h = texture->height();
     }
     else
     {
-        TextureCube* texture = (TextureCube*)view->dest_render_target_view->texture.get();
+        TextureCube* texture = (TextureCube*)view->dest_depth_render_target_view->texture.get();
 
         w = texture->width();
         h = texture->height();
     }
 
-    renderer->bind_render_targets(0, nullptr, view->dest_render_target_view);
+    renderer->bind_render_targets(0, nullptr, view->dest_depth_render_target_view);
 
     glViewport(0, 0, w, h);
 

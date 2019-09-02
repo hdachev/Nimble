@@ -47,7 +47,9 @@ struct View
     std::shared_ptr<Viewport>    viewport;
     int32_t                      viewport_width;
     int32_t                      viewport_height;
-    RenderTargetView*            dest_render_target_view;
+    int32_t                      dest_color_render_target_view_count;
+    RenderTargetView*            dest_color_render_target_views;
+    RenderTargetView*            dest_depth_render_target_view;
     ViewType                     type;
 
     // Directional Light related payload
@@ -63,7 +65,9 @@ struct View
     View()
     {
         viewport                = nullptr;
-        dest_render_target_view = nullptr;
+        dest_color_render_target_view_count = 0;
+        dest_color_render_target_views = nullptr;
+        dest_depth_render_target_view = nullptr;
         num_cascade_frustums    = 0;
         num_cascade_views       = 0;
 

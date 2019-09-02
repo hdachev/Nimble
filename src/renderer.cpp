@@ -318,7 +318,7 @@ View* Renderer::allocate_view()
 
         View* view = &m_view_pool[idx];
 
-        view->dest_render_target_view = nullptr;
+        view->dest_depth_render_target_view = nullptr;
         view->num_cascade_frustums    = 0;
         view->num_cascade_views       = 0;
 
@@ -383,7 +383,7 @@ void Renderer::queue_directional_light_views(View* dependent_view)
                     light_view->inv_projection_mat      = glm::mat4(1.0f);
                     light_view->inv_vp_mat              = glm::mat4(1.0f);
                     light_view->jitter                  = glm::vec4(0.0);
-                    light_view->dest_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
+                    light_view->dest_depth_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
                     light_view->graph                   = m_directional_light_render_graph;
                     light_view->type                    = VIEW_DIRECTIONAL_LIGHT;
                     light_view->light_index             = light_idx;
@@ -474,7 +474,7 @@ void Renderer::queue_spot_light_views()
                 light_view->inv_projection_mat      = glm::mat4(1.0f);
                 light_view->inv_vp_mat              = glm::mat4(1.0f);
                 light_view->jitter                  = glm::vec4(0.0);
-                light_view->dest_render_target_view = &m_spot_light_rt_views[shadow_casting_light_idx];
+                light_view->dest_depth_render_target_view = &m_spot_light_rt_views[shadow_casting_light_idx];
                 light_view->graph                   = m_spot_light_render_graph;
                 light_view->type                    = VIEW_SPOT_LIGHT;
                 light_view->light_index             = light_idx;
@@ -527,7 +527,7 @@ void Renderer::queue_point_light_views()
                     light_view->inv_projection_mat      = glm::inverse(light_view->projection_mat);
                     light_view->inv_vp_mat              = glm::inverse(light_view->vp_mat);
                     light_view->jitter                  = glm::vec4(0.0);
-                    light_view->dest_render_target_view = &m_point_light_rt_views[shadow_casting_light_idx * 6 + face_idx];
+                    light_view->dest_depth_render_target_view = &m_point_light_rt_views[shadow_casting_light_idx * 6 + face_idx];
                     light_view->graph                   = m_point_light_render_graph;
                     light_view->type                    = VIEW_POINT_LIGHT;
                     light_view->light_index             = light_idx;
@@ -1852,7 +1852,7 @@ void Renderer::queue_default_views()
         scene_view->inv_projection_mat      = glm::inverse(camera->m_projection);
         scene_view->inv_vp_mat              = glm::inverse(camera->m_view_projection);
         scene_view->jitter                  = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
-        scene_view->dest_render_target_view = nullptr;
+        scene_view->dest_depth_render_target_view = nullptr;
         scene_view->viewport                = camera->m_viewport;
         scene_view->graph                   = m_scene_render_graph;
         scene_view->type                    = VIEW_STANDARD;
