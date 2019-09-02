@@ -373,20 +373,22 @@ void Renderer::queue_directional_light_views(View* dependent_view)
                 {
                     View* light_view = allocate_view();
 
-                    light_view->tag                           = "Directional Light " + std::to_string(light_idx) + " Cascade View " + std::to_string(cascade_idx);
-                    light_view->enabled                       = true;
-                    light_view->culling                       = true;
-                    light_view->direction                     = light.transform.forward();
-                    light_view->position                      = light.transform.position;
-                    light_view->prev_vp_mat                   = glm::mat4(1.0f);
-                    light_view->inv_view_mat                  = glm::mat4(1.0f);
-                    light_view->inv_projection_mat            = glm::mat4(1.0f);
-                    light_view->inv_vp_mat                    = glm::mat4(1.0f);
-                    light_view->jitter                        = glm::vec4(0.0);
-                    light_view->dest_depth_render_target_view = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
-                    light_view->graph                         = m_directional_light_render_graph;
-                    light_view->type                          = VIEW_DIRECTIONAL_LIGHT;
-                    light_view->light_index                   = light_idx;
+                    light_view->tag                                 = "Directional Light " + std::to_string(light_idx) + " Cascade View " + std::to_string(cascade_idx);
+                    light_view->enabled                             = true;
+                    light_view->culling                             = true;
+                    light_view->direction                           = light.transform.forward();
+                    light_view->position                            = light.transform.position;
+                    light_view->prev_vp_mat                         = glm::mat4(1.0f);
+                    light_view->inv_view_mat                        = glm::mat4(1.0f);
+                    light_view->inv_projection_mat                  = glm::mat4(1.0f);
+                    light_view->inv_vp_mat                          = glm::mat4(1.0f);
+                    light_view->jitter                              = glm::vec4(0.0);
+                    light_view->dest_color_render_target_view_count = 0;
+                    light_view->dest_color_render_target_views      = nullptr;
+                    light_view->dest_depth_render_target_view       = &m_directionl_light_rt_views[shadow_casting_light_idx * m_settings.cascade_count + cascade_idx];
+                    light_view->graph                               = m_directional_light_render_graph;
+                    light_view->type                                = VIEW_DIRECTIONAL_LIGHT;
+                    light_view->light_index                         = light_idx;
 
                     cascade_views[cascade_idx] = light_view;
 
@@ -461,23 +463,25 @@ void Renderer::queue_spot_light_views()
             {
                 View* light_view = allocate_view();
 
-                light_view->tag                           = "Spot Light View " + std::to_string(light_idx);
-                light_view->enabled                       = true;
-                light_view->culling                       = true;
-                light_view->direction                     = light.transform.forward();
-                light_view->position                      = light.transform.position;
-                light_view->view_mat                      = glm::lookAt(light_view->position, light_view->position + light_view->direction, glm::vec3(0.0f, 1.0f, 0.0f));
-                light_view->projection_mat                = glm::perspective(glm::radians(2.0f * light.outer_cone_angle), 1.0f, 1.0f, light.range);
-                light_view->vp_mat                        = light_view->projection_mat * light_view->view_mat;
-                light_view->prev_vp_mat                   = glm::mat4(1.0f);
-                light_view->inv_view_mat                  = glm::mat4(1.0f);
-                light_view->inv_projection_mat            = glm::mat4(1.0f);
-                light_view->inv_vp_mat                    = glm::mat4(1.0f);
-                light_view->jitter                        = glm::vec4(0.0);
-                light_view->dest_depth_render_target_view = &m_spot_light_rt_views[shadow_casting_light_idx];
-                light_view->graph                         = m_spot_light_render_graph;
-                light_view->type                          = VIEW_SPOT_LIGHT;
-                light_view->light_index                   = light_idx;
+                light_view->tag                                 = "Spot Light View " + std::to_string(light_idx);
+                light_view->enabled                             = true;
+                light_view->culling                             = true;
+                light_view->direction                           = light.transform.forward();
+                light_view->position                            = light.transform.position;
+                light_view->view_mat                            = glm::lookAt(light_view->position, light_view->position + light_view->direction, glm::vec3(0.0f, 1.0f, 0.0f));
+                light_view->projection_mat                      = glm::perspective(glm::radians(2.0f * light.outer_cone_angle), 1.0f, 1.0f, light.range);
+                light_view->vp_mat                              = light_view->projection_mat * light_view->view_mat;
+                light_view->prev_vp_mat                         = glm::mat4(1.0f);
+                light_view->inv_view_mat                        = glm::mat4(1.0f);
+                light_view->inv_projection_mat                  = glm::mat4(1.0f);
+                light_view->inv_vp_mat                          = glm::mat4(1.0f);
+                light_view->jitter                              = glm::vec4(0.0);
+                light_view->dest_color_render_target_view_count = 0;
+                light_view->dest_color_render_target_views      = nullptr;
+                light_view->dest_depth_render_target_view       = &m_spot_light_rt_views[shadow_casting_light_idx];
+                light_view->graph                               = m_spot_light_render_graph;
+                light_view->type                                = VIEW_SPOT_LIGHT;
+                light_view->light_index                         = light_idx;
 
                 m_per_scene_uniforms.spot_light_shadow_matrix[shadow_casting_light_idx] = light_view->vp_mat;
 
@@ -514,23 +518,25 @@ void Renderer::queue_point_light_views()
                 {
                     View* light_view = allocate_view();
 
-                    light_view->tag                           = "Point Light View " + std::to_string(light_idx) + " - " + std::to_string(face_idx);
-                    light_view->enabled                       = true;
-                    light_view->culling                       = true;
-                    light_view->direction                     = light.transform.forward();
-                    light_view->position                      = light.transform.position;
-                    light_view->view_mat                      = glm::lookAt(light.transform.position, light.transform.position + s_cube_view_params[face_idx][0], s_cube_view_params[face_idx][1]);
-                    light_view->projection_mat                = glm::perspective(glm::radians(90.0f), 1.0f, POINT_LIGHT_NEAR_PLANE, light.range);
-                    light_view->vp_mat                        = light_view->projection_mat * light_view->view_mat;
-                    light_view->prev_vp_mat                   = glm::mat4(1.0f);
-                    light_view->inv_view_mat                  = glm::inverse(light_view->view_mat);
-                    light_view->inv_projection_mat            = glm::inverse(light_view->projection_mat);
-                    light_view->inv_vp_mat                    = glm::inverse(light_view->vp_mat);
-                    light_view->jitter                        = glm::vec4(0.0);
-                    light_view->dest_depth_render_target_view = &m_point_light_rt_views[shadow_casting_light_idx * 6 + face_idx];
-                    light_view->graph                         = m_point_light_render_graph;
-                    light_view->type                          = VIEW_POINT_LIGHT;
-                    light_view->light_index                   = light_idx;
+                    light_view->tag                                 = "Point Light View " + std::to_string(light_idx) + " - " + std::to_string(face_idx);
+                    light_view->enabled                             = true;
+                    light_view->culling                             = true;
+                    light_view->direction                           = light.transform.forward();
+                    light_view->position                            = light.transform.position;
+                    light_view->view_mat                            = glm::lookAt(light.transform.position, light.transform.position + s_cube_view_params[face_idx][0], s_cube_view_params[face_idx][1]);
+                    light_view->projection_mat                      = glm::perspective(glm::radians(90.0f), 1.0f, POINT_LIGHT_NEAR_PLANE, light.range);
+                    light_view->vp_mat                              = light_view->projection_mat * light_view->view_mat;
+                    light_view->prev_vp_mat                         = glm::mat4(1.0f);
+                    light_view->inv_view_mat                        = glm::inverse(light_view->view_mat);
+                    light_view->inv_projection_mat                  = glm::inverse(light_view->projection_mat);
+                    light_view->inv_vp_mat                          = glm::inverse(light_view->vp_mat);
+                    light_view->jitter                              = glm::vec4(0.0);
+                    light_view->dest_color_render_target_view_count = 0;
+                    light_view->dest_color_render_target_views      = nullptr;
+                    light_view->dest_depth_render_target_view       = &m_point_light_rt_views[shadow_casting_light_idx * 6 + face_idx];
+                    light_view->graph                               = m_point_light_render_graph;
+                    light_view->type                                = VIEW_POINT_LIGHT;
+                    light_view->light_index                         = light_idx;
 
                     queue_view(light_view);
                 }
@@ -1837,31 +1843,33 @@ void Renderer::queue_default_views()
         auto  camera     = scene->camera();
         View* scene_view = allocate_view();
 
-        scene_view->tag                           = "Scene View";
-        scene_view->enabled                       = true;
-        scene_view->culling                       = true;
-        scene_view->direction                     = camera->m_forward;
-        scene_view->position                      = camera->m_position;
-        scene_view->up                            = camera->m_up;
-        scene_view->right                         = camera->m_right;
-        scene_view->view_mat                      = camera->m_view;
-        scene_view->projection_mat                = camera->m_projection;
-        scene_view->vp_mat                        = camera->m_view_projection;
-        scene_view->prev_vp_mat                   = camera->m_prev_view_projection;
-        scene_view->inv_view_mat                  = glm::inverse(camera->m_view);
-        scene_view->inv_projection_mat            = glm::inverse(camera->m_projection);
-        scene_view->inv_vp_mat                    = glm::inverse(camera->m_view_projection);
-        scene_view->jitter                        = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
-        scene_view->dest_depth_render_target_view = nullptr;
-        scene_view->viewport                      = camera->m_viewport;
-        scene_view->graph                         = m_scene_render_graph;
-        scene_view->type                          = VIEW_STANDARD;
-        scene_view->fov                           = camera->m_fov;
-        scene_view->ratio                         = camera->m_aspect_ratio;
-        scene_view->near_plane                    = camera->m_near;
-        scene_view->far_plane                     = camera->m_far;
-        scene_view->viewport_width                = m_window_width;
-        scene_view->viewport_height               = m_window_height;
+        scene_view->tag                                 = "Scene View";
+        scene_view->enabled                             = true;
+        scene_view->culling                             = true;
+        scene_view->direction                           = camera->m_forward;
+        scene_view->position                            = camera->m_position;
+        scene_view->up                                  = camera->m_up;
+        scene_view->right                               = camera->m_right;
+        scene_view->view_mat                            = camera->m_view;
+        scene_view->projection_mat                      = camera->m_projection;
+        scene_view->vp_mat                              = camera->m_view_projection;
+        scene_view->prev_vp_mat                         = camera->m_prev_view_projection;
+        scene_view->inv_view_mat                        = glm::inverse(camera->m_view);
+        scene_view->inv_projection_mat                  = glm::inverse(camera->m_projection);
+        scene_view->inv_vp_mat                          = glm::inverse(camera->m_view_projection);
+        scene_view->jitter                              = glm::vec4(camera->m_prev_jitter, camera->m_current_jitter);
+        scene_view->dest_color_render_target_view_count = 0;
+        scene_view->dest_color_render_target_views      = nullptr;
+        scene_view->dest_depth_render_target_view       = nullptr;
+        scene_view->viewport                            = camera->m_viewport;
+        scene_view->graph                               = m_scene_render_graph;
+        scene_view->type                                = VIEW_STANDARD;
+        scene_view->fov                                 = camera->m_fov;
+        scene_view->ratio                               = camera->m_aspect_ratio;
+        scene_view->near_plane                          = camera->m_near;
+        scene_view->far_plane                           = camera->m_far;
+        scene_view->viewport_width                      = m_window_width;
+        scene_view->viewport_height                     = m_window_height;
 
         // Queue shadow views
         queue_spot_light_views();
