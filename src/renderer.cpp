@@ -760,7 +760,7 @@ void Renderer::create_shadow_maps()
         m_directional_light_shadow_map_color_attachments.resize(color_formats.size());
 
         for (int i = 0; i < color_formats.size(); i++)
-            m_directional_light_shadow_map_color_attachments[i] = std::make_shared<Texture2D>(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS, 1, 1, color_formats[i], GL_DEPTH_COMPONENT, GL_FLOAT, false);
+            m_directional_light_shadow_map_color_attachments[i] = std::make_shared<Texture2D>(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS, 1, 1, color_formats[i], format_from_internal_format(color_formats[i]), type_from_internal_format(color_formats[i]), false);
 
         // Create shadow map Render Target Views
         for (uint32_t i = 0; i < MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS; i++)
@@ -802,7 +802,7 @@ void Renderer::create_shadow_maps()
         m_spot_light_shadow_map_color_attachments.reserve(color_formats.size());
 
         for (int i = 0; i < color_formats.size(); i++)
-            m_spot_light_shadow_map_color_attachments[i] = std::make_shared<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_SPOT_LIGHTS, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
+            m_spot_light_shadow_map_color_attachments[i] = std::make_shared<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_SPOT_LIGHTS, 1, 1, color_formats[i], format_from_internal_format(color_formats[i]), type_from_internal_format(color_formats[i]), false);
 
         // Create shadow map Render Target Views
         for (uint32_t i = 0; i < MAX_SHADOW_CASTING_SPOT_LIGHTS; i++)
@@ -835,7 +835,7 @@ void Renderer::create_shadow_maps()
         m_point_light_shadow_map_color_attachments.reserve(color_formats.size());
 
         for (uint32_t i = 0; i < color_formats.size(); i++)
-            m_point_light_shadow_map_color_attachments[i] = std::make_shared<TextureCube>(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_POINT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
+            m_point_light_shadow_map_color_attachments[i] = std::make_shared<TextureCube>(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_POINT_LIGHTS, 1, color_formats[i], format_from_internal_format(color_formats[i]), type_from_internal_format(color_formats[i]), false);
 
         // Create shadow map Render Target Views
         for (uint32_t i = 0; i < MAX_SHADOW_CASTING_POINT_LIGHTS; i++)

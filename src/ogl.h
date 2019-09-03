@@ -39,6 +39,9 @@
 
 namespace nimble
 {
+extern GLenum format_from_internal_format(GLenum fmt);
+extern GLenum type_from_internal_format(GLenum fmt);
+
 // Texture base class.
 class Texture
 {

@@ -7,6 +7,36 @@ namespace nimble
 {
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+GLenum format_from_internal_format(GLenum fmt)
+{
+    if (fmt == GL_R8 || fmt == GL_R16F || fmt == GL_R32F)
+        return GL_RED;
+    else if (fmt == GL_RG8 || fmt == GL_RG16F || fmt == GL_RG32F)
+        return GL_RG;
+    else if (fmt == GL_RGB8 || fmt == GL_RGB16F || fmt == GL_RGB32F)
+        return GL_RGB;
+    else if (fmt == GL_RGBA8 || fmt == GL_RGBA16F || fmt == GL_RGBA32F)
+        return GL_RGBA;
+    else
+        return GL_INVALID_ENUM;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+GLenum type_from_internal_format(GLenum fmt)
+{
+    if (fmt == GL_R8 || fmt == GL_RG8 || fmt == GL_RGB8 || fmt == GL_RGBA8)
+        return GL_UNSIGNED_BYTE;
+    else if (fmt == GL_R16F || fmt == GL_RG16F || fmt == GL_RGB16F || fmt == GL_RGBA16F)
+        return GL_HALF_FLOAT;
+    else if (fmt == GL_R32F || fmt == GL_RGB32F || fmt == GL_RGBA32F)
+        return GL_FLOAT;
+    else
+        return GL_INVALID_ENUM;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 Texture::Texture()
 {
     GL_CHECK_ERROR(glGenTextures(1, &m_gl_tex));
