@@ -84,7 +84,7 @@ void HiZNode::copy_depth(Renderer* renderer, Scene* scene, View* view)
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
 
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     if (m_copy_program->set_uniform("s_Texture", 0))
         m_depth_rt->texture->bind(0);
@@ -109,7 +109,7 @@ void HiZNode::downsample(Renderer* renderer, Scene* scene, View* view)
         glViewport(0, 0, m_graph->window_width() / scale, m_graph->window_height() / scale);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         if (m_hiz_program->set_uniform("s_Texture", 0))
             m_hiz_rt->texture->bind(0);

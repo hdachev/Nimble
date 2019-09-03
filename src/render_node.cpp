@@ -5,6 +5,7 @@
 #include "scene.h"
 #include "generated_shader_library.h"
 #include "logger.h"
+#include "utility.h"
 #include "renderer.h"
 
 namespace nimble
@@ -174,6 +175,13 @@ void RenderNode::set_input(const std::string& name, OutputBuffer* buffer, std::s
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+void RenderNode::set_shadow_test_source_path(const std::string& path)
+{
+    m_shadow_test_source_path = path;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void RenderNode::bind_shadow_maps(Renderer* renderer, Program* program, int32_t tex_unit, uint32_t flags)
 {
     if (program)
@@ -214,7 +222,19 @@ std::vector<GLenum> RenderNode::shadow_map_color_formats()
 
 std::string RenderNode::shadow_test_source()
 {
-    return "";
+    if (m_shadow_test_source == "")
+    {
+        std::string includes;
+        std::string defines;
+
+        if (!utility::read_shader_separate(utility::path_for_resource("assets/" + m_shadow_test_source_path), includes, m_shadow_test_source, defines))
+        {
+            NIMBLE_LOG_ERROR("Failed load Sampling Source: " + m_shadow_test_source_path);
+            return "";
+        }
+    }
+
+    return m_shadow_test_source;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

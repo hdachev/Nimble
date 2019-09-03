@@ -93,6 +93,7 @@ public:
     InputBuffer*                         find_input_buffer_slot(const std::string& name);
     void                                 set_input(const std::string& name, OutputRenderTarget* render_target, std::shared_ptr<RenderNode> owner);
     void                                 set_input(const std::string& name, OutputBuffer* buffer, std::shared_ptr<RenderNode> owner);
+    void                                 set_shadow_test_source_path(const std::string& path);
 
     // Inline getters
     inline std::vector<InputRenderTarget>&  input_render_targets() { return m_input_rts; }
@@ -155,6 +156,8 @@ private:
     std::vector<InputRenderTarget>                                     m_input_rts;
     std::vector<OutputBuffer>                                          m_output_buffers;
     std::vector<InputBuffer>                                           m_input_buffers;
+    std::string                                                        m_shadow_test_source_path;
+    std::string                                                        m_shadow_test_source;
 };
 
 } // namespace nimble

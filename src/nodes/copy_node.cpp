@@ -67,7 +67,7 @@ void CopyNode::execute(double delta, Renderer* renderer, Scene* scene, View* vie
     m_program->use();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
 
     if (m_program->set_uniform("s_Texture", 0) && m_texture)

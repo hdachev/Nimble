@@ -70,7 +70,7 @@ void GBufferNode::execute(double delta, Renderer* renderer, Scene* scene, View* 
     glCullFace(GL_BACK);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     render_scene(renderer, scene, view, m_library.get(), NODE_USAGE_DEFAULT);
 }
