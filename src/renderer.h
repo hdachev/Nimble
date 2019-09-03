@@ -171,19 +171,19 @@ private:
     std::unique_ptr<ShaderStorageBuffer> m_per_scene;
 
     // Shadow Maps
-    std::shared_ptr<Texture>              m_directional_light_shadow_map_depth_attachment;
-    std::shared_ptr<Texture>              m_spot_light_shadow_map_depth_attachment;
-    std::shared_ptr<Texture>              m_point_light_shadow_map_depth_attachment;
-    std::vector<std::shared_ptr<Texture>> m_directional_light_shadow_map_color_attachments;
-    std::vector<std::shared_ptr<Texture>> m_spot_light_shadow_map_color_attachments;
-    std::vector<std::shared_ptr<Texture>> m_point_light_shadow_map_color_attachments;
-    std::vector<RenderTargetView>         m_directionl_light_depth_rt_views;
-    std::vector<RenderTargetView>         m_point_light_depth_rt_views;
-    std::vector<RenderTargetView>         m_spot_light_depth_rt_views;
+    std::shared_ptr<Texture>                   m_directional_light_shadow_map_depth_attachment;
+    std::shared_ptr<Texture>                   m_spot_light_shadow_map_depth_attachment;
+    std::shared_ptr<Texture>                   m_point_light_shadow_map_depth_attachment;
+    std::vector<std::shared_ptr<Texture>>      m_directional_light_shadow_map_color_attachments;
+    std::vector<std::shared_ptr<Texture>>      m_spot_light_shadow_map_color_attachments;
+    std::vector<std::shared_ptr<Texture>>      m_point_light_shadow_map_color_attachments;
+    std::vector<RenderTargetView>              m_directionl_light_depth_rt_views;
+    std::vector<RenderTargetView>              m_point_light_depth_rt_views;
+    std::vector<RenderTargetView>              m_spot_light_depth_rt_views;
     std::vector<std::vector<RenderTargetView>> m_directionl_light_color_rt_views;
     std::vector<std::vector<RenderTargetView>> m_point_light_color_rt_views;
     std::vector<std::vector<RenderTargetView>> m_spot_light_color_rt_views;
-    Settings                              m_settings;
+    Settings                                   m_settings;
 
     // Probe Renderers
     std::shared_ptr<GlobalProbeRenderer> m_global_probe_renderer = nullptr;
