@@ -267,7 +267,7 @@ void Renderer::set_scene_render_graph(std::shared_ptr<RenderGraph> graph)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::set_directional_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph)
+void Renderer::set_directional_light_render_graph(std::shared_ptr<RenderGraph> graph)
 {
     if (graph)
         m_directional_light_render_graph = graph;
@@ -275,7 +275,7 @@ void Renderer::set_directional_light_render_graph(std::shared_ptr<ShadowRenderGr
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::set_spot_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph)
+void Renderer::set_spot_light_render_graph(std::shared_ptr<RenderGraph> graph)
 {
     if (graph)
         m_spot_light_render_graph = graph;
@@ -283,7 +283,7 @@ void Renderer::set_spot_light_render_graph(std::shared_ptr<ShadowRenderGraph> gr
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::set_point_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph)
+void Renderer::set_point_light_render_graph(std::shared_ptr<RenderGraph> graph)
 {
     if (graph)
         m_point_light_render_graph = graph;
@@ -737,7 +737,7 @@ void Renderer::bind_render_targets(const uint32_t& num_render_targets, const Ren
 
 void Renderer::create_shadow_maps()
 {
-    auto dir_light_node = m_directional_light_render_graph->shadow_node();
+    auto dir_light_node = m_directional_light_render_graph->node(0);
 
     if (dir_light_node)
     {
@@ -782,7 +782,7 @@ void Renderer::create_shadow_maps()
         }
     }
 
-    auto spot_light_node = m_spot_light_render_graph->shadow_node();
+    auto spot_light_node = m_spot_light_render_graph->node(0);
 
     if (spot_light_node)
     {
@@ -815,7 +815,7 @@ void Renderer::create_shadow_maps()
         }
     }
 
-    auto point_light_node = m_point_light_render_graph->shadow_node();
+    auto point_light_node = m_point_light_render_graph->node(0);
 
     if (point_light_node)
     {

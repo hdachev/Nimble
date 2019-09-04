@@ -113,7 +113,6 @@ public:
     inline void disable() { m_enabled = false; }
 
     // Virtual methods
-    virtual bool                     is_shadow_node();
     virtual void                     declare_connections();
     virtual GLenum                   shadow_map_depth_format();
     virtual std::vector<GLenum>      shadow_map_color_formats();

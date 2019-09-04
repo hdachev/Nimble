@@ -583,26 +583,18 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
     nlohmann::json j;
     i >> j;
 
-    RenderGraphType type;
+    bool is_shadow = false;
+    std::string shadow_test_source = "";
 
-    if (j.find("type") != j.end())
+    if (j.find("is_shadow") != j.end())
+        is_shadow = j["type"];
+
+    std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>();
+
+	graph->set_is_shadow(is_shadow);
+
+    if (!is_shadow)
     {
-        std::string type_str = j["type"];
-
-        if (type_str == "RENDER_GRAPH_STANDARD")
-            type = RENDER_GRAPH_STANDARD;
-        else if (type_str == "RENDER_GRAPH_SHADOW")
-            type = RENDER_GRAPH_SHADOW;
-        else
-            return nullptr;
-    }
-
-    std::shared_ptr<RenderGraph> graph;
-
-    if (type == RENDER_GRAPH_STANDARD)
-    {
-        graph = std::make_shared<RenderGraph>();
-
         if (j.find("manual_cascade_rendering") != j.end())
         {
             bool value = j["manual_cascade_rendering"];
@@ -615,17 +607,13 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
             graph->set_per_cascade_culling(value);
         }
     }
-    if (type == RENDER_GRAPH_SHADOW)
+    else
     {
-        std::shared_ptr<ShadowRenderGraph> shadow_graph = std::make_shared<ShadowRenderGraph>();
-
-        if (j.find("sampling_source") != j.end())
+		if (j.find("shadow_test_source") != j.end())
         {
-            std::string sampling_source = j["sampling_source"];
-            shadow_graph->set_sampling_source_path(sampling_source);
-        }
-
-        graph = shadow_graph;
+			std::string str = j["shadow_test_source"];
+            shadow_test_source = str;
+		}
     }
 
     if (j.find("name") != j.end())
@@ -651,6 +639,9 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
                 if (m_render_node_factory_map.find(node_name) != m_render_node_factory_map.end())
                 {
                     std::shared_ptr<RenderNode> new_node = m_render_node_factory_map[node_name](graph.get());
+
+					if (is_shadow)
+						new_node->set_shadow_test_source_path(shadow_test_source);
 
                     map[node_name] = new_node;
 
@@ -820,19 +811,19 @@ std::shared_ptr<Shader> ResourceManager::load_shader(const std::string& path, co
     {
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && renderer->directional_light_render_graph())
         {
-            source += renderer->directional_light_render_graph()->sampling_source();
+            source += renderer->directional_light_render_node()->shadow_test_source();
             source += "\n\n";
         }
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && renderer->spot_light_render_graph())
         {
-            source += renderer->spot_light_render_graph()->sampling_source();
+            source += renderer->spot_light_render_node()->shadow_test_source();
             source += "\n\n";
         }
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && renderer->point_light_render_graph())
         {
-            source += renderer->point_light_render_graph()->sampling_source();
+            source += renderer->point_light_render_node()->shadow_test_source();
             source += "\n\n";
         }
     }

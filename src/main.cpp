@@ -233,13 +233,13 @@ private:
         m_forward_graph = m_resource_manager.load_render_graph("graph/deferred_graph.json", &m_renderer);
 
         // Create Point Light render graph
-        m_pcf_point_light_graph = std::dynamic_pointer_cast<ShadowRenderGraph>(m_resource_manager.load_render_graph("graph/pcf_point_light_graph.json", &m_renderer));
+        m_pcf_point_light_graph = std::dynamic_pointer_cast<RenderGraph>(m_resource_manager.load_render_graph("graph/pcf_point_light_graph.json", &m_renderer));
 
         // Create Spot Light render graph
-        m_pcf_spot_light_graph = std::dynamic_pointer_cast<ShadowRenderGraph>(m_resource_manager.load_render_graph("graph/pcf_spot_light_graph.json", &m_renderer));
+        m_pcf_spot_light_graph = std::dynamic_pointer_cast<RenderGraph>(m_resource_manager.load_render_graph("graph/pcf_spot_light_graph.json", &m_renderer));
 
         // Create Directional Light render graph
-        m_pcf_directional_light_graph = std::dynamic_pointer_cast<ShadowRenderGraph>(m_resource_manager.load_render_graph("graph/pcf_directional_light_graph.json", &m_renderer));
+        m_pcf_directional_light_graph = std::dynamic_pointer_cast<RenderGraph>(m_resource_manager.load_render_graph("graph/pcf_directional_light_graph.json", &m_renderer));
 
         m_bruneton_probe_renderer = std::make_shared<BrunetonProbeRenderer>();
 
@@ -872,9 +872,9 @@ private:
     std::shared_ptr<Scene>                 m_scene;
     std::shared_ptr<Viewport>              m_viewport;
     std::shared_ptr<RenderGraph>           m_forward_graph;
-    std::shared_ptr<ShadowRenderGraph>     m_pcf_point_light_graph;
-    std::shared_ptr<ShadowRenderGraph>     m_pcf_spot_light_graph;
-    std::shared_ptr<ShadowRenderGraph>     m_pcf_directional_light_graph;
+    std::shared_ptr<RenderGraph>           m_pcf_point_light_graph;
+    std::shared_ptr<RenderGraph>           m_pcf_spot_light_graph;
+    std::shared_ptr<RenderGraph>           m_pcf_directional_light_graph;
     std::shared_ptr<BrunetonProbeRenderer> m_bruneton_probe_renderer;
 
     Entity::ID           m_selected_entity      = UINT32_MAX;

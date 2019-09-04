@@ -15,7 +15,6 @@
 
 namespace nimble
 {
-class ShadowRenderGraph;
 class ResourceManager;
 class GlobalProbeRenderer;
 class LocalProbeRenderer;
@@ -53,9 +52,9 @@ public:
     void  set_scene(std::shared_ptr<Scene> scene);
     void  register_render_graph(std::shared_ptr<RenderGraph> graph);
     void  set_scene_render_graph(std::shared_ptr<RenderGraph> graph);
-    void  set_directional_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
-    void  set_spot_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
-    void  set_point_light_render_graph(std::shared_ptr<ShadowRenderGraph> graph);
+    void  set_directional_light_render_graph(std::shared_ptr<RenderGraph> graph);
+    void  set_spot_light_render_graph(std::shared_ptr<RenderGraph> graph);
+    void  set_point_light_render_graph(std::shared_ptr<RenderGraph> graph);
     void  set_global_probe_renderer(std::shared_ptr<GlobalProbeRenderer> probe_renderer);
     void  set_local_probe_renderer(std::shared_ptr<LocalProbeRenderer> probe_renderer);
     View* allocate_view();
@@ -79,9 +78,12 @@ public:
     inline std::weak_ptr<Scene>                 scene() { return m_scene; }
     inline Settings                             settings() { return m_settings; }
     inline std::shared_ptr<RenderGraph>         scene_render_graph() { return m_scene_render_graph; }
-    inline std::shared_ptr<ShadowRenderGraph>   directional_light_render_graph() { return m_directional_light_render_graph; }
-    inline std::shared_ptr<ShadowRenderGraph>   spot_light_render_graph() { return m_spot_light_render_graph; }
-    inline std::shared_ptr<ShadowRenderGraph>   point_light_render_graph() { return m_point_light_render_graph; }
+    inline std::shared_ptr<RenderGraph>   directional_light_render_graph() { return m_directional_light_render_graph; }
+    inline std::shared_ptr<RenderGraph>   spot_light_render_graph() { return m_spot_light_render_graph; }
+    inline std::shared_ptr<RenderGraph>   point_light_render_graph() { return m_point_light_render_graph; }
+    inline std::shared_ptr<RenderNode>          directional_light_render_node() { return m_directional_light_render_graph->node(0); }
+    inline std::shared_ptr<RenderNode>          spot_light_render_node() { return m_spot_light_render_graph->node(0); }
+    inline std::shared_ptr<RenderNode>          point_light_render_node() { return m_point_light_render_graph->node(0); }
     inline std::shared_ptr<GlobalProbeRenderer> global_probe_renderer() { return m_global_probe_renderer; }
     inline std::shared_ptr<LocalProbeRenderer>  local_probe_renderer() { return m_local_probe_renderer; }
     inline std::shared_ptr<Texture>             directional_light_shadow_maps() { return m_directional_light_shadow_map_depth_attachment; }
@@ -157,9 +159,9 @@ private:
     std::array<Frustum, MAX_VIEWS>              m_active_frustums;
     std::weak_ptr<Scene>                        m_scene;
     std::shared_ptr<RenderGraph>                m_scene_render_graph             = nullptr;
-    std::shared_ptr<ShadowRenderGraph>          m_directional_light_render_graph = nullptr;
-    std::shared_ptr<ShadowRenderGraph>          m_spot_light_render_graph        = nullptr;
-    std::shared_ptr<ShadowRenderGraph>          m_point_light_render_graph       = nullptr;
+    std::shared_ptr<RenderGraph>          m_directional_light_render_graph = nullptr;
+    std::shared_ptr<RenderGraph>          m_spot_light_render_graph        = nullptr;
+    std::shared_ptr<RenderGraph>          m_point_light_render_graph       = nullptr;
     std::vector<std::shared_ptr<RenderGraph>>   m_registered_render_graphs;
     std::array<PerViewUniforms, MAX_VIEWS>      m_per_view_uniforms;
     std::array<PerEntityUniforms, MAX_ENTITIES> m_per_entity_uniforms;

@@ -5,7 +5,7 @@
 #include "scene.h"
 #include "generated_shader_library.h"
 #include "logger.h"
-#include "utility.h"
+#include "utility.h" 
 #include "renderer.h"
 
 namespace nimble
@@ -171,7 +171,7 @@ void RenderNode::set_input(const std::string& name, OutputBuffer* buffer, std::s
     }
 
     NIMBLE_LOG_ERROR("No input buffer slot named: " + name);
-}
+} 
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -195,13 +195,6 @@ void RenderNode::bind_shadow_maps(Renderer* renderer, Program* program, int32_t 
         if ((HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING)) && program->set_uniform("s_PointLightShadowMaps", tex_unit))
             renderer->point_light_shadow_maps()->bind(tex_unit++);
     }
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-bool RenderNode::is_shadow_node()
-{
-    return false;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -524,9 +517,9 @@ void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, Gene
                             program = library->create_program(e.mesh->type(),
                                                               flags,
                                                               s.material,
-                                                              m_graph->type() == RENDER_GRAPH_STANDARD ? renderer->directional_light_render_graph() : nullptr,
-                                                              m_graph->type() == RENDER_GRAPH_STANDARD ? renderer->spot_light_render_graph() : nullptr,
-                                                              m_graph->type() == RENDER_GRAPH_STANDARD ? renderer->point_light_render_graph() : nullptr);
+                                                              m_graph->is_shadow() ? renderer->directional_light_render_graph() : nullptr,
+                                                              m_graph->is_shadow() ? renderer->spot_light_render_graph() : nullptr,
+                                                              m_graph->is_shadow() ? renderer->point_light_render_graph() : nullptr);
                         }
 
                         program->use();

@@ -100,7 +100,7 @@ Program* GeneratedShaderLibrary::lookup_program(const ProgramKey& key)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-Program* GeneratedShaderLibrary::create_program(const MeshType& type, const uint32_t& flags, const std::shared_ptr<Material>& material, std::shared_ptr<ShadowRenderGraph> directional_light_render_graph, std::shared_ptr<ShadowRenderGraph> spot_light_render_graph, std::shared_ptr<ShadowRenderGraph> point_light_render_graph)
+Program* GeneratedShaderLibrary::create_program(const MeshType& type, const uint32_t& flags, const std::shared_ptr<Material>& material, std::shared_ptr<RenderGraph> directional_light_render_graph, std::shared_ptr<RenderGraph> spot_light_render_graph, std::shared_ptr<RenderGraph> point_light_render_graph)
 {
     std::string vs_template = m_vs_template_source;
     std::string fs_template = m_fs_template_source;
@@ -117,6 +117,10 @@ Program* GeneratedShaderLibrary::create_program(const MeshType& type, const uint
 
     Shader* vs = nullptr;
     Shader* fs = nullptr;
+
+	auto dir_light_node = directional_light_render_graph->node(0);
+    auto point_light_node = point_light_render_graph->node(0);
+    auto spot_light_node = spot_light_render_graph->node(0);
 
     // COMMON
 
@@ -255,19 +259,19 @@ Program* GeneratedShaderLibrary::create_program(const MeshType& type, const uint
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && directional_light_render_graph)
         {
-            source += directional_light_render_graph->sampling_source();
+            source += dir_light_node->shadow_test_source();
             source += "\n\n";
         }
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && spot_light_render_graph)
         {
-            source += spot_light_render_graph->sampling_source();
+            source += spot_light_node->shadow_test_source();
             source += "\n\n";
         }
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && point_light_render_graph)
         {
-            source += point_light_render_graph->sampling_source();
+            source += point_light_node->shadow_test_source();
             source += "\n\n";
         }
 

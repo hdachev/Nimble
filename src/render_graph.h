@@ -8,12 +8,6 @@ namespace nimble
 class Renderer;
 class ResourceManager;
 
-enum RenderGraphType : uint32_t
-{
-    RENDER_GRAPH_STANDARD,
-    RENDER_GRAPH_SHADOW
-};
-
 class RenderGraph
 {
 public:
@@ -30,6 +24,8 @@ public:
     void                          on_window_resized(const uint32_t& w, const uint32_t& h);
 
     inline void                        set_name(const std::string& name) { m_name = name; }
+    inline void                        set_is_shadow(bool shadow) { m_is_shadow = shadow; }
+    inline bool                        is_shadow() { return m_is_shadow; }
     inline std::string                 name() { return m_name; }
     inline uint32_t                    node_count() { return (uint32_t)m_flattened_graph.size(); }
     inline std::shared_ptr<RenderNode> node(const uint32_t& idx) { return m_flattened_graph[idx]; }
@@ -45,7 +41,6 @@ public:
     inline bool                        per_cascade_culling() { return m_per_cascade_culling; }
 
     virtual bool            initialize(Renderer* renderer, ResourceManager* res_mgr);
-    virtual RenderGraphType type();
 
 private:
     void flatten_graph();
@@ -62,23 +57,6 @@ protected:
     View*                                    m_cascade_views[MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
     std::shared_ptr<RenderNode>              m_end_node;
     std::vector<std::shared_ptr<RenderNode>> m_flattened_graph;
-};
-
-class ShadowRenderGraph : public RenderGraph
-{
-public:
-    ShadowRenderGraph();
-
-    RenderGraphType type() override;
-
-    std::string sampling_source();
-    void        bind_shadow_map_textures();
-
-    inline std::shared_ptr<RenderNode> shadow_node() { return m_flattened_graph[0]; }
-    inline void                        set_sampling_source_path(const std::string& path) { m_sampling_source_path = path; }
-
-private:
-    std::string m_sampling_source_path;
-    std::string m_sampling_source;
+    bool                                     m_is_shadow = false;
 };
 } // namespace nimble
