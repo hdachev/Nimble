@@ -583,7 +583,7 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
     nlohmann::json j;
     i >> j;
 
-    bool is_shadow = false;
+    bool        is_shadow          = false;
     std::string shadow_test_source = "";
 
     if (j.find("is_shadow") != j.end())
@@ -591,7 +591,7 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
 
     std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>();
 
-	graph->set_is_shadow(is_shadow);
+    graph->set_is_shadow(is_shadow);
 
     if (!is_shadow)
     {
@@ -609,11 +609,11 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
     }
     else
     {
-		if (j.find("shadow_test_source") != j.end())
+        if (j.find("shadow_test_source") != j.end())
         {
-			std::string str = j["shadow_test_source"];
+            std::string str    = j["shadow_test_source"];
             shadow_test_source = str;
-		}
+        }
     }
 
     if (j.find("name") != j.end())
@@ -640,8 +640,8 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
                 {
                     std::shared_ptr<RenderNode> new_node = m_render_node_factory_map[node_name](graph.get());
 
-					if (is_shadow)
-						new_node->set_shadow_test_source_path(shadow_test_source);
+                    if (is_shadow)
+                        new_node->set_shadow_test_source_path(shadow_test_source);
 
                     map[node_name] = new_node;
 

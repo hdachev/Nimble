@@ -40,7 +40,7 @@ public:
     inline void                        set_per_cascade_culling(bool value) { m_per_cascade_culling = value; }
     inline bool                        per_cascade_culling() { return m_per_cascade_culling; }
 
-    virtual bool            initialize(Renderer* renderer, ResourceManager* res_mgr);
+    virtual bool initialize(Renderer* renderer, ResourceManager* res_mgr);
 
 private:
     void flatten_graph();

@@ -5,7 +5,7 @@
 #include "scene.h"
 #include "generated_shader_library.h"
 #include "logger.h"
-#include "utility.h" 
+#include "utility.h"
 #include "renderer.h"
 
 namespace nimble
@@ -171,7 +171,7 @@ void RenderNode::set_input(const std::string& name, OutputBuffer* buffer, std::s
     }
 
     NIMBLE_LOG_ERROR("No input buffer slot named: " + name);
-} 
+}
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 

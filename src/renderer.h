@@ -78,9 +78,9 @@ public:
     inline std::weak_ptr<Scene>                 scene() { return m_scene; }
     inline Settings                             settings() { return m_settings; }
     inline std::shared_ptr<RenderGraph>         scene_render_graph() { return m_scene_render_graph; }
-    inline std::shared_ptr<RenderGraph>   directional_light_render_graph() { return m_directional_light_render_graph; }
-    inline std::shared_ptr<RenderGraph>   spot_light_render_graph() { return m_spot_light_render_graph; }
-    inline std::shared_ptr<RenderGraph>   point_light_render_graph() { return m_point_light_render_graph; }
+    inline std::shared_ptr<RenderGraph>         directional_light_render_graph() { return m_directional_light_render_graph; }
+    inline std::shared_ptr<RenderGraph>         spot_light_render_graph() { return m_spot_light_render_graph; }
+    inline std::shared_ptr<RenderGraph>         point_light_render_graph() { return m_point_light_render_graph; }
     inline std::shared_ptr<RenderNode>          directional_light_render_node() { return m_directional_light_render_graph->node(0); }
     inline std::shared_ptr<RenderNode>          spot_light_render_node() { return m_spot_light_render_graph->node(0); }
     inline std::shared_ptr<RenderNode>          point_light_render_node() { return m_point_light_render_graph->node(0); }
@@ -159,9 +159,9 @@ private:
     std::array<Frustum, MAX_VIEWS>              m_active_frustums;
     std::weak_ptr<Scene>                        m_scene;
     std::shared_ptr<RenderGraph>                m_scene_render_graph             = nullptr;
-    std::shared_ptr<RenderGraph>          m_directional_light_render_graph = nullptr;
-    std::shared_ptr<RenderGraph>          m_spot_light_render_graph        = nullptr;
-    std::shared_ptr<RenderGraph>          m_point_light_render_graph       = nullptr;
+    std::shared_ptr<RenderGraph>                m_directional_light_render_graph = nullptr;
+    std::shared_ptr<RenderGraph>                m_spot_light_render_graph        = nullptr;
+    std::shared_ptr<RenderGraph>                m_point_light_render_graph       = nullptr;
     std::vector<std::shared_ptr<RenderGraph>>   m_registered_render_graphs;
     std::array<PerViewUniforms, MAX_VIEWS>      m_per_view_uniforms;
     std::array<PerEntityUniforms, MAX_ENTITIES> m_per_entity_uniforms;
