@@ -1,7 +1,7 @@
 {
     "name" : "PCF Point Light",
-    "type" : "RENDER_GRAPH_SHADOW",
-    "sampling_source" : "shader/shadows/point_light/sampling/pcf_point_light.glsl",
+    "is_shadow" : true,
+    "shadow_test_source" : "shader/shadows/point_light/sampling/pcf_point_light.glsl",
     "nodes" : [
         {
             "name" : "PCFPointLightDepthNode",

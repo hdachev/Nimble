@@ -12,6 +12,7 @@
 #include "render_target.h"
 #include "static_hash_map.h"
 #include "shader_cache.h"
+#include "render_graph.h"
 
 namespace nimble
 {

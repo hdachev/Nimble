@@ -5,29 +5,30 @@
 namespace nimble
 {
 DEFINE_RENDER_NODE_FACTORY(PCFDirectionalLightDepthNode)
+DEFINE_RENDER_NODE_FACTORY(PCFSpotLightDepthNode)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-PCFDirectionalLightDepthNode::PCFDirectionalLightDepthNode(RenderGraph* graph) :
+PCFLightDepthNode::PCFLightDepthNode(RenderGraph* graph) :
     RenderNode(graph)
 {
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-PCFDirectionalLightDepthNode::~PCFDirectionalLightDepthNode()
+PCFLightDepthNode::~PCFLightDepthNode()
 {
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void PCFDirectionalLightDepthNode::declare_connections()
+void PCFLightDepthNode::declare_connections()
 {
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool PCFDirectionalLightDepthNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
+bool PCFLightDepthNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_library = renderer->shader_cache().load_generated_library("shader/shadows/directional_light/shadow_map/directional_light_depth_vs.glsl", "shader/shadows/directional_light/shadow_map/directional_light_depth_fs.glsl");
     return true;
@@ -35,7 +36,7 @@ bool PCFDirectionalLightDepthNode::initialize(Renderer* renderer, ResourceManage
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void PCFDirectionalLightDepthNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
+void PCFLightDepthNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
     int32_t w = 0;
     int32_t h = 0;
@@ -71,16 +72,36 @@ void PCFDirectionalLightDepthNode::execute(double delta, Renderer* renderer, Sce
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void PCFDirectionalLightDepthNode::shutdown()
+void PCFLightDepthNode::shutdown()
 {
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+std::string PCFDirectionalLightDepthNode::shadow_test_source_path()
+{
+    return "shader/shadows/directional_light/sampling/pcf_directional_light.glsl";
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 std::string PCFDirectionalLightDepthNode::name()
 {
-    return "PCF Directional Light Depth";
+    return "PCF Directional Light Depth Node";
 }
 
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+std::string PCFSpotLightDepthNode::shadow_test_source_path()
+{
+    return "shader/shadows/spot_light/sampling/pcf_spot_light.glsl";
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+std::string PCFSpotLightDepthNode::name()
+{
+    return "PCF Spot Light Depth Node";
+}
 // -----------------------------------------------------------------------------------------------------------------------------------
 } // namespace nimble

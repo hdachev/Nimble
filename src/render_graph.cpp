@@ -34,13 +34,6 @@ bool RenderGraph::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-RenderGraphType RenderGraph::type()
-{
-    return RENDER_GRAPH_STANDARD;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
 void RenderGraph::shutdown()
 {
     for (auto& node : m_flattened_graph)
@@ -192,45 +185,6 @@ bool RenderGraph::is_node_pushed(std::shared_ptr<RenderNode> node)
     }
 
     return false;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-ShadowRenderGraph::ShadowRenderGraph() :
-    RenderGraph()
-{
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-std::string ShadowRenderGraph::sampling_source()
-{
-    if (m_sampling_source == "")
-    {
-        std::string includes;
-        std::string defines;
-
-        if (!utility::read_shader_separate(utility::path_for_resource("assets/" + m_sampling_source_path), includes, m_sampling_source, defines))
-        {
-            NIMBLE_LOG_ERROR("Failed load Sampling Source: " + m_sampling_source_path);
-            return "";
-        }
-    }
-
-    return m_sampling_source;
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-void ShadowRenderGraph::bind_shadow_map_textures()
-{
-}
-
-// -----------------------------------------------------------------------------------------------------------------------------------
-
-RenderGraphType ShadowRenderGraph::type()
-{
-    return RENDER_GRAPH_SHADOW;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

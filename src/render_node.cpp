@@ -175,9 +175,21 @@ void RenderNode::set_input(const std::string& name, OutputBuffer* buffer, std::s
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void RenderNode::set_shadow_test_source_path(const std::string& path)
+std::string RenderNode::shadow_test_source()
 {
-    m_shadow_test_source_path = path;
+    if (m_shadow_test_source == "")
+    {
+        std::string includes;
+        std::string defines;
+
+        if (!utility::read_shader_separate(utility::path_for_resource("assets/" + shadow_test_source_path()), includes, m_shadow_test_source, defines))
+        {
+            NIMBLE_LOG_ERROR("Failed load Sampling Source: " + shadow_test_source_path());
+            return "";
+        }
+    }
+
+    return m_shadow_test_source;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -213,21 +225,9 @@ std::vector<GLenum> RenderNode::shadow_map_color_formats()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-std::string RenderNode::shadow_test_source()
+std::string RenderNode::shadow_test_source_path()
 {
-    if (m_shadow_test_source == "")
-    {
-        std::string includes;
-        std::string defines;
-
-        if (!utility::read_shader_separate(utility::path_for_resource("assets/" + m_shadow_test_source_path), includes, m_shadow_test_source, defines))
-        {
-            NIMBLE_LOG_ERROR("Failed load Sampling Source: " + m_shadow_test_source_path);
-            return "";
-        }
-    }
-
-    return m_shadow_test_source;
+    return "";
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -517,9 +517,9 @@ void RenderNode::render_scene(Renderer* renderer, Scene* scene, View* view, Gene
                             program = library->create_program(e.mesh->type(),
                                                               flags,
                                                               s.material,
-                                                              m_graph->is_shadow() ? renderer->directional_light_render_graph() : nullptr,
-                                                              m_graph->is_shadow() ? renderer->spot_light_render_graph() : nullptr,
-                                                              m_graph->is_shadow() ? renderer->point_light_render_graph() : nullptr);
+                                                              m_graph->is_shadow() ? nullptr : renderer->directional_light_render_graph(),
+                                                              m_graph->is_shadow() ? nullptr : renderer->spot_light_render_graph(),
+                                                              m_graph->is_shadow() ? nullptr : renderer->point_light_render_graph());
                         }
 
                         program->use();

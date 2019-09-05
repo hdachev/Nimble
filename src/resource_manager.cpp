@@ -583,45 +583,23 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
     nlohmann::json j;
     i >> j;
 
-    bool        is_shadow          = false;
-    std::string shadow_test_source = "";
-
-    if (j.find("is_shadow") != j.end())
-        is_shadow = j["type"];
-
     std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>();
 
-    graph->set_is_shadow(is_shadow);
-
-    if (!is_shadow)
+    if (j.find("manual_cascade_rendering") != j.end())
     {
-        if (j.find("manual_cascade_rendering") != j.end())
-        {
-            bool value = j["manual_cascade_rendering"];
-            graph->set_manual_cascade_rendering(value);
-        }
-
-        if (j.find("per_cascade_culling") != j.end())
-        {
-            bool value = j["per_cascade_culling"];
-            graph->set_per_cascade_culling(value);
-        }
+        bool value = j["manual_cascade_rendering"];
+        graph->set_manual_cascade_rendering(value);
     }
-    else
+    if (j.find("per_cascade_culling") != j.end())
     {
-        if (j.find("shadow_test_source") != j.end())
-        {
-            std::string str    = j["shadow_test_source"];
-            shadow_test_source = str;
-        }
+        bool value = j["per_cascade_culling"];
+        graph->set_per_cascade_culling(value);
     }
-
     if (j.find("name") != j.end())
     {
         std::string name = j["name"];
         graph->set_name(name);
     }
-
     if (j.find("nodes") != j.end())
     {
         auto json_nodes = j["nodes"];
@@ -639,9 +617,6 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
                 if (m_render_node_factory_map.find(node_name) != m_render_node_factory_map.end())
                 {
                     std::shared_ptr<RenderNode> new_node = m_render_node_factory_map[node_name](graph.get());
-
-                    if (is_shadow)
-                        new_node->set_shadow_test_source_path(shadow_test_source);
 
                     map[node_name] = new_node;
 
@@ -722,6 +697,28 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
     }
 
     return graph;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+std::shared_ptr<RenderGraph> ResourceManager::load_shadow_render_graph(const std::string& shadow_node_name, Renderer* renderer)
+{
+    if (m_render_node_factory_map.find(shadow_node_name) != m_render_node_factory_map.end())
+    {
+	    std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>();
+	
+		std::shared_ptr<RenderNode> new_node = m_render_node_factory_map[shadow_node_name](graph.get());
+	
+		graph->build(new_node);
+		renderer->register_render_graph(graph);
+	
+		return graph;
+	}
+	else
+    {
+		NIMBLE_LOG_ERROR("Failed to find factory for node type: " + shadow_node_name);
+        return nullptr;
+	}
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

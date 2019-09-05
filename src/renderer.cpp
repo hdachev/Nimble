@@ -95,46 +95,7 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
     m_window_width  = w;
     m_window_height = h;
 
-    m_directional_light_shadow_map_depth_attachment.reset();
-    m_spot_light_shadow_map_depth_attachment.reset();
-    m_point_light_shadow_map_depth_attachment.reset();
-
-    // Create shadow maps
-    m_directional_light_shadow_map_depth_attachment = std::make_shared<Texture2D>(kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], kDirectionalLightShadowMapSizes[m_settings.shadow_map_quality], m_settings.cascade_count * MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
-    m_spot_light_shadow_map_depth_attachment        = std::make_shared<Texture2D>(kSpotLightShadowMapSizes[m_settings.shadow_map_quality], kSpotLightShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_SPOT_LIGHTS, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
-    m_point_light_shadow_map_depth_attachment       = std::make_shared<TextureCube>(kPointShadowMapSizes[m_settings.shadow_map_quality], kPointShadowMapSizes[m_settings.shadow_map_quality], MAX_SHADOW_CASTING_POINT_LIGHTS, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, false);
-
-    m_directional_light_shadow_map_depth_attachment->set_min_filter(GL_LINEAR);
-    m_directional_light_shadow_map_depth_attachment->set_mag_filter(GL_LINEAR);
-    m_directional_light_shadow_map_depth_attachment->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-    m_directional_light_shadow_map_depth_attachment->set_compare_mode(GL_COMPARE_REF_TO_TEXTURE);
-    m_directional_light_shadow_map_depth_attachment->set_compare_func(GL_LEQUAL);
-
-    m_spot_light_shadow_map_depth_attachment->set_min_filter(GL_LINEAR);
-    m_spot_light_shadow_map_depth_attachment->set_mag_filter(GL_LINEAR);
-    m_spot_light_shadow_map_depth_attachment->set_compare_mode(GL_COMPARE_REF_TO_TEXTURE);
-    m_spot_light_shadow_map_depth_attachment->set_compare_func(GL_LEQUAL);
-
-    m_point_light_shadow_map_depth_attachment->set_min_filter(GL_LINEAR);
-    m_point_light_shadow_map_depth_attachment->set_mag_filter(GL_LINEAR);
-    m_point_light_shadow_map_depth_attachment->set_compare_mode(GL_COMPARE_REF_TO_TEXTURE);
-    m_point_light_shadow_map_depth_attachment->set_compare_func(GL_LEQUAL);
-
-    // Create shadow map Render Target Views
-    for (uint32_t i = 0; i < MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS; i++)
-    {
-        for (uint32_t j = 0; j < m_settings.cascade_count; j++)
-            m_directionl_light_depth_rt_views.push_back({ 0, i * m_settings.cascade_count + j, 0, m_directional_light_shadow_map_depth_attachment });
-    }
-
-    for (uint32_t i = 0; i < MAX_SHADOW_CASTING_SPOT_LIGHTS; i++)
-        m_spot_light_depth_rt_views.push_back({ 0, i, 0, m_spot_light_shadow_map_depth_attachment });
-
-    for (uint32_t i = 0; i < MAX_SHADOW_CASTING_POINT_LIGHTS; i++)
-    {
-        for (uint32_t j = 0; j < 6; j++)
-            m_point_light_depth_rt_views.push_back({ j, i, 0, m_point_light_shadow_map_depth_attachment });
-    }
+    create_shadow_maps();
 
     // Common resources
     m_per_view   = std::make_unique<ShaderStorageBuffer>(GL_DYNAMIC_DRAW, MAX_VIEWS * sizeof(PerViewUniforms));

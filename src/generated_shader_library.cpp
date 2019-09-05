@@ -118,10 +118,6 @@ Program* GeneratedShaderLibrary::create_program(const MeshType& type, const uint
     Shader* vs = nullptr;
     Shader* fs = nullptr;
 
-	auto dir_light_node = directional_light_render_graph->node(0);
-    auto point_light_node = point_light_render_graph->node(0);
-    auto spot_light_node = spot_light_render_graph->node(0);
-
     // COMMON
 
     if (HAS_BIT_FLAG(flags, NODE_USAGE_PER_OBJECT_UBO))
@@ -259,18 +255,21 @@ Program* GeneratedShaderLibrary::create_program(const MeshType& type, const uint
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && directional_light_render_graph)
         {
+            auto dir_light_node   = directional_light_render_graph->node(0);
             source += dir_light_node->shadow_test_source();
             source += "\n\n";
         }
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && spot_light_render_graph)
         {
+            auto spot_light_node = spot_light_render_graph->node(0);
             source += spot_light_node->shadow_test_source();
             source += "\n\n";
         }
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && point_light_render_graph)
         {
+            auto point_light_node = point_light_render_graph->node(0);
             source += point_light_node->shadow_test_source();
             source += "\n\n";
         }

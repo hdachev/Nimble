@@ -27,6 +27,7 @@ public:
     std::shared_ptr<Mesh>        load_mesh(const std::string& path, const bool& absolute = false);
     std::shared_ptr<Scene>       load_scene(const std::string& path, const bool& absolute = false);
     std::shared_ptr<RenderGraph> load_render_graph(const std::string& path, Renderer* renderer, const bool& absolute = false);
+    std::shared_ptr<RenderGraph> load_shadow_render_graph(const std::string& shadow_node_name, Renderer* renderer);
     std::shared_ptr<Shader>      load_shader(const std::string& path, const uint32_t& type, std::vector<std::string> defines = std::vector<std::string>());
     std::shared_ptr<Shader>      load_shader(const std::string& path, const uint32_t& type, uint32_t flags, Renderer* renderer);
     void                         register_render_node_factory(const std::string& path, std::function<std::shared_ptr<RenderNode>(RenderGraph*)> func);

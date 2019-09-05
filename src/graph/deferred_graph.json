@@ -1,6 +1,5 @@
 {
     "name" : "Deferred",
-    "type" : "RENDER_GRAPH_STANDARD",
     "nodes" : [
         {
             "name" : "GBufferNode",
