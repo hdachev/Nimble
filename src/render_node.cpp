@@ -184,7 +184,7 @@ std::string RenderNode::shadow_test_source()
 
         if (!utility::read_shader_separate(utility::path_for_resource("assets/" + shadow_test_source_path()), includes, m_shadow_test_source, defines))
         {
-            NIMBLE_LOG_ERROR("Failed load Sampling Source: " + shadow_test_source_path());
+            NIMBLE_LOG_ERROR("Failed to load Sampling Source: " + shadow_test_source_path());
             return "";
         }
     }

@@ -709,6 +709,7 @@ std::shared_ptr<RenderGraph> ResourceManager::load_shadow_render_graph(const std
 	
 		std::shared_ptr<RenderNode> new_node = m_render_node_factory_map[shadow_node_name](graph.get());
 	
+		graph->set_name(shadow_node_name);
 		graph->build(new_node);
 		renderer->register_render_graph(graph);
 	

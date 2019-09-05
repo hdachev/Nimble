@@ -78,6 +78,21 @@ void PCFLightDepthNode::shutdown()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+PCFDirectionalLightDepthNode::PCFDirectionalLightDepthNode(RenderGraph* graph) :
+    PCFLightDepthNode(graph)
+{
+
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+PCFDirectionalLightDepthNode::~PCFDirectionalLightDepthNode()
+{
+
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 std::string PCFDirectionalLightDepthNode::shadow_test_source_path()
 {
     return "shader/shadows/directional_light/sampling/pcf_directional_light.glsl";
@@ -88,6 +103,19 @@ std::string PCFDirectionalLightDepthNode::shadow_test_source_path()
 std::string PCFDirectionalLightDepthNode::name()
 {
     return "PCF Directional Light Depth Node";
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+PCFSpotLightDepthNode::PCFSpotLightDepthNode(RenderGraph* graph) :
+    PCFLightDepthNode(graph)
+{
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+PCFSpotLightDepthNode::~PCFSpotLightDepthNode()
+{
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

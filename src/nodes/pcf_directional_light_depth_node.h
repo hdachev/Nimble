@@ -22,6 +22,9 @@ private:
 class PCFDirectionalLightDepthNode : public PCFLightDepthNode
 {
 public:
+    PCFDirectionalLightDepthNode(RenderGraph* graph);
+    ~PCFDirectionalLightDepthNode();
+
 	std::string shadow_test_source_path() override;
     std::string name() override;
 };
@@ -31,6 +34,9 @@ DECLARE_RENDER_NODE_FACTORY(PCFDirectionalLightDepthNode);
 class PCFSpotLightDepthNode : public PCFLightDepthNode
 {
 public:
+    PCFSpotLightDepthNode(RenderGraph* graph);
+    ~PCFSpotLightDepthNode();
+
     std::string shadow_test_source_path() override;
     std::string name() override;
 };

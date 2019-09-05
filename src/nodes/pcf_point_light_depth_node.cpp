@@ -90,4 +90,11 @@ std::string PCFPointLightDepthNode::name()
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
+
+std::string PCFPointLightDepthNode::shadow_test_source_path()
+{
+    return "shader/shadows/point_light/sampling/pcf_point_light.glsl";
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 } // namespace nimble

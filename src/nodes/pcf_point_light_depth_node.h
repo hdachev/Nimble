@@ -15,6 +15,7 @@ public:
     void        execute(double delta, Renderer* renderer, Scene* scene, View* view) override;
     void        shutdown() override;
     std::string name() override;
+    std::string shadow_test_source_path() override;
     void        set_shader_uniforms(View* view, Program* program, int32_t& tex_unit);
 
 private:

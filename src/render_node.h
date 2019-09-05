@@ -155,7 +155,7 @@ private:
     std::vector<InputRenderTarget>                                     m_input_rts;
     std::vector<OutputBuffer>                                          m_output_buffers;
     std::vector<InputBuffer>                                           m_input_buffers;
-    std::string                                                        m_shadow_test_source;
+    std::string                                                        m_shadow_test_source = "";
 };
 
 } // namespace nimble
