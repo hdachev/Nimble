@@ -116,7 +116,7 @@ public:
     virtual void                     declare_connections();
     virtual GLenum                   shadow_map_depth_format();
     virtual std::vector<GLenum>      shadow_map_color_formats();
-    virtual std::string				 shadow_test_source_path();
+    virtual std::string              shadow_test_source_path();
     virtual std::vector<std::string> shadow_test_source_defines();
     virtual void                     bind_shadow_test_uniforms(Program* program);
     virtual bool                     initialize(Renderer* renderer, ResourceManager* res_mgr)            = 0;

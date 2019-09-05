@@ -705,21 +705,21 @@ std::shared_ptr<RenderGraph> ResourceManager::load_shadow_render_graph(const std
 {
     if (m_render_node_factory_map.find(shadow_node_name) != m_render_node_factory_map.end())
     {
-	    std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>();
-	
-		std::shared_ptr<RenderNode> new_node = m_render_node_factory_map[shadow_node_name](graph.get());
-	
-		graph->set_name(shadow_node_name);
-		graph->build(new_node);
-		renderer->register_render_graph(graph);
-	
-		return graph;
-	}
-	else
+        std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>();
+
+        std::shared_ptr<RenderNode> new_node = m_render_node_factory_map[shadow_node_name](graph.get());
+
+        graph->set_name(shadow_node_name);
+        graph->build(new_node);
+        renderer->register_render_graph(graph);
+
+        return graph;
+    }
+    else
     {
-		NIMBLE_LOG_ERROR("Failed to find factory for node type: " + shadow_node_name);
+        NIMBLE_LOG_ERROR("Failed to find factory for node type: " + shadow_node_name);
         return nullptr;
-	}
+    }
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

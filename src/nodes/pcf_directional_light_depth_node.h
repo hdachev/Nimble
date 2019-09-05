@@ -10,10 +10,10 @@ public:
     PCFLightDepthNode(RenderGraph* graph);
     ~PCFLightDepthNode();
 
-    void        declare_connections() override;
-    bool        initialize(Renderer* renderer, ResourceManager* res_mgr) override;
-    void        execute(double delta, Renderer* renderer, Scene* scene, View* view) override;
-    void        shutdown() override;
+    void declare_connections() override;
+    bool initialize(Renderer* renderer, ResourceManager* res_mgr) override;
+    void execute(double delta, Renderer* renderer, Scene* scene, View* view) override;
+    void shutdown() override;
 
 private:
     std::shared_ptr<GeneratedShaderLibrary> m_library;
@@ -25,7 +25,7 @@ public:
     PCFDirectionalLightDepthNode(RenderGraph* graph);
     ~PCFDirectionalLightDepthNode();
 
-	std::string shadow_test_source_path() override;
+    std::string shadow_test_source_path() override;
     std::string name() override;
 };
 

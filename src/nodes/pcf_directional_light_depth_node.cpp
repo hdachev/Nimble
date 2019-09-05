@@ -81,14 +81,12 @@ void PCFLightDepthNode::shutdown()
 PCFDirectionalLightDepthNode::PCFDirectionalLightDepthNode(RenderGraph* graph) :
     PCFLightDepthNode(graph)
 {
-
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 PCFDirectionalLightDepthNode::~PCFDirectionalLightDepthNode()
 {
-
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
