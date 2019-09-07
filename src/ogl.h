@@ -75,6 +75,7 @@ public:
     void set_compare_func(GLenum func);
 
     inline GLenum internal_format() { return m_internal_format; }
+    inline GLenum format() { return m_format; }
 
 protected:
     GLuint   m_gl_tex = UINT32_MAX;
@@ -115,7 +116,9 @@ public:
     uint32_t height();
     uint32_t num_samples();
 
-private:
+protected:
+    Texture2D();
+
     bool     m_compressed;
     uint32_t m_width;
     uint32_t m_height;
@@ -153,6 +156,14 @@ public:
 private:
     uint32_t m_width;
     uint32_t m_height;
+};
+
+class Texture2DView : public Texture2D
+{
+public:
+    Texture2DView(TextureCube* origin_tex, uint32_t min_level, uint32_t num_levels, uint32_t face);
+    Texture2DView(Texture2D* origin_tex, uint32_t min_level, uint32_t num_levels, uint32_t layer, uint32_t num_layers);
+    ~Texture2DView();
 };
 
 class Framebuffer

@@ -626,6 +626,12 @@ uint32_t Texture2D::num_samples()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+Texture2D::Texture2D()
+{
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 Texture3D::Texture3D(uint32_t w, uint32_t h, uint32_t d, int mip_levels, GLenum internal_format, GLenum format, GLenum type) :
     Texture()
 {
@@ -903,6 +909,42 @@ uint32_t TextureCube::width()
 uint32_t TextureCube::height()
 {
     return m_height;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+Texture2DView::Texture2DView(TextureCube* origin_tex, uint32_t min_level, uint32_t num_levels, uint32_t face)
+{
+    m_num_samples     = 1;
+    m_width           = origin_tex->width();
+    m_height          = origin_tex->height();
+    m_array_size      = 1;
+    m_format          = origin_tex->format();
+    m_internal_format = origin_tex->internal_format();
+    m_target          = GL_TEXTURE_2D;
+
+	glTextureView(m_gl_tex, m_target, origin_tex->id(), m_internal_format, min_level, num_levels, face, 1);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+Texture2DView::Texture2DView(Texture2D* origin_tex, uint32_t min_level, uint32_t num_levels, uint32_t layer, uint32_t num_layers)
+{
+    m_num_samples     = 1;
+    m_width           = origin_tex->width();
+    m_height          = origin_tex->height();
+    m_array_size      = num_layers;
+    m_format          = origin_tex->format();
+    m_internal_format = origin_tex->internal_format();
+    m_target          = num_layers == 1 ? GL_TEXTURE_2D : GL_TEXTURE_2D_ARRAY;
+
+    glTextureView(m_gl_tex, m_target, origin_tex->id(), m_internal_format, min_level, num_levels, layer, m_array_size);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+Texture2DView::~Texture2DView()
+{
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
