@@ -14,6 +14,7 @@ class ShaderCache
 {
 public:
     void                                    shutdown();
+    void                                    clear_generated_cache();
     std::shared_ptr<GenericShaderLibrary>   load_generic_library(std::vector<std::pair<GLenum, std::string>> shaders);
     std::shared_ptr<GeneratedShaderLibrary> load_generated_library(const std::string& vs, const std::string& fs);
 

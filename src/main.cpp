@@ -809,7 +809,12 @@ private:
                 return false;
             }
             else
-                m_scene = scene;
+            {
+                if (m_scene)
+                    m_renderer.shader_cache().clear_generated_cache();
+
+				m_scene = scene;
+            }
 
             return true;
         }

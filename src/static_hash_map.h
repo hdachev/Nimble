@@ -95,6 +95,12 @@ public:
             erase(result);
     }
 
+	void clear()
+	{
+		for (uint32_t i = 0; i < m_num_objects; i++)
+			remove(m_key[i]);
+	}
+
     uint32_t size()
     {
         return m_num_objects;

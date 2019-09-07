@@ -17,6 +17,17 @@ void ShaderCache::shutdown()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+void ShaderCache::clear_generated_cache()
+{
+	for (auto& pair : m_generated_library_cache)
+	{
+		if (!pair.second.expired())
+			pair.second.lock()->clear();
+	}
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 std::shared_ptr<GenericShaderLibrary> ShaderCache::load_generic_library(std::vector<std::pair<GLenum, std::string>> shaders)
 {
     std::string id = "";
