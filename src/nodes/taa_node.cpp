@@ -13,6 +13,19 @@ DEFINE_RENDER_NODE_FACTORY(TAANode)
 TAANode::TAANode(RenderGraph* graph) :
     RenderNode(graph)
 {
+    register_bool_parameter("Enabled", m_enabled);
+    register_enum_parameter("Neighborhood", &m_neighborhood, { { MIN_MAX_3X3, "Min Max 3x3" }, { MIN_MAX_3X3_ROUNDED, "Min Max 3x3 Rounded" }, { MIN_MAX_4_TAP_VARYING, "Min Max 4 Tap Varying" } });
+    register_bool_parameter("Unjitter Color Samples", m_unjitter_color_samples);
+    register_bool_parameter("Unjitter Neighborhood", m_unjitter_neighborhood);
+    register_bool_parameter("Unjitter Reprojection", m_unjitter_reprojection);
+    register_bool_parameter("Use YCoCg", m_use_ycocg);
+    register_bool_parameter("Use Clipping", m_use_clipping);
+    register_bool_parameter("Use Dilation", m_use_dilation);
+    register_bool_parameter("Use Motion Blur", m_use_motion_blur);
+    register_bool_parameter("Use Optimizations", m_use_optimizations);
+    register_bool_parameter("Use Dilation", m_use_dilation);
+    register_float_parameter("Feedback Min", m_feedback_min, 0.0f, 1.0f);
+    register_float_parameter("Feedback Max", m_feedback_max, 0.0, 1.0f);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -37,20 +50,6 @@ void TAANode::declare_connections()
 
 bool TAANode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-    register_bool_parameter("Enabled", m_enabled);
-    register_enum_parameter("Neighborhood", &m_neighborhood, { { MIN_MAX_3X3, "Min Max 3x3" }, { MIN_MAX_3X3_ROUNDED, "Min Max 3x3 Rounded" }, { MIN_MAX_4_TAP_VARYING, "Min Max 4 Tap Varying" } });
-    register_bool_parameter("Unjitter Color Samples", m_unjitter_color_samples);
-    register_bool_parameter("Unjitter Neighborhood", m_unjitter_neighborhood);
-    register_bool_parameter("Unjitter Reprojection", m_unjitter_reprojection);
-    register_bool_parameter("Use YCoCg", m_use_ycocg);
-    register_bool_parameter("Use Clipping", m_use_clipping);
-    register_bool_parameter("Use Dilation", m_use_dilation);
-    register_bool_parameter("Use Motion Blur", m_use_motion_blur);
-    register_bool_parameter("Use Optimizations", m_use_optimizations);
-    register_bool_parameter("Use Dilation", m_use_dilation);
-    register_float_parameter("Feedback Min", m_feedback_min, 0.0f, 1.0f);
-    register_float_parameter("Feedback Max", m_feedback_max, 0.0, 1.0f);
-
     m_color_rt    = find_input_render_target("Color");
     m_velocity_rt = find_input_render_target("Velocity");
 

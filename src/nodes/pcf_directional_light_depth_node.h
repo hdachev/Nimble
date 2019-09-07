@@ -4,6 +4,17 @@
 
 namespace nimble
 {
+enum PCFFilteringTechnique
+{
+    PCF_FILTERING_GRID_9_SAMPLES,
+    PCF_FILTERING_GRID_25_SAMPLES,
+    PCF_FILTERING_GRID_49_SAMPLES,
+    PCF_FILTERING_POISSON_8_SAMPLES,
+    PCF_FILTERING_POISSON_16_SAMPLES,
+    PCF_FILTERING_POISSON_32_SAMPLES,
+    PCF_FILTERING_POISSON_64_SAMPLES
+};
+
 class PCFLightDepthNode : public RenderNode
 {
 public:
@@ -15,8 +26,9 @@ public:
     void execute(double delta, Renderer* renderer, Scene* scene, View* view) override;
     void shutdown() override;
 
-private:
+protected:
     std::shared_ptr<GeneratedShaderLibrary> m_library;
+    PCFFilteringTechnique                   m_filtering_technique = PCF_FILTERING_GRID_49_SAMPLES;
 };
 
 class PCFDirectionalLightDepthNode : public PCFLightDepthNode

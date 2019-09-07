@@ -18,6 +18,12 @@ VolumetricLightNode::VolumetricLightNode(RenderGraph* graph) :
     RenderNode(graph)
 {
     m_flags = NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS | NODE_USAGE_DIRECTIONAL_LIGHTS | NODE_USAGE_SHADOW_MAPPING;
+
+	register_bool_parameter("Dither", m_dither);
+    register_bool_parameter("Blur", m_blur);
+    register_bool_parameter("Enabled", m_enabled);
+    register_int_parameter("Num Samples", m_num_samples, 0, 32);
+    register_float_parameter("Mie Scattering G", m_mie_g, 0.0f, 1.0f);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -43,12 +49,6 @@ void VolumetricLightNode::declare_connections()
 
 bool VolumetricLightNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-    register_bool_parameter("Dither", m_dither);
-    register_bool_parameter("Blur", m_blur);
-    register_bool_parameter("Enabled", m_enabled);
-    register_int_parameter("Num Samples", m_num_samples, 0, 32);
-    register_float_parameter("Mie Scattering G", m_mie_g, 0.0f, 1.0f);
-
     m_depth_rt = find_input_render_target("Depth");
 
     std::vector<uint8_t> dither;

@@ -113,8 +113,8 @@ protected:
         AppSettings settings;
 
         settings.resizable = true;
-        settings.width     = 1280;
-        settings.height    = 720;
+        settings.width     = 1920;
+        settings.height    = 1080;
         settings.title     = "Nimble - Dihara Wijetunga (c) 2019";
 
         return settings;

@@ -12,6 +12,14 @@ DEFINE_RENDER_NODE_FACTORY(PCFSpotLightDepthNode)
 PCFLightDepthNode::PCFLightDepthNode(RenderGraph* graph) :
     RenderNode(graph)
 {
+    register_enum_parameter("Filtering Technique", &m_filtering_technique, { 
+		{ PCF_FILTERING_GRID_9_SAMPLES, "3x3 Grid (9 Samples)" }, 
+		{ PCF_FILTERING_GRID_25_SAMPLES, "5x5 Grid (25 Samples)" }, 
+		{ PCF_FILTERING_GRID_49_SAMPLES, "7x7 Grid (49 Samples)" },
+		{ PCF_FILTERING_POISSON_8_SAMPLES, "Poisson (8 Samples)" }, 
+		{ PCF_FILTERING_POISSON_16_SAMPLES, "Poisson (16 Samples)" }, 
+		{ PCF_FILTERING_POISSON_32_SAMPLES, "Poisson (32 Samples)" },
+		{ PCF_FILTERING_POISSON_64_SAMPLES, "Poisson (64 Samples)" }, });
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
