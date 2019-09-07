@@ -24,6 +24,7 @@ private:
     BrunetonSkyModel         m_sky_model;
     glm::mat4                m_cubemap_views[6];
     RenderTargetView         m_cubemap_rtv[6];
+    std::string              m_scene_name = "";
     glm::vec3                m_sun_dir;
     std::shared_ptr<Shader>  m_env_map_vs;
     std::shared_ptr<Shader>  m_env_map_fs;

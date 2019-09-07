@@ -76,8 +76,9 @@ void BrunetonProbeRenderer::env_map(double delta, Renderer* renderer, Scene* sce
         DirectionalLight& light   = lights[0];
         glm::vec3         sun_dir = light.transform.forward();
 
-        if (m_sun_dir != sun_dir)
+        if (m_sun_dir != sun_dir || m_scene_name != scene->name())
         {
+            m_scene_name = scene->name();
             m_sun_dir = sun_dir;
 
             for (int i = 0; i < 6; i++)

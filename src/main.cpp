@@ -62,7 +62,6 @@ protected:
                 return false;
         }
 
-        m_scene->create_directional_light(glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), 10.0f);
         //create_random_point_lights();
         //create_random_spot_lights();
 
