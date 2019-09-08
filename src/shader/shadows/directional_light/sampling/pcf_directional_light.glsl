@@ -37,6 +37,132 @@ vec3 csm_debug_color(float frag_depth, int shadow_map_idx)
 
 // ------------------------------------------------------------------
 
+#define PCF_FILTERING_GRID_49_SAMPLES
+
+#if defined(PCF_FILTERING_GRID_9_SAMPLES)
+
+float directional_light_shadow_test(int idx, vec2 sdw_uv, float depth, float bias)
+{
+	float shadow = 0.0;
+	vec2 texel_size = 1.0 / textureSize(s_DirectionalLightShadowMaps, 0).xy;
+
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, 1.000000) * texel_size, float(idx), depth - bias));
+
+	return shadow / 9.0;
+}
+
+// ------------------------------------------------------------------
+
+#elif defined(PCF_FILTERING_GRID_25_SAMPLES)
+
+float directional_light_shadow_test(int idx, vec2 sdw_uv, float depth, float bias)
+{
+	float shadow = 0.0;
+	vec2 texel_size = 1.0 / textureSize(s_DirectionalLightShadowMaps, 0).xy;
+
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-2.000000, -2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-2.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-2.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-2.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-2.000000, 2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, -2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, 2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, -2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, 2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, -2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, 2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(2.000000, -2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(2.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(2.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(2.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(2.000000, 2.000000) * texel_size, float(idx), depth - bias));
+
+	return shadow / 25.0;
+}
+
+// ------------------------------------------------------------------
+
+#elif defined(PCF_FILTERING_GRID_49_SAMPLES)
+
+float directional_light_shadow_test(int idx, vec2 sdw_uv, float depth, float bias)
+{
+	float shadow = 0.0;
+	vec2 texel_size = 1.0 / textureSize(s_DirectionalLightShadowMaps, 0).xy;
+
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-3.000000, -3.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-3.000000, -2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-3.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-3.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-3.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-3.000000, 2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-3.000000, 3.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-2.000000, -3.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-2.000000, -2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-2.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-2.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-2.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-2.000000, 2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-2.000000, 3.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, -3.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, -2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, 2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(-1.000000, 3.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, -3.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, -2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, 2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(0.000000, 3.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, -3.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, -2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, 2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(1.000000, 3.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(2.000000, -3.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(2.000000, -2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(2.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(2.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(2.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(2.000000, 2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(2.000000, 3.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(3.000000, -3.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(3.000000, -2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(3.000000, -1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(3.000000, 0.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(3.000000, 1.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(3.000000, 2.000000) * texel_size, float(idx), depth - bias));
+	shadow += texture(s_DirectionalLightShadowMaps, vec4(sdw_uv + vec2(3.000000, 3.000000) * texel_size, float(idx), depth - bias));
+
+	return shadow / 49.0;
+}
+
+#endif
+
+// ------------------------------------------------------------------
+
 float directional_light_shadows(in FragmentProperties f, int shadow_map_idx, int light_idx)
 {
 	int start_idx = shadow_map_idx * num_cascades; // Starting from this value
@@ -66,17 +192,7 @@ float directional_light_shadows(in FragmentProperties f, int shadow_map_idx, int
 	vec3 l = directional_light_direction[light_idx].xyz;
 	float bias = max(0.0005 * (1.0 - dot(n, l)), 0.0005);  
 
-	float shadow = 0.0;
-	vec2 texelSize = 1.0 / textureSize(s_DirectionalLightShadowMaps, 0).xy;
-
-	for(int x = -1; x <= 1; ++x)
-	{
-	    for(int y = -1; y <= 1; ++y)
-	        shadow += texture(s_DirectionalLightShadowMaps, vec4(light_space_pos.xy + vec2(x, y) * texelSize, float(index), current_depth - bias));          
-	}
-	shadow /= 9.0;
-	
-	return shadow;
+	return directional_light_shadow_test(index, light_space_pos.xy, current_depth, bias);
 
     // if (options.x == 1.0)
     // {
