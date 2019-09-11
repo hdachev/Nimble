@@ -79,7 +79,7 @@ void BrunetonProbeRenderer::env_map(double delta, Renderer* renderer, Scene* sce
         if (m_sun_dir != sun_dir || m_scene_name != scene->name())
         {
             m_scene_name = scene->name();
-            m_sun_dir = sun_dir;
+            m_sun_dir    = sun_dir;
 
             for (int i = 0; i < 6; i++)
                 m_cubemap_rtv[i] = RenderTargetView(i, 0, 0, scene->env_map());

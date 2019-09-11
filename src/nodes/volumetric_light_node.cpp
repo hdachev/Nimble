@@ -19,7 +19,7 @@ VolumetricLightNode::VolumetricLightNode(RenderGraph* graph) :
 {
     m_flags = NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS | NODE_USAGE_DIRECTIONAL_LIGHTS | NODE_USAGE_SHADOW_MAPPING;
 
-	register_bool_parameter("Dither", m_dither);
+    register_bool_parameter("Dither", m_dither);
     register_bool_parameter("Blur", m_blur);
     register_bool_parameter("Enabled", m_enabled);
     register_int_parameter("Num Samples", m_num_samples, 0, 32);

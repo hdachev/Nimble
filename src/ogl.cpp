@@ -923,7 +923,7 @@ Texture2DView::Texture2DView(TextureCube* origin_tex, uint32_t min_level, uint32
     m_internal_format = origin_tex->internal_format();
     m_target          = GL_TEXTURE_2D;
 
-	glTextureView(m_gl_tex, m_target, origin_tex->id(), m_internal_format, min_level, num_levels, face, 1);
+    glTextureView(m_gl_tex, m_target, origin_tex->id(), m_internal_format, min_level, num_levels, face, 1);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

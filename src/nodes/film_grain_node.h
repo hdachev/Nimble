@@ -4,11 +4,11 @@
 
 namespace nimble
 {
-class SMAANode : public RenderNode
+class FilmGrainNode : public RenderNode
 {
 public:
-    SMAANode(RenderGraph* graph);
-    ~SMAANode();
+    FilmGrainNode(RenderGraph* graph);
+    ~FilmGrainNode();
 
     void        declare_connections() override;
     bool        initialize(Renderer* renderer, ResourceManager* res_mgr) override;
@@ -17,5 +17,5 @@ public:
     std::string name() override;
 };
 
-DECLARE_RENDER_NODE_FACTORY(SMAANode);
+DECLARE_RENDER_NODE_FACTORY(FilmGrainNode);
 } // namespace nimble

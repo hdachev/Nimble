@@ -19,11 +19,11 @@ void ShaderCache::shutdown()
 
 void ShaderCache::clear_generated_cache()
 {
-	for (auto& pair : m_generated_library_cache)
-	{
-		if (!pair.second.expired())
-			pair.second.lock()->clear();
-	}
+    for (auto& pair : m_generated_library_cache)
+    {
+        if (!pair.second.expired())
+            pair.second.lock()->clear();
+    }
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

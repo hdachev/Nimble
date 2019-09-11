@@ -153,7 +153,7 @@ struct Profiler
                     std::string id = std::to_string(i);
 
                     uint64_t start_time = 0;
-                    uint64_t end_time = 0;
+                    uint64_t end_time   = 0;
 
                     sample->query.result_64(&start_time);
                     sample->end_sample->query.result_64(&end_time);
