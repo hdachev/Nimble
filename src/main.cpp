@@ -27,6 +27,9 @@
 #include "nodes/reflection_node.h"
 #include "nodes/fxaa_node.h"
 #include "nodes/depth_of_field_node.h"
+#include "nodes/vignette_node.h"
+#include "nodes/film_grain_node.h"
+#include "nodes/chromatic_aberration_node.h"
 #include "debug_draw.h"
 #include "imgui_helpers.h"
 #include "external/nfd/nfd.h"
@@ -228,6 +231,9 @@ private:
         REGISTER_RENDER_NODE(ReflectionNode, m_resource_manager);
         REGISTER_RENDER_NODE(FXAANode, m_resource_manager);
         REGISTER_RENDER_NODE(DepthOfFieldNode, m_resource_manager);
+        REGISTER_RENDER_NODE(FilmGrainNode, m_resource_manager);
+        REGISTER_RENDER_NODE(ChromaticAberrationNode, m_resource_manager);
+        REGISTER_RENDER_NODE(VignetteNode, m_resource_manager);
 
         // Create Forward render graph
         m_forward_graph = m_resource_manager.load_render_graph("graph/deferred_graph.json", &m_renderer);

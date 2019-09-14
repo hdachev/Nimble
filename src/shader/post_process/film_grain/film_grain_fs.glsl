@@ -31,10 +31,10 @@ void main()
     float x = (FS_IN_TexCoord.x + 4.0 ) * (FS_IN_TexCoord.y + 4.0 ) * (time_params.x * 10.0);
 	vec4 grain = vec4(mod((mod(x, 13.0) + 1.0) * (mod(x, 123.0) + 1.0), 0.01)-0.005) * u_Strength;
     
-    if(abs(uv.x - 0.5) < 0.002)
-        color = vec4(0.0);
+    if(abs(FS_IN_TexCoord.x - 0.5) < 0.002)
+        color = vec3(0.0);
 
-	FS_OUT_FragColor = color + grain;
+	FS_OUT_FragColor = color;
 }
 
 // ------------------------------------------------------------------

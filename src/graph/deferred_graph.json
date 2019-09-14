@@ -227,6 +227,19 @@
                     "prev_output_name" : "Luminance"
                 }
             ]
+        },
+        {
+            "name" : "VignetteNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "ToneMapNode",
+                    "prev_output_name" : "ToneMap"
+                }
+            ]
         }
     ]
 }

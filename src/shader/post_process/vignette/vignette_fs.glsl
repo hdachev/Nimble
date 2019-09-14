@@ -25,7 +25,8 @@ void main()
 {
 	vec3 color = texture2D(s_Texture, FS_IN_TexCoord).rgb;
 	
-	vec2 uv *=  1.0 - FS_IN_TexCoord.yx;
+	vec2 uv = FS_IN_TexCoord;
+	uv *=  1.0 - FS_IN_TexCoord.yx;
     float vig = uv.x * uv.y * 15.0;    
     vig = pow(vig, u_Amount);
 
