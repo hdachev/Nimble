@@ -15,7 +15,7 @@ in vec2 FS_IN_TexCoord;
 // ------------------------------------------------------------------
 
 uniform float u_Amount;
-uniform sampler2D s_Color;
+uniform sampler2D s_Texture;
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -23,7 +23,7 @@ uniform sampler2D s_Color;
 
 void main()
 {
-	vec3 color = texture2D(s_Color, FS_IN_TexCoord).rgb;
+	vec3 color = texture2D(s_Texture, FS_IN_TexCoord).rgb;
 	
 	vec2 uv *=  1.0 - FS_IN_TexCoord.yx;
     float vig = uv.x * uv.y * 15.0;    

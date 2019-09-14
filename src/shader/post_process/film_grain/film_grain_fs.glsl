@@ -18,7 +18,7 @@ in vec2 FS_IN_TexCoord;
 // ------------------------------------------------------------------
 
 uniform float u_Strength;
-uniform sampler2D s_Color;
+uniform sampler2D s_Texture;
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -26,7 +26,7 @@ uniform sampler2D s_Color;
 
 void main()
 {
-	vec3 color = texture2D(s_Color, FS_IN_TexCoord).rgb;
+	vec3 color = texture2D(s_Texture, FS_IN_TexCoord).rgb;
 	
     float x = (FS_IN_TexCoord.x + 4.0 ) * (FS_IN_TexCoord.y + 4.0 ) * (time_params.x * 10.0);
 	vec4 grain = vec4(mod((mod(x, 13.0) + 1.0) * (mod(x, 123.0) + 1.0), 0.01)-0.005) * u_Strength;

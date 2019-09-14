@@ -18,7 +18,7 @@ in vec2 FS_IN_TexCoord;
 // ------------------------------------------------------------------
 
 uniform float u_Strength;
-uniform sampler2D s_Color;
+uniform sampler2D s_Texture;
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -26,8 +26,6 @@ uniform sampler2D s_Color;
 
 void main()
 {
-	vec3 color = texture2D(s_Color, FS_IN_TexCoord).rgb;
-	
     float amount = 0.0;
     float size = 0.001;
 
@@ -40,9 +38,9 @@ void main()
 	amount *= u_Strength;
 	
     vec3 col;
-    col.r = texture(s_Color, vec2(FS_IN_TexCoord.x + amount, FS_IN_TexCoord.y)).r;
-    col.g = texture(s_Color, FS_IN_TexCoord).g;
-    col.b = texture(s_Color, vec2(FS_IN_TexCoord.x - amount, FS_IN_TexCoord.y)).b;
+    col.r = texture(s_Texture, vec2(FS_IN_TexCoord.x + amount, FS_IN_TexCoord.y)).r;
+    col.g = texture(s_Texture, FS_IN_TexCoord).g;
+    col.b = texture(s_Texture, vec2(FS_IN_TexCoord.x - amount, FS_IN_TexCoord.y)).b;
 
 	col *= (1.0 - amount * 0.5);
 
