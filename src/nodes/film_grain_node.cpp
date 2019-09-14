@@ -26,7 +26,7 @@ void FilmGrainNode::declare_connections()
 {
     register_input_render_target("Color");
 
-    m_output_rt = register_output_render_target("FilmGrain", 1, 1, GL_TEXTURE_2D, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+    m_output_rt = register_scaled_output_render_target("FilmGrain", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

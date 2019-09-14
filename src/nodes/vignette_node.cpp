@@ -28,14 +28,14 @@ void VignetteNode::declare_connections()
 {
     register_input_render_target("Color");
 
-    m_output_rt = register_output_render_target("Vignette", 1, 1, GL_TEXTURE_2D, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+    m_output_rt = register_scaled_output_render_target("Vignette", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 bool VignetteNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-    register_float_parameter("Amount", m_amount, 0.0f, 1.0f);
+    register_float_parameter("Amount", m_amount);
 
     m_texture  = find_input_render_target("Color");
 
