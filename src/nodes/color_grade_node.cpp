@@ -29,7 +29,7 @@ void ColorGradeNode::declare_connections()
 {
     register_input_render_target("Color");
 
-    m_output_rt = register_scaled_output_render_target("Vignette", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+    m_output_rt = register_scaled_output_render_target("ColorGrade", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -47,19 +47,23 @@ bool ColorGradeNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     std::vector<stbi_uc> lut_data;
     int                  i = 0;
 
-    lut_data.resize(16 * 16 * 16);
+    lut_data.resize(16 * 16 * 16 * 3);
 
     for (int z = 0; z < 16; z++)
     {
         for (int y = 0; y < 16; y++)
         {
-            for (int x = 0; x < 16; x++)
-                lut_data[i++] = data[z * 16 + x + (16 * 16 * y)];
+			for (int x = 0; x < 16; x++)
+			{
+				lut_data[i++] = data[z * 16 + x + (16 * 16 * y)];
+				lut_data[i++] = data[z * 16 + x + (16 * 16 * y)];
+				lut_data[i++] = data[z * 16 + x + (16 * 16 * y)];
+			}
         }
     }
 
     m_lut = std::make_unique<Texture3D>(16, 16, 16, 1, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
-    m_lut->set_data(0, data);
+    m_lut->set_data(0, lut_data.data());
 
 	m_lut->set_min_filter(GL_LINEAR);
     m_lut->set_mag_filter(GL_LINEAR);
