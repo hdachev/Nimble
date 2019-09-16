@@ -45,7 +45,7 @@ namespace nimble
 {
 #define CAMERA_DEFAULT_FOV 60.0f
 #define CAMERA_DEFAULT_NEAR_PLANE 1.0f
-#define CAMERA_DEFAULT_FAR_PLANE 1000.0f
+#define CAMERA_DEFAULT_FAR_PLANE 3000.0f
 
 class Nimble : public Application
 {

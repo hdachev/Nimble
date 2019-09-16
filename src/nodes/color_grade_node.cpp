@@ -42,7 +42,14 @@ bool ColorGradeNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 	int w, y, c;
 
-    stbi_uc* data = stbi_load("RGBTable16x1.jpg", &w, &y, &c, 3);
+	struct LUTElement
+	{
+		stbi_uc r;
+		stbi_uc g;
+		stbi_uc b;
+	};
+
+    LUTElement* data = (LUTElement*)stbi_load("RGBTable16x1.jpg", &w, &y, &c, 3);
 
     std::vector<stbi_uc> lut_data;
     int                  i = 0;
@@ -55,9 +62,9 @@ bool ColorGradeNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
         {
 			for (int x = 0; x < 16; x++)
 			{
-				lut_data[i++] = data[z * 16 + x + (16 * 16 * y)];
-				lut_data[i++] = data[z * 16 + x + (16 * 16 * y)];
-				lut_data[i++] = data[z * 16 + x + (16 * 16 * y)];
+				lut_data[i++] = data[z * 16 + x + (16 * 16 * y)].r;
+				lut_data[i++] = data[z * 16 + x + (16 * 16 * y)].g;
+				lut_data[i++] = data[z * 16 + x + (16 * 16 * y)].b;
 			}
         }
     }
