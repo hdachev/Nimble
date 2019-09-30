@@ -1571,7 +1571,16 @@ Buffer::Buffer(GLenum type, GLenum usage, size_t size, void* data) :
     GL_CHECK_ERROR(glGenBuffers(1, &m_gl_buffer));
 
     GL_CHECK_ERROR(glBindBuffer(m_type, m_gl_buffer));
-    GL_CHECK_ERROR(glBufferData(m_type, size, data, usage));
+
+	if ((usage & GL_STATIC_DRAW) == GL_STATIC_DRAW || (usage & GL_DYNAMIC_DRAW) == GL_DYNAMIC_DRAW)
+	{
+		GL_CHECK_ERROR(glBufferData(m_type, size, data, usage));
+	}
+	else
+	{
+		GL_CHECK_ERROR(glBufferStorage(m_type, size, data, usage));
+	}
+
     GL_CHECK_ERROR(glBindBuffer(m_type, 0));
 
 #if defined(__EMSCRIPTEN__)
@@ -1669,6 +1678,13 @@ void Buffer::set_data(size_t offset, size_t size, void* data)
     GL_CHECK_ERROR(glBindBuffer(m_type, m_gl_buffer));
     glBufferSubData(m_type, offset, size, data);
     GL_CHECK_ERROR(glBindBuffer(m_type, 0));
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void Buffer::flush_mapped_range(size_t offset, size_t length)
+{
+	GL_CHECK_ERROR(glFlushMappedBufferRange(m_type, offset, length));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -1854,7 +1870,7 @@ Fence::~Fence()
 void Fence::insert()
 {
     if (m_fence)
-        sync();
+        wait();
 
 	m_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 }

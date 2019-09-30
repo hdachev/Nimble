@@ -97,18 +97,19 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
 
     create_shadow_maps();
 
-	GLuint buffer_flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+	GLuint mapping_flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+    GLuint storage_flags = mapping_flags | GL_DYNAMIC_STORAGE_BIT;
 
     // Common resources
     for (int i = 0; i < MAX_IN_FLIGHT_FRAMES; i++)
     {
-        m_per_view[i]   = std::make_unique<ShaderStorageBuffer>(buffer_flags, MAX_VIEWS * sizeof(PerViewUniforms));
-        m_per_entity[i] = std::make_unique<UniformBuffer>(buffer_flags, MAX_ENTITIES * sizeof(PerEntityUniforms));
-        m_per_scene[i]  = std::make_unique<ShaderStorageBuffer>(buffer_flags, sizeof(PerSceneUniforms));
+        m_per_view[i]   = std::make_unique<ShaderStorageBuffer>(storage_flags, MAX_VIEWS * sizeof(PerViewUniforms));
+        m_per_entity[i] = std::make_unique<UniformBuffer>(storage_flags, MAX_ENTITIES * sizeof(PerEntityUniforms));
+        m_per_scene[i]  = std::make_unique<ShaderStorageBuffer>(storage_flags, sizeof(PerSceneUniforms));
 
-		m_per_view_mapped_ptr[i] = m_per_view[i]->map(buffer_flags);
-        m_per_entity_mapped_ptr[i] = m_per_entity[i]->map(buffer_flags);
-		m_per_scene_mapped_ptr[i] = m_per_scene[i]->map(buffer_flags);
+		m_per_view_mapped_ptr[i]   = m_per_view[i]->map_range(mapping_flags, 0, MAX_VIEWS * sizeof(PerViewUniforms));
+        m_per_entity_mapped_ptr[i] = m_per_entity[i]->map_range(mapping_flags, 0, MAX_ENTITIES * sizeof(PerEntityUniforms));
+        m_per_scene_mapped_ptr[i]  = m_per_scene[i]->map_range(mapping_flags, 0, sizeof(PerSceneUniforms));
 	}
 
     create_cube();
@@ -1650,7 +1651,7 @@ void Renderer::update_uniforms(double delta)
         }
 
         memcpy(m_per_entity_mapped_ptr[m_current_frame_idx], &m_per_entity_uniforms[0], sizeof(PerEntityUniforms) * scene->entity_count());
-
+   
         // Update per view uniforms
         for (uint32_t i = 0; i < m_num_update_views; i++)
         {
