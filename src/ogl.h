@@ -336,4 +336,17 @@ public:
 private:
     GLuint m_query;
 };
+
+class Fence
+{
+public:
+    Fence();
+    ~Fence();
+    void insert();
+    void wait();
+
+private: 
+	GLsync m_fence = nullptr;
+};
+
 } // namespace nimble

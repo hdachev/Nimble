@@ -16,6 +16,8 @@
 
 namespace nimble
 {
+#define MAX_IN_FLIGHT_FRAMES 3
+
 class ResourceManager;
 class GlobalProbeRenderer;
 class LocalProbeRenderer;
@@ -90,9 +92,9 @@ public:
     inline std::shared_ptr<Texture>             directional_light_shadow_maps() { return m_directional_light_shadow_map_depth_attachment; }
     inline std::shared_ptr<Texture>             spot_light_shadow_maps() { return m_spot_light_shadow_map_depth_attachment; }
     inline std::shared_ptr<Texture>             point_light_shadow_maps() { return m_point_light_shadow_map_depth_attachment; }
-    inline ShaderStorageBuffer*                 per_view_ssbo() { return m_per_view.get(); }
-    inline UniformBuffer*                       per_entity_ubo() { return m_per_entity.get(); }
-    inline ShaderStorageBuffer*                 per_scene_ssbo() { return m_per_scene.get(); }
+    inline ShaderStorageBuffer*                 per_view_ssbo() { return m_per_view[m_current_frame_idx].get(); }
+    inline UniformBuffer*                       per_entity_ubo() { return m_per_entity[m_current_frame_idx].get(); }
+    inline ShaderStorageBuffer*                 per_scene_ssbo() { return m_per_scene[m_current_frame_idx].get(); }
     inline std::shared_ptr<VertexArray>         cube_vao() { return m_cube_vao; }
     inline std::shared_ptr<RenderTarget>        debug_render_target() { return m_debug_render_target; }
     inline bool                                 scaled_debug_output() { return m_scaled_debug_output; }
@@ -169,9 +171,14 @@ private:
     PerSceneUniforms                            m_per_scene_uniforms;
 
     // Uniform buffers
-    std::unique_ptr<ShaderStorageBuffer> m_per_view;
-    std::unique_ptr<UniformBuffer>       m_per_entity;
-    std::unique_ptr<ShaderStorageBuffer> m_per_scene;
+    std::unique_ptr<ShaderStorageBuffer> m_per_view[MAX_IN_FLIGHT_FRAMES];
+    std::unique_ptr<UniformBuffer>       m_per_entity[MAX_IN_FLIGHT_FRAMES];
+    std::unique_ptr<ShaderStorageBuffer> m_per_scene[MAX_IN_FLIGHT_FRAMES];
+    void*                                m_per_view_mapped_ptr[MAX_IN_FLIGHT_FRAMES];
+    void*                                m_per_entity_mapped_ptr[MAX_IN_FLIGHT_FRAMES];
+    void*                                m_per_scene_mapped_ptr[MAX_IN_FLIGHT_FRAMES];
+    Fence                                m_fences[MAX_IN_FLIGHT_FRAMES];
+    uint32_t                             m_current_frame_idx = 0;
 
     // Shadow Maps
     std::shared_ptr<Texture>                   m_directional_light_shadow_map_depth_attachment;

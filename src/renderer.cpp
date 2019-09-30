@@ -97,10 +97,19 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
 
     create_shadow_maps();
 
+	GLuint buffer_flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+
     // Common resources
-    m_per_view   = std::make_unique<ShaderStorageBuffer>(GL_DYNAMIC_DRAW, MAX_VIEWS * sizeof(PerViewUniforms));
-    m_per_entity = std::make_unique<UniformBuffer>(GL_DYNAMIC_DRAW, MAX_ENTITIES * sizeof(PerEntityUniforms));
-    m_per_scene  = std::make_unique<ShaderStorageBuffer>(GL_DYNAMIC_DRAW, sizeof(PerSceneUniforms));
+    for (int i = 0; i < MAX_IN_FLIGHT_FRAMES; i++)
+    {
+        m_per_view[i]   = std::make_unique<ShaderStorageBuffer>(buffer_flags, MAX_VIEWS * sizeof(PerViewUniforms));
+        m_per_entity[i] = std::make_unique<UniformBuffer>(buffer_flags, MAX_ENTITIES * sizeof(PerEntityUniforms));
+        m_per_scene[i]  = std::make_unique<ShaderStorageBuffer>(buffer_flags, sizeof(PerSceneUniforms));
+
+		m_per_view_mapped_ptr[i] = m_per_view[i]->map(buffer_flags);
+        m_per_entity_mapped_ptr[i] = m_per_entity[i]->map(buffer_flags);
+		m_per_scene_mapped_ptr[i] = m_per_scene[i]->map(buffer_flags);
+	}
 
     create_cube();
 
@@ -140,6 +149,9 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
 
 void Renderer::render(double delta, ViewportManager* viewport_mgr)
 {
+	// Wait on previously set fence.
+    m_fences[m_current_frame_idx].wait();
+
     render_probes(delta);
 
     queue_default_views();
@@ -155,6 +167,11 @@ void Renderer::render(double delta, ViewportManager* viewport_mgr)
     clear_all_views();
 
     render_debug_output();
+
+	// Set fence.
+	m_fences[m_current_frame_idx].insert();
+
+	m_current_frame_idx = (m_current_frame_idx + 1) % MAX_IN_FLIGHT_FRAMES;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -179,9 +196,16 @@ void Renderer::shutdown()
     for (auto itr : m_program_cache)
         itr.second.reset();
 
-    m_per_view.reset();
-    m_per_entity.reset();
-    m_per_scene.reset();
+	for (int i = 0; i < MAX_IN_FLIGHT_FRAMES; i++)
+	{
+		m_per_view[i]->unmap();
+        m_per_entity[i]->unmap();
+        m_per_scene[i]->unmap();
+
+		m_per_view[i].reset();
+		m_per_entity[i].reset();
+		m_per_scene[i].reset();
+	}
 
     m_directional_light_shadow_map_depth_attachment.reset();
     m_spot_light_shadow_map_depth_attachment.reset();
@@ -1625,9 +1649,7 @@ void Renderer::update_uniforms(double delta)
             m_per_entity_uniforms[i].last_model_mat = entity.transform.prev_model;
         }
 
-        void* ptr = m_per_entity->map(GL_WRITE_ONLY);
-        memcpy(ptr, &m_per_entity_uniforms[0], sizeof(PerEntityUniforms) * scene->entity_count());
-        m_per_entity->unmap();
+        memcpy(m_per_entity_mapped_ptr[m_current_frame_idx], &m_per_entity_uniforms[0], sizeof(PerEntityUniforms) * scene->entity_count());
 
         // Update per view uniforms
         for (uint32_t i = 0; i < m_num_update_views; i++)
@@ -1663,10 +1685,8 @@ void Renderer::update_uniforms(double delta)
             }
         }
 
-        ptr = m_per_view->map(GL_WRITE_ONLY);
-        memcpy(ptr, &m_per_view_uniforms[0], sizeof(PerViewUniforms) * m_num_update_views);
-        m_per_view->unmap();
-
+        memcpy(m_per_view_mapped_ptr[m_current_frame_idx], &m_per_view_uniforms[0], sizeof(PerViewUniforms) * m_num_update_views);
+ 
         // Update per scene uniforms
         DirectionalLight* dir_lights = scene->directional_lights();
 
@@ -1713,9 +1733,7 @@ void Renderer::update_uniforms(double delta)
             m_per_scene_uniforms.point_light_casts_shadow[light_idx]    = light.casts_shadow ? 1 : 0;
         }
 
-        ptr = m_per_scene->map(GL_WRITE_ONLY);
-        memcpy(ptr, &m_per_scene_uniforms, sizeof(PerSceneUniforms));
-        m_per_scene->unmap();
+        memcpy(m_per_scene_mapped_ptr[m_current_frame_idx], &m_per_scene_uniforms, sizeof(PerSceneUniforms));
     }
 }
 

@@ -49,27 +49,34 @@ bool ColorGradeNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 		stbi_uc b;
 	};
 
-    LUTElement* data = (LUTElement*)stbi_load("RGBTable16x1.jpg", &w, &y, &c, 3);
+	stbi_set_flip_vertically_on_load(true);
+
+    LUTElement* data = (LUTElement*)stbi_load("NeutralLdrLut.png", &w, &y, &c, 3);
+
+	stbi_set_flip_vertically_on_load(false);
 
     std::vector<stbi_uc> lut_data;
     int                  i = 0;
 
-    lut_data.resize(16 * 16 * 16 * 3);
+    lut_data.resize(y * y * y * 3);
 
-    for (int z = 0; z < 16; z++)
+	const int SINGLE_LAYER_WIDTH = y;
+    const int IMAGE_WIDTH        = w;
+
+    for (int z = 0; z < SINGLE_LAYER_WIDTH; z++)
     {
-        for (int y = 0; y < 16; y++)
+        for (int y = 0; y < SINGLE_LAYER_WIDTH; y++)
         {
-			for (int x = 0; x < 16; x++)
+            for (int x = 0; x < SINGLE_LAYER_WIDTH; x++)
 			{
-				lut_data[i++] = data[z * 16 + x + (16 * 16 * y)].r;
-				lut_data[i++] = data[z * 16 + x + (16 * 16 * y)].g;
-				lut_data[i++] = data[z * 16 + x + (16 * 16 * y)].b;
+                lut_data[i++] = data[x + (SINGLE_LAYER_WIDTH * z) + (IMAGE_WIDTH * y)].r;
+				lut_data[i++] = data[x + (SINGLE_LAYER_WIDTH * z) + (IMAGE_WIDTH * y)].g;
+				lut_data[i++] = data[x + (SINGLE_LAYER_WIDTH * z) + (IMAGE_WIDTH * y)].b;
 			}
         }
     }
 
-    m_lut = std::make_unique<Texture3D>(16, 16, 16, 1, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+    m_lut = std::make_unique<Texture3D>(y, y, y, 1, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
     m_lut->set_data(0, lut_data.data());
 
 	m_lut->set_min_filter(GL_LINEAR);
