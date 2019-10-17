@@ -17,7 +17,8 @@ public:
     std::string name() override;
 
 private:
-
+    std::shared_ptr<ShaderStorageBuffer> m_culled_light_indices;
+    std::shared_ptr<ShaderStorageBuffer> m_tile_frustums;
 };
 
 DECLARE_RENDER_NODE_FACTORY(TiledLightCullingNode);

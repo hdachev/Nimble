@@ -13,21 +13,21 @@ uniform sampler2DArray s_ShadowMap;
 // INPUT VARIABLES  -------------------------------------------------
 // ------------------------------------------------------------------
 
-in vec3 PS_IN_Position;
-in vec4 PS_IN_NDCFragPos;
-in vec4 PS_IN_ScreenPosition;
-in vec4 PS_IN_LastScreenPosition;
-in vec3 PS_IN_Normal;
-in vec2 PS_IN_TexCoord;
+in vec3 FS_IN_Position;
+in vec4 FS_IN_NDCFragPos;
+in vec4 FS_IN_ScreenPosition;
+in vec4 FS_IN_LastScreenPosition;
+in vec3 FS_IN_Normal;
+in vec2 FS_IN_TexCoord;
 
 #ifdef TEXTURE_NORMAL
-	in vec3 PS_IN_Tangent;
-	in vec3 PS_IN_Bitangent;
+	in vec3 FS_IN_Tangent;
+	in vec3 FS_IN_Bitangent;
 #endif
 
 #ifdef DISPLACEMENT_TYPE_PARALLAX_OCCLUSION
-	in vec3 PS_IN_TangentViewPos;
-	in vec3 PS_IN_TangentFragPos;
+	in vec3 FS_IN_TangentViewPos;
+	in vec3 FS_IN_TangentFragPos;
 #endif
 
 #include <../common/helper.glsl>
@@ -38,8 +38,8 @@ in vec2 PS_IN_TexCoord;
 // OUTPUT VARIABLES  ------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (location = 0) out vec3 PS_OUT_Color;
-layout (location = 1) out vec2 PS_OUT_Velocity;
+layout (location = 0) out vec3 FS_OUT_Color;
+layout (location = 1) out vec2 FS_OUT_Velocity;
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
@@ -47,19 +47,19 @@ layout (location = 1) out vec2 PS_OUT_Velocity;
 
 void fill_fragment_properties(inout FragmentProperties f)
 {
-	f.Position = PS_IN_Position;
-	f.Normal = PS_IN_Normal;
-	f.FragDepth = (PS_IN_NDCFragPos.z / PS_IN_NDCFragPos.w) * 0.5 + 0.5;
+	f.Position = FS_IN_Position;
+	f.Normal = FS_IN_Normal;
+	f.FragDepth = (FS_IN_NDCFragPos.z / FS_IN_NDCFragPos.w) * 0.5 + 0.5;
 #ifdef TEXTURE_NORMAL
-	f.Tangent = PS_IN_Tangent;
-	f.Bitangent = PS_IN_Bitangent;
+	f.Tangent = FS_IN_Tangent;
+	f.Bitangent = FS_IN_Bitangent;
 #endif
 #ifdef DISPLACEMENT_TYPE_PARALLAX_OCCLUSION
-	f.TangentViewPos = PS_IN_TangentViewPos;
-	f.TangentFragPos = PS_IN_TangentFragPos;
-	f.TexCoords = get_parallax_occlusion_texcoords(PS_IN_TexCoord, PS_IN_TangentViewPos, PS_IN_TangentFragPos);
+	f.TangentViewPos = FS_IN_TangentViewPos;
+	f.TangentFragPos = FS_IN_TangentFragPos;
+	f.TexCoords = get_parallax_occlusion_texcoords(FS_IN_TexCoord, FS_IN_TangentViewPos, FS_IN_TangentFragPos);
 #else
-	f.TexCoords = PS_IN_TexCoord;
+	f.TexCoords = FS_IN_TexCoord;
 #endif
 }
 
@@ -130,8 +130,8 @@ void main()
 	// vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
 	vec3 color = Lo;// + ambient;
 
-    PS_OUT_Color = color;
-	PS_OUT_Velocity = motion_vector(PS_IN_LastScreenPosition, PS_IN_ScreenPosition);
+    FS_OUT_Color = color;
+	FS_OUT_Velocity = motion_vector(FS_IN_LastScreenPosition, FS_IN_ScreenPosition);
 }
 
 // ------------------------------------------------------------------
