@@ -446,6 +446,26 @@ std::shared_ptr<RenderTarget> RenderNode::register_scaled_intermediate_render_ta
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+std::shared_ptr<ShaderStorageBuffer> RenderNode::register_output_buffer(const std::string& name, GLenum flags, size_t size)
+{
+    for (auto& output : m_output_buffers)
+    {
+        if (output.slot_name == name)
+        {
+            NIMBLE_LOG_ERROR("Buffer render target already registered: " + name);
+            return nullptr;
+        }
+    }
+
+    std::shared_ptr<ShaderStorageBuffer> buffer = std::make_unique<ShaderStorageBuffer>(flags, size);
+
+    m_output_buffers.push_back({ name, buffer });
+
+    return buffer;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void RenderNode::blit_render_target(Renderer* renderer, std::shared_ptr<RenderTarget> src, std::shared_ptr<RenderTarget> dst)
 {
     RenderTargetView rtv = RenderTargetView(0, 0, 0, dst->texture);
