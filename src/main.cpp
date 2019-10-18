@@ -238,7 +238,7 @@ private:
         REGISTER_RENDER_NODE(ColorGradeNode, m_resource_manager);
 
         // Create Forward render graph
-        m_forward_graph = m_resource_manager.load_render_graph("graph/deferred_graph.json", &m_renderer);
+        m_forward_graph = m_resource_manager.load_render_graph("graph/forward_graph.json", &m_renderer);
 
         // Create Point Light render graph
         m_pcf_point_light_graph = m_resource_manager.load_shadow_render_graph("PCFPointLightDepthNode", &m_renderer);

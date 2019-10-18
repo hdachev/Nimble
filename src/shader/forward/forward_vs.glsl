@@ -5,22 +5,21 @@
 // OUTPUT VARIABLES  ------------------------------------------------
 // ------------------------------------------------------------------
 
-out vec3 PS_IN_CamPos;
-out vec3 PS_IN_Position;
-out vec4 PS_IN_NDCFragPos;
-out vec4 PS_IN_ScreenPosition;
-out vec4 PS_IN_LastScreenPosition;
-out vec3 PS_IN_Normal;
-out vec2 PS_IN_TexCoord;
+out vec3 FS_IN_Position;
+out vec4 FS_IN_NDCFragPos;
+out vec4 FS_IN_ScreenPosition;
+out vec4 FS_IN_LastScreenPosition;
+out vec3 FS_IN_Normal;
+out vec2 FS_IN_TexCoord;
 
 #ifdef TEXTURE_NORMAL
-	out vec3 PS_IN_Tangent;
-	out vec3 PS_IN_Bitangent;
+	out vec3 FS_IN_Tangent;
+	out vec3 FS_IN_Bitangent;
 #endif
 
 #ifdef DISPLACEMENT_TYPE_PARALLAX_OCCLUSION
-	out vec3 PS_IN_TangentViewPos;
-	out vec3 PS_IN_TangentFragPos;
+	out vec3 FS_IN_TangentViewPos;
+	out vec3 FS_IN_TangentFragPos;
 #endif
 
 // ------------------------------------------------------------------
@@ -62,9 +61,9 @@ void main()
 	v.Bitangent = normal_mat * VS_IN_Bitangent;
 
 	#ifdef DISPLACEMENT_TYPE_PARALLAX_OCCLUSION
-		mat3 TBN = transpose(mat3(normalize(PS_IN_Tangent), normalize(-PS_IN_Bitangent), normalize(PS_IN_Normal)));
+		mat3 TBN = transpose(mat3(normalize(FS_IN_Tangent), normalize(-FS_IN_Bitangent), normalize(FS_IN_Normal)));
 		v.TangentViewPos = TBN * view_pos.xyz;
-		v.TangentFragPos = TBN * PS_IN_Position;
+		v.TangentFragPos = TBN * FS_IN_Position;
 	#endif
 #endif
 
@@ -74,21 +73,21 @@ void main()
 	vertex_func(v);
 
 	// Set output vertex outputs
-	PS_IN_Position = v.Position;
-	PS_IN_NDCFragPos = v.NDCFragPos;
-	PS_IN_ScreenPosition = v.ScreenPosition;
-	PS_IN_LastScreenPosition = v.LastScreenPosition;
-	PS_IN_Normal = v.Normal;
-	PS_IN_TexCoord = v.TexCoord;
+	FS_IN_Position = v.Position;
+	FS_IN_NDCFragPos = v.NDCFragPos;
+	FS_IN_ScreenPosition = v.ScreenPosition;
+	FS_IN_LastScreenPosition = v.LastScreenPosition;
+	FS_IN_Normal = v.Normal;
+	FS_IN_TexCoord = v.TexCoord;
 
 	#ifdef TEXTURE_NORMAL
-		PS_IN_Tangent = v.Tangent;
-		PS_IN_Bitangent = v.Bitangent;
+		FS_IN_Tangent = v.Tangent;
+		FS_IN_Bitangent = v.Bitangent;
 	#endif
 
 	#ifdef DISPLACEMENT_TYPE_PARALLAX_OCCLUSION
-		PS_IN_TangentViewPos = v.TangentViewPos;
-		PS_IN_TangentFragPos = v.TangentFragPos;
+		FS_IN_TangentViewPos = v.TangentViewPos;
+		FS_IN_TangentFragPos = v.TangentFragPos;
 	#endif
 
 	gl_Position = pos;

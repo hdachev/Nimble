@@ -128,7 +128,7 @@ void main()
 	// vec3 specular = prefilteredColor * (pbr.F * brdf.x + brdf.y);
 
 	// vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
-	vec3 color = Lo;// + ambient;
+	vec3 color = Lo + m.albedo.xyz * 0.1;
 
     FS_OUT_Color = color;
 	FS_OUT_Velocity = motion_vector(FS_IN_LastScreenPosition, FS_IN_ScreenPosition);
