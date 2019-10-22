@@ -37,6 +37,8 @@ An OpenGL renderer with a modern and extensible rendering pipeline.
 * GUI Render Graph Editor
 * SMAA
 * HBAO
+* Tiled Deferred
+* Clustered Deferred
 
 ## Dependencies
 * [glfw](https://github.com/glfw/glfw)
