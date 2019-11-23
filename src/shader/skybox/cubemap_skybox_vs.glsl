@@ -8,7 +8,7 @@
 // OUTPUT VARIABLES  ------------------------------------------------
 // ------------------------------------------------------------------
 
-out vec3 PS_IN_TexCoord;
+out vec3 FS_IN_TexCoord;
 
 uniform mat4 u_CubemapInverseVP;
 
@@ -30,7 +30,7 @@ void main(void)
     vec3 dir = vec3(view_pos);
     dir = normalize(dir);
 
-    PS_IN_TexCoord = dir;
+    FS_IN_TexCoord = dir;
 
     gl_Position = vec4(vertices[gl_VertexID], 1.0f);
 }

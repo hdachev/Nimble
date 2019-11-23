@@ -10,7 +10,7 @@
 
 namespace nimble
 {
-#define ENVIRONMENT_MAP_SIZE 1024
+#define ENVIRONMENT_MAP_SIZE 256
 
 struct ReflectionProbe
 {
