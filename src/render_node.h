@@ -128,16 +128,16 @@ public:
     virtual void on_window_resized(const uint32_t& w, const uint32_t& h);
 
 protected:
-    void                          trigger_cascade_view_render(View* view);
-    void                          register_input_render_target(const std::string& name);
-    void                          register_input_buffer(const std::string& name);
-    std::shared_ptr<RenderTarget> register_output_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-    std::shared_ptr<RenderTarget> register_forwarded_output_render_target(const std::string& input);
-    std::shared_ptr<RenderTarget> register_scaled_output_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-    std::shared_ptr<RenderTarget> register_intermediate_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-    std::shared_ptr<RenderTarget> register_scaled_intermediate_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+    void                                 trigger_cascade_view_render(View* view);
+    void                                 register_input_render_target(const std::string& name);
+    void                                 register_input_buffer(const std::string& name);
+    std::shared_ptr<RenderTarget>        register_output_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+    std::shared_ptr<RenderTarget>        register_forwarded_output_render_target(const std::string& input);
+    std::shared_ptr<RenderTarget>        register_scaled_output_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+    std::shared_ptr<RenderTarget>        register_intermediate_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+    std::shared_ptr<RenderTarget>        register_scaled_intermediate_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
     std::shared_ptr<ShaderStorageBuffer> register_output_buffer(const std::string& name, GLenum flags, size_t size);
-    void                          bind_shadow_maps(Renderer* renderer, Program* program, int32_t tex_unit, uint32_t flags);
+    void                                 bind_shadow_maps(Renderer* renderer, Program* program, int32_t tex_unit, uint32_t flags);
 
     // Geometry render helpers
     void blit_render_target(Renderer* renderer, std::shared_ptr<RenderTarget> src, std::shared_ptr<RenderTarget> dst);

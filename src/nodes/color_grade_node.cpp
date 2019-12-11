@@ -40,27 +40,27 @@ bool ColorGradeNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
     m_output_rtv = RenderTargetView(0, 0, 0, m_output_rt->texture);
 
-	int w, y, c;
+    int w, y, c;
 
-	struct LUTElement
-	{
-		stbi_uc r;
-		stbi_uc g;
-		stbi_uc b;
-	};
+    struct LUTElement
+    {
+        stbi_uc r;
+        stbi_uc g;
+        stbi_uc b;
+    };
 
-	stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(true);
 
     LUTElement* data = (LUTElement*)stbi_load("NeutralLdrLut.png", &w, &y, &c, 3);
 
-	stbi_set_flip_vertically_on_load(false);
+    stbi_set_flip_vertically_on_load(false);
 
     std::vector<stbi_uc> lut_data;
     int                  i = 0;
 
     lut_data.resize(y * y * y * 3);
 
-	const int SINGLE_LAYER_WIDTH = y;
+    const int SINGLE_LAYER_WIDTH = y;
     const int IMAGE_WIDTH        = w;
 
     for (int z = 0; z < SINGLE_LAYER_WIDTH; z++)
@@ -68,22 +68,22 @@ bool ColorGradeNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
         for (int y = 0; y < SINGLE_LAYER_WIDTH; y++)
         {
             for (int x = 0; x < SINGLE_LAYER_WIDTH; x++)
-			{
+            {
                 lut_data[i++] = data[x + (SINGLE_LAYER_WIDTH * z) + (IMAGE_WIDTH * y)].r;
-				lut_data[i++] = data[x + (SINGLE_LAYER_WIDTH * z) + (IMAGE_WIDTH * y)].g;
-				lut_data[i++] = data[x + (SINGLE_LAYER_WIDTH * z) + (IMAGE_WIDTH * y)].b;
-			}
+                lut_data[i++] = data[x + (SINGLE_LAYER_WIDTH * z) + (IMAGE_WIDTH * y)].g;
+                lut_data[i++] = data[x + (SINGLE_LAYER_WIDTH * z) + (IMAGE_WIDTH * y)].b;
+            }
         }
     }
 
     m_lut = std::make_unique<Texture3D>(y, y, y, 1, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
     m_lut->set_data(0, lut_data.data());
 
-	m_lut->set_min_filter(GL_LINEAR);
+    m_lut->set_min_filter(GL_LINEAR);
     m_lut->set_mag_filter(GL_LINEAR);
     m_lut->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
-	stbi_image_free(data);
+    stbi_image_free(data);
 
     m_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
     m_fs = res_mgr->load_shader("shader/post_process/color_grade/color_grade_fs.glsl", GL_FRAGMENT_SHADER);

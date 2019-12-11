@@ -97,7 +97,7 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
 
     create_shadow_maps();
 
-	GLuint mapping_flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+    GLuint mapping_flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
     GLuint storage_flags = mapping_flags | GL_DYNAMIC_STORAGE_BIT;
 
     // Common resources
@@ -107,10 +107,10 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
         m_per_entity[i] = std::make_unique<UniformBuffer>(storage_flags, MAX_ENTITIES * sizeof(PerEntityUniforms));
         m_per_scene[i]  = std::make_unique<ShaderStorageBuffer>(storage_flags, sizeof(PerSceneUniforms));
 
-		m_per_view_mapped_ptr[i]   = m_per_view[i]->map_range(mapping_flags, 0, MAX_VIEWS * sizeof(PerViewUniforms));
+        m_per_view_mapped_ptr[i]   = m_per_view[i]->map_range(mapping_flags, 0, MAX_VIEWS * sizeof(PerViewUniforms));
         m_per_entity_mapped_ptr[i] = m_per_entity[i]->map_range(mapping_flags, 0, MAX_ENTITIES * sizeof(PerEntityUniforms));
         m_per_scene_mapped_ptr[i]  = m_per_scene[i]->map_range(mapping_flags, 0, sizeof(PerSceneUniforms));
-	}
+    }
 
     create_cube();
 
@@ -150,7 +150,7 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
 
 void Renderer::render(double delta, ViewportManager* viewport_mgr)
 {
-	// Wait on previously set fence.
+    // Wait on previously set fence.
     m_fences[m_current_frame_idx].wait();
 
     render_probes(delta);
@@ -169,10 +169,10 @@ void Renderer::render(double delta, ViewportManager* viewport_mgr)
 
     render_debug_output();
 
-	// Set fence.
-	m_fences[m_current_frame_idx].insert();
+    // Set fence.
+    m_fences[m_current_frame_idx].insert();
 
-	m_current_frame_idx = (m_current_frame_idx + 1) % MAX_IN_FLIGHT_FRAMES;
+    m_current_frame_idx = (m_current_frame_idx + 1) % MAX_IN_FLIGHT_FRAMES;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -197,16 +197,16 @@ void Renderer::shutdown()
     for (auto itr : m_program_cache)
         itr.second.reset();
 
-	for (int i = 0; i < MAX_IN_FLIGHT_FRAMES; i++)
-	{
-		m_per_view[i]->unmap();
+    for (int i = 0; i < MAX_IN_FLIGHT_FRAMES; i++)
+    {
+        m_per_view[i]->unmap();
         m_per_entity[i]->unmap();
         m_per_scene[i]->unmap();
 
-		m_per_view[i].reset();
-		m_per_entity[i].reset();
-		m_per_scene[i].reset();
-	}
+        m_per_view[i].reset();
+        m_per_entity[i].reset();
+        m_per_scene[i].reset();
+    }
 
     m_directional_light_shadow_map_depth_attachment.reset();
     m_spot_light_shadow_map_depth_attachment.reset();
@@ -1651,7 +1651,7 @@ void Renderer::update_uniforms(double delta)
         }
 
         memcpy(m_per_entity_mapped_ptr[m_current_frame_idx], &m_per_entity_uniforms[0], sizeof(PerEntityUniforms) * scene->entity_count());
-   
+
         // Update per view uniforms
         for (uint32_t i = 0; i < m_num_update_views; i++)
         {
@@ -1687,7 +1687,7 @@ void Renderer::update_uniforms(double delta)
         }
 
         memcpy(m_per_view_mapped_ptr[m_current_frame_idx], &m_per_view_uniforms[0], sizeof(PerViewUniforms) * m_num_update_views);
- 
+
         // Update per scene uniforms
         DirectionalLight* dir_lights = scene->directional_lights();
 

@@ -24,7 +24,7 @@ RenderTargetCache::~RenderTargetCache()
 
 TemporaryRenderTarget* RenderTargetCache::request_temporary(uint32_t w, uint32_t h, GLenum format)
 {
-	return nullptr;
+    return nullptr;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -57,9 +57,9 @@ RenderTargetCache::TemporaryRenderTargetBank::~TemporaryRenderTargetBank()
     {
         delete rt;
         rt = nullptr;
-	}
+    }
 
-	rts.clear();
+    rts.clear();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ TemporaryRenderTarget* RenderTargetCache::TemporaryRenderTargetBank::request_tem
     TemporaryRenderTarget* rt = rts[allocated_count++];
     rts[allocated_count++]    = nullptr;
 
-	return rt;
+    return rt;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

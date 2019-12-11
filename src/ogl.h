@@ -346,8 +346,8 @@ public:
     void insert();
     void wait();
 
-private: 
-	GLsync m_fence = nullptr;
+private:
+    GLsync m_fence = nullptr;
 };
 
 } // namespace nimble

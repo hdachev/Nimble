@@ -12,14 +12,12 @@ DEFINE_RENDER_NODE_FACTORY(VignetteNode)
 VignetteNode::VignetteNode(RenderGraph* graph) :
     RenderNode(graph)
 {
-
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 VignetteNode::~VignetteNode()
 {
-
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -37,7 +35,7 @@ bool VignetteNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_float_parameter("Amount", m_amount);
 
-    m_texture  = find_input_render_target("Color");
+    m_texture = find_input_render_target("Color");
 
     m_output_rtv = RenderTargetView(0, 0, 0, m_output_rt->texture);
 
@@ -89,7 +87,6 @@ void VignetteNode::execute(double delta, Renderer* renderer, Scene* scene, View*
 
 void VignetteNode::shutdown()
 {
-
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

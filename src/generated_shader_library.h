@@ -18,7 +18,7 @@ public:
     GeneratedShaderLibrary(const std::string& vs, const std::string& fs);
     ~GeneratedShaderLibrary();
 
-	void     clear();
+    void     clear();
     Program* lookup_program(const ProgramKey& key);
     Program* create_program(const MeshType& type, const uint32_t& flags, const std::shared_ptr<Material>& material, std::shared_ptr<RenderGraph> directional_light_render_graph, std::shared_ptr<RenderGraph> spot_light_render_graph, std::shared_ptr<RenderGraph> point_light_render_graph);
 

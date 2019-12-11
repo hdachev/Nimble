@@ -40,5 +40,5 @@ else()
 endif()
 
 if(CLANG_FORMAT_EXE)
-    add_custom_target(clang-format-project-files COMMAND ${CLANG_FORMAT_EXE} -i -style=file ${NIMBLE_HEADERS} ${NIMBLE_SOURCE})
+    add_custom_target(Nimble-Clang-Format COMMAND ${CLANG_FORMAT_EXE} -i -style=file ${NIMBLE_HEADERS} ${NIMBLE_SOURCE})
 endif()

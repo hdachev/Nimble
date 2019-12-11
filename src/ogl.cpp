@@ -1572,14 +1572,14 @@ Buffer::Buffer(GLenum type, GLenum usage, size_t size, void* data) :
 
     GL_CHECK_ERROR(glBindBuffer(m_type, m_gl_buffer));
 
-	if ((usage & GL_STATIC_DRAW) == GL_STATIC_DRAW || (usage & GL_DYNAMIC_DRAW) == GL_DYNAMIC_DRAW)
-	{
-		GL_CHECK_ERROR(glBufferData(m_type, size, data, usage));
-	}
-	else
-	{
-		GL_CHECK_ERROR(glBufferStorage(m_type, size, data, usage));
-	}
+    if ((usage & GL_STATIC_DRAW) == GL_STATIC_DRAW || (usage & GL_DYNAMIC_DRAW) == GL_DYNAMIC_DRAW)
+    {
+        GL_CHECK_ERROR(glBufferData(m_type, size, data, usage));
+    }
+    else
+    {
+        GL_CHECK_ERROR(glBufferStorage(m_type, size, data, usage));
+    }
 
     GL_CHECK_ERROR(glBindBuffer(m_type, 0));
 
@@ -1684,7 +1684,7 @@ void Buffer::set_data(size_t offset, size_t size, void* data)
 
 void Buffer::flush_mapped_range(size_t offset, size_t length)
 {
-	GL_CHECK_ERROR(glFlushMappedBufferRange(m_type, offset, length));
+    GL_CHECK_ERROR(glFlushMappedBufferRange(m_type, offset, length));
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -1854,7 +1854,6 @@ bool Query::result_available()
 
 Fence::Fence()
 {
-
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -1872,19 +1871,19 @@ void Fence::insert()
     if (m_fence)
         wait();
 
-	m_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    m_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void Fence::wait()
 {
-	if (m_fence)
-	{
-		glClientWaitSync(m_fence, 0, 10000000);
-		m_fence = nullptr;
-		glDeleteSync(m_fence);
-	}
+    if (m_fence)
+    {
+        glClientWaitSync(m_fence, 0, 10000000);
+        m_fence = nullptr;
+        glDeleteSync(m_fence);
+    }
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

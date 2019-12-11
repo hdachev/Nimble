@@ -17,8 +17,8 @@ public:
     std::string name() override;
 
 private:
-    float m_amount = 0.25f;
-	std::shared_ptr<Shader>		  m_vs;
+    float                         m_amount = 0.25f;
+    std::shared_ptr<Shader>       m_vs;
     std::shared_ptr<Shader>       m_fs;
     std::shared_ptr<Program>      m_program;
     std::shared_ptr<RenderTarget> m_texture;

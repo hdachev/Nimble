@@ -17,7 +17,7 @@ public:
     std::string name() override;
 
 private:
-	float                         m_strength = 0.01f;
+    float                         m_strength = 0.01f;
     std::shared_ptr<Shader>       m_vs;
     std::shared_ptr<Shader>       m_fs;
     std::shared_ptr<Program>      m_program;

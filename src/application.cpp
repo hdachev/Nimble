@@ -73,7 +73,7 @@ static void APIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLen
             break;
     }
 
-	std::string log_msg = "glDebugMessage: " + std::string(message) + ", type = " + msg_type + ", source = " + msg_source + ", severity = " + msg_severity;
+    std::string log_msg = "glDebugMessage: " + std::string(message) + ", type = " + msg_type + ", source = " + msg_source + ", severity = " + msg_severity;
 
     NIMBLE_LOG_ERROR(log_msg);
 }
@@ -229,8 +229,8 @@ bool Application::init_base(int argc, const char* argv[])
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 #if defined(NIMBLE_OPENGL_DEBUG_CALLBACK)
-	glDebugMessageCallback(glDebugCallback, NULL);
-	glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(glDebugCallback, NULL);
+    glEnable(GL_DEBUG_OUTPUT);
 #endif
 
     if (!m_debug_draw.init())

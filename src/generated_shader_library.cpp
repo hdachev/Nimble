@@ -85,9 +85,9 @@ GeneratedShaderLibrary::~GeneratedShaderLibrary()
         NIMBLE_SAFE_DELETE(pair.second);
     }
 
-	m_program_cache.clear();
+    m_program_cache.clear();
     m_vs_cache.clear();
-	m_fs_cache.clear();
+    m_fs_cache.clear();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -109,7 +109,7 @@ void GeneratedShaderLibrary::clear()
         NIMBLE_SAFE_DELETE(pair.second);
     }
 
-	m_program_cache.clear();
+    m_program_cache.clear();
     m_vs_cache.clear();
     m_fs_cache.clear();
 }
@@ -283,14 +283,14 @@ Program* GeneratedShaderLibrary::create_program(const MeshType& type, const uint
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && directional_light_render_graph)
         {
-            auto dir_light_node   = directional_light_render_graph->node(0);
+            auto dir_light_node = directional_light_render_graph->node(0);
             source += dir_light_node->shadow_test_source();
             source += "\n\n";
 
-			auto shadow_test_defines = dir_light_node->shadow_test_source_defines();
+            auto shadow_test_defines = dir_light_node->shadow_test_source_defines();
 
-			for (auto define : shadow_test_defines)
-				fs_defines.push_back(define);
+            for (auto define : shadow_test_defines)
+                fs_defines.push_back(define);
         }
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && spot_light_render_graph)
@@ -299,7 +299,7 @@ Program* GeneratedShaderLibrary::create_program(const MeshType& type, const uint
             source += spot_light_node->shadow_test_source();
             source += "\n\n";
 
-			auto shadow_test_defines = spot_light_node->shadow_test_source_defines();
+            auto shadow_test_defines = spot_light_node->shadow_test_source_defines();
 
             for (auto define : shadow_test_defines)
                 fs_defines.push_back(define);
@@ -311,7 +311,7 @@ Program* GeneratedShaderLibrary::create_program(const MeshType& type, const uint
             source += point_light_node->shadow_test_source();
             source += "\n\n";
 
-			auto shadow_test_defines = point_light_node->shadow_test_source_defines();
+            auto shadow_test_defines = point_light_node->shadow_test_source_defines();
 
             for (auto define : shadow_test_defines)
                 fs_defines.push_back(define);
