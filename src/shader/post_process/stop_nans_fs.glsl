@@ -17,6 +17,22 @@ in vec2 FS_IN_TexCoord;
 uniform sampler2D s_Color; // Normals
 
 // ------------------------------------------------------------------
+// FUNCTION ---------------------------------------------------------
+// ------------------------------------------------------------------
+
+bool isnan_vec4(vec4 color)
+{
+    return (isnan(color.x) || isnan(color.y) || isnan(color.z) || isnan(color.w));
+}
+
+// ------------------------------------------------------------------
+
+bool isinf_vec4(vec4 color)
+{
+    return (isinf(color.x) || isinf(color.y) || isinf(color.z) || isinf(color.w));
+}
+
+// ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
 // ------------------------------------------------------------------
 
@@ -24,7 +40,7 @@ void main()
 {
     vec4 color = texture(s_Color, FS_IN_TexCoord);
 
-    if (isnan(color) || isinf(color))
+    if (isnan_vec4(color) || isinf_vec4(color))
         FS_OUT_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
     else 
         FS_OUT_FragColor = color;
