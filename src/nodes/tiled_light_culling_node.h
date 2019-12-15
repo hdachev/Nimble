@@ -19,6 +19,10 @@ public:
 private:
     std::shared_ptr<ShaderStorageBuffer> m_culled_light_indices;
     std::shared_ptr<ShaderStorageBuffer> m_tile_frustums;
+    std::shared_ptr<RenderTarget>        m_hiz_depth_rt;
+
+	std::shared_ptr<Shader>  m_tiled_light_cull_cs;
+    std::shared_ptr<Program> m_tiled_light_cull_program;
 };
 
 DECLARE_RENDER_NODE_FACTORY(TiledLightCullingNode);
