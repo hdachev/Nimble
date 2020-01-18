@@ -32,6 +32,7 @@
 #include "nodes/chromatic_aberration_node.h"
 #include "nodes/color_grade_node.h"
 #include "nodes/stop_nans_node.h"
+#include "nodes/taa_node.h"
 #include "debug_draw.h"
 #include "imgui_helpers.h"
 #include "external/nfd/nfd.h"
@@ -120,7 +121,7 @@ protected:
         settings.resizable = true;
         settings.width     = 1920;
         settings.height    = 1080;
-        settings.title     = "Nimble - Dihara Wijetunga (c) 2019";
+        settings.title     = "Nimble - Dihara Wijetunga (c) 2020";
 
         return settings;
     }
@@ -202,7 +203,7 @@ private:
     {
         m_scene->camera()->m_width             = m_width;
         m_scene->camera()->m_height            = m_height;
-        m_scene->camera()->m_half_pixel_jitter = false;
+        m_scene->camera()->m_half_pixel_jitter = true;
         m_scene->camera()->update_projection(CAMERA_DEFAULT_FOV, CAMERA_DEFAULT_NEAR_PLANE, CAMERA_DEFAULT_FAR_PLANE, float(m_width) / float(m_height));
 
         m_viewport = m_viewport_manager.create_viewport("Main", 0.0f, 0.0f, 1.0f, 1.0f, 0);
@@ -238,6 +239,7 @@ private:
         REGISTER_RENDER_NODE(VignetteNode, m_resource_manager);
         REGISTER_RENDER_NODE(ColorGradeNode, m_resource_manager);
         REGISTER_RENDER_NODE(StopNaNsNode, m_resource_manager);
+        REGISTER_RENDER_NODE(TAANode, m_resource_manager);
 
         // Create Forward render graph
         m_forward_graph = m_resource_manager.load_render_graph("graph/deferred_graph.json", &m_renderer);

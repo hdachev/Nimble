@@ -1,5 +1,6 @@
 {
     "name" : "Deferred",
+    "type" : "RENDER_GRAPH_STANDARD",
     "nodes" : [
         {
             "name" : "GBufferNode",
@@ -82,7 +83,7 @@
             ]
         },
         {
-            "name" : "CubemapSkyboxNode",
+            "name" : "StopNaNsNode",
             "defines" : [],
             "inputs" : 
             [
@@ -90,6 +91,19 @@
                     "type" : "RENDER_TARGET",
                     "slot_name" : "Color",
                     "prev_node_name" : "DeferredNode",
+                    "prev_output_name" : "Color"
+                }
+            ]
+        },
+        {
+            "name" : "CubemapSkyboxNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "StopNaNsNode",
                     "prev_output_name" : "Color"
                 },
                 {
@@ -114,7 +128,7 @@
             ]
         },
         {
-            "name" : "FXAANode",
+            "name" : "TAANode",
             "defines" : [],
             "inputs" : 
             [
@@ -123,6 +137,31 @@
                     "slot_name" : "Color",
                     "prev_node_name" : "ReflectionNode",
                     "prev_output_name" : "Reflection"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Velocity",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer3"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "Depth"
+                }
+            ]
+        },
+        {
+            "name" : "FXAANode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "TAANode",
+                    "prev_output_name" : "TAA"
                 }
             ]
         },
@@ -225,19 +264,6 @@
                     "slot_name" : "Luminance",
                     "prev_node_name" : "AdaptiveExposureNode",
                     "prev_output_name" : "Luminance"
-                }
-            ]
-        },
-        {
-            "name" : "VignetteNode",
-            "defines" : [],
-            "inputs" : 
-            [
-                {
-                    "type" : "RENDER_TARGET",
-                    "slot_name" : "Color",
-                    "prev_node_name" : "ToneMapNode",
-                    "prev_output_name" : "ToneMap"
                 }
             ]
         }

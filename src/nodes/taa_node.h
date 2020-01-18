@@ -32,7 +32,7 @@ private:
     bool         m_use_ycocg              = false;
     bool         m_use_clipping           = true;
     bool         m_use_dilation           = true;
-    bool         m_use_motion_blur        = true;
+    bool         m_use_motion_blur        = false;
     bool         m_use_optimizations      = true;
     float        m_feedback_min           = 0.88f;
     float        m_feedback_max           = 0.97f;
@@ -42,6 +42,7 @@ private:
     // Inputs
     std::shared_ptr<RenderTarget> m_color_rt;
     std::shared_ptr<RenderTarget> m_velocity_rt;
+    std::shared_ptr<RenderTarget> m_depth_rt;
 
     // Outputs
     std::shared_ptr<RenderTarget> m_taa_rt;

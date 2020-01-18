@@ -1,5 +1,6 @@
 #include <../../common/uniforms.glsl>
 #include <../../common/noise.glsl>
+#include <../../common/helper.glsl>
 
 // GLSL port of the Temporal Anti-Aliasing implementation from Playdead
 // https://github.com/playdeadgames/temporal/
@@ -15,7 +16,7 @@ layout (location = 1) out vec3 FS_OUT_Screen;
 // INPUT VARIABLES  -------------------------------------------------
 // ------------------------------------------------------------------
 
-int vec2 FS_IN_TexCoord;
+in vec2 FS_IN_TexCoord;
 
 // ------------------------------------------------------------------
 // UNIFORMS  --------------------------------------------------------
@@ -24,13 +25,13 @@ int vec2 FS_IN_TexCoord;
 uniform sampler2D s_Current;
 uniform sampler2D s_Prev;
 uniform sampler2D s_Velocity;
+uniform sampler2D s_Depth;
 
 #ifdef USE_MOTION_BLUR_NEIGHBORMAX
     uniform sampler2D s_VelocityNeighborMax;
-
-    uniform float u_MotionScale;
 #endif
 
+uniform float u_MotionScale;
 uniform vec4 u_TexelSize;
 uniform float u_FeedbackMin;
 uniform float u_FeedbackMax;
@@ -135,13 +136,49 @@ vec4 clip_aabb(vec3 aabb_min, vec3 aabb_max, vec4 p, vec4 q)
 
 // ------------------------------------------------------------------
 
+vec3 find_closest_fragment_3x3(vec2 uv)
+{
+	vec2 dd = abs(u_TexelSize.xy);
+	vec2 du = vec2(dd.x, 0.0);
+	vec2 dv = vec2(0.0, dd.y);
+
+	vec3 dtl = vec3(-1, -1, texture(s_Depth, uv - dv - du).x);
+	vec3 dtc = vec3( 0, -1, texture(s_Depth, uv - dv).x);
+	vec3 dtr = vec3( 1, -1, texture(s_Depth, uv - dv + du).x);
+
+	vec3 dml = vec3(-1, 0, texture(s_Depth, uv - du).x);
+	vec3 dmc = vec3( 0, 0, texture(s_Depth, uv).x);
+	vec3 dmr = vec3( 1, 0, texture(s_Depth, uv + du).x);
+
+	vec3 dbl = vec3(-1, 1, texture(s_Depth, uv + dv - du).x);
+	vec3 dbc = vec3( 0, 1, texture(s_Depth, uv + dv).x);
+	vec3 dbr = vec3( 1, 1, texture(s_Depth, uv + dv + du).x);
+
+	vec3 dmin = dtl;
+	if (dmin.z > dtc.z) dmin = dtc;
+	if (dmin.z > dtr.z) dmin = dtr;
+
+	if (dmin.z > dml.z) dmin = dml;
+	if (dmin.z > dmc.z) dmin = dmc;
+	if (dmin.z > dmr.z) dmin = dmr;
+
+	if (dmin.z > dbl.z) dmin = dbl;
+	if (dmin.z > dbc.z) dmin = dbc;
+	if (dmin.z > dbr.z) dmin = dbr;
+
+	return vec3(uv + dd.xy * dmin.xy, dmin.z);
+}
+
+// ------------------------------------------------------------------
+
 vec2 sample_velocity_dilated(sampler2D tex, vec2 uv, int support)
 {
 	vec2 du = vec2(u_TexelSize.x, 0.0);
 	vec2 dv = vec2(0.0, u_TexelSize.y);
-	vec2 mv = 0.0;
+	vec2 mv = vec2(0.0);
 	float rmv = 0.0;
 	int end = support + 1;
+
 	for (int i = -support; i != end; i++)
 	{
 		for (int j = -support; j != end; j++)
@@ -167,9 +204,9 @@ vec4 sample_color_motion(sampler2D tex, vec2 uv, vec2 ss_vel)
 	float srand = srand(uv + time_params.yy);
 	vec2 vtap = v / taps;
 	vec2 pos0 = uv + vtap * (0.5 * srand);
-	vec4 accu = 0.0;
+	vec4 accu = vec4(0.0);
 	float wsum = 0.0;
-	[unroll]
+	
 	for (int i = -taps; i <= taps; i++)
 	{
 		float w = 1.0;// box
@@ -186,7 +223,7 @@ vec4 sample_color_motion(sampler2D tex, vec2 uv, vec2 ss_vel)
 vec4 temporal_reprojection(vec2 ss_txc, vec2 ss_vel, float vs_dist)
 {
 	// read texels
-#ifdef UNJITTER_COLORSAMPLES
+#if defined(UNJITTER_COLORSAMPLES)
 	vec4 texel0 = sample_color(s_Current, ss_txc - current_prev_jitter.xy);
 #else
 	vec4 texel0 = sample_color(s_Current, ss_txc);
@@ -195,13 +232,13 @@ vec4 temporal_reprojection(vec2 ss_txc, vec2 ss_vel, float vs_dist)
 	vec4 texel1 = sample_color(s_Prev, ss_txc - ss_vel);
 
 	// calc min-max of current neighbourhood
-#ifdef UNJITTER_NEIGHBORHOOD
+#if defined(UNJITTER_NEIGHBORHOOD)
 	vec2 uv = ss_txc - current_prev_jitter.xy;
 #else
 	vec2 uv = ss_txc;
 #endif
 
-#ifdef MINMAX_3X3 || MINMAX_3X3_ROUNDED
+#if defined(MINMAX_3X3) || defined(MINMAX_3X3_ROUNDED)
 	vec2 du = vec2(u_TexelSize.x, 0.0);
 	vec2 dv = vec2(0.0, u_TexelSize.y);
 	vec4 ctl = sample_color(s_Current, uv - dv - du);
@@ -216,11 +253,11 @@ vec4 temporal_reprojection(vec2 ss_txc, vec2 ss_vel, float vs_dist)
 	vec4 cmin = min(ctl, min(ctc, min(ctr, min(cml, min(cmc, min(cmr, min(cbl, min(cbc, cbr))))))));
 	vec4 cmax = max(ctl, max(ctc, max(ctr, max(cml, max(cmc, max(cmr, max(cbl, max(cbc, cbr))))))));
 
-	#ifdef MINMAX_3X3_ROUNDED || USE_YCOCG || USE_CLIPPING
+	#if defined(MINMAX_3X3_ROUNDED) || defined(USE_YCOCG) || defined(USE_CLIPPING)
 		vec4 cavg = (ctl + ctc + ctr + cml + cmc + cmr + cbl + cbc + cbr) / 9.0;
 	#endif
 
-	#ifdef MINMAX_3X3_ROUNDED
+	#if defined(MINMAX_3X3_ROUNDED)
 		vec4 cmin5 = min(ctc, min(cml, min(cmc, min(cmr, cbc))));
 		vec4 cmax5 = max(ctc, max(cml, max(cmc, max(cmr, cbc))));
 		vec4 cavg5 = (ctc + cml + cmc + cmr + cbc) / 5.0;
@@ -229,7 +266,7 @@ vec4 temporal_reprojection(vec2 ss_txc, vec2 ss_vel, float vs_dist)
 		cavg = 0.5 * (cavg + cavg5);
 	#endif
 
-#elif MINMAX_4TAP_VARYING// this is the method used in v2 (PDTemporalReprojection2)
+#elif defined(MINMAX_4TAP_VARYING)// this is the method used in v2 (PDTemporalReprojection2)
 	const float _SubpixelThreshold = 0.5;
 	const float _GatherBase = 0.5;
 	const float _GatherSubpixelMotion = 0.1666;
@@ -246,7 +283,7 @@ vec4 temporal_reprojection(vec2 ss_txc, vec2 ss_vel, float vs_dist)
 	vec4 cmin = min(c00, min(c10, min(c01, c11)));
 	vec4 cmax = max(c00, max(c10, max(c01, c11)));
 
-	#ifdef USE_YCOCG || USE_CLIPPING
+	#if defined(USE_YCOCG || USE_CLIPPING)
 		vec4 cavg = (c00 + c10 + c01 + c11) / 4.0;
 	#endif
 #else
@@ -254,8 +291,8 @@ vec4 temporal_reprojection(vec2 ss_txc, vec2 ss_vel, float vs_dist)
 #endif
 
 	// shrink chroma min-max
-#ifdef USE_YCOCG
-	vec2 chroma_extent = 0.25 * 0.5 * (cmax.r - cmin.r);
+#if defined(USE_YCOCG)
+	vec2 chroma_extent = vec2(0.25 * 0.5 * (cmax.r - cmin.r));
 	vec2 chroma_center = texel0.gb;
 	cmin.yz = chroma_center - chroma_extent;
 	cmax.yz = chroma_center + chroma_extent;
@@ -263,19 +300,19 @@ vec4 temporal_reprojection(vec2 ss_txc, vec2 ss_vel, float vs_dist)
 #endif
 
 	// clamp to neighbourhood of current sample
-#ifdef USE_CLIPPING
+#if defined(USE_CLIPPING)
 	texel1 = clip_aabb(cmin.xyz, cmax.xyz, clamp(cavg, cmin, cmax), texel1);
 #else
 	texel1 = clamp(texel1, cmin, cmax);
 #endif
 
 	// feedback weight from unbiased luminance diff (t.lottes)
-#ifdef USE_YCOCG
+#if defined(USE_YCOCG)
 	float lum0 = texel0.r;
 	float lum1 = texel1.r;
 #else
-	float lum0 = Luminance(texel0.rgb);
-	float lum1 = Luminance(texel1.rgb);
+	float lum0 = luminance(texel0.rgb);
+	float lum1 = luminance(texel1.rgb);
 #endif
 	float unbiased_diff = abs(lum0 - lum1) / max(lum0, max(lum1, 0.2));
 	float unbiased_weight = 1.0 - unbiased_diff;
@@ -291,13 +328,13 @@ vec4 temporal_reprojection(vec2 ss_txc, vec2 ss_vel, float vs_dist)
 
 void main()
 {
-#ifdef UNJITTER_REPROJECTION
+#if defined(UNJITTER_REPROJECTION)
 	vec2 uv = FS_IN_TexCoord - current_prev_jitter.xy;
 #else
 	vec2 uv = FS_IN_TexCoord;
 #endif
 
-#ifdef USE_DILATION
+#if defined(USE_DILATION)
 	//--- 3x3 norm (sucks)
 	//vec2 ss_vel = sample_velocity_dilated(s_Velocity, uv, 1);
 	//float vs_dist = depth_sample_linear(uv);
@@ -308,18 +345,18 @@ void main()
 	//--- 3x3 nearest (good)
 	vec3 c_frag = find_closest_fragment_3x3(uv);
 	vec2 ss_vel = texture(s_Velocity, c_frag.xy).xy;
-	float vs_dist = depth_resolve_linear(c_frag.z);
+	float vs_dist = linear_01_depth(c_frag.z);
 #else
 	vec2 ss_vel = texture(s_Velocity, uv).xy;
-	float vs_dist = depth_sample_linear(uv);
+	float vs_dist = linear_01_depth(texture(s_Depth, uv));
 #endif
 	// temporal resolve
 	vec4 color_temporal = temporal_reprojection(FS_IN_TexCoord, ss_vel, vs_dist);
 	// prepare outputs
 	vec4 to_buffer = resolve_color(color_temporal);
 	
-#ifdef USE_MOTION_BLUR
-	#ifdef USE_MOTION_BLUR_NEIGHBORMAX
+#if defined(USE_MOTION_BLUR)
+	#if defined(USE_MOTION_BLUR_NEIGHBORMAX)
 		ss_vel = u_MotionScale * texture(s_VelocityNeighborMax, FS_IN_TexCoord).xy;
 	#else
 		ss_vel = u_MotionScale * ss_vel;
@@ -331,7 +368,7 @@ void main()
 	const float vel_trust_span = vel_trust_none - vel_trust_full;
 	float trust = 1.0 - clamp(vel_mag - vel_trust_full, 0.0, vel_trust_span) / vel_trust_span;
 
-	#ifdef UNJITTER_COLORSAMPLES
+	#if defined(UNJITTER_COLORSAMPLES)
 		vec4 color_motion = sample_color_motion(s_Current, FS_IN_TexCoord - current_prev_jitter.xy, ss_vel);
 	#else
 		vec4 color_motion = sample_color_motion(s_Current, FS_IN_TexCoord, ss_vel);
@@ -347,8 +384,8 @@ void main()
 	//to_screen = vec4(100.0 * abs(ss_vel), 0.0, 0.0);
 	// add noise
 	vec4 noise4 = srand4(FS_IN_TexCoord + time_params.y + 0.6959174) / 510.0;
-	FS_OUT_Buffer = clamp(to_buffer + noise4, 0.0, 1.0);
-	FS_OUT_Screen = clamp(to_screen + noise4, 0.0, 1.0);
+	FS_OUT_Buffer = clamp(to_buffer + noise4, 0.0, 1.0).xyz;
+	FS_OUT_Screen = clamp(to_screen + noise4, 0.0, 1.0).xyz;
 }
 
 // ------------------------------------------------------------------

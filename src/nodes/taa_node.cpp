@@ -40,6 +40,7 @@ void TAANode::declare_connections()
 {
     register_input_render_target("Color");
     register_input_render_target("Velocity");
+    register_input_render_target("Depth");
 
     m_taa_rt             = register_scaled_output_render_target("TAA", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
     m_reprojection_rt[0] = register_scaled_intermediate_render_target("Reprojection1", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
@@ -52,6 +53,7 @@ bool TAANode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_color_rt    = find_input_render_target("Color");
     m_velocity_rt = find_input_render_target("Velocity");
+    m_depth_rt = find_input_render_target("Depth");
 
     m_taa_rtv             = RenderTargetView(0, 0, 0, m_taa_rt->texture);
     m_reprojection_rtv[0] = RenderTargetView(0, 0, 0, m_reprojection_rt[0]->texture);
@@ -131,6 +133,9 @@ void TAANode::execute(double delta, Renderer* renderer, Scene* scene, View* view
 
         if (m_taa_program->set_uniform("s_Velocity", 2) && m_velocity_rt)
             m_velocity_rt->texture->bind(2);
+
+        if (m_taa_program->set_uniform("s_Depth", 3) && m_depth_rt)
+            m_depth_rt->texture->bind(3);
 
         m_taa_program->set_uniform("u_TexelSize", glm::vec4(1.0f / m_graph->window_width(), 1.0f / m_graph->window_height(), m_graph->window_width(), m_graph->window_height()));
         m_taa_program->set_uniform("u_FeedbackMin", m_feedback_min);
