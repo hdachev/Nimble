@@ -105,7 +105,17 @@ Frustum create_frustum(ivec2 idx)
 
 bool is_point_light_visible(uint idx, in Frustum frustum)
 {
+    for (int i = 0; i < 6; i++) 
+    {
+		vec3 normal = frustum.planes[i].xyz;
+		float dist = frustum.planes[i].w;
+		float side = dot(point_light_position[idx].xyz, normal) + dist;
 
+		if (side < -point_light_near_far[idx].y)
+			return false;
+	}
+
+    return true;
 }
 
 // ------------------------------------------------------------------

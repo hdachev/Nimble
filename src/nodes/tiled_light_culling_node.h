@@ -4,6 +4,25 @@
 
 namespace nimble
 {
+#define TILE_SIZE 16
+#define MAX_POINT_LIGHTS_PER_TILE 512
+#define MAX_SPOT_LIGHTS_PER_TILE 512
+
+struct LightIndices
+{
+    uint32_t num_point_lights;
+    uint32_t num_spot_lights;
+    uint32_t point_light_indices[MAX_POINT_LIGHTS_PER_TILE];
+    uint32_t spot_light_indices[MAX_SPOT_LIGHTS_PER_TILE];
+};
+
+struct TileFrustum
+{
+    glm::vec4 planes[6];
+    glm::vec4 points[8];
+};
+
+
 class TiledLightCullingNode : public RenderNode
 {
 public:
@@ -23,6 +42,8 @@ private:
 
 	std::shared_ptr<Shader>  m_tiled_light_cull_cs;
     std::shared_ptr<Program> m_tiled_light_cull_program;
+    std::shared_ptr<Shader>  m_frustum_precompute_cs;
+    std::shared_ptr<Program> m_frustum_precompute_program;
 };
 
 DECLARE_RENDER_NODE_FACTORY(TiledLightCullingNode);
