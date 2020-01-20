@@ -106,7 +106,9 @@ void main()
     barrier();
 
     float depth = imageLoad(i_Depth, gl_GlobalInvocationID.xy).r;
-    depth = linear_01_depth(depth)l
+    
+    // Linearize                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+    depth = linear_01_depth(depth);
 
     uint depth_int = floatBitsToUint(depth);
 	atomicMin(g_MinDepth, depth_int);
