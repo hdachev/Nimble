@@ -34,6 +34,11 @@ public:
     void        execute(double delta, Renderer* renderer, Scene* scene, View* view) override;
     void        shutdown() override;
     std::string name() override;
+    void        on_window_resized(const uint32_t& w, const uint32_t& h) override;
+
+private:
+    void precompute_frustums(Renderer* renderer, View* view);
+    void cull_lights(Renderer* renderer, View* view);
 
 private:
     std::shared_ptr<ShaderStorageBuffer> m_culled_light_indices;
@@ -44,6 +49,8 @@ private:
     std::shared_ptr<Program> m_tiled_light_cull_program;
     std::shared_ptr<Shader>  m_frustum_precompute_cs;
     std::shared_ptr<Program> m_frustum_precompute_program;
+
+    bool m_should_precompute = true;
 };
 
 DECLARE_RENDER_NODE_FACTORY(TiledLightCullingNode);

@@ -48,6 +48,11 @@ enum RenderNodeFlags
     NODE_USAGE_SHADOW_MAP            = NODE_USAGE_PER_OBJECT_UBO | NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_STATIC_MESH | NODE_USAGE_SKELETAL_MESH | NODE_USAGE_MATERIAL_ALBEDO
 };
 
+struct ComputeBuffer
+{
+    std::shared_ptr<ShaderStorageBuffer> buffer;
+};
+
 class RenderNode : public Parameterizable
 {
 public:
@@ -67,15 +72,15 @@ public:
 
     struct OutputBuffer
     {
-        std::string                          slot_name;
-        std::shared_ptr<ShaderStorageBuffer> buffer;
+        std::string                    slot_name;
+        std::shared_ptr<ComputeBuffer> buffer;
     };
 
     struct InputBuffer
     {
         std::string                          slot_name;
         std::string                          prev_slot_name;
-        std::shared_ptr<ShaderStorageBuffer> prev_buffer;
+        std::shared_ptr<ComputeBuffer>       prev_buffer;
         std::shared_ptr<RenderNode>          prev_node;
     };
 
@@ -85,8 +90,8 @@ public:
     std::shared_ptr<RenderTarget>        find_output_render_target(const std::string& name);
     std::shared_ptr<RenderTarget>        find_intermediate_render_target(const std::string& name);
     std::shared_ptr<RenderTarget>        find_input_render_target(const std::string& name);
-    std::shared_ptr<ShaderStorageBuffer> find_output_buffer(const std::string& name);
-    std::shared_ptr<ShaderStorageBuffer> find_input_buffer(const std::string& name);
+    std::shared_ptr<ComputeBuffer>       find_output_buffer(const std::string& name);
+    std::shared_ptr<ComputeBuffer>       find_input_buffer(const std::string& name);
     OutputRenderTarget*                  find_output_render_target_slot(const std::string& name);
     InputRenderTarget*                   find_input_render_target_slot(const std::string& name);
     OutputBuffer*                        find_output_buffer_slot(const std::string& name);
@@ -128,22 +133,23 @@ public:
     virtual void on_window_resized(const uint32_t& w, const uint32_t& h);
 
 protected:
-    void                                 trigger_cascade_view_render(View* view);
-    void                                 register_input_render_target(const std::string& name);
-    void                                 register_input_buffer(const std::string& name);
-    std::shared_ptr<RenderTarget>        register_output_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-    std::shared_ptr<RenderTarget>        register_forwarded_output_render_target(const std::string& input);
-    std::shared_ptr<RenderTarget>        register_scaled_output_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-    std::shared_ptr<RenderTarget>        register_intermediate_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-    std::shared_ptr<RenderTarget>        register_scaled_intermediate_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
-    std::shared_ptr<ShaderStorageBuffer> register_output_buffer(const std::string& name, GLenum flags, size_t size);
-    void                                 bind_shadow_maps(Renderer* renderer, Program* program, int32_t tex_unit, uint32_t flags);
+    void                          trigger_cascade_view_render(View* view);
+    void                          register_input_render_target(const std::string& name);
+    void                          register_input_buffer(const std::string& name);
+    std::shared_ptr<RenderTarget> register_output_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+    std::shared_ptr<RenderTarget> register_forwarded_output_render_target(const std::string& input);
+    std::shared_ptr<RenderTarget> register_scaled_output_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+    std::shared_ptr<RenderTarget> register_intermediate_render_target(const std::string& name, const uint32_t& w, const uint32_t& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+    std::shared_ptr<RenderTarget> register_scaled_intermediate_render_target(const std::string& name, const float& w, const float& h, GLenum target, GLenum internal_format, GLenum format, GLenum type, uint32_t num_samples = 1, uint32_t array_size = 1, uint32_t mip_levels = 1);
+    void                          register_output_buffer(const std::string& name, std::shared_ptr<ShaderStorageBuffer> buffer);
+    void                          bind_shadow_maps(Renderer* renderer, Program* program, int32_t tex_unit, uint32_t flags);
 
     // Geometry render helpers
     void blit_render_target(Renderer* renderer, std::shared_ptr<RenderTarget> src, std::shared_ptr<RenderTarget> dst);
     void render_scene(Renderer* renderer, Scene* scene, View* view, GeneratedShaderLibrary* library, uint32_t flags = 0, std::function<void(View*, Program*, int32_t&)> function = nullptr);
     void render_fullscreen_triangle(Renderer* renderer, View* view, Program* program = nullptr, int32_t tex_unit = 0, uint32_t flags = 0);
     void render_fullscreen_quad(Renderer* renderer, View* view, Program* program = nullptr, int32_t tex_unit = 0, uint32_t flags = 0);
+    void dispatch_compute(uint32_t x, uint32_t y, uint32_t z, Renderer* renderer, View* view, Program* program = nullptr, int32_t tex_unit = 0, uint32_t flags = 0);
 
 protected:
     RenderGraph* m_graph;

@@ -63,7 +63,7 @@ std::shared_ptr<RenderTarget> RenderNode::find_input_render_target(const std::st
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-std::shared_ptr<ShaderStorageBuffer> RenderNode::find_output_buffer(const std::string& name)
+std::shared_ptr<ComputeBuffer> RenderNode::find_output_buffer(const std::string& name)
 {
     OutputBuffer* buffer = find_output_buffer_slot(name);
 
@@ -75,7 +75,7 @@ std::shared_ptr<ShaderStorageBuffer> RenderNode::find_output_buffer(const std::s
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-std::shared_ptr<ShaderStorageBuffer> RenderNode::find_input_buffer(const std::string& name)
+std::shared_ptr<ComputeBuffer> RenderNode::find_input_buffer(const std::string& name)
 {
     InputBuffer* buffer = find_input_buffer_slot(name);
 
@@ -446,22 +446,22 @@ std::shared_ptr<RenderTarget> RenderNode::register_scaled_intermediate_render_ta
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-std::shared_ptr<ShaderStorageBuffer> RenderNode::register_output_buffer(const std::string& name, GLenum flags, size_t size)
+void RenderNode::register_output_buffer(const std::string& name, std::shared_ptr<ShaderStorageBuffer> buffer)
 {
     for (auto& output : m_output_buffers)
     {
         if (output.slot_name == name)
         {
-            NIMBLE_LOG_ERROR("Buffer render target already registered: " + name);
-            return nullptr;
+            output.buffer->buffer = buffer;
+            return;
         }
     }
 
-    std::shared_ptr<ShaderStorageBuffer> buffer = std::make_unique<ShaderStorageBuffer>(flags, size);
+    std::shared_ptr<ComputeBuffer> comp_buf = std::make_shared<ComputeBuffer>();
 
-    m_output_buffers.push_back({ name, buffer });
+    comp_buf->buffer = buffer;
 
-    return buffer;
+    m_output_buffers.push_back({ name, comp_buf });
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -612,6 +612,20 @@ void RenderNode::render_fullscreen_quad(Renderer* renderer, View* view, Program*
 
     // Render fullscreen triangle
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+void RenderNode::dispatch_compute(uint32_t x, uint32_t y, uint32_t z, Renderer* renderer, View* view, Program* program, int32_t tex_unit, uint32_t flags)
+{
+    // Bind buffers
+    if (HAS_BIT_FLAG(flags, NODE_USAGE_PER_VIEW_UBO))
+        renderer->per_view_ssbo()->bind_range(0, sizeof(PerViewUniforms) * view->uniform_idx, sizeof(PerViewUniforms));
+
+    if (HAS_BIT_FLAG(flags, NODE_USAGE_POINT_LIGHTS) || HAS_BIT_FLAG(flags, NODE_USAGE_SPOT_LIGHTS) || HAS_BIT_FLAG(flags, NODE_USAGE_DIRECTIONAL_LIGHTS))
+        renderer->per_scene_ssbo()->bind_base(1);
+
+    bind_shadow_maps(renderer, program, tex_unit, flags);
+
+    glDispatchCompute(x, y, z);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

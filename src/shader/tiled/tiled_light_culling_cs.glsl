@@ -38,14 +38,14 @@ layout (local_size_x = TILE_SIZE, local_size_y = TILE_SIZE, local_size_z = 1) in
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout(std430, binding = 0) buffer u_LightIndices
-{
-	LightIndices indices[];
-};
-
-layout(std430, binding = 1) buffer u_TileFrustums
+layout(std430, binding = 0) buffer u_TileFrustums
 {
 	Frustum frustums[];
+};
+
+layout(std430, binding = 1) buffer u_LightIndices
+{
+	LightIndices indices[];
 };
 
 // ------------------------------------------------------------------
