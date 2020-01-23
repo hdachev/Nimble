@@ -91,7 +91,7 @@ void TiledLightCullingNode::precompute_frustums(Renderer* renderer, View* view)
     uint32_t tile_count_x = ceil(m_graph->window_width() / TILE_SIZE);
     uint32_t tile_count_y = ceil(m_graph->window_height() / TILE_SIZE);
 
-    glDispatchCompute(tile_count_x, tile_count_y, 1);
+     dispatch_compute(tile_count_x, tile_count_y, 1, renderer, view, m_frustum_precompute_program.get(), 0, NODE_USAGE_PER_VIEW_UBO);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ void TiledLightCullingNode::cull_lights(Renderer* renderer, View* view)
     m_tile_frustums->bind_base(0);
     m_culled_light_indices->bind_base(1);
     
-    dispatch_compute(tile_count_x, tile_count_y, 1, renderer, view, m_tiled_light_cull_program.get(), 0, NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS);
+    dispatch_compute(tile_count_x, tile_count_y, 1, renderer, view, m_tiled_light_cull_program.get(), 0, NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
