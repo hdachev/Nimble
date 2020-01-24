@@ -4,11 +4,11 @@
 
 namespace nimble
 {
-class TiledForwardNode : public RenderNode
+class DepthPrepassNode : public RenderNode
 {
 public:
-    TiledForwardNode(RenderGraph* graph);
-    ~TiledForwardNode();
+    DepthPrepassNode(RenderGraph* graph);
+    ~DepthPrepassNode();
 
     void        declare_connections() override;
     bool        initialize(Renderer* renderer, ResourceManager* res_mgr) override;
@@ -18,13 +18,9 @@ public:
 
 private:
     std::shared_ptr<GeneratedShaderLibrary> m_library;
-    std::shared_ptr<RenderTarget>           m_color_rt;
     std::shared_ptr<RenderTarget>           m_depth_rt;
-    std::shared_ptr<RenderTarget>           m_velocity_rt;
-    std::shared_ptr<ComputeBuffer>          m_light_indices;
-    RenderTargetView                        m_color_rtv[2];
     RenderTargetView                        m_depth_rtv;
 };
 
-DECLARE_RENDER_NODE_FACTORY(TiledForwardNode);
+DECLARE_RENDER_NODE_FACTORY(DepthPrepassNode);
 } // namespace nimble

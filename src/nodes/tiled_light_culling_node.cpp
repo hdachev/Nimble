@@ -26,7 +26,7 @@ TiledLightCullingNode::~TiledLightCullingNode()
 
 void TiledLightCullingNode::declare_connections()
 {
-    register_input_render_target("HiZDepth");
+    register_input_render_target("Depth");
 
     on_window_resized(m_graph->window_width(), m_graph->window_height());
 }
@@ -35,7 +35,7 @@ void TiledLightCullingNode::declare_connections()
 
 bool TiledLightCullingNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
-    m_hiz_depth_rt = find_input_render_target("HiZDepth");
+    m_hiz_depth_rt = find_input_render_target("Depth");
 
     m_tiled_light_cull_cs   = res_mgr->load_shader("shader/post_process/light_culling/tiled_light_culling_cs.glsl", GL_COMPUTE_SHADER);
     m_frustum_precompute_cs = res_mgr->load_shader("shader/post_process/light_culling/frustum_precompute_cs.glsl", GL_COMPUTE_SHADER);

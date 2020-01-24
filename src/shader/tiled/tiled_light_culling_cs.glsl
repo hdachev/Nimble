@@ -54,9 +54,6 @@ layout(std430, binding = 1) buffer u_LightIndices
 
 shared float g_MinDepth;
 shared float g_MaxDepth;
-shared float g_TileDepth[TILE_SIZE][TILE_SIZE];
-shared float g_ColumnDepthMin[TILE_SIZE];
-shared float g_ColumnDepthMax[TILE_SIZE];
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
@@ -81,7 +78,7 @@ bool is_point_light_visible(uint idx, in Frustum frustum)
 
 bool is_spot_light_visible(uint idx, in Frustum frustum)
 {
-    
+    return false;
 }
 
 // ------------------------------------------------------------------

@@ -1,0 +1,42 @@
+{
+    "name" : "Forward",
+    "nodes" : [
+        {
+            "name" : "ForwardNode",
+            "defines" : [],
+            "inputs" : []
+        },
+        {
+            "name" : "CubemapSkyboxNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "ForwardNode",
+                    "prev_output_name" : "Color"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "ForwardNode",
+                    "prev_output_name" : "Depth"
+                }
+            ]
+        },
+        {
+            "name" : "ToneMapNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "CubemapSkyboxNode",
+                    "prev_output_name" : "Color"
+                }
+            ]
+        }
+    ]
+}
