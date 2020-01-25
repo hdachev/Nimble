@@ -13,6 +13,16 @@
 // STRUCTURES -------------------------------------------------------
 // ------------------------------------------------------------------
 
+struct LightIndices
+{
+    uint num_point_lights;
+    uint num_spot_lights;
+    uint point_light_indices[MAX_POINT_LIGHTS_PER_TILE];
+    uint spot_light_indices[MAX_SPOT_LIGHTS_PER_TILE];
+};
+
+// ------------------------------------------------------------------
+
 struct Frustum
 {
     vec4 planes[6];
@@ -29,10 +39,12 @@ layout (local_size_x = TILE_SIZE, local_size_y = TILE_SIZE, local_size_z = 1) in
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout(std430, binding = 0) buffer u_TileFrustums
+layout(std430, binding = 3) buffer u_LightIndices
 {
-	Frustum frustums[];
+	LightIndices indices[];
 };
+
+uniform sampler2D s_Depth;
 
 // ------------------------------------------------------------------
 // SHARED DATA ------------------------------------------------------
@@ -40,12 +52,13 @@ layout(std430, binding = 0) buffer u_TileFrustums
 
 shared uint g_MinDepth;
 shared uint g_MaxDepth;
+shared Frustum g_Frustum;
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
 // ------------------------------------------------------------------
 
-Frustum create_frustum(ivec2 idx, float min_depth, float max_depth)
+Frustum create_frustum(uvec2 idx, uint min_depth, uint max_depth)
 {
     vec2 tile_size_ndc = 2.0 * vec2(TILE_SIZE, TILE_SIZE) / vec2(float(viewport_width), float(viewport_height));
 
@@ -60,12 +73,15 @@ Frustum create_frustum(ivec2 idx, float min_depth, float max_depth)
     ndc_pos[2] = ndc_pos[0] + tile_size_ndc; // bottom right
     ndc_pos[3] = vec2(ndc_pos[0].x, ndc_pos[0].y + tile_size_ndc.y); // bottom left
 
+    float fmin_depth = uintBitsToFloat(min_depth);
+    float fmax_depth = uintBitsToFloat(max_depth);
+
     for (int i = 0; i < 4; i++)
     {
-        vec4 temp = inv_view_proj * vec4(ndc_pos[i], min_depth, 1.0);
+        vec4 temp = inv_view_proj * vec4(ndc_pos[i], fmin_depth, 1.0);
         f.points[i] = temp / temp.w;
 
-        temp = inv_view_proj * vec4(ndc_pos[i], max_depth, 1.0);
+        temp = inv_view_proj * vec4(ndc_pos[i], fmax_depth, 1.0);
         f.points[i + 4] = temp / temp.w;
     }
 
@@ -73,20 +89,42 @@ Frustum create_frustum(ivec2 idx, float min_depth, float max_depth)
     {
         vec3 plane_normal = cross(f.points[i].xyz - view_pos.xyz, f.points[i + 1].xyz - view_pos.xyz);
         plane_normal = normalize(plane_normal);
-        f.planes[i] = vec4(plane_normal, -dot(plane_normal, f.points[i]));
+        f.planes[i] = vec4(plane_normal, -dot(plane_normal, f.points[i].xyz));
     }
     
     // near plane
     vec3 plane_normal = cross(f.points[1].xyz - f.points[0].xyz, f.points[3].xyz - f.points[0].xyz);
     plane_normal = normalize(plane_normal);
-    f.planes[4] = vec4(plane_normal, -dot(plane_normal, f.points[0]));
+    f.planes[4] = vec4(plane_normal, -dot(plane_normal, f.points[0].xyz));
 
     // far plane
     plane_normal = cross(f.points[7].xyz - f.points[4].xyz, f.points[5].xyz - f.points[4].xyz);
     plane_normal = normalize(plane_normal);
-    f.planes[5] = vec4(plane_normal, -dot(plane_normal, f.points[4]));
+    f.planes[5] = vec4(plane_normal, -dot(plane_normal, f.points[4].xyz));
 
     return f;
+}
+
+bool is_point_light_visible(uint idx, in Frustum frustum)
+{
+    for (int i = 0; i < 6; i++) 
+    {
+		vec3 normal = frustum.planes[i].xyz;
+		float dist = frustum.planes[i].w;
+		float side = dot(point_light_position[idx].xyz, normal) + dist;
+
+		if (side < -point_light_near_far[idx].y)
+			return false;
+	}
+
+    return true;
+}
+
+// ------------------------------------------------------------------
+
+bool is_spot_light_visible(uint idx, in Frustum frustum)
+{
+    return false;
 }
 
 // ------------------------------------------------------------------
@@ -105,7 +143,10 @@ void main()
 
     barrier();
 
-    float depth = imageLoad(i_Depth, gl_GlobalInvocationID.xy).r;
+    ivec2 size = textureSize(s_Depth, 0);
+	vec2 tex_coord = vec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y) / vec2(size.x - 1, size.y - 1);
+
+    float depth = texture(s_Depth, tex_coord).r;
     
     // Linearize                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
     depth = linear_01_depth(depth);
@@ -117,7 +158,34 @@ void main()
     barrier();
 
     if (gl_LocalInvocationID.x == 0 && gl_LocalInvocationID.y == 0)
-        frustums[tile_idx] = create_frustum(gl_WorkGroupID .xy, min_depth, max_depth);
+        g_Frustum = create_frustum(gl_WorkGroupID.xy, g_MinDepth, g_MaxDepth);
+
+    barrier();
+
+    uint point_lights_per_thread = MAX_POINT_LIGHTS / (TILE_SIZE * TILE_SIZE);
+    uint spot_lights_per_thread = MAX_SPOT_LIGHTS / (TILE_SIZE * TILE_SIZE);
+
+    uint start_idx = tile_idx * point_lights_per_thread;
+
+    for (uint i = start_idx; i < (start_idx + point_lights_per_thread); i++)
+    {
+        if (is_point_light_visible(i, g_Frustum))
+        {
+            uint idx = atomicAdd(indices[tile_idx].num_point_lights, 1);
+            indices[tile_idx].point_light_indices[idx] = i;
+        }
+    }
+
+    start_idx = tile_idx * spot_lights_per_thread;
+
+    for (uint i = start_idx; i < (start_idx + spot_lights_per_thread); i++)
+    {
+        if (is_spot_light_visible(i, g_Frustum))
+        {
+            uint idx = atomicAdd(indices[tile_idx].num_spot_lights, 1);
+            indices[tile_idx].spot_light_indices[idx] = i;
+        }
+    }
 }
 
 // ------------------------------------------------------------------

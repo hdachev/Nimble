@@ -37,20 +37,14 @@ public:
     void        on_window_resized(const uint32_t& w, const uint32_t& h) override;
 
 private:
-    void precompute_frustums(Renderer* renderer, View* view);
     void cull_lights(Renderer* renderer, View* view);
 
 private:
     std::shared_ptr<ShaderStorageBuffer> m_culled_light_indices;
-    std::shared_ptr<ShaderStorageBuffer> m_tile_frustums;
-    std::shared_ptr<RenderTarget>        m_hiz_depth_rt;
+    std::shared_ptr<RenderTarget>        m_depth_rt;
 
 	std::shared_ptr<Shader>  m_tiled_light_cull_cs;
     std::shared_ptr<Program> m_tiled_light_cull_program;
-    std::shared_ptr<Shader>  m_frustum_precompute_cs;
-    std::shared_ptr<Program> m_frustum_precompute_program;
-
-    bool m_should_precompute = true;
 };
 
 DECLARE_RENDER_NODE_FACTORY(TiledLightCullingNode);
