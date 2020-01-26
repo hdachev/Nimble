@@ -55,7 +55,7 @@ layout (location = 1) out vec2 FS_OUT_Velocity;
 
 struct LightIndices
 {
-    uint num_point_lights;
+	uint num_point_lights;
     uint num_spot_lights;
     uint point_light_indices[MAX_POINT_LIGHTS_PER_TILE];
     uint spot_light_indices[MAX_SPOT_LIGHTS_PER_TILE];
@@ -107,6 +107,40 @@ void fragment_func(inout MaterialProperties m, inout FragmentProperties f)
 
 #endif
 
+vec3 light_contribution(in MaterialProperties m, in FragmentProperties f,  in PBRProperties pbr)
+{
+	vec3 Lo = vec3(0.0);
+
+#ifdef DIRECTIONAL_LIGHTS
+	int shadow_casting_light_idx = 0;
+
+	for (int i = 0; i < directional_light_count; i++)
+		Lo += pbr_directional_light_contribution(m, f, pbr, i, shadow_casting_light_idx);
+
+#endif
+
+	uvec2 tile_id = uvec2(gl_FragCoord.xy / TILE_SIZE);
+	uint tile_idx = tile_id.y * uint(ceil(float(viewport_width) / float(TILE_SIZE))) + tile_id.x;
+
+#ifdef POINT_LIGHTS
+	shadow_casting_light_idx = 0;
+
+	for (int i = 0; i < indices[tile_idx].num_point_lights; i++)
+		Lo += pbr_point_light_contribution(m, f, pbr, int(indices[tile_idx].point_light_indices[i]), shadow_casting_light_idx);
+
+#endif
+
+// #ifdef SPOT_LIGHTS
+// 	shadow_casting_light_idx = 0;
+
+// 	for (int i = 0; i < indices[tile_idx].num_spot_lights; i++)
+// 		Lo += pbr_spot_light_contribution(m, f, pbr, int(indices[tile_idx].spot_light_indices[i]), shadow_casting_light_idx);
+
+// #endif
+
+	return Lo;
+}
+
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -146,7 +180,7 @@ void main()
 	vec3 Lo = vec3(0.0);
 
 	// Add all light contributions
-	Lo += pbr_light_contribution(m, f, pbr);
+	Lo += light_contribution(m, f, pbr);
 
 	vec3 irradiance = texture(s_IrradianceMap, pbr.N).rgb;
 	vec3 diffuse = irradiance * m.albedo.xyz;
@@ -159,7 +193,19 @@ void main()
 	// vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
 	vec3 color = Lo + m.albedo.xyz * 0.1;
 
-    FS_OUT_Color = color;
+	uvec2 tile_id = uvec2(gl_FragCoord.xy / TILE_SIZE);
+	uint tile_idx = tile_id.y * uint(ceil(float(viewport_width) / float(TILE_SIZE))) + tile_id.x;
+
+	float intensity = float(indices[tile_idx].num_point_lights) / float(MAX_POINT_LIGHTS_PER_TILE);
+
+	float minimum = 0.0;
+	float maximum = 1.0;
+	float ratio = 2 * (intensity - minimum) / (maximum - minimum);
+	float b = max(0, 1 - ratio);
+	float r = max(0, ratio - 1);
+	float g = max(0, 1.0 - b - r);
+
+    FS_OUT_Color = color * vec3(r,g,b);
 	FS_OUT_Velocity = motion_vector(FS_IN_LastScreenPosition, FS_IN_ScreenPosition);
 }
 

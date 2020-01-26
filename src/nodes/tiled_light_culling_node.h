@@ -10,10 +10,10 @@ namespace nimble
 
 struct LightIndices
 {
-    uint32_t num_point_lights;
-    uint32_t num_spot_lights;
-    uint32_t point_light_indices[MAX_POINT_LIGHTS_PER_TILE];
-    uint32_t spot_light_indices[MAX_SPOT_LIGHTS_PER_TILE];
+    glm::vec4 num_point_lights;
+    glm::vec4 num_spot_lights;
+    glm::vec4 point_light_indices[MAX_POINT_LIGHTS_PER_TILE];
+    glm::vec4 spot_light_indices[MAX_SPOT_LIGHTS_PER_TILE];
 };
 
 struct TileFrustum
@@ -21,7 +21,6 @@ struct TileFrustum
     glm::vec4 planes[6];
     glm::vec4 points[8];
 };
-
 
 class TiledLightCullingNode : public RenderNode
 {

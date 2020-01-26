@@ -11,7 +11,7 @@ class ResourceManager;
 class RenderGraph
 {
 public:
-    RenderGraph();
+    RenderGraph(uint32_t w, uint32_t h);
     ~RenderGraph();
 
     void                          build(std::shared_ptr<RenderNode> end_node);

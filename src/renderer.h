@@ -76,6 +76,10 @@ public:
     void         bind_render_targets(const uint32_t& num_render_targets, const RenderTargetView* rt_views, const RenderTargetView* depth_view);
 
     // Inline getters
+    inline void                                 set_window_width(uint32_t w) { m_window_width = w; }
+    inline void                                 set_window_height(uint32_t h) { m_window_height = h; }
+    inline uint32_t                             window_width() { return m_window_width; }
+    inline uint32_t                             window_height() { return m_window_height; }
     inline std::shared_ptr<Program>             copy_program() { return m_copy_program; }
     inline ShaderCache&                         shader_cache() { return m_shader_cache; }
     inline std::weak_ptr<Scene>                 scene() { return m_scene; }

@@ -233,6 +233,9 @@ bool Application::init_base(int argc, const char* argv[])
     glEnable(GL_DEBUG_OUTPUT);
 #endif
 
+    m_renderer.set_window_width(m_width);
+    m_renderer.set_window_height(m_height);
+
     if (!m_debug_draw.init())
         return false;
 

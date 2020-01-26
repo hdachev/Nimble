@@ -8,8 +8,8 @@ namespace nimble
 {
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-RenderGraph::RenderGraph() :
-    m_num_cascade_views(0), m_manual_cascade_rendering(false), m_per_cascade_culling(true)
+RenderGraph::RenderGraph(uint32_t w, uint32_t h) :
+    m_num_cascade_views(0), m_manual_cascade_rendering(false), m_per_cascade_culling(true), m_window_width(w), m_window_height(h)
 {
 }
 

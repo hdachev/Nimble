@@ -206,7 +206,7 @@ private:
     {
         m_scene->camera()->m_width             = m_width;
         m_scene->camera()->m_height            = m_height;
-        m_scene->camera()->m_half_pixel_jitter = true;
+        m_scene->camera()->m_half_pixel_jitter = false;
         m_scene->camera()->update_projection(CAMERA_DEFAULT_FOV, CAMERA_DEFAULT_NEAR_PLANE, CAMERA_DEFAULT_FAR_PLANE, float(m_width) / float(m_height));
 
         m_viewport = m_viewport_manager.create_viewport("Main", 0.0f, 0.0f, 1.0f, 1.0f, 0);
@@ -248,7 +248,7 @@ private:
         REGISTER_RENDER_NODE(DepthPrepassNode, m_resource_manager);
 
         // Create Forward render graph
-        m_forward_graph = m_resource_manager.load_render_graph("graph/forward_graph.json", &m_renderer);
+        m_forward_graph = m_resource_manager.load_render_graph("graph/tiled_forward_graph.json", &m_renderer);
 
         // Create Point Light render graph
         m_pcf_point_light_graph = m_resource_manager.load_shadow_render_graph("PCFPointLightDepthNode", &m_renderer);
@@ -270,6 +270,8 @@ private:
         m_renderer.set_global_probe_renderer(m_bruneton_probe_renderer);
 
         m_renderer.set_scene_render_graph(m_forward_graph);
+
+        create_random_point_lights(512);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -299,13 +301,12 @@ private:
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
-    void create_random_point_lights()
+    void create_random_point_lights(uint32_t num_lights)
     {
         AABB aabb = m_scene->aabb();
 
-        const float    range      = 300.0f;
+        const float    range      = 150.0f;
         const float    intensity  = 10.0f;
-        const uint32_t num_lights = 100;
         const float    aabb_scale = 0.6f;
 
         std::random_device rd;

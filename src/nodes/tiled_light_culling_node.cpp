@@ -82,6 +82,8 @@ void TiledLightCullingNode::cull_lights(Renderer* renderer, View* view)
         m_depth_rt->texture->bind(0);
 
     dispatch_compute(tile_count_x, tile_count_y, 1, renderer, view, m_tiled_light_cull_program.get(), 0, NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS);
+
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

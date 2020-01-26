@@ -583,7 +583,7 @@ std::shared_ptr<RenderGraph> ResourceManager::load_render_graph(const std::strin
     nlohmann::json j;
     i >> j;
 
-    std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>();
+    std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>(renderer->window_width(), renderer->window_height());
 
     if (j.find("manual_cascade_rendering") != j.end())
     {
@@ -705,7 +705,7 @@ std::shared_ptr<RenderGraph> ResourceManager::load_shadow_render_graph(const std
 {
     if (m_render_node_factory_map.find(shadow_node_name) != m_render_node_factory_map.end())
     {
-        std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>();
+        std::shared_ptr<RenderGraph> graph = std::make_shared<RenderGraph>(renderer->window_width(), renderer->window_height());
 
         std::shared_ptr<RenderNode> new_node = m_render_node_factory_map[shadow_node_name](graph.get());
 

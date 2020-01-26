@@ -53,6 +53,8 @@ uniform sampler2D s_Depth;
 shared uint g_MinDepth;
 shared uint g_MaxDepth;
 shared Frustum g_Frustum;
+shared uint g_PointLightCount;
+shared uint g_SpotLightCount;
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
@@ -133,18 +135,20 @@ bool is_spot_light_visible(uint idx, in Frustum frustum)
 
 void main()
 {
-    uint tile_idx = (gl_LocalInvocationID.y * TILE_SIZE + gl_LocalInvocationID.x);
+    const uint tile_idx = (gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x);
 
     if (gl_LocalInvocationIndex == 0)
     {
         g_MinDepth = 0xFFFFFFFF;
         g_MaxDepth = 0;
+        g_PointLightCount = 0;
+        g_SpotLightCount = 0;
     }
 
     barrier();
 
-    ivec2 size = textureSize(s_Depth, 0);
-	vec2 tex_coord = vec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y) / vec2(size.x - 1, size.y - 1);
+    const ivec2 size = textureSize(s_Depth, 0);
+	const vec2 tex_coord = vec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y) / vec2(size.x - 1, size.y - 1);
 
     float depth = texture(s_Depth, tex_coord).r;
     
@@ -157,34 +161,43 @@ void main()
 
     barrier();
 
-    if (gl_LocalInvocationID.x == 0 && gl_LocalInvocationID.y == 0)
+    if (gl_LocalInvocationIndex == 0)
         g_Frustum = create_frustum(gl_WorkGroupID.xy, g_MinDepth, g_MaxDepth);
 
     barrier();
 
-    uint point_lights_per_thread = MAX_POINT_LIGHTS / (TILE_SIZE * TILE_SIZE);
-    uint spot_lights_per_thread = MAX_SPOT_LIGHTS / (TILE_SIZE * TILE_SIZE);
-
-    uint start_idx = tile_idx * point_lights_per_thread;
-
-    for (uint i = start_idx; i < (start_idx + point_lights_per_thread); i++)
+    for (uint i = gl_LocalInvocationIndex; g_PointLightCount < MAX_POINT_LIGHTS_PER_TILE && i < point_light_count; i += TILE_SIZE)
     {
         if (is_point_light_visible(i, g_Frustum))
         {
-            uint idx = atomicAdd(indices[tile_idx].num_point_lights, 1);
+            const uint idx = atomicAdd(g_PointLightCount, 1);
+
+            if (idx >= MAX_POINT_LIGHTS_PER_TILE)
+                break;
+
             indices[tile_idx].point_light_indices[idx] = i;
         }
     }
 
-    start_idx = tile_idx * spot_lights_per_thread;
-
-    for (uint i = start_idx; i < (start_idx + spot_lights_per_thread); i++)
+    for (uint i = gl_LocalInvocationIndex; g_SpotLightCount < MAX_SPOT_LIGHTS_PER_TILE && i < spot_light_count; i += TILE_SIZE)
     {
         if (is_spot_light_visible(i, g_Frustum))
         {
-            uint idx = atomicAdd(indices[tile_idx].num_spot_lights, 1);
+            const uint idx = atomicAdd(g_SpotLightCount, 1);
+
+            if (idx >= MAX_SPOT_LIGHTS_PER_TILE)
+                break;
+
             indices[tile_idx].spot_light_indices[idx] = i;
         }
+    }
+
+    barrier();
+
+    if (gl_LocalInvocationIndex == 0)
+    {
+        indices[tile_idx].num_point_lights = min(g_PointLightCount, MAX_POINT_LIGHTS_PER_TILE);
+        indices[tile_idx].num_spot_lights = min(g_SpotLightCount, MAX_SPOT_LIGHTS_PER_TILE);
     }
 }
 
