@@ -205,7 +205,7 @@ void main()
 	float r = max(0, ratio - 1);
 	float g = max(0, 1.0 - b - r);
 
-    FS_OUT_Color = color * vec3(r,g,b);
+    FS_OUT_Color = color;// * vec3(r,g,b);
 	FS_OUT_Velocity = motion_vector(FS_IN_LastScreenPosition, FS_IN_ScreenPosition);
 }
 

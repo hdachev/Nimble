@@ -75,8 +75,8 @@ Frustum create_frustum(uvec2 idx, uint min_depth, uint max_depth)
     ndc_pos[2] = ndc_pos[0] + tile_size_ndc; // bottom right
     ndc_pos[3] = vec2(ndc_pos[0].x, ndc_pos[0].y + tile_size_ndc.y); // bottom left
 
-    float fmin_depth = uintBitsToFloat(min_depth);
-    float fmax_depth = uintBitsToFloat(max_depth);
+    float fmin_depth = 2.0 * uintBitsToFloat(min_depth) - 1.0;
+    float fmax_depth = 2.0 * uintBitsToFloat(max_depth) - 1.0;
 
     for (int i = 0; i < 4; i++)
     {
@@ -106,6 +106,8 @@ Frustum create_frustum(uvec2 idx, uint min_depth, uint max_depth)
 
     return f;
 }
+
+// ------------------------------------------------------------------
 
 bool is_point_light_visible(uint idx, in Frustum frustum)
 {
@@ -153,7 +155,7 @@ void main()
     float depth = texture(s_Depth, tex_coord).r;
     
     // Linearize                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-    depth = linear_01_depth(depth);
+    //depth = linear_01_depth(depth);
 
     uint depth_int = floatBitsToUint(depth);
 	atomicMin(g_MinDepth, depth_int);
