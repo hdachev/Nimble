@@ -614,6 +614,8 @@ void RenderNode::render_fullscreen_quad(Renderer* renderer, View* view, Program*
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void RenderNode::dispatch_compute(uint32_t x, uint32_t y, uint32_t z, Renderer* renderer, View* view, Program* program, int32_t tex_unit, uint32_t flags)
 {
     // Bind buffers
