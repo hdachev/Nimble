@@ -15,13 +15,20 @@ struct Frustum
     vec4 planes[4];
 };
 
-vec4 screen_to_world_space(vec4 p, vec2 screen_size, mat4 inv_view_proj)
+vec4 screen_to_view_space(vec4 p, vec2 screen_size, mat4 inv_proj)
 {
     vec2 tex_coord = p.xy / screen_size;
  
-    vec4 world_pos = inv_view_proj * vec4(2.0 * tex_coord - 1.0, p.z, p.w); 
+    vec4 view_pos = inv_proj * vec4(2.0 * tex_coord - 1.0, p.z, p.w); 
  
-    return world / world.w;
+    return view_pos / view_pos.w;
+}
+
+vec4 clip_to_view_space(vec4 p, mat4 inv_proj)
+{
+    vec4 view_pos = inv_proj * p; 
+ 
+    return view_pos / view_pos.w;
 }
  
 vec4 compute_plane(vec3 p0, vec3 p1, vec3 p2)

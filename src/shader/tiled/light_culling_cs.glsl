@@ -1,5 +1,6 @@
 #include <../common/uniforms.glsl>
 #include <../common/helper.glsl>
+#include <common.glsl>
 
 // ------------------------------------------------------------------
 // DEFINES ----------------------------------------------------------
@@ -13,20 +14,16 @@
 // STRUCTURES -------------------------------------------------------
 // ------------------------------------------------------------------
 
-struct LightIndices
+struct Plane
 {
-    uint num_point_lights;
-    uint num_spot_lights;
-    uint point_light_indices[MAX_POINT_LIGHTS_PER_TILE];
-    uint spot_light_indices[MAX_SPOT_LIGHTS_PER_TILE];
+    vec3 N;   // Plane normal.
+    float  d; // Distance to origin.
 };
 
-// ------------------------------------------------------------------
-
-struct Frustum
+struct Sphere
 {
-    vec4 planes[6];
-    vec4 points[8];
+    vec3 c;   // Center point.
+    float  r; // Radius.
 };
 
 // ------------------------------------------------------------------
@@ -39,7 +36,12 @@ layout (local_size_x = TILE_SIZE, local_size_y = TILE_SIZE, local_size_z = 1) in
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout(std430, binding = 3) buffer u_LightIndices
+layout (std430, binding = 3) buffer u_Frustums
+{
+	Frustum frustums[];
+};
+
+layout(std430, binding = 4) buffer u_LightIndices
 {
 	LightIndices indices[];
 };
@@ -60,86 +62,50 @@ shared uint g_SpotLightCount;
 // FUNCTIONS --------------------------------------------------------
 // ------------------------------------------------------------------
 
-vec4 screen_to_world_space(vec4 p, vec2 screen_size, mat4 inv_view_proj)
+bool sphere_inside_plane(Sphere sphere, Plane plane)
 {
-    vec2 tex_coord = p.xy / screen_size;
- 
-    vec4 world_pos = inv_view_proj * vec4(2.0 * tex_coord - 1.0, p.z, p.w); 
- 
-    return world_pos / world_pos.w;
-}
-
-vec4 compute_plane(vec3 p0, vec3 p1, vec3 p2)
-{
-    vec4 plane;
- 
-    vec3 v0 = p1 - p0;
-    vec3 v2 = p2 - p0;
- 
-    plane.xyz = normalize(cross(v0, v2));
- 
-    // Compute the distance to the origin using p0.
-    plane.w = dot(plane.xyz, p0);
- 
-    return plane;
-}
-
-Frustum create_frustum(uvec2 idx, uint min_depth, uint max_depth)
-{
-    vec4 screen_pos[8];
-
-    float fmin_depth = 2.0 * uintBitsToFloat(min_depth) - 1.0;
-    float fmax_depth = 2.0 * uintBitsToFloat(max_depth) - 1.0;
- 
-    screen_pos[0] = vec4(gl_WorkGroupID.xy * TILE_SIZE, fmax_depth, 1.0);                                // Far-Top-Left
-    screen_pos[1] = vec4(vec2(gl_WorkGroupID.x + 1, gl_WorkGroupID.y) * TILE_SIZE, fmax_depth, 1.0);     // Far-Top-Right
-    screen_pos[2] = vec4(vec2(gl_WorkGroupID.x, gl_WorkGroupID.y + 1)  * TILE_SIZE, fmax_depth, 1.0);    // Far-Bottom-Left
-    screen_pos[3] = vec4(vec2(gl_WorkGroupID.x + 1, gl_WorkGroupID.y + 1) * TILE_SIZE, fmax_depth, 1.0); // Far-Bottom-Right
-
-    screen_pos[4] = vec4(gl_WorkGroupID.xy * TILE_SIZE, fmin_depth, 1.0);                                // Near-Top-Left
-    screen_pos[5] = vec4(vec2(gl_WorkGroupID.x + 1, gl_WorkGroupID.y) * TILE_SIZE, fmin_depth, 1.0);     // Near-Top-Right
-    screen_pos[6] = vec4(vec2(gl_WorkGroupID.x, gl_WorkGroupID.y + 1)  * TILE_SIZE, fmin_depth, 1.0);    // Near-Bottom-Left
-    screen_pos[7] = vec4(vec2(gl_WorkGroupID.x + 1, gl_WorkGroupID.y + 1) * TILE_SIZE, fmin_depth, 1.0); // Near-Bottom-Right
- 
-    vec4 world_pos[8];
- 
-    world_pos[0] = screen_to_world_space(screen_pos[0], viewport_params.xy, inv_view_proj);
-    world_pos[1] = screen_to_world_space(screen_pos[1], viewport_params.xy, inv_view_proj);
-    world_pos[2] = screen_to_world_space(screen_pos[2], viewport_params.xy, inv_view_proj);
-    world_pos[3] = screen_to_world_space(screen_pos[3], viewport_params.xy, inv_view_proj);
-    
-    world_pos[4] = screen_to_world_space(screen_pos[4], viewport_params.xy, inv_view_proj);
-    world_pos[5] = screen_to_world_space(screen_pos[5], viewport_params.xy, inv_view_proj);
-    world_pos[6] = screen_to_world_space(screen_pos[6], viewport_params.xy, inv_view_proj);
-    world_pos[7] = screen_to_world_space(screen_pos[7], viewport_params.xy, inv_view_proj);
-
-    Frustum frustum;
-
-    frustum.planes[0] = compute_plane(view_pos.xyz, world_pos[2].xyz, world_pos[0].xyz);     // Left
-    frustum.planes[1] = compute_plane(view_pos.xyz, world_pos[1].xyz, world_pos[3].xyz);     // Right
-    frustum.planes[2] = compute_plane(view_pos.xyz, world_pos[0].xyz, world_pos[1].xyz);     // Top
-    frustum.planes[3] = compute_plane(view_pos.xyz, world_pos[3].xyz, world_pos[2].xyz);     // Bottom
-    frustum.planes[4] = compute_plane(world_pos[3].xyz, world_pos[1].xyz, world_pos[0].xyz); // Far
-    frustum.planes[5] = compute_plane(world_pos[6].xyz, world_pos[4].xyz, world_pos[5].xyz); // Near
-
-    return frustum;
+    return dot(plane.N, sphere.c) - plane.d < -sphere.r;
 }
 
 // ------------------------------------------------------------------
 
-bool is_point_light_visible(uint idx, in Frustum frustum)
+bool sphere_inside_frustum(Sphere sphere, Frustum frustum, float zNear, float zFar)
 {
-    for (int i = 0; i < 6; i++) 
+    bool result = true;
+
+    // First check depth
+    // Note: Here, the view vector points in the -Z axis so the 
+    // far depth value will be approaching -infinity.
+    if ( (sphere.c.z - sphere.r) > zNear || (sphere.c.z + sphere.r) < zFar )
+        result = false;
+
+    // Then check frustum planes
+    for (int i = 0; i < 4 && result; i++)
     {
-		vec3 normal = frustum.planes[i].xyz;
-		float dist = frustum.planes[i].w;
-		float side = dot(point_light_position[idx].xyz, normal) - dist;
+        Plane p;
 
-		if (side < -point_light_near_far[idx].y)
-			return false;
-	}
+        p.N = frustum.planes[i].xyz;
+        p.d = frustum.planes[i].w;
 
-    return true;
+        if (sphere_inside_plane( sphere, p))
+            result = false;
+    }
+
+    return result;
+}
+
+// ------------------------------------------------------------------
+
+bool is_point_light_visible(uint idx, in Frustum frustum, float zNear, float zFar)
+{
+    vec4 position_vs = view_mat * vec4(point_light_position[idx].xyz, 1.0);
+
+    Sphere sphere;
+
+    sphere.c = position_vs.xyz;
+    sphere.r = point_light_near_far[idx].y;
+
+    return sphere_inside_frustum(sphere, frustum, zNear, zFar);
 }
 
 // ------------------------------------------------------------------
@@ -163,14 +129,12 @@ void main()
         g_MaxDepth = 0;
         g_PointLightCount = 0;
         g_SpotLightCount = 0;
+        g_Frustum = frustums[tile_idx];
     }
 
     barrier();
 
-    const ivec2 size = textureSize(s_Depth, 0);
-	const vec2 tex_coord = vec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y) / vec2(size.x - 1, size.y - 1);
-
-    float depth = texture(s_Depth, tex_coord).r;
+    float depth = 2.0 * texelFetch(s_Depth, ivec2(gl_GlobalInvocationID.xy), 0).r - 1.0;
     
     uint depth_int = floatBitsToUint(depth);
 	atomicMin(g_MinDepth, depth_int);
@@ -178,14 +142,17 @@ void main()
 
     barrier();
 
-    if (gl_LocalInvocationIndex == 0)
-        g_Frustum = create_frustum(gl_WorkGroupID.xy, g_MinDepth, g_MaxDepth);
+    float fmin_depth = uintBitsToFloat(g_MinDepth);
+    float fmax_depth = uintBitsToFloat(g_MaxDepth);
+
+    float min_depth_vs = clip_to_view_space(vec4(0.0, 0.0, fmin_depth, 1.0), inv_proj).z;
+    float max_depth_vs = clip_to_view_space(vec4(0.0, 0.0, fmax_depth, 1.0), inv_proj).z;
 
     barrier();
 
     for (uint i = gl_LocalInvocationIndex; g_PointLightCount < MAX_POINT_LIGHTS_PER_TILE && i < point_light_count; i += (TILE_SIZE * TILE_SIZE))
     {
-        if (is_point_light_visible(i, g_Frustum))
+        if (is_point_light_visible(i, g_Frustum, min_depth_vs, max_depth_vs))
         {
             const uint idx = atomicAdd(g_PointLightCount, 1);
 

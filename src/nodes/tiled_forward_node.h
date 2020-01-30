@@ -17,6 +17,7 @@ public:
     std::string name() override;
 
 private:
+    bool                                    m_visualize_heat_map = false;
     std::shared_ptr<GeneratedShaderLibrary> m_library;
     std::shared_ptr<RenderTarget>           m_color_rt;
     std::shared_ptr<RenderTarget>           m_depth_rt;

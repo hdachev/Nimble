@@ -34,6 +34,8 @@ void TiledForwardNode::declare_connections()
 
 bool TiledForwardNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
+    register_bool_parameter("Visualize Heat Map", m_visualize_heat_map);
+
     m_light_indices = find_input_buffer("LightIndices");
 
     m_library = renderer->shader_cache().load_generated_library("shader/forward/forward_vs.glsl", "shader/forward/tiled_forward_fs.glsl");
@@ -60,7 +62,7 @@ void TiledForwardNode::execute(double delta, Renderer* renderer, Scene* scene, V
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    //m_light_indices->buffer->bind_base(3);
+    m_light_indices->buffer->bind_base(3);
 
     render_scene(renderer, scene, view, m_library.get(), NODE_USAGE_DEFAULT);
 }
