@@ -6,36 +6,15 @@
 
 namespace nimble
 {
-struct PointLightData
+struct LightData
 {
-    NIMBLE_ALIGNED(16)
-    glm::vec4 position_range;
-    NIMBLE_ALIGNED(16)
-    glm::vec4 color_intensity;
-    NIMBLE_ALIGNED(16)
-    int32_t casts_shadow;
-};
-
-struct SpotLightData
-{
-    NIMBLE_ALIGNED(16)
-    glm::vec4 position_cone_angle;
-    NIMBLE_ALIGNED(16)
-    glm::vec4 direction_range;
-    NIMBLE_ALIGNED(16)
-    glm::vec4 color_intensity;
-    NIMBLE_ALIGNED(16)
-    int32_t casts_shadow;
-};
-
-struct DirectionalLightData
-{
-    NIMBLE_ALIGNED(16)
-    glm::vec4 direction;
-    NIMBLE_ALIGNED(16)
-    glm::vec4 color_intensity;
-    NIMBLE_ALIGNED(16)
-    int32_t casts_shadow;
+                         // | Spot                     | Directional                                        | Point                    |
+    glm::ivec4 indices0; // | x: shadow map, y: matrix | x: first shadow map index, y: first cascade matrix | x: shadow map            | 
+    glm::ivec4 indices1; // |                          |                                                    |                          |
+    glm::vec4 data0;     // | xyz: position, w: bias   | xyz: direction, w: bias                            | xyz: positon, w: bias    |
+    glm::vec4 data1;     // | xy: cutoff               | xyz: color, w: intensity                           | x: near, y: far          |
+    glm::vec4 data2;     // | xyz: direction, w: range | xyzw: far planes                                   | xyz: color, w: intensity |
+    glm::vec4 data3;     // | xyz: color, w: intensity |                                                    |                          |
 };
 
 struct PerViewUniforms
@@ -76,23 +55,9 @@ struct PerEntityUniforms
 
 struct PerSceneUniforms
 {
-    glm::mat4 spot_light_shadow_matrix[MAX_SHADOW_CASTING_SPOT_LIGHTS];
-    glm::vec4 shadow_map_bias[MAX_POINT_LIGHTS]; // x = directional, y = spot, z = point
-    glm::vec4 point_light_position[MAX_POINT_LIGHTS];
-    glm::vec4 point_light_near_far[MAX_POINT_LIGHTS];
-    glm::vec4 point_light_color_intensity[MAX_POINT_LIGHTS];
-    glm::vec4 spot_light_position[MAX_SPOT_LIGHTS];
-    glm::vec4 spot_light_cutoff_inner_outer[MAX_SPOT_LIGHTS];
-    glm::vec4 spot_light_direction_range[MAX_SPOT_LIGHTS];
-    glm::vec4 spot_light_color_intensity[MAX_SPOT_LIGHTS];
-    glm::vec4 directional_light_direction[MAX_DIRECTIONAL_LIGHTS];
-    glm::vec4 directional_light_color_intensity[MAX_DIRECTIONAL_LIGHTS];
-    int32_t   point_light_casts_shadow[MAX_POINT_LIGHTS];
-    int32_t   spot_light_casts_shadow[MAX_SPOT_LIGHTS];
-    int32_t   directional_light_casts_shadow[MAX_DIRECTIONAL_LIGHTS];
-    int32_t   point_light_count;
-    int32_t   spot_light_count;
-    int32_t   directional_light_count;
+    LightData  lights[MAX_LIGHTS];
+    glm::mat4  shadow_matrices[MAX_SHADOW_CASTING_SPOT_LIGHTS + MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
+    glm::ivec4 light_count;
 };
 
 struct PerMaterialUniforms

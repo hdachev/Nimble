@@ -98,12 +98,12 @@ bool sphere_inside_frustum(Sphere sphere, Frustum frustum, float zNear, float zF
 
 bool is_point_light_visible(uint idx, in Frustum frustum, float zNear, float zFar)
 {
-    vec4 position_vs = view_mat * vec4(point_light_position[idx].xyz, 1.0);
+    vec4 position_vs = view_mat * vec4(point_light_position(idx), 1.0);
 
     Sphere sphere;
 
     sphere.c = position_vs.xyz;
-    sphere.r = point_light_near_far[idx].y;
+    sphere.r = point_light_far_field(idx);
 
     return sphere_inside_frustum(sphere, frustum, zNear, zFar);
 }

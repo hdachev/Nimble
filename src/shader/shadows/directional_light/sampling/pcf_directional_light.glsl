@@ -9,17 +9,16 @@ float depth_compare(float a, float b, float bias)
 
 // ------------------------------------------------------------------
 
-vec3 csm_debug_color(float frag_depth, int shadow_map_idx)
+vec3 csm_debug_color(float frag_depth, int light_idx)
 {
-	int start_idx = shadow_map_idx * num_cascades; // Starting from this value
-	int end_idx = start_idx + num_cascades; // Less that this value
+	vec4 far_planes = directional_light_cascade_far_planes(light_idx);
 
 	int index = 0;
 
 	// Find shadow cascade.
 	for (int i = 0; i < (num_cascades - 1); i++)
 	{
-		if (frag_depth > cascade_far_plane[i])
+		if (frag_depth > far_planes[i])
 			index = i + 1;
 	}
 
@@ -163,36 +162,38 @@ float directional_light_shadow_test(int idx, vec2 sdw_uv, float depth, float bia
 
 // ------------------------------------------------------------------
 
-float directional_light_shadows(in FragmentProperties f, int shadow_map_idx, int light_idx)
+float directional_light_shadows(in FragmentProperties f, int light_idx)
 {
-	int start_idx = shadow_map_idx * num_cascades; // Starting from this value
-	int end_idx = start_idx + num_cascades; // Less that this value
-
 	int index = start_idx;
     float blend = 0.0;
     
+	vec4 far_planes = directional_light_cascade_far_planes(light_idx);
+    
 	// Find shadow cascade.
-	for (int i = start_idx; i < (end_idx - 1); i++)
+	for (int i = 0; i < (num_cascades - 1); i++)
 	{
-		if (f.FragDepth > cascade_far_plane[i])
+		if (f.FragDepth > far_planes[i])
 			index = i + 1;
 	}
 
-	blend = clamp( (f.FragDepth - cascade_far_plane[index] * 0.995) * 200.0, 0.0, 1.0);
+	int shadow_matrix_idx = directional_light_first_shadow_matrix_index(light_idx) + index;
+	int shadow_map_idx = directional_light_first_shadow_map_index(light_idx) + index;
+
+	blend = clamp( (f.FragDepth - far_planes[index] * 0.995) * 200.0, 0.0, 1.0);
     
     // Apply blend options.
     //blend *= options.z;
 
 	// Transform frag position into Light-space.
-	vec4 light_space_pos = cascade_matrix[index] * vec4(f.Position, 1.0);
+	vec4 light_space_pos = shadow_matrices[shadow_matrix_idx] * vec4(f.Position, 1.0);
 
 	float current_depth = light_space_pos.z;
     
 	vec3 n = f.Normal;
-	vec3 l = directional_light_direction[light_idx].xyz;
+	vec3 l = directional_light_direction(light_idx);
 	float bias = max(0.0005 * (1.0 - dot(n, l)), 0.0005);  
 
-	return directional_light_shadow_test(index, light_space_pos.xy, current_depth, bias);
+	return directional_light_shadow_test(shadow_map_idx, light_space_pos.xy, current_depth, bias);
 
     // if (options.x == 1.0)
     // {

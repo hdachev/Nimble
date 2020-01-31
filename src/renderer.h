@@ -147,6 +147,13 @@ private:
     void     render_debug_output();
 
 private:
+    struct DirectionalLightShadowData
+    {
+        glm::ivec4 shadow_map_indices;
+        glm::ivec4 shadow_matrix_indices;
+        glm::vec4  far_plane;
+    };
+
     // Resource caches
     ShaderCache                                             m_shader_cache;
     StaticHashMap<uint64_t, Framebuffer*, 1024>             m_fbo_cache;
@@ -172,17 +179,21 @@ private:
     std::vector<std::shared_ptr<RenderGraph>>   m_registered_render_graphs;
     std::array<PerViewUniforms, MAX_VIEWS>      m_per_view_uniforms;
     std::array<PerEntityUniforms, MAX_ENTITIES> m_per_entity_uniforms;
-    PerSceneUniforms                            m_per_scene_uniforms;
+    std::unique_ptr<PerSceneUniforms>           m_per_scene_uniforms;
 
     // Uniform buffers
-    std::unique_ptr<ShaderStorageBuffer> m_per_view[MAX_IN_FLIGHT_FRAMES];
-    std::unique_ptr<UniformBuffer>       m_per_entity[MAX_IN_FLIGHT_FRAMES];
-    std::unique_ptr<ShaderStorageBuffer> m_per_scene[MAX_IN_FLIGHT_FRAMES];
-    void*                                m_per_view_mapped_ptr[MAX_IN_FLIGHT_FRAMES];
-    void*                                m_per_entity_mapped_ptr[MAX_IN_FLIGHT_FRAMES];
-    void*                                m_per_scene_mapped_ptr[MAX_IN_FLIGHT_FRAMES];
-    Fence                                m_fences[MAX_IN_FLIGHT_FRAMES];
-    uint32_t                             m_current_frame_idx = 0;
+    std::unique_ptr<ShaderStorageBuffer>                        m_per_view[MAX_IN_FLIGHT_FRAMES];
+    std::unique_ptr<UniformBuffer>                              m_per_entity[MAX_IN_FLIGHT_FRAMES];
+    std::unique_ptr<ShaderStorageBuffer>                        m_per_scene[MAX_IN_FLIGHT_FRAMES];
+    void*                                                       m_per_view_mapped_ptr[MAX_IN_FLIGHT_FRAMES];
+    void*                                                       m_per_entity_mapped_ptr[MAX_IN_FLIGHT_FRAMES];
+    void*                                                       m_per_scene_mapped_ptr[MAX_IN_FLIGHT_FRAMES];
+    Fence                                                       m_fences[MAX_IN_FLIGHT_FRAMES];
+    uint32_t                                                    m_current_frame_idx = 0;
+    std::unordered_map<uint32_t, DirectionalLightShadowData>    m_directional_shadow_map_index_map;
+    std::unordered_map<uint32_t, glm::ivec4>                    m_spot_shadow_map_index_map;
+    std::unordered_map<uint32_t, glm::ivec4>                    m_point_shadow_map_index_map;
+    uint32_t                                                    m_last_shadow_matrix_index = 0;
 
     // Shadow Maps
     std::shared_ptr<Texture>                   m_directional_light_shadow_map_depth_attachment;

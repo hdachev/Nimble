@@ -5,6 +5,13 @@
 
 namespace nimble
 {
+enum LightType
+{
+    LIGHT_TYPE_DIRECTIONAL = 0,
+    LIGHT_TYPE_SPOT,
+    LIGHT_TYPE_POINT
+};
+
 struct Light
 {
     bool      enabled;

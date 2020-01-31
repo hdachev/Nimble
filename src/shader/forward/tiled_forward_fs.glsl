@@ -111,24 +111,44 @@ vec3 light_contribution(in MaterialProperties m, in FragmentProperties f,  in PB
 {
 	vec3 Lo = vec3(0.0);
 
-#ifdef DIRECTIONAL_LIGHTS
-	int shadow_casting_light_idx = 0;
+	for (int i = 0; i < light_count.y; i++)
+	{
+		int type = light_type(i);
 
-	for (int i = 0; i < directional_light_count; i++)
-		Lo += pbr_directional_light_contribution(m, f, pbr, i, shadow_casting_light_idx);
+		if (type == LIGHT_TYPE_DIRECTIONAL)
+		{
+		#ifdef DIRECTIONAL_LIGHTS
+			Lo += pbr_directional_light_contribution(m, f, pbr, i);
+		#endif
+		}
+		else if (type == LIGHT_TYPE_SPOT)
+		{
+		#ifdef SPOT_LIGHTS
+			Lo += pbr_spot_light_contribution(m, f, pbr, i);
+		#endif
+		}
+		else if (type == LIGHT_TYPE_POINT)
+		{
+		#ifdef POINT_LIGHTS
+			Lo += pbr_point_light_contribution(m, f, pbr, i);
+		#endif
+		}
+	}
 
-#endif
+// #ifdef DIRECTIONAL_LIGHTS
+// 	for (int i = 0; i < directional_light_count; i++)
+// 		Lo += pbr_directional_light_contribution(m, f, pbr, i);
 
-	uvec2 tile_id = uvec2(gl_FragCoord.xy / TILE_SIZE);
-	uint tile_idx = tile_id.y * uint(ceil(float(viewport_width) / float(TILE_SIZE))) + tile_id.x;
+// #endif
 
-#ifdef POINT_LIGHTS
-	shadow_casting_light_idx = 0;
+// 	uvec2 tile_id = uvec2(gl_FragCoord.xy / TILE_SIZE);
+// 	uint tile_idx = tile_id.y * uint(ceil(float(viewport_width) / float(TILE_SIZE))) + tile_id.x;
 
-	for (int i = 0; i < indices[tile_idx].num_point_lights; i++)
-		Lo += pbr_point_light_contribution(m, f, pbr, int(indices[tile_idx].point_light_indices[i]), shadow_casting_light_idx);
+// #ifdef POINT_LIGHTS
+// 	for (int i = 0; i < indices[tile_idx].num_point_lights; i++)
+// 		Lo += pbr_point_light_contribution(m, f, pbr, int(indices[tile_idx].point_light_indices[i]));
 
-#endif
+// #endif
 
 // #ifdef SPOT_LIGHTS
 // 	shadow_casting_light_idx = 0;

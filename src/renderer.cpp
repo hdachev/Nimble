@@ -82,7 +82,10 @@ static glm::vec3 s_cube_view_params[6][2] = {
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 Renderer::Renderer(Settings settings) :
-    m_settings(settings) {}
+    m_settings(settings) 
+{
+    m_per_scene_uniforms = std::make_unique<PerSceneUniforms>();
+}
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -173,12 +176,15 @@ void Renderer::render(double delta, ViewportManager* viewport_mgr)
     m_fences[m_current_frame_idx].insert();
 
     m_current_frame_idx = (m_current_frame_idx + 1) % MAX_IN_FLIGHT_FRAMES;
+    m_last_shadow_matrix_index = 0;
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void Renderer::shutdown()
 {
+    m_per_scene_uniforms.reset();
+
     // Delete common geometry VBO's and VAO's.
     m_cube_vao.reset();
     m_cube_vbo.reset();
@@ -354,10 +360,14 @@ void Renderer::queue_directional_light_views(View* dependent_view)
                 View*    parent = nullptr;
                 uint32_t cull_idx;
 
+                DirectionalLightShadowData shadow_data;
+
                 // Allocate Views for shadow cascades and fill out initial values
                 for (uint32_t cascade_idx = 0; cascade_idx < m_settings.cascade_count; cascade_idx++)
                 {
                     View* light_view = allocate_view();
+
+                    shadow_data.shadow_map_indices[cascade_idx] = shadow_casting_light_idx * m_settings.cascade_count + cascade_idx;
 
                     light_view->tag                                 = "Directional Light " + std::to_string(light_idx) + " Cascade View " + std::to_string(cascade_idx);
                     light_view->enabled                             = true;
@@ -387,6 +397,16 @@ void Renderer::queue_directional_light_views(View* dependent_view)
 
                 // Calculate cascade matrices
                 setup_cascade_views(light, dependent_view, cascade_views, parent);
+
+                for (uint32_t cascade_idx = 0; cascade_idx < m_settings.cascade_count; cascade_idx++)
+                {
+                    shadow_data.far_plane[cascade_idx]             = dependent_view->cascade_far_plane[cascade_idx];
+                    shadow_data.shadow_matrix_indices[cascade_idx] = m_last_shadow_matrix_index++;
+
+                    m_per_scene_uniforms->shadow_matrices[shadow_data.shadow_matrix_indices[cascade_idx]] = dependent_view->cascade_matrix[cascade_idx];
+                }
+
+                m_directional_shadow_map_index_map[light_idx] = shadow_data;
 
                 // If per cascade culling is disabled, queue up a culling View for the parent View
                 if (!dependent_view->graph->per_cascade_culling())
@@ -469,7 +489,10 @@ void Renderer::queue_spot_light_views()
                 light_view->type                                = VIEW_SPOT_LIGHT;
                 light_view->light_index                         = light_idx;
 
-                m_per_scene_uniforms.spot_light_shadow_matrix[shadow_casting_light_idx] = light_view->vp_mat;
+                glm::ivec4 shadow_data = glm::ivec4(shadow_casting_light_idx, m_last_shadow_matrix_index++, 0, 0);
+
+                m_per_scene_uniforms->shadow_matrices[shadow_data.y] = light_view->vp_mat;
+                m_spot_shadow_map_index_map[light_idx]              = shadow_data;
 
                 queue_view(light_view);
 
@@ -527,7 +550,7 @@ void Renderer::queue_point_light_views()
                     queue_view(light_view);
                 }
 
-                shadow_casting_light_idx++;
+                m_point_shadow_map_index_map[light_idx] = glm::ivec4(shadow_casting_light_idx++, 0, 0, 0);
             }
 
             // Stop adding views if max number of shadow casting lights is already queued.
@@ -1691,48 +1714,79 @@ void Renderer::update_uniforms(double delta)
         // Update per scene uniforms
         DirectionalLight* dir_lights = scene->directional_lights();
 
-        m_per_scene_uniforms.directional_light_count = scene->directional_light_count();
+        m_per_scene_uniforms->light_count.x = 0;
 
-        for (int32_t light_idx = 0; light_idx < m_per_scene_uniforms.directional_light_count; light_idx++)
+        for (int32_t i = 0; i < scene->directional_light_count(); i++)
         {
+            int32_t light_idx = i + m_per_scene_uniforms->light_count.x;
+
             DirectionalLight& light = dir_lights[light_idx];
 
-            m_per_scene_uniforms.shadow_map_bias[light_idx].x                 = light.shadow_map_bias;
-            m_per_scene_uniforms.directional_light_direction[light_idx]       = glm::vec4(light.transform.forward(), 0.0f);
-            m_per_scene_uniforms.directional_light_color_intensity[light_idx] = glm::vec4(light.color, light.intensity);
-            m_per_scene_uniforms.directional_light_casts_shadow[light_idx]    = light.casts_shadow ? 1 : 0;
+            m_per_scene_uniforms->lights[light_idx].data0 = glm::ivec4(light.transform.forward(), light.shadow_map_bias);
+            m_per_scene_uniforms->lights[light_idx].data1 = glm::vec4(light.color, light.intensity);
+
+            if (m_directional_shadow_map_index_map.find(i) != m_directional_shadow_map_index_map.end())
+            {
+                DirectionalLightShadowData shadow_data = m_directional_shadow_map_index_map[i];
+
+                m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(shadow_data.shadow_map_indices.x, shadow_data.shadow_matrix_indices.y, LIGHT_TYPE_DIRECTIONAL, 0);
+                m_per_scene_uniforms->lights[light_idx].data2    = shadow_data.far_plane;
+            }
+            else
+                m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(-1);
         }
+
+        m_per_scene_uniforms->light_count.x += scene->directional_light_count();
 
         SpotLight* spot_lights = scene->spot_lights();
 
-        m_per_scene_uniforms.spot_light_count = scene->spot_light_count();
-
-        for (int32_t light_idx = 0; light_idx < m_per_scene_uniforms.spot_light_count; light_idx++)
+        for (int32_t i = 0; i < scene->spot_light_count(); i++)
         {
+            int32_t light_idx = i + m_per_scene_uniforms->light_count.x;
+
             SpotLight& light = spot_lights[light_idx];
 
-            m_per_scene_uniforms.shadow_map_bias[light_idx].y             = light.shadow_map_bias;
-            m_per_scene_uniforms.spot_light_direction_range[light_idx]    = glm::vec4(light.transform.forward(), light.range);
-            m_per_scene_uniforms.spot_light_color_intensity[light_idx]    = glm::vec4(light.color, light.intensity);
-            m_per_scene_uniforms.spot_light_position[light_idx]           = glm::vec4(light.transform.position, 0.0f);
-            m_per_scene_uniforms.spot_light_casts_shadow[light_idx]       = light.casts_shadow ? 1 : 0;
-            m_per_scene_uniforms.spot_light_cutoff_inner_outer[light_idx] = glm::vec4(cosf(glm::radians(light.inner_cone_angle)), cosf(glm::radians(light.outer_cone_angle)), 0.0f, 0.0f);
+            m_per_scene_uniforms->lights[light_idx].data0 = glm::vec4(light.transform.position, light.shadow_map_bias);
+            m_per_scene_uniforms->lights[light_idx].data1 = glm::vec4(cosf(glm::radians(light.inner_cone_angle)), cosf(glm::radians(light.outer_cone_angle)), 0.0f, 0.0f);
+            m_per_scene_uniforms->lights[light_idx].data2 = glm::vec4(light.transform.forward(), light.range);
+            m_per_scene_uniforms->lights[light_idx].data3 = glm::vec4(light.color, light.intensity);
+
+            if (m_spot_shadow_map_index_map.find(i) != m_spot_shadow_map_index_map.end())
+            {
+                glm::ivec4 shadow_data = m_spot_shadow_map_index_map[i];
+                m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(shadow_data.x, LIGHT_TYPE_SPOT, 0, 0);
+            }
+            else
+                m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(-1);
         }
+
+        m_per_scene_uniforms->light_count.x += scene->spot_light_count();
 
         PointLight* point_lights = scene->point_lights();
 
-        m_per_scene_uniforms.point_light_count = scene->point_light_count();
-
-        for (int32_t light_idx = 0; light_idx < m_per_scene_uniforms.point_light_count; light_idx++)
+        for (int32_t i = 0; i < scene->point_light_count(); i++)
         {
+            int32_t light_idx = i + m_per_scene_uniforms->light_count.x;
+
             PointLight& light = point_lights[light_idx];
 
-            m_per_scene_uniforms.shadow_map_bias[light_idx].z           = light.shadow_map_bias;
-            m_per_scene_uniforms.point_light_position[light_idx]        = glm::vec4(light.transform.position, 0.0f);
-            m_per_scene_uniforms.point_light_near_far[light_idx]        = glm::vec4(POINT_LIGHT_NEAR_PLANE, light.range, 0.0f, 0.0f);
-            m_per_scene_uniforms.point_light_color_intensity[light_idx] = glm::vec4(light.color, light.intensity);
-            m_per_scene_uniforms.point_light_casts_shadow[light_idx]    = light.casts_shadow ? 1 : 0;
+            m_per_scene_uniforms->lights[light_idx].data0 = glm::vec4(light.transform.position, light.shadow_map_bias);
+            m_per_scene_uniforms->lights[light_idx].data1 = glm::vec4(POINT_LIGHT_NEAR_PLANE, light.range, 0.0f, 0.0f);
+            m_per_scene_uniforms->lights[light_idx].data2 = glm::vec4(light.color, light.intensity);
+
+            if (m_point_shadow_map_index_map.find(i) != m_point_shadow_map_index_map.end())
+            {
+                glm::ivec4 shadow_data                          = m_point_shadow_map_index_map[i];
+                m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(shadow_data.x, LIGHT_TYPE_POINT, 0, 0);
+            }
+            else
+                m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(-1);
         }
+
+        m_per_scene_uniforms->light_count.x += scene->point_light_count();
+        m_per_scene_uniforms->light_count.y = scene->directional_light_count();
+        m_per_scene_uniforms->light_count.z = scene->spot_light_count();
+        m_per_scene_uniforms->light_count.w = scene->point_light_count();
 
         memcpy(m_per_scene_mapped_ptr[m_current_frame_idx], &m_per_scene_uniforms, sizeof(PerSceneUniforms));
     }

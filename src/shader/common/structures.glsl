@@ -2,45 +2,34 @@
 // DEFINITIONS ------------------------------------------------------
 // ------------------------------------------------------------------
 
-#define MAX_SHADOW_MAP_CASCADES 8
+#define MAX_SHADOW_MAP_CASCADES 4
 #define MAX_RELFECTION_PROBES 128
 #define MAX_GI_PROBES 128
-#define MAX_POINT_LIGHTS 512
-#define MAX_SPOT_LIGHTS 512
+#define MAX_POINT_LIGHTS 10000
+#define MAX_SPOT_LIGHTS 10000
 #define MAX_DIRECTIONAL_LIGHTS 512
 #define MAX_SHADOW_CASTING_POINT_LIGHTS 8
 #define MAX_SHADOW_CASTING_SPOT_LIGHTS 8
 #define MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS 8
 #define MAX_BONES 100
+#define MAX_LIGHTS 10000
+#define LIGHT_TYPE_DIRECTIONAL 0
+#define LIGHT_TYPE_SPOT 1
+#define LIGHT_TYPE_POINT 2
 
 // ------------------------------------------------------------------
 // STRUCTURES -------------------------------------------------------
 // ------------------------------------------------------------------
 
-struct PointLightData
+struct LightData
 {
-	vec4 position_range;
-	vec4 color_intensity;
-	int	 casts_shadow;
-};
-
-// ------------------------------------------------------------------
-
-struct SpotLightData
-{
-	vec4 position_cone_angle;
-	vec4 direction_range;
-	vec4 color_intensity;
-	int	 casts_shadow;
-};
-
-// ------------------------------------------------------------------
-
-struct DirectionalLightData
-{
-	vec4 direction;
-	vec4 color_intensity;
-	int	 casts_shadow;
+                    // | Spot                     | Directional                                        | Point                    |
+    ivec4 indices0; // | y: shadow map, z: matrix | y: first shadow map index, z: first cascade matrix | y: shadow map            | 
+    ivec4 indices1; // |                          |                                                    |                          |
+    vec4 data0;     // | xyz: position, w: bias   | xyz: direction, w: bias                            | xyz: positon, w: bias    |
+    vec4 data1;     // | xy: cutoff               | xyz: color, w: intensity                           | x: near, y: far          |
+    vec4 data2;     // | xyz: direction, w: range | xyzw: far planes                                   | xyz: color, w: intensity |
+    vec4 data3;     // | xyz: color, w: intensity |                                                    |                          |
 };
 
 // ------------------------------------------------------------------
