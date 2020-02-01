@@ -37,7 +37,7 @@ float mie_scattering(float cos_angle)
 
 // ------------------------------------------------------------------
 
-float attenuation(vec3 frag_pos,int light_idx)
+float attenuation(vec3 frag_pos, uint light_idx)
 {
 	int index = 0;
 
@@ -72,9 +72,9 @@ float attenuation(vec3 frag_pos,int light_idx)
 
 void main()
 {
-	if (directional_light_count > 0)
+	if (directional_light_count() > 0)
 	{
-		if (directional_light_first_shadow_matrix_index(0) == 1)
+		if (directional_light_first_shadow_matrix_index(0) >= 0)
 		{
 			float depth = textureLod(s_Depth, FS_IN_TexCoord, DEPTH_LOD).r;
 			vec3 frag_pos = world_position_from_depth(FS_IN_TexCoord, depth);

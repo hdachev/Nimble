@@ -56,7 +56,7 @@ float geometry_smith(float NdotV, float NdotL, float roughness)
 vec3 pbr_directional_light_contribution(in MaterialProperties m, 
 								  		in FragmentProperties f,  
 								  		in PBRProperties pbr,
-								  		int i)
+								  		uint i)
 {
 	vec3 Lo = vec3(0.0);
 
@@ -75,7 +75,7 @@ vec3 pbr_directional_light_contribution(in MaterialProperties m,
 		visibility = directional_light_shadows(f, i);
 
 	#ifdef CSM_DEBUG
-		shadow_debug += csm_debug_color(frag_depth, shadow_map_idx);
+		shadow_debug += csm_debug_color(frag_depth, i);
 	#endif
 #endif
 
@@ -107,7 +107,7 @@ vec3 pbr_directional_light_contribution(in MaterialProperties m,
 vec3 pbr_point_light_contribution(in MaterialProperties m, 
 								  in FragmentProperties f,  
 								  in PBRProperties pbr,
-								  int i)
+								  uint i)
 {
 	vec3 Lo = vec3(0.0);
 
@@ -158,7 +158,7 @@ vec3 pbr_point_light_contribution(in MaterialProperties m,
 vec3 pbr_spot_light_contribution(in MaterialProperties m, 
 								 in FragmentProperties f,  
 								 in PBRProperties pbr,
-								 int i)
+								 uint i)
 {
 	vec3 Lo = vec3(0.0);
 
@@ -214,7 +214,7 @@ vec3 pbr_light_contribution(in MaterialProperties m, in FragmentProperties f,  i
 {
 	vec3 Lo = vec3(0.0);
 
-	for (int i = 0; i < light_count.x; i++)
+	for (uint i = 0; i < light_count.x; i++)
 	{
 		int type = light_type(i);
 

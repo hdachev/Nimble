@@ -125,7 +125,7 @@ void TAANode::execute(double delta, Renderer* renderer, Scene* scene, View* view
         glClear(GL_COLOR_BUFFER_BIT);
         glViewport(0, 0, m_graph->window_width(), m_graph->window_height());
 
-        if (m_taa_program->set_uniform("s_Color", 0) && m_color_rt)
+        if (m_taa_program->set_uniform("s_Current", 0) && m_color_rt)
             m_color_rt->texture->bind(0);
 
         if (m_taa_program->set_uniform("s_Prev", 1) && m_reprojection_rt[index_read])

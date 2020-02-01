@@ -1222,6 +1222,8 @@ Shader::Shader(GLenum type, std::string source) :
 
         std::string log_error = "OPENGL: Shader compilation failed: ";
         log_error += std::string(log);
+        log_error += ", Source: ";
+        log_error += source;
 
         NIMBLE_LOG_ERROR(log_error);
         m_compiled = false;

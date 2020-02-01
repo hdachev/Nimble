@@ -150,7 +150,7 @@ void main()
 
     barrier();
 
-    for (uint i = gl_LocalInvocationIndex; g_PointLightCount < MAX_POINT_LIGHTS_PER_TILE && i < point_light_count; i += (TILE_SIZE * TILE_SIZE))
+    for (uint i = (point_light_offset() + gl_LocalInvocationIndex); g_PointLightCount < MAX_POINT_LIGHTS_PER_TILE && i < point_light_count(); i += (TILE_SIZE * TILE_SIZE))
     {
         if (is_point_light_visible(i, g_Frustum, min_depth_vs, max_depth_vs))
         {
@@ -163,7 +163,7 @@ void main()
         }
     }
 
-    for (uint i = gl_LocalInvocationIndex; g_SpotLightCount < MAX_SPOT_LIGHTS_PER_TILE && i < spot_light_count; i += (TILE_SIZE * TILE_SIZE))
+    for (uint i = (spot_light_offset() + gl_LocalInvocationIndex); g_SpotLightCount < MAX_SPOT_LIGHTS_PER_TILE && i < spot_light_count(); i += (TILE_SIZE * TILE_SIZE))
     {
         if (is_spot_light_visible(i, g_Frustum))
         {

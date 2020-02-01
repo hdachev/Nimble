@@ -57,7 +57,7 @@ struct PerSceneUniforms
 {
     LightData  lights[MAX_LIGHTS];
     glm::mat4  shadow_matrices[MAX_SHADOW_CASTING_SPOT_LIGHTS + MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
-    glm::ivec4 light_count;
+    glm::uvec4 light_count;
 };
 
 struct PerMaterialUniforms

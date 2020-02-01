@@ -9,7 +9,7 @@ float depth_compare(float a, float b, float bias)
 
 // ------------------------------------------------------------------
 
-vec3 csm_debug_color(float frag_depth, int light_idx)
+vec3 csm_debug_color(float frag_depth, uint light_idx)
 {
 	vec4 far_planes = directional_light_cascade_far_planes(light_idx);
 
@@ -40,7 +40,7 @@ vec3 csm_debug_color(float frag_depth, int light_idx)
 
 #if defined(PCF_FILTERING_GRID_9_SAMPLES)
 
-float directional_light_shadow_test(int idx, vec2 sdw_uv, float depth, float bias)
+float directional_light_shadow_test(uint idx, vec2 sdw_uv, float depth, float bias)
 {
 	float shadow = 0.0;
 	vec2 texel_size = 1.0 / textureSize(s_DirectionalLightShadowMaps, 0).xy;
@@ -62,7 +62,7 @@ float directional_light_shadow_test(int idx, vec2 sdw_uv, float depth, float bia
 
 #elif defined(PCF_FILTERING_GRID_25_SAMPLES)
 
-float directional_light_shadow_test(int idx, vec2 sdw_uv, float depth, float bias)
+float directional_light_shadow_test(uint idx, vec2 sdw_uv, float depth, float bias)
 {
 	float shadow = 0.0;
 	vec2 texel_size = 1.0 / textureSize(s_DirectionalLightShadowMaps, 0).xy;
@@ -100,7 +100,7 @@ float directional_light_shadow_test(int idx, vec2 sdw_uv, float depth, float bia
 
 #elif defined(PCF_FILTERING_GRID_49_SAMPLES)
 
-float directional_light_shadow_test(int idx, vec2 sdw_uv, float depth, float bias)
+float directional_light_shadow_test(uint idx, vec2 sdw_uv, float depth, float bias)
 {
 	float shadow = 0.0;
 	vec2 texel_size = 1.0 / textureSize(s_DirectionalLightShadowMaps, 0).xy;
@@ -162,9 +162,9 @@ float directional_light_shadow_test(int idx, vec2 sdw_uv, float depth, float bia
 
 // ------------------------------------------------------------------
 
-float directional_light_shadows(in FragmentProperties f, int light_idx)
+float directional_light_shadows(in FragmentProperties f, uint light_idx)
 {
-	int index = start_idx;
+	int index = 0;
     float blend = 0.0;
     
 	vec4 far_planes = directional_light_cascade_far_planes(light_idx);

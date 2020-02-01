@@ -44,180 +44,222 @@ layout(std430, binding = 2) buffer u_PerScene
 {
 	LightData  lights[MAX_LIGHTS];
     mat4  shadow_matrices[MAX_SHADOW_CASTING_SPOT_LIGHTS + MAX_SHADOW_CASTING_DIRECTIONAL_LIGHTS * MAX_SHADOW_MAP_CASCADES];
-    ivec4 light_count;
+    uvec4 light_count;
 };
 
 // ------------------------------------------------------------------
 
-int light_type(int light_idx)
+uint total_light_count()
+{
+	return light_count.x;
+}
+
+// ------------------------------------------------------------------
+
+uint directional_light_count()
+{
+	return light_count.y;
+}
+
+// ------------------------------------------------------------------
+
+uint spot_light_count()
+{
+	return light_count.z;
+}
+
+// ------------------------------------------------------------------
+
+uint point_light_count()
+{
+	return light_count.w;
+}
+
+// ------------------------------------------------------------------
+
+uint spot_light_offset()
+{
+	return directional_light_count();
+}
+
+// ------------------------------------------------------------------
+
+uint point_light_offset()
+{
+	return directional_light_count() + spot_light_count();
+}
+
+// ------------------------------------------------------------------
+
+int light_type(uint light_idx)
 {
 	return lights[light_idx].indices0.x; 
 }
 
 // ------------------------------------------------------------------
 
-int spot_light_shadow_map_index(int light_idx)
+int spot_light_shadow_map_index(uint light_idx)
 {
 	return lights[light_idx].indices0.y;
 }
 
 // ------------------------------------------------------------------
 
-int spot_light_shadow_matrix_index(int light_idx)
+int spot_light_shadow_matrix_index(uint light_idx)
 {
 	return lights[light_idx].indices0.z;
 }
 
 // ------------------------------------------------------------------
 
-vec3 spot_light_position(int light_idx)
+vec3 spot_light_position(uint light_idx)
 {
 	return lights[light_idx].data0.xyz;
 }
 
 // ------------------------------------------------------------------
 
-float spot_light_shadow_bias(int light_idx)
+float spot_light_shadow_bias(uint light_idx)
 {
 	return lights[light_idx].data0.w;
 }
 
 // ------------------------------------------------------------------
 
-float spot_light_inner_cutoff(int light_idx)
+float spot_light_inner_cutoff(uint light_idx)
 {
 	return lights[light_idx].data1.x;
 }
 
 // ------------------------------------------------------------------
 
-float spot_light_outer_cutoff(int light_idx)
+float spot_light_outer_cutoff(uint light_idx)
 {
 	return lights[light_idx].data1.y;
 }
 
 // ------------------------------------------------------------------
 
-vec3 spot_light_direction(int light_idx)
+vec3 spot_light_direction(uint light_idx)
 {
 	return lights[light_idx].data2.xyz;
 }
 
 // ------------------------------------------------------------------
 
-float spot_light_range(int light_idx)
+float spot_light_range(uint light_idx)
 {
 	return lights[light_idx].data2.w;
 }
 
 // ------------------------------------------------------------------
 
-vec3 spot_light_color(int light_idx)
+vec3 spot_light_color(uint light_idx)
 {
 	return lights[light_idx].data3.xyz;
 }
 
 // ------------------------------------------------------------------
 
-float spot_light_intensity(int light_idx)
+float spot_light_intensity(uint light_idx)
 {
 	return lights[light_idx].data3.w;
 }
 
 // ------------------------------------------------------------------
 
-int directional_light_first_shadow_map_index(int light_idx)
+int directional_light_first_shadow_map_index(uint light_idx)
 {
 	return lights[light_idx].indices0.y;
 }
 
 // ------------------------------------------------------------------
 
-int directional_light_first_shadow_matrix_index(int light_idx)
+int directional_light_first_shadow_matrix_index(uint light_idx)
 {
 	return lights[light_idx].indices0.z;
 }
 
 // ------------------------------------------------------------------
 
-vec3 directional_light_direction(int light_idx)
+vec3 directional_light_direction(uint light_idx)
 {
 	return lights[light_idx].data0.xyz;
 }
 
 // ------------------------------------------------------------------
 
-float directional_light_shadow_bias(int light_idx)
+float directional_light_shadow_bias(uint light_idx)
 {
 	return lights[light_idx].data0.w;
 }
 
 // ------------------------------------------------------------------
 
-vec3 directional_light_color(int light_idx)
+vec3 directional_light_color(uint light_idx)
 {
 	return lights[light_idx].data1.xyz;
 }
 
 // ------------------------------------------------------------------
 
-float directional_light_intensity(int light_idx)
+float directional_light_intensity(uint light_idx)
 {
 	return lights[light_idx].data1.w;
 }
 
 // ------------------------------------------------------------------
 
-vec4 directional_light_cascade_far_planes(int light_idx)
+vec4 directional_light_cascade_far_planes(uint light_idx)
 {
 	return lights[light_idx].data2;
 }
 
 // ------------------------------------------------------------------
 
-int point_light_shadow_map_index(int light_idx)
+int point_light_shadow_map_index(uint light_idx)
 {
 	return lights[light_idx].indices0.y;
 }
 
 // ------------------------------------------------------------------
 
-vec3 point_light_position(int light_idx)
+vec3 point_light_position(uint light_idx)
 {
 	return lights[light_idx].data0.xyz;
 }
 
 // ------------------------------------------------------------------
 
-float point_light_shadow_bias(int light_idx)
+float point_light_shadow_bias(uint light_idx)
 {
 	return lights[light_idx].data0.w;
 }
 
 // ------------------------------------------------------------------
 
-float point_light_near_field(int light_idx)
+float point_light_near_field(uint light_idx)
 {
 	return lights[light_idx].data1.x;
 }
 
 // ------------------------------------------------------------------
 
-float point_light_far_field(int light_idx)
+float point_light_far_field(uint light_idx)
 {
 	return lights[light_idx].data1.y;
 }
 
 // ------------------------------------------------------------------
 
-vec3 point_light_color(int light_idx)
+vec3 point_light_color(uint light_idx)
 {
 	return lights[light_idx].data2.xyz;
 }
 
 // ------------------------------------------------------------------
 
-float point_light_intensity(int light_idx)
+float point_light_intensity(uint light_idx)
 {
 	return lights[light_idx].data2.w;
 }

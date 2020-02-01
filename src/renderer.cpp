@@ -1720,20 +1720,20 @@ void Renderer::update_uniforms(double delta)
         {
             int32_t light_idx = i + m_per_scene_uniforms->light_count.x;
 
-            DirectionalLight& light = dir_lights[light_idx];
+            DirectionalLight& light = dir_lights[i];
 
-            m_per_scene_uniforms->lights[light_idx].data0 = glm::ivec4(light.transform.forward(), light.shadow_map_bias);
+            m_per_scene_uniforms->lights[light_idx].data0 = glm::vec4(light.transform.forward(), light.shadow_map_bias);
             m_per_scene_uniforms->lights[light_idx].data1 = glm::vec4(light.color, light.intensity);
+            m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(LIGHT_TYPE_DIRECTIONAL, -1, -1, -1);
 
             if (m_directional_shadow_map_index_map.find(i) != m_directional_shadow_map_index_map.end())
             {
                 DirectionalLightShadowData shadow_data = m_directional_shadow_map_index_map[i];
 
-                m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(shadow_data.shadow_map_indices.x, shadow_data.shadow_matrix_indices.y, LIGHT_TYPE_DIRECTIONAL, 0);
+                m_per_scene_uniforms->lights[light_idx].indices0.y = shadow_data.shadow_map_indices.x;
+                m_per_scene_uniforms->lights[light_idx].indices0.z = shadow_data.shadow_matrix_indices.x;
                 m_per_scene_uniforms->lights[light_idx].data2    = shadow_data.far_plane;
             }
-            else
-                m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(-1);
         }
 
         m_per_scene_uniforms->light_count.x += scene->directional_light_count();
@@ -1744,20 +1744,19 @@ void Renderer::update_uniforms(double delta)
         {
             int32_t light_idx = i + m_per_scene_uniforms->light_count.x;
 
-            SpotLight& light = spot_lights[light_idx];
+            SpotLight& light = spot_lights[i];
 
             m_per_scene_uniforms->lights[light_idx].data0 = glm::vec4(light.transform.position, light.shadow_map_bias);
             m_per_scene_uniforms->lights[light_idx].data1 = glm::vec4(cosf(glm::radians(light.inner_cone_angle)), cosf(glm::radians(light.outer_cone_angle)), 0.0f, 0.0f);
             m_per_scene_uniforms->lights[light_idx].data2 = glm::vec4(light.transform.forward(), light.range);
             m_per_scene_uniforms->lights[light_idx].data3 = glm::vec4(light.color, light.intensity);
+            m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(LIGHT_TYPE_SPOT, -1, -1, -1);
 
             if (m_spot_shadow_map_index_map.find(i) != m_spot_shadow_map_index_map.end())
             {
                 glm::ivec4 shadow_data = m_spot_shadow_map_index_map[i];
-                m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(shadow_data.x, LIGHT_TYPE_SPOT, 0, 0);
+                m_per_scene_uniforms->lights[light_idx].indices0.y = shadow_data.x;
             }
-            else
-                m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(-1);
         }
 
         m_per_scene_uniforms->light_count.x += scene->spot_light_count();
@@ -1768,19 +1767,18 @@ void Renderer::update_uniforms(double delta)
         {
             int32_t light_idx = i + m_per_scene_uniforms->light_count.x;
 
-            PointLight& light = point_lights[light_idx];
+            PointLight& light = point_lights[i];
 
             m_per_scene_uniforms->lights[light_idx].data0 = glm::vec4(light.transform.position, light.shadow_map_bias);
             m_per_scene_uniforms->lights[light_idx].data1 = glm::vec4(POINT_LIGHT_NEAR_PLANE, light.range, 0.0f, 0.0f);
             m_per_scene_uniforms->lights[light_idx].data2 = glm::vec4(light.color, light.intensity);
+            m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(LIGHT_TYPE_POINT, -1, -1, -1);
 
             if (m_point_shadow_map_index_map.find(i) != m_point_shadow_map_index_map.end())
             {
-                glm::ivec4 shadow_data                          = m_point_shadow_map_index_map[i];
-                m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(shadow_data.x, LIGHT_TYPE_POINT, 0, 0);
+                glm::ivec4 shadow_data                             = m_point_shadow_map_index_map[i];
+                m_per_scene_uniforms->lights[light_idx].indices0.x = shadow_data.x;
             }
-            else
-                m_per_scene_uniforms->lights[light_idx].indices0 = glm::ivec4(-1);
         }
 
         m_per_scene_uniforms->light_count.x += scene->point_light_count();
@@ -1788,7 +1786,7 @@ void Renderer::update_uniforms(double delta)
         m_per_scene_uniforms->light_count.z = scene->spot_light_count();
         m_per_scene_uniforms->light_count.w = scene->point_light_count();
 
-        memcpy(m_per_scene_mapped_ptr[m_current_frame_idx], &m_per_scene_uniforms, sizeof(PerSceneUniforms));
+        memcpy(m_per_scene_mapped_ptr[m_current_frame_idx], m_per_scene_uniforms.get(), sizeof(PerSceneUniforms));
     }
 }
 

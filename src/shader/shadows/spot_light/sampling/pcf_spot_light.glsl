@@ -2,7 +2,7 @@
 // PCF  -------------------------------------------------------------
 // ------------------------------------------------------------------
 
-float spot_light_shadows(in FragmentProperties f, int light_idx)
+float spot_light_shadows(in FragmentProperties f, uint light_idx)
 {
     int shadow_matrix_idx = spot_light_shadow_matrix_index(light_idx);
 
