@@ -24,6 +24,7 @@ TAANode::TAANode(RenderGraph* graph) :
     register_bool_parameter("Use Motion Blur", m_use_motion_blur);
     register_bool_parameter("Use Optimizations", m_use_optimizations);
     register_bool_parameter("Use Dilation", m_use_dilation);
+    register_bool_parameter("Use Sharpening", m_sharpen);
     register_float_parameter("Feedback Min", m_feedback_min, 0.0f, 1.0f);
     register_float_parameter("Feedback Max", m_feedback_max, 0.0, 1.0f);
 }
@@ -137,6 +138,7 @@ void TAANode::execute(double delta, Renderer* renderer, Scene* scene, View* view
         if (m_taa_program->set_uniform("s_Depth", 3) && m_depth_rt)
             m_depth_rt->texture->bind(3);
 
+        m_taa_program->set_uniform("u_Sharpen", (int)m_sharpen);
         m_taa_program->set_uniform("u_TexelSize", glm::vec4(1.0f / m_graph->window_width(), 1.0f / m_graph->window_height(), m_graph->window_width(), m_graph->window_height()));
         m_taa_program->set_uniform("u_FeedbackMin", m_feedback_min);
         m_taa_program->set_uniform("u_FeedbackMax", m_feedback_max);

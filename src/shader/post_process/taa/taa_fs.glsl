@@ -35,6 +35,7 @@ uniform float u_MotionScale;
 uniform vec4 u_TexelSize;
 uniform float u_FeedbackMin;
 uniform float u_FeedbackMax;
+uniform int u_Sharpen;
 
 // ------------------------------------------------------------------
 // CONSTANTS  -------------------------------------------------------
@@ -283,7 +284,7 @@ vec4 temporal_reprojection(vec2 ss_txc, vec2 ss_vel, float vs_dist)
 	vec4 cmin = min(c00, min(c10, min(c01, c11)));
 	vec4 cmax = max(c00, max(c10, max(c01, c11)));
 
-	#if defined(USE_YCOCG || USE_CLIPPING)
+	#if defined(USE_YCOCG) || defined(USE_CLIPPING)
 		vec4 cavg = (c00 + c10 + c01 + c11) / 4.0;
 	#endif
 #else
@@ -318,6 +319,21 @@ vec4 temporal_reprojection(vec2 ss_txc, vec2 ss_vel, float vs_dist)
 	float unbiased_weight = 1.0 - unbiased_diff;
 	float unbiased_weight_sqr = unbiased_weight * unbiased_weight;
 	float k_feedback = mix(u_FeedbackMin, u_FeedbackMax, unbiased_weight_sqr);
+	
+	// sharpen
+	if (u_Sharpen == 1)
+	{
+		vec4 sum = vec4(0.0);
+
+		sum += -1.0 * cml;
+		sum += -1.0 * ctc;
+		sum += 5.0 * texel0;
+		sum += -1.0 * cbc;
+		sum += -1.0 * cmr;
+
+		texel0 = sum;
+	}
+
 	// output
 	return mix(texel0, texel1, k_feedback);
 }

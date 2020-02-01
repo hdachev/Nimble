@@ -248,7 +248,7 @@ private:
         REGISTER_RENDER_NODE(DepthPrepassNode, m_resource_manager);
 
         // Create Forward render graph
-        m_forward_graph = m_resource_manager.load_render_graph("graph/deferred_graph_ssr.json", &m_renderer);
+        m_forward_graph = m_resource_manager.load_render_graph("graph/tiled_forward_graph.json", &m_renderer);
 
         // Create Point Light render graph
         m_pcf_point_light_graph = m_resource_manager.load_shadow_render_graph("PCFPointLightDepthNode", &m_renderer);
@@ -271,18 +271,17 @@ private:
 
         m_renderer.set_scene_render_graph(m_forward_graph);
 
-        //create_random_point_lights(512);
+        create_random_point_lights(1024);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
-    void create_random_spot_lights()
+    void create_random_spot_lights(uint32_t num_lights)
     {
         AABB aabb = m_scene->aabb();
 
         const float    range      = 300.0f;
         const float    intensity  = 10.0f;
-        const uint32_t num_lights = 10;
         const float    aabb_scale = 0.6f;
 
         std::random_device rd;
@@ -325,8 +324,6 @@ private:
 
     void gui()
     {
-        float cpu_time = 0.0f;
-        float gpu_time = 0.0f;
         ImGui::ShowDemoWindow();
         ImGuizmo::BeginFrame();
 
