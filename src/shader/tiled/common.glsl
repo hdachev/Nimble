@@ -2,14 +2,6 @@
 #define MAX_POINT_LIGHTS_PER_TILE 512
 #define MAX_SPOT_LIGHTS_PER_TILE 512
 
-struct LightIndices
-{
-    uint num_point_lights;
-    uint num_spot_lights;
-    uint point_light_indices[MAX_POINT_LIGHTS_PER_TILE];
-    uint spot_light_indices[MAX_SPOT_LIGHTS_PER_TILE];
-};
-
 struct Frustum
 {
     vec4 planes[4];

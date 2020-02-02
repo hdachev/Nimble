@@ -74,14 +74,16 @@ void ReflectionNode::execute(double delta, Renderer* renderer, Scene* scene, Vie
 
         if (m_reflection_program->set_uniform("s_SSR", 0))
             m_ssr_rt->texture->bind(0);
+
+        if (m_reflection_program->set_uniform("s_Color", 1) && m_color_rt)
+            m_color_rt->texture->bind(1);
+
+        m_reflection_program->set_uniform("u_SSR", m_ssr_rt ? (float)m_ssr : 0.0f);
+
+        render_fullscreen_triangle(renderer, view);
     }
-
-    if (m_reflection_program->set_uniform("s_Color", 1) && m_color_rt)
-        m_color_rt->texture->bind(1);
-
-    m_reflection_program->set_uniform("u_SSR", m_ssr_rt ? (float)m_ssr : 0.0f);
-
-    render_fullscreen_triangle(renderer, view);
+    else
+        blit_render_target(renderer, m_color_rt, m_reflection_rt);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
