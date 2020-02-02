@@ -23,6 +23,7 @@ private:
     std::shared_ptr<RenderTarget>           m_depth_rt;
     std::shared_ptr<RenderTarget>           m_velocity_rt;
     std::shared_ptr<ComputeBuffer>          m_light_indices;
+    std::shared_ptr<ComputeBuffer>          m_light_grid;
     RenderTargetView                        m_color_rtv[2];
     RenderTargetView                        m_depth_rtv;
 };

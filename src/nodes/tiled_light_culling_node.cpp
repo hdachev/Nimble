@@ -37,13 +37,15 @@ bool TiledLightCullingNode::initialize(Renderer* renderer, ResourceManager* res_
 {
     m_depth_rt = find_input_render_target("Depth");
 
-    m_tiled_light_cull_cs = res_mgr->load_shader("shader/tiled/light_culling_cs.glsl", GL_COMPUTE_SHADER);
+    m_tiled_light_cull_cs   = res_mgr->load_shader("shader/tiled/light_culling_cs.glsl", GL_COMPUTE_SHADER);
     m_frustum_precompute_cs = res_mgr->load_shader("shader/tiled/precompute_frustums_cs.glsl", GL_COMPUTE_SHADER);
+    m_reset_counter_cs      = res_mgr->load_shader("shader/tiled/reset_counter_cs.glsl", GL_COMPUTE_SHADER);
 
-    if (m_tiled_light_cull_cs && m_frustum_precompute_cs)
+    if (m_tiled_light_cull_cs && m_frustum_precompute_cs && m_reset_counter_cs)
     {
-        m_tiled_light_cull_program = renderer->create_program({ m_tiled_light_cull_cs });
+        m_tiled_light_cull_program   = renderer->create_program({ m_tiled_light_cull_cs });
         m_frustum_precompute_program = renderer->create_program({ m_frustum_precompute_cs });
+        m_reset_counter_program      = renderer->create_program({ m_reset_counter_cs });
 
         return true;
     }
@@ -68,10 +70,13 @@ void TiledLightCullingNode::on_window_resized(const uint32_t& w, const uint32_t&
     uint32_t tile_count_x = ceil(float(w) / float(TILE_SIZE));
     uint32_t tile_count_y = ceil(float(h) / float(TILE_SIZE));
 
-    m_culled_light_indices = std::make_shared<ShaderStorageBuffer>(0, sizeof(LightIndices) * tile_count_x * tile_count_y);
-    m_precomputed_frustums   = std::make_shared<ShaderStorageBuffer>(0, sizeof(Frustum) * tile_count_x * tile_count_y);
+    m_culled_light_indices = std::make_shared<ShaderStorageBuffer>(0, sizeof(glm::uvec4) * tile_count_x * tile_count_y * MAX_LIGHTS_PER_TILE);
+    m_light_grid           = std::make_shared<ShaderStorageBuffer>(0, sizeof(glm::uvec4) * tile_count_x * tile_count_y);
+    m_light_counter        = std::make_shared<ShaderStorageBuffer>(0, sizeof(glm::uvec4));
+    m_precomputed_frustums = std::make_shared<ShaderStorageBuffer>(0, sizeof(Frustum) * tile_count_x * tile_count_y);
 
     register_output_buffer("LightIndices", m_culled_light_indices);
+    register_output_buffer("LightGrid", m_light_grid);
 
     m_requires_precompute = true;
 }
@@ -88,7 +93,7 @@ void TiledLightCullingNode::precompute_frustum(Renderer* renderer, View* view)
     uint32_t tile_count_y = ceil(float(m_graph->window_height()) / float(TILE_SIZE));
 
     m_precomputed_frustums->bind_base(3);
-   
+
     m_frustum_precompute_program->set_uniform("u_TileCountX", (int32_t)tile_count_x);
     m_frustum_precompute_program->set_uniform("u_TileCountY", (int32_t)tile_count_y);
 
@@ -104,6 +109,18 @@ void TiledLightCullingNode::precompute_frustum(Renderer* renderer, View* view)
 
 void TiledLightCullingNode::cull_lights(Renderer* renderer, View* view)
 {
+    // Reset counters
+
+    m_reset_counter_program->use();
+
+    m_light_counter->bind_base(6);
+
+    glDispatchCompute(1, 1, 1);
+
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+    // Cull lights
+
     m_tiled_light_cull_program->use();
 
     uint32_t tile_count_x = ceil(float(m_graph->window_width()) / float(TILE_SIZE));
@@ -111,6 +128,8 @@ void TiledLightCullingNode::cull_lights(Renderer* renderer, View* view)
 
     m_precomputed_frustums->bind_base(3);
     m_culled_light_indices->bind_base(4);
+    m_light_grid->bind_base(5);
+    m_light_counter->bind_base(6);
 
     if (m_tiled_light_cull_program->set_uniform("s_Depth", 0) && m_depth_rt)
         m_depth_rt->texture->bind(0);

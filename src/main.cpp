@@ -304,7 +304,7 @@ private:
     {
         AABB aabb = m_scene->aabb();
 
-        const float    range      = 150.0f;
+        const float    range      = 100.0f;
         const float    intensity  = 10.0f;
         const float    aabb_scale = 0.6f;
 

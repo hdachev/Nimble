@@ -24,6 +24,7 @@ TiledForwardNode::~TiledForwardNode()
 void TiledForwardNode::declare_connections()
 {
     register_input_buffer("LightIndices");
+    register_input_buffer("LightGrid");
 
     m_color_rt    = register_scaled_output_render_target("Color", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT);
     m_depth_rt    = register_scaled_output_render_target("Depth", 1.0f, 1.0f, GL_TEXTURE_2D, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
@@ -37,6 +38,7 @@ bool TiledForwardNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     register_bool_parameter("Visualize Heat Map", m_visualize_heat_map);
 
     m_light_indices = find_input_buffer("LightIndices");
+    m_light_grid = find_input_buffer("LightGrid");
 
     m_library = renderer->shader_cache().load_generated_library("shader/forward/forward_vs.glsl", "shader/forward/tiled_forward_fs.glsl");
 
@@ -63,6 +65,7 @@ void TiledForwardNode::execute(double delta, Renderer* renderer, Scene* scene, V
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     m_light_indices->buffer->bind_base(3);
+    m_light_grid->buffer->bind_base(4);
 
     render_scene(renderer, scene, view, m_library.get(), NODE_USAGE_DEFAULT);
 }

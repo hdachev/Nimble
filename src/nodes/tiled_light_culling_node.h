@@ -5,16 +5,7 @@
 namespace nimble
 {
 #define TILE_SIZE 16
-#define MAX_POINT_LIGHTS_PER_TILE 512
-#define MAX_SPOT_LIGHTS_PER_TILE 512
-
-struct LightIndices
-{
-    glm::vec4 num_point_lights;
-    glm::vec4 num_spot_lights;
-    glm::vec4 point_light_indices[MAX_POINT_LIGHTS_PER_TILE];
-    glm::vec4 spot_light_indices[MAX_SPOT_LIGHTS_PER_TILE];
-};
+#define MAX_LIGHTS_PER_TILE 1024
 
 struct TileFrustum
 {
@@ -41,10 +32,15 @@ private:
 private:
     std::shared_ptr<ShaderStorageBuffer> m_precomputed_frustums;
     std::shared_ptr<ShaderStorageBuffer> m_culled_light_indices;
+    std::shared_ptr<ShaderStorageBuffer> m_light_grid;
+    std::shared_ptr<ShaderStorageBuffer> m_light_counter;
     std::shared_ptr<RenderTarget>        m_depth_rt;
 
 	std::shared_ptr<Shader>  m_tiled_light_cull_cs;
     std::shared_ptr<Program> m_tiled_light_cull_program;
+
+    std::shared_ptr<Shader>  m_reset_counter_cs;
+    std::shared_ptr<Program> m_reset_counter_program;
 
     std::shared_ptr<Shader>  m_frustum_precompute_cs;
     std::shared_ptr<Program> m_frustum_precompute_program;

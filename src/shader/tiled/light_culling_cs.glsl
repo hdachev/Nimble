@@ -7,8 +7,7 @@
 // ------------------------------------------------------------------
 
 #define TILE_SIZE 16
-#define MAX_POINT_LIGHTS_PER_TILE 512
-#define MAX_SPOT_LIGHTS_PER_TILE 512
+#define MAX_LIGHTS_PER_TILE 1024
 
 // ------------------------------------------------------------------
 // STRUCTURES -------------------------------------------------------
@@ -43,7 +42,17 @@ layout (std430, binding = 3) buffer u_Frustums
 
 layout(std430, binding = 4) buffer u_LightIndices
 {
-	LightIndices indices[];
+	uint light_indices[];
+};
+
+layout(std430, binding = 5) buffer u_LightGrid
+{
+	uvec4 light_grid[];
+};
+
+layout(std430, binding = 6) buffer u_LightCounter
+{
+	uvec4 light_counter;
 };
 
 uniform sampler2D s_Depth;
@@ -57,6 +66,10 @@ shared uint g_MaxDepth;
 shared Frustum g_Frustum;
 shared uint g_PointLightCount;
 shared uint g_SpotLightCount;
+shared uint g_PointLightStartOffset;
+shared uint g_SpotLightStartOffset;
+shared uint g_LightCount;
+shared uint g_SharedLightList[MAX_LIGHTS_PER_TILE];
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
@@ -129,6 +142,7 @@ void main()
         g_MaxDepth = 0;
         g_PointLightCount = 0;
         g_SpotLightCount = 0;
+        g_LightCount = 0;
         g_Frustum = frustums[tile_idx];
     }
 
@@ -150,29 +164,34 @@ void main()
 
     barrier();
 
-    for (uint i = (point_light_offset() + gl_LocalInvocationIndex); g_PointLightCount < MAX_POINT_LIGHTS_PER_TILE && i < point_light_count(); i += (TILE_SIZE * TILE_SIZE))
+    for (uint i = (point_light_offset() + gl_LocalInvocationIndex); g_LightCount < MAX_LIGHTS_PER_TILE && i < point_light_count(); i += (TILE_SIZE * TILE_SIZE))
     {
         if (is_point_light_visible(i, g_Frustum, min_depth_vs, max_depth_vs))
         {
-            const uint idx = atomicAdd(g_PointLightCount, 1);
+            const uint idx = atomicAdd(g_LightCount, 1);
 
-            if (idx >= MAX_POINT_LIGHTS_PER_TILE)
+            if (idx >= MAX_LIGHTS_PER_TILE)
                 break;
 
-            indices[tile_idx].point_light_indices[idx] = i;
+            g_SharedLightList[idx] = i;
         }
     }
 
-    for (uint i = (spot_light_offset() + gl_LocalInvocationIndex); g_SpotLightCount < MAX_SPOT_LIGHTS_PER_TILE && i < spot_light_count(); i += (TILE_SIZE * TILE_SIZE))
+    barrier();
+
+    if (gl_LocalInvocationIndex == 0)
+        g_PointLightCount = g_LightCount;
+
+    for (uint i = (spot_light_offset() + gl_LocalInvocationIndex); g_LightCount < MAX_LIGHTS_PER_TILE && i < spot_light_count(); i += (TILE_SIZE * TILE_SIZE))
     {
         if (is_spot_light_visible(i, g_Frustum))
         {
-            const uint idx = atomicAdd(g_SpotLightCount, 1);
+            const uint idx = atomicAdd(g_LightCount, 1);
 
-            if (idx >= MAX_SPOT_LIGHTS_PER_TILE)
+            if (idx >= MAX_LIGHTS_PER_TILE)
                 break;
 
-            indices[tile_idx].spot_light_indices[idx] = i;
+           g_SharedLightList[idx] = i;
         }
     }
 
@@ -180,9 +199,25 @@ void main()
 
     if (gl_LocalInvocationIndex == 0)
     {
-        indices[tile_idx].num_point_lights = min(g_PointLightCount, MAX_POINT_LIGHTS_PER_TILE);
-        indices[tile_idx].num_spot_lights = min(g_SpotLightCount, MAX_SPOT_LIGHTS_PER_TILE);
+        g_SpotLightCount = g_LightCount - g_PointLightCount;
+
+        light_grid[tile_idx].x = g_PointLightCount;
+        light_grid[tile_idx].y = g_SpotLightCount;
+
+        g_PointLightStartOffset = atomicAdd(light_counter.x, g_PointLightCount);
+        g_SpotLightStartOffset = atomicAdd(light_counter.y, g_SpotLightCount);
+
+        light_grid[tile_idx].z = g_PointLightStartOffset;
+        light_grid[tile_idx].w = g_SpotLightStartOffset;
     }
+
+    barrier();
+
+    for (uint i = gl_LocalInvocationIndex; i < g_PointLightCount; i += (TILE_SIZE * TILE_SIZE))
+        light_indices[g_PointLightStartOffset + i] = g_SharedLightList[i];
+
+    for (uint i = gl_LocalInvocationIndex; i < g_SpotLightCount; i += (TILE_SIZE * TILE_SIZE))
+        light_indices[g_SpotLightStartOffset + i] = g_SharedLightList[i];
 }
 
 // ------------------------------------------------------------------

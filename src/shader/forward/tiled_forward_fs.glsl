@@ -46,20 +46,7 @@ layout (location = 1) out vec2 FS_OUT_Velocity;
 // ------------------------------------------------------------------
 
 #define TILE_SIZE 16
-#define MAX_POINT_LIGHTS_PER_TILE 512
-#define MAX_SPOT_LIGHTS_PER_TILE 512
-
-// ------------------------------------------------------------------
-// STRUCTURES -------------------------------------------------------
-// ------------------------------------------------------------------
-
-struct LightIndices
-{
-	uint num_point_lights;
-    uint num_spot_lights;
-    uint point_light_indices[MAX_POINT_LIGHTS_PER_TILE];
-    uint spot_light_indices[MAX_SPOT_LIGHTS_PER_TILE];
-};
+#define MAX_LIGHTS_PER_TILE 1024
 
 // ------------------------------------------------------------------
 // UNIFORMS ---------------------------------------------------------
@@ -67,8 +54,43 @@ struct LightIndices
 
 layout(std430, binding = 3) buffer u_LightIndices
 {
-	LightIndices indices[];
+	uint indices[];
 };
+
+// ------------------------------------------------------------------
+
+layout(std430, binding = 4) buffer u_LightGrid
+{
+	uvec4 light_grid[];
+};
+
+// ------------------------------------------------------------------
+
+uint visible_point_light_count(uint tile_idx)
+{
+	return light_grid[tile_idx].x;
+}
+
+// ------------------------------------------------------------------
+
+uint visible_spot_light_count(uint tile_idx)
+{
+	return light_grid[tile_idx].y;
+}
+
+// ------------------------------------------------------------------
+
+uint visible_point_light_start_offset(uint tile_idx)
+{
+	return light_grid[tile_idx].z;
+}
+
+// ------------------------------------------------------------------
+
+uint visible_spot_light_start_offset(uint tile_idx)
+{
+	return light_grid[tile_idx].w;
+}
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
@@ -121,18 +143,22 @@ vec3 light_contribution(in MaterialProperties m, in FragmentProperties f,  in PB
 	uint tile_idx = tile_id.y * uint(ceil(float(viewport_width) / float(TILE_SIZE))) + tile_id.x;
 
 #ifdef POINT_LIGHTS
-	for (int i = 0; i < indices[tile_idx].num_point_lights; i++)
-		Lo += pbr_point_light_contribution(m, f, pbr, int(indices[tile_idx].point_light_indices[i]));
+	uint pl_offset = visible_point_light_start_offset(tile_idx);
+	uint pl_count = visible_point_light_count(tile_idx);
+
+	for (uint i = 0; i < pl_count; i++)
+		Lo += pbr_point_light_contribution(m, f, pbr, int(indices[pl_offset + i]));
 
 #endif
 
-// #ifdef SPOT_LIGHTS
-// 	shadow_casting_light_idx = 0;
+#ifdef SPOT_LIGHTS
+	uint sl_offset = visible_spot_light_start_offset(tile_idx);
+	uint sl_count = visible_spot_light_count(tile_idx);
 
-// 	for (int i = 0; i < indices[tile_idx].num_spot_lights; i++)
-// 		Lo += pbr_spot_light_contribution(m, f, pbr, int(indices[tile_idx].spot_light_indices[i]), shadow_casting_light_idx);
+	for (uint i = 0; i < sl_count; i++)
+		Lo += pbr_spot_light_contribution(m, f, pbr, int(indices[sl_offset + i]));
 
-// #endif
+#endif
 
 	return Lo;
 }
@@ -192,7 +218,8 @@ void main()
 	uvec2 tile_id = uvec2(gl_FragCoord.xy / TILE_SIZE);
 	uint tile_idx = tile_id.y * uint(ceil(float(viewport_width) / float(TILE_SIZE))) + tile_id.x;
 
-	float intensity = float(indices[tile_idx].num_point_lights) / float(MAX_POINT_LIGHTS_PER_TILE);
+	uint visible_light_count = visible_point_light_count(tile_idx) + visible_spot_light_count(tile_idx);
+	float intensity = float(visible_light_count) / float(MAX_LIGHTS_PER_TILE);
 
 	float minimum = 0.0;
 	float maximum = 1.0;

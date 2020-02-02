@@ -30,6 +30,12 @@
                     "slot_name" : "LightIndices",
                     "prev_node_name" : "TiledLightCullingNode",
                     "prev_output_name" : "LightIndices"
+                },
+                {
+                    "type" : "BUFFER",
+                    "slot_name" : "LightGrid",
+                    "prev_node_name" : "TiledLightCullingNode",
+                    "prev_output_name" : "LightGrid"
                 }
             ]
         },
