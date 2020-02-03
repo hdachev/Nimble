@@ -1,10 +1,20 @@
+// ------------------------------------------------------------------
+// DEFINES ----------------------------------------------------------
+// ------------------------------------------------------------------
+
 #define TILE_SIZE 16
-#define MAX_POINT_LIGHTS_PER_TILE 512
-#define MAX_SPOT_LIGHTS_PER_TILE 512
+#define MAX_LIGHTS_PER_CLUSTER 1024
+#define MAX_LIGHTS_PER_TILE 1024
 
 struct Frustum
 {
     vec4 planes[4];
+};
+
+struct ClusteredAABB
+{
+    vec4 aabb_min;
+    vec4 aabb_max;
 };
 
 vec4 screen_to_view_space(vec4 p, vec2 screen_size, mat4 inv_proj)

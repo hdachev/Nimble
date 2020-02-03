@@ -1,6 +1,6 @@
 #include <../common/uniforms.glsl>
 #include <../common/helper.glsl>
-#include <common.glsl>
+#include <../tiled/common.glsl>
 
 // ------------------------------------------------------------------
 // STRUCTURES -------------------------------------------------------
@@ -22,15 +22,15 @@ struct Sphere
 // INPUTS -----------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (local_size_x = TILE_SIZE, local_size_y = TILE_SIZE, local_size_z = 1) in;
+layout (local_size_x = TILE_SIZE, local_size_y = TILE_SIZE, local_size_z = TILE_SIZE) in;
 
 // ------------------------------------------------------------------
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (std430, binding = 3) buffer u_Frustums
+layout (std430, binding = 3) buffer u_ClusterAABBs
 {
-	Frustum frustums[];
+	ClusteredAABB clusters[];
 };
 
 layout(std430, binding = 4) buffer u_LightIndices
@@ -48,21 +48,19 @@ layout(std430, binding = 6) buffer u_LightCounter
 	uvec4 light_counter;
 };
 
-uniform sampler2D s_Depth;
-
 // ------------------------------------------------------------------
 // SHARED DATA ------------------------------------------------------
 // ------------------------------------------------------------------
 
 shared uint g_MinDepth;
 shared uint g_MaxDepth;
-shared Frustum g_Frustum;
+shared ClusteredAABB g_Cluster;
 shared uint g_PointLightCount;
 shared uint g_SpotLightCount;
 shared uint g_PointLightStartOffset;
 shared uint g_SpotLightStartOffset;
 shared uint g_LightCount;
-shared uint g_SharedLightList[MAX_LIGHTS_PER_TILE];
+shared uint g_SharedLightList[MAX_LIGHTS_PER_CLUSTER];
 
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
@@ -127,7 +125,9 @@ bool is_spot_light_visible(uint idx, in Frustum frustum)
 
 void main()
 {
-    const uint tile_idx = (gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x);
+    const uint cluster_idx = gl_WorkGroupID.x +
+                             gl_WorkGroupID.y * gl_NumWorkGroups.x +
+                             gl_WorkGroupID.z * (gl_NumWorkGroups.x * gl_NumWorkGroups.y);
 
     if (gl_LocalInvocationIndex == 0)
     {
@@ -136,7 +136,7 @@ void main()
         g_PointLightCount = 0;
         g_SpotLightCount = 0;
         g_LightCount = 0;
-        g_Frustum = frustums[tile_idx];
+        g_Cluster = clusters[cluster_idx];
     }
 
     barrier();
@@ -157,9 +157,9 @@ void main()
 
     barrier();
 
-    for (uint i = (point_light_offset() + gl_LocalInvocationIndex); g_LightCount < MAX_LIGHTS_PER_TILE && i < point_light_count(); i += (TILE_SIZE * TILE_SIZE))
+    for (uint i = (point_light_offset() + gl_LocalInvocationIndex); g_LightCount < MAX_LIGHTS_PER_TILE && i < point_light_count(); i += (TILE_SIZE * TILE_SIZE * TILE_SIZE))
     {
-        if (is_point_light_visible(i, g_Frustum, min_depth_vs, max_depth_vs))
+        if (is_point_light_visible(i, g_Cluster, min_depth_vs, max_depth_vs))
         {
             const uint idx = atomicAdd(g_LightCount, 1);
 
@@ -175,9 +175,9 @@ void main()
     if (gl_LocalInvocationIndex == 0)
         g_PointLightCount = g_LightCount;
 
-    for (uint i = (spot_light_offset() + gl_LocalInvocationIndex); g_LightCount < MAX_LIGHTS_PER_TILE && i < spot_light_count(); i += (TILE_SIZE * TILE_SIZE))
+    for (uint i = (spot_light_offset() + gl_LocalInvocationIndex); g_LightCount < MAX_LIGHTS_PER_TILE && i < spot_light_count(); i += (TILE_SIZE * TILE_SIZE * TILE_SIZE))
     {
-        if (is_spot_light_visible(i, g_Frustum))
+        if (is_spot_light_visible(i, g_Cluster))
         {
             const uint idx = atomicAdd(g_LightCount, 1);
 
@@ -194,22 +194,22 @@ void main()
     {
         g_SpotLightCount = g_LightCount - g_PointLightCount;
 
-        light_grid[tile_idx].x = g_PointLightCount;
-        light_grid[tile_idx].y = g_SpotLightCount;
+        light_grid[cluster_idx].x = g_PointLightCount;
+        light_grid[cluster_idx].y = g_SpotLightCount;
 
         g_PointLightStartOffset = atomicAdd(light_counter.x, g_PointLightCount);
         g_SpotLightStartOffset = atomicAdd(light_counter.y, g_SpotLightCount);
 
-        light_grid[tile_idx].z = g_PointLightStartOffset;
-        light_grid[tile_idx].w = g_SpotLightStartOffset;
+        light_grid[cluster_idx].z = g_PointLightStartOffset;
+        light_grid[cluster_idx].w = g_SpotLightStartOffset;
     }
 
     barrier();
 
-    for (uint i = gl_LocalInvocationIndex; i < g_PointLightCount; i += (TILE_SIZE * TILE_SIZE))
+    for (uint i = gl_LocalInvocationIndex; i < g_PointLightCount; i += (TILE_SIZE * TILE_SIZE * TILE_SIZE))
         light_indices[g_PointLightStartOffset + i] = g_SharedLightList[i];
 
-    for (uint i = gl_LocalInvocationIndex; i < g_SpotLightCount; i += (TILE_SIZE * TILE_SIZE))
+    for (uint i = gl_LocalInvocationIndex; i < g_SpotLightCount; i += (TILE_SIZE * TILE_SIZE * TILE_SIZE))
         light_indices[g_SpotLightStartOffset + i] = g_SharedLightList[i];
 }
 
