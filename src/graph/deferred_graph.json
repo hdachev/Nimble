@@ -128,7 +128,7 @@
             ]
         },
         {
-            "name" : "TAANode",
+            "name" : "FXAANode",
             "defines" : [],
             "inputs" : 
             [
@@ -137,31 +137,6 @@
                     "slot_name" : "Color",
                     "prev_node_name" : "ReflectionNode",
                     "prev_output_name" : "Reflection"
-                },
-                {
-                    "type" : "RENDER_TARGET",
-                    "slot_name" : "Velocity",
-                    "prev_node_name" : "GBufferNode",
-                    "prev_output_name" : "G-Buffer3"
-                },
-                {
-                    "type" : "RENDER_TARGET",
-                    "slot_name" : "Depth",
-                    "prev_node_name" : "GBufferNode",
-                    "prev_output_name" : "Depth"
-                }
-            ]
-        },
-        {
-            "name" : "FXAANode",
-            "defines" : [],
-            "inputs" : 
-            [
-                {
-                    "type" : "RENDER_TARGET",
-                    "slot_name" : "Color",
-                    "prev_node_name" : "TAANode",
-                    "prev_output_name" : "TAA"
                 }
             ]
         },

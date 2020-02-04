@@ -1,9 +1,9 @@
 {
-    "name" : "Tiled Forward",
+    "name" : "Deferred",
     "type" : "RENDER_GRAPH_STANDARD",
     "nodes" : [
         {
-            "name" : "DepthPrepassNode",
+            "name" : "GBufferNode",
             "defines" : [],
             "inputs" : []
         },
@@ -15,46 +15,8 @@
                 {
                     "type" : "RENDER_TARGET",
                     "slot_name" : "Depth",
-                    "prev_node_name" : "DepthPrepassNode",
+                    "prev_node_name" : "GBufferNode",
                     "prev_output_name" : "Depth"
-                }
-            ]
-        },
-        {
-            "name" : "TiledForwardNode",
-            "defines" : [],
-            "inputs" : 
-            [
-                {
-                    "type" : "BUFFER",
-                    "slot_name" : "LightIndices",
-                    "prev_node_name" : "TiledLightCullingNode",
-                    "prev_output_name" : "LightIndices"
-                },
-                {
-                    "type" : "BUFFER",
-                    "slot_name" : "LightGrid",
-                    "prev_node_name" : "TiledLightCullingNode",
-                    "prev_output_name" : "LightGrid"
-                },
-                {
-                    "type" : "RENDER_TARGET",
-                    "slot_name" : "Depth",
-                    "prev_node_name" : "DepthPrepassNode",
-                    "prev_output_name" : "Depth"
-                }
-            ]
-        },
-        {
-            "name" : "StopNaNsNode",
-            "defines" : [],
-            "inputs" : 
-            [
-                {
-                    "type" : "RENDER_TARGET",
-                    "slot_name" : "Color",
-                    "prev_node_name" : "TiledForwardNode",
-                    "prev_output_name" : "Color"
                 }
             ]
         },
@@ -66,8 +28,95 @@
                 {
                     "type" : "RENDER_TARGET",
                     "slot_name" : "Depth",
-                    "prev_node_name" : "DepthPrepassNode",
+                    "prev_node_name" : "GBufferNode",
                     "prev_output_name" : "Depth"
+                }
+            ]
+        },
+        {
+            "name" : "SSAONode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "HiZNode",
+                    "prev_output_name" : "HiZDepth"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Normals",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer2"
+                }
+            ]
+        },
+        {
+            "name" : "TiledDeferredNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "G-Buffer1",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer1"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "G-Buffer2",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer2"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "G-Buffer3",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer3"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "G-Buffer4",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer4"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "Depth"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "SSAO",
+                    "prev_node_name" : "SSAONode",
+                    "prev_output_name" : "SSAO"
+                },
+                {
+                    "type" : "BUFFER",
+                    "slot_name" : "LightIndices",
+                    "prev_node_name" : "TiledLightCullingNode",
+                    "prev_output_name" : "LightIndices"
+                },
+                {
+                    "type" : "BUFFER",
+                    "slot_name" : "LightGrid",
+                    "prev_node_name" : "TiledLightCullingNode",
+                    "prev_output_name" : "LightGrid"
+                }
+            ]
+        },
+        {
+            "name" : "StopNaNsNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "TiledDeferredNode",
+                    "prev_output_name" : "Color"
                 }
             ]
         },
@@ -85,8 +134,21 @@
                 {
                     "type" : "RENDER_TARGET",
                     "slot_name" : "Depth",
-                    "prev_node_name" : "DepthPrepassNode",
+                    "prev_node_name" : "GBufferNode",
                     "prev_output_name" : "Depth"
+                }
+            ]
+        },
+        {
+            "name" : "ReflectionNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "CubemapSkyboxNode",
+                    "prev_output_name" : "Color"
                 }
             ]
         },
@@ -98,8 +160,8 @@
                 {
                     "type" : "RENDER_TARGET",
                     "slot_name" : "Color",
-                    "prev_node_name" : "CubemapSkyboxNode",
-                    "prev_output_name" : "Color"
+                    "prev_node_name" : "ReflectionNode",
+                    "prev_output_name" : "Reflection"
                 }
             ]
         },
@@ -181,8 +243,8 @@
                 {
                     "type" : "RENDER_TARGET",
                     "slot_name" : "Velocity",
-                    "prev_node_name" : "TiledForwardNode",
-                    "prev_output_name" : "Velocity"
+                    "prev_node_name" : "GBufferNode",
+                    "prev_output_name" : "G-Buffer3"
                 }
             ]
         },

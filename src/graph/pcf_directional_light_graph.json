@@ -1,0 +1,12 @@
+{
+    "name" : "PCF Directional Light",
+    "type" : "RENDER_GRAPH_SHADOW",
+    "sampling_source" : "shader/shadows/directional_light/sampling/pcf_directional_light.glsl",
+    "nodes" : [
+        {
+            "name" : "PCFDirectionalLightDepthNode",
+            "defines" : [],
+            "inputs" : []
+        }
+    ]
+}

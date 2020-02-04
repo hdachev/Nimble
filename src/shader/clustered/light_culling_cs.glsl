@@ -52,8 +52,6 @@ layout(std430, binding = 6) buffer u_LightCounter
 // SHARED DATA ------------------------------------------------------
 // ------------------------------------------------------------------
 
-shared uint g_MinDepth;
-shared uint g_MaxDepth;
 shared ClusteredAABB g_Cluster;
 shared uint g_PointLightCount;
 shared uint g_SpotLightCount;
@@ -66,41 +64,34 @@ shared uint g_SharedLightList[MAX_LIGHTS_PER_CLUSTER];
 // FUNCTIONS --------------------------------------------------------
 // ------------------------------------------------------------------
 
-bool sphere_inside_plane(Sphere sphere, Plane plane)
+vec3 closest_point(in ClusteredAABB aabb, in vec3 point)
 {
-    return dot(plane.N, sphere.c) - plane.d < -sphere.r;
+    vec3 result = point;
+
+    result.x = (result.x < aabb_min.x) ? aabb_min.x : result.x;
+	result.y = (result.y < aabb_min.x) ? aabb_min.y : result.y;
+	result.z = (result.z < aabb_min.x) ? aabb_min.z : result.z;
+
+	result.x = (result.x > aabb_max.x) ? aabb_max.x : result.x;
+	result.y = (result.y > aabb_max.x) ? aabb_max.y : result.y;
+	result.z = (result.z > aabb_max.x) ? aabb_max.z : result.z;
+
+	return result;
 }
 
 // ------------------------------------------------------------------
 
-bool sphere_inside_frustum(Sphere sphere, Frustum frustum, float zNear, float zFar)
+bool sphere_intersects_aabb(in Sphere sphere, in ClusterAABB aabb) 
 {
-    bool result = true;
-
-    // First check depth
-    // Note: Here, the view vector points in the -Z axis so the 
-    // far depth value will be approaching -infinity.
-    if ( (sphere.c.z - sphere.r) > zNear || (sphere.c.z + sphere.r) < zFar )
-        result = false;
-
-    // Then check frustum planes
-    for (int i = 0; i < 4 && result; i++)
-    {
-        Plane p;
-
-        p.N = frustum.planes[i].xyz;
-        p.d = frustum.planes[i].w;
-
-        if (sphere_inside_plane( sphere, p))
-            result = false;
-    }
-
-    return result;
+	vec3 closest_point = closest_point(aabb, sphere.c);
+	float dist_sq = pow(sphere.c - closest_point, 2.0);
+	float radius_sq = sphere.r * sphere.r;
+	return dist_sq < radius_sq;
 }
 
 // ------------------------------------------------------------------
 
-bool is_point_light_visible(uint idx, in Frustum frustum, float zNear, float zFar)
+bool is_point_light_visible(uint idx, in ClusteredAABB aabb)
 {
     vec4 position_vs = view_mat * vec4(point_light_position(idx), 1.0);
 
@@ -109,7 +100,7 @@ bool is_point_light_visible(uint idx, in Frustum frustum, float zNear, float zFa
     sphere.c = position_vs.xyz;
     sphere.r = point_light_far_field(idx);
 
-    return sphere_inside_frustum(sphere, frustum, zNear, zFar);
+    return sphere_intersects_aabb(sphere, frustum, zNear, zFar);
 }
 
 // ------------------------------------------------------------------
@@ -131,8 +122,6 @@ void main()
 
     if (gl_LocalInvocationIndex == 0)
     {
-        g_MinDepth = 0xFFFFFFFF;
-        g_MaxDepth = 0;
         g_PointLightCount = 0;
         g_SpotLightCount = 0;
         g_LightCount = 0;
@@ -141,25 +130,9 @@ void main()
 
     barrier();
 
-    float depth = 2.0 * texelFetch(s_Depth, ivec2(gl_GlobalInvocationID.xy), 0).r - 1.0;
-    
-    uint depth_int = floatBitsToUint(depth);
-	atomicMin(g_MinDepth, depth_int);
-	atomicMax(g_MaxDepth, depth_int);
-
-    barrier();
-
-    float fmin_depth = uintBitsToFloat(g_MinDepth);
-    float fmax_depth = uintBitsToFloat(g_MaxDepth);
-
-    float min_depth_vs = clip_to_view_space(vec4(0.0, 0.0, fmin_depth, 1.0), inv_proj).z;
-    float max_depth_vs = clip_to_view_space(vec4(0.0, 0.0, fmax_depth, 1.0), inv_proj).z;
-
-    barrier();
-
     for (uint i = (point_light_offset() + gl_LocalInvocationIndex); g_LightCount < MAX_LIGHTS_PER_TILE && i < point_light_count(); i += (TILE_SIZE * TILE_SIZE * TILE_SIZE))
     {
-        if (is_point_light_visible(i, g_Cluster, min_depth_vs, max_depth_vs))
+        if (is_point_light_visible(i, g_Cluster))
         {
             const uint idx = atomicAdd(g_LightCount, 1);
 

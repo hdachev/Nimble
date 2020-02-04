@@ -1,0 +1,12 @@
+{
+    "name" : "PCF Spot Light",
+    "type" : "RENDER_GRAPH_SHADOW",
+    "sampling_source" : "shader/shadows/spot_light/sampling/pcf_spot_light.glsl",
+    "nodes" : [
+        {
+            "name" : "PCFDirectionalLightDepthNode",
+            "defines" : [],
+            "inputs" : []
+        }
+    ]
+}
