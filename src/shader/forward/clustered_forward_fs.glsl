@@ -60,30 +60,38 @@ layout(std430, binding = 4) buffer u_LightGrid
 
 // ------------------------------------------------------------------
 
-uint visible_point_light_count(uint tile_idx)
+layout (std140, binding = 5) uniform u_ClusterData
 {
-	return light_grid[tile_idx].x;
+	uvec4 cluster_size;
+	vec4 scale_bias;
+};
+
+// ------------------------------------------------------------------
+
+uint visible_point_light_count(uint cluster_idx)
+{
+	return light_grid[cluster_idx].x;
 }
 
 // ------------------------------------------------------------------
 
-uint visible_spot_light_count(uint tile_idx)
+uint visible_spot_light_count(uint cluster_idx)
 {
-	return light_grid[tile_idx].y;
+	return light_grid[cluster_idx].y;
 }
 
 // ------------------------------------------------------------------
 
-uint visible_point_light_start_offset(uint tile_idx)
+uint visible_point_light_start_offset(uint cluster_idx)
 {
-	return light_grid[tile_idx].z;
+	return light_grid[cluster_idx].z;
 }
 
 // ------------------------------------------------------------------
 
-uint visible_spot_light_start_offset(uint tile_idx)
+uint visible_spot_light_start_offset(uint cluster_idx)
 {
-	return light_grid[tile_idx].w;
+	return light_grid[cluster_idx].w;
 }
 
 // ------------------------------------------------------------------
@@ -123,6 +131,8 @@ void fragment_func(inout MaterialProperties m, inout FragmentProperties f)
 
 #endif
 
+// ------------------------------------------------------------------
+
 vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f,  in PBRProperties pbr)
 {
 	vec3 Lo = vec3(0.0);
@@ -133,12 +143,15 @@ vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f
 
 #endif
 
-	uvec2 tile_id = uvec2(gl_FragCoord.xy / TILE_SIZE);
-	uint tile_idx = tile_id.y * uint(ceil(float(viewport_width) / float(TILE_SIZE))) + tile_id.x;
+	uint  cluster_idx = uint(max(log2(linear_eye_depth(gl_FragCoord.z)) * scale_bias.x + scale_bias.y, 0.0));
+	uvec3 cluster_id  = uvec3(uvec2(gl_FragCoord.xy / cluster_size.x), cluster_id);
+    uint  cluster_idx = cluster_id.x +
+						cluster_size.x * cluster_id.y +
+                   	    cluster_size.x * cluster_size.y * cluster_id.z;  
 
 #ifdef POINT_LIGHTS
-	uint pl_offset = visible_point_light_start_offset(tile_idx);
-	uint pl_count = visible_point_light_count(tile_idx);
+	uint pl_offset = visible_point_light_start_offset(cluster_idx);
+	uint pl_count = visible_point_light_count(cluster_idx);
 
 	for (uint i = 0; i < pl_count; i++)
 		Lo += pbr_point_light_contribution(m, f, pbr, int(indices[pl_offset + i]));
@@ -146,8 +159,8 @@ vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f
 #endif
 
 #ifdef SPOT_LIGHTS
-	uint sl_offset = visible_spot_light_start_offset(tile_idx);
-	uint sl_count = visible_spot_light_count(tile_idx);
+	uint sl_offset = visible_spot_light_start_offset(cluster_idx);
+	uint sl_count = visible_spot_light_count(cluster_idx);
 
 	for (uint i = 0; i < sl_count; i++)
 		Lo += pbr_spot_light_contribution(m, f, pbr, int(indices[sl_offset + i]));

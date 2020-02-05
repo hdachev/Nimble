@@ -123,6 +123,8 @@ void fragment_func(inout MaterialProperties m, inout FragmentProperties f)
 
 #endif
 
+// ------------------------------------------------------------------
+
 vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f,  in PBRProperties pbr)
 {
 	vec3 Lo = vec3(0.0);
