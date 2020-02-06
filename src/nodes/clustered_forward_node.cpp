@@ -71,7 +71,7 @@ void ClusteredForwardNode::execute(double delta, Renderer* renderer, Scene* scen
 
     ClusterData cluster_data = 
     {
-        glm::uvec4(tile_count_x, tile_count_y, CLUSTER_Z_SLICES, 0),
+        glm::uvec4(CLUSTER_TILE_SIZE, CLUSTER_TILE_SIZE, CLUSTER_Z_SLICES, 0),
         glm::vec4(1.0f / view->near_plane, 1.0f / logf(sD + 1.0f), 0.0f, 0.0f)
     };
 
@@ -114,7 +114,7 @@ void ClusteredForwardNode::shutdown()
 
 std::string ClusteredForwardNode::name()
 {
-    return "Tiled Forward";
+    return "Clustered Forward";
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
