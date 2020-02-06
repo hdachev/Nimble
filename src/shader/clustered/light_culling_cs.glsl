@@ -68,20 +68,20 @@ vec3 closest_point(in ClusteredAABB aabb, in vec3 point)
 {
     vec3 result = point;
 
-    result.x = (result.x < aabb_min.x) ? aabb_min.x : result.x;
-	result.y = (result.y < aabb_min.x) ? aabb_min.y : result.y;
-	result.z = (result.z < aabb_min.x) ? aabb_min.z : result.z;
+    result.x = (result.x < aabb.aabb_min.x) ? aabb.aabb_min.x : result.x;
+	result.y = (result.y < aabb.aabb_min.x) ? aabb.aabb_min.y : result.y;
+	result.z = (result.z < aabb.aabb_min.x) ? aabb.aabb_min.z : result.z;
 
-	result.x = (result.x > aabb_max.x) ? aabb_max.x : result.x;
-	result.y = (result.y > aabb_max.x) ? aabb_max.y : result.y;
-	result.z = (result.z > aabb_max.x) ? aabb_max.z : result.z;
+	result.x = (result.x > aabb.aabb_max.x) ? aabb.aabb_max.x : result.x;
+	result.y = (result.y > aabb.aabb_max.x) ? aabb.aabb_max.y : result.y;
+	result.z = (result.z > aabb.aabb_max.x) ? aabb.aabb_max.z : result.z;
 
 	return result;
 }
 
 // ------------------------------------------------------------------
 
-bool sphere_intersects_aabb(in Sphere sphere, in ClusterAABB aabb) 
+bool sphere_intersects_aabb(in Sphere sphere, in ClusteredAABB aabb) 
 {
 	vec3 closest_point = closest_point(aabb, sphere.c);
 	float dist_sq = pow(length(sphere.c - closest_point), 2.0);
@@ -100,12 +100,12 @@ bool is_point_light_visible(uint idx, in ClusteredAABB aabb)
     sphere.c = position_vs.xyz;
     sphere.r = point_light_far_field(idx);
 
-    return sphere_intersects_aabb(sphere, frustum, zNear, zFar);
+    return sphere_intersects_aabb(sphere, aabb);
 }
 
 // ------------------------------------------------------------------
 
-bool is_spot_light_visible(uint idx, in Frustum frustum)
+bool is_spot_light_visible(uint idx, in ClusteredAABB aabb)
 {
     return false;
 }

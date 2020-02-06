@@ -39,7 +39,7 @@ bool ClusteredLightCullingNode::initialize(Renderer* renderer, ResourceManager* 
 
     m_clustered_light_cull_cs   = res_mgr->load_shader("shader/clustered/light_culling_cs.glsl", GL_COMPUTE_SHADER);
     m_cluster_precompute_cs = res_mgr->load_shader("shader/clustered/precompute_clusters_cs.glsl", GL_COMPUTE_SHADER);
-    m_reset_counter_cs      = res_mgr->load_shader("shader/clustered/reset_counter_cs.glsl", GL_COMPUTE_SHADER);
+    m_reset_counter_cs      = res_mgr->load_shader("shader/tiled/reset_counter_cs.glsl", GL_COMPUTE_SHADER);
 
     if (m_clustered_light_cull_cs && m_cluster_precompute_cs && m_reset_counter_cs)
     {
@@ -130,9 +130,6 @@ void ClusteredLightCullingNode::cull_lights(Renderer* renderer, View* view)
     m_culled_light_indices->bind_base(4);
     m_light_grid->bind_base(5);
     m_light_counter->bind_base(6);
-
-    if (m_clustered_light_cull_program->set_uniform("s_Depth", 0) && m_depth_rt)
-        m_depth_rt->texture->bind(0);
 
     dispatch_compute(tile_count_x, tile_count_y, CLUSTER_Z_SLICES, renderer, view, m_clustered_light_cull_program.get(), 0, NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS);
 

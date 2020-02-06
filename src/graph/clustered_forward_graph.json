@@ -1,0 +1,209 @@
+{
+    "name" : "Clustered Forward",
+    "type" : "RENDER_GRAPH_STANDARD",
+    "nodes" : [
+        {
+            "name" : "DepthPrepassNode",
+            "defines" : [],
+            "inputs" : []
+        },
+        {
+            "name" : "ClusteredLightCullingNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "DepthPrepassNode",
+                    "prev_output_name" : "Depth"
+                }
+            ]
+        },
+        {
+            "name" : "TiledForwardNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "BUFFER",
+                    "slot_name" : "LightIndices",
+                    "prev_node_name" : "ClusteredLightCullingNode",
+                    "prev_output_name" : "LightIndices"
+                },
+                {
+                    "type" : "BUFFER",
+                    "slot_name" : "LightGrid",
+                    "prev_node_name" : "ClusteredLightCullingNode",
+                    "prev_output_name" : "LightGrid"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "DepthPrepassNode",
+                    "prev_output_name" : "Depth"
+                }
+            ]
+        },
+        {
+            "name" : "StopNaNsNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "TiledForwardNode",
+                    "prev_output_name" : "Color"
+                }
+            ]
+        },
+        {
+            "name" : "HiZNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "DepthPrepassNode",
+                    "prev_output_name" : "Depth"
+                }
+            ]
+        },
+        {
+            "name" : "CubemapSkyboxNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "StopNaNsNode",
+                    "prev_output_name" : "Color"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "DepthPrepassNode",
+                    "prev_output_name" : "Depth"
+                }
+            ]
+        },
+        {
+            "name" : "FXAANode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "CubemapSkyboxNode",
+                    "prev_output_name" : "Color"
+                }
+            ]
+        },
+        {
+            "name" : "AdaptiveExposureNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "FXAANode",
+                    "prev_output_name" : "FXAA"
+                }
+            ]
+        },
+        {
+            "name" : "BloomNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "FXAANode",
+                    "prev_output_name" : "FXAA"
+                }
+            ]
+        },
+        {
+            "name" : "VolumetricLightNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "BloomNode",
+                    "prev_output_name" : "Bloom"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "HiZNode",
+                    "prev_output_name" : "HiZDepth"
+                }
+            ]
+        },
+        {
+            "name" : "DepthOfFieldNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "VolumetricLightNode",
+                    "prev_output_name" : "Color"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Depth",
+                    "prev_node_name" : "HiZNode",
+                    "prev_output_name" : "HiZDepth"
+                }
+            ]
+        },
+        {
+            "name" : "MotionBlurNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "DepthOfFieldNode",
+                    "prev_output_name" : "DoFComposite"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Velocity",
+                    "prev_node_name" : "TiledForwardNode",
+                    "prev_output_name" : "Velocity"
+                }
+            ]
+        },
+        {
+            "name" : "ToneMapNode",
+            "defines" : [],
+            "inputs" : 
+            [
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Color",
+                    "prev_node_name" : "MotionBlurNode",
+                    "prev_output_name" : "MotionBlur"
+                },
+                {
+                    "type" : "RENDER_TARGET",
+                    "slot_name" : "Luminance",
+                    "prev_node_name" : "AdaptiveExposureNode",
+                    "prev_output_name" : "Luminance"
+                }
+            ]
+        }
+    ]
+}

@@ -63,7 +63,7 @@ layout(std430, binding = 4) buffer u_LightGrid
 layout (std140, binding = 5) uniform u_ClusterData
 {
 	uvec4 cluster_size;
-	vec4 scale_bias;
+	vec4  recip_near_denom;
 };
 
 // ------------------------------------------------------------------
@@ -133,6 +133,13 @@ void fragment_func(inout MaterialProperties m, inout FragmentProperties f)
 
 // ------------------------------------------------------------------
 
+uint cluster_z_index(in float view_z)
+{
+	return uint(max(log(-view_z * recip_near_denom.x) / recip_near_denom.y, 0.0));
+}
+
+// ------------------------------------------------------------------
+
 vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f,  in PBRProperties pbr)
 {
 	vec3 Lo = vec3(0.0);
@@ -143,8 +150,7 @@ vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f
 
 #endif
 
-	uint  cluster_idx = uint(max(log2(linear_eye_depth(gl_FragCoord.z)) * scale_bias.x + scale_bias.y, 0.0));
-	uvec3 cluster_id  = uvec3(uvec2(gl_FragCoord.xy / cluster_size.x), cluster_id);
+	uvec3 cluster_id  = uvec3(uvec2(gl_FragCoord.xy / cluster_size.x), cluster_z_index(linear_eye_depth(gl_FragCoord.z)));
     uint  cluster_idx = cluster_id.x +
 						cluster_size.x * cluster_id.y +
                    	    cluster_size.x * cluster_size.y * cluster_id.z;  
@@ -222,20 +228,7 @@ void main()
 	// vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
 	vec3 color = Lo + m.albedo.xyz * 0.1;
 
-	uvec2 tile_id = uvec2(gl_FragCoord.xy / TILE_SIZE);
-	uint tile_idx = tile_id.y * uint(ceil(float(viewport_width) / float(TILE_SIZE))) + tile_id.x;
-
-	uint visible_light_count = visible_point_light_count(tile_idx) + visible_spot_light_count(tile_idx);
-	float intensity = float(visible_light_count) / float(MAX_LIGHTS_PER_TILE);
-
-	float minimum = 0.0;
-	float maximum = 1.0;
-	float ratio = 2 * (intensity - minimum) / (maximum - minimum);
-	float b = max(0, 1 - ratio);
-	float r = max(0, ratio - 1);
-	float g = max(0, 1.0 - b - r);
-
-    FS_OUT_Color = color;// * vec3(r,g,b);
+    FS_OUT_Color = color;
 	FS_OUT_Velocity = motion_vector(FS_IN_LastScreenPosition, FS_IN_ScreenPosition);
 }
 

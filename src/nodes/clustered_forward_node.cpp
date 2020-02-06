@@ -64,16 +64,15 @@ bool ClusteredForwardNode::initialize(Renderer* renderer, ResourceManager* res_m
 
 void ClusteredForwardNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
-    uint32_t tile_count_x = ceil(float(m_graph->actual_viewport_width()) / float(CLUSTER_TILE_SIZE));
-    uint32_t tile_count_y = ceil(float(m_graph->actual_viewport_height()) / float(CLUSTER_TILE_SIZE));
+    uint32_t tile_count_x  = ceil(float(m_graph->actual_viewport_width()) / float(CLUSTER_TILE_SIZE));
+    uint32_t tile_count_y  = ceil(float(m_graph->actual_viewport_height()) / float(CLUSTER_TILE_SIZE));
+    uint32_t grid_to_dim_y = (m_graph->actual_viewport_height() + tile_count_y - 1) / tile_count_y;
+    float    sD            = 2.0f * tanf(glm::radians(view->fov) * 0.5f) / float(grid_to_dim_y);
 
     ClusterData cluster_data = 
     {
         glm::uvec4(tile_count_x, tile_count_y, CLUSTER_Z_SLICES, 0),
-        glm::vec4(float(CLUSTER_Z_SLICES) / std::log2f(view->far_plane / view->near_plane),
-                  -(float(CLUSTER_Z_SLICES) * std::log2f(view->near_plane) / std::log2f(view->far_plane / view->near_plane)),
-                  0.0f,
-                  0.0f)
+        glm::vec4(1.0f / view->near_plane, 1.0f / logf(sD + 1.0f), 0.0f, 0.0f)
     };
 
     void* ptr = m_cluster_data->map(GL_MAP_WRITE_BIT);
