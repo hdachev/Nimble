@@ -97,10 +97,7 @@ void TiledLightCullingNode::precompute_frustum(Renderer* renderer, View* view)
     m_frustum_precompute_program->set_uniform("u_TileCountX", (int32_t)tile_count_x);
     m_frustum_precompute_program->set_uniform("u_TileCountY", (int32_t)tile_count_y);
 
-    uint32_t dispatch_size_x = ceil(float(tile_count_x) / float(TILE_SIZE));
-    uint32_t dispatch_size_y = ceil(float(tile_count_y) / float(TILE_SIZE));
-
-    dispatch_compute(dispatch_size_x, dispatch_size_y, 1, renderer, view, m_frustum_precompute_program.get(), 0, NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS);
+    dispatch_compute(tile_count_x, tile_count_y, 1, renderer, view, m_frustum_precompute_program.get(), 0, NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS);
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }

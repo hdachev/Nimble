@@ -55,7 +55,7 @@ bool ClusteredForwardNode::initialize(Renderer* renderer, ResourceManager* res_m
     m_color_rtv[1] = RenderTargetView(0, 0, 0, m_velocity_rt->texture);
     m_depth_rtv    = RenderTargetView(0, 0, 0, m_depth_rt->texture);
 
-    m_cluster_data = std::shared_ptr<UniformBuffer>(new UniformBuffer(GL_DYNAMIC_STORAGE_BIT, sizeof(ClusterData)));
+    m_cluster_data = std::shared_ptr<UniformBuffer>(new UniformBuffer(GL_DYNAMIC_DRAW, sizeof(ClusterData)));
 
     return true;
 }
@@ -64,18 +64,18 @@ bool ClusteredForwardNode::initialize(Renderer* renderer, ResourceManager* res_m
 
 void ClusteredForwardNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
-    uint32_t tile_count_x  = ceil(float(m_graph->actual_viewport_width()) / float(CLUSTER_TILE_SIZE));
-    uint32_t tile_count_y  = ceil(float(m_graph->actual_viewport_height()) / float(CLUSTER_TILE_SIZE));
-    uint32_t grid_to_dim_y = (m_graph->actual_viewport_height() + tile_count_y - 1) / tile_count_y;
+    uint32_t tile_size_x  = ceil(float(m_graph->actual_viewport_width()) / float(CLUSTER_GRID_DIM_X));
+    uint32_t tile_size_y  = ceil(float(m_graph->actual_viewport_height()) / float(CLUSTER_GRID_DIM_Y));
+    uint32_t grid_to_dim_y = (m_graph->actual_viewport_height() + CLUSTER_GRID_DIM_Y - 1) / CLUSTER_GRID_DIM_Y;
     float    sD            = 2.0f * tanf(glm::radians(view->fov) * 0.5f) / float(grid_to_dim_y);
 
     ClusterData cluster_data = 
     {
-        glm::uvec4(CLUSTER_TILE_SIZE, CLUSTER_TILE_SIZE, CLUSTER_Z_SLICES, 0),
+        glm::uvec4(tile_size_x, tile_size_x, 0, 0),
         glm::vec4(1.0f / view->near_plane, 1.0f / logf(sD + 1.0f), 0.0f, 0.0f)
     };
 
-    void* ptr = m_cluster_data->map(GL_MAP_WRITE_BIT);
+    void* ptr = m_cluster_data->map(GL_WRITE_ONLY);
 
     memcpy(ptr, &cluster_data, sizeof(ClusterData));
 

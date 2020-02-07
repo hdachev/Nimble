@@ -5,6 +5,9 @@
 #define TILE_SIZE 16
 #define MAX_LIGHTS_PER_CLUSTER 1024
 #define MAX_LIGHTS_PER_TILE 1024
+#define CLUSTER_GRID_DIM_X 16
+#define CLUSTER_GRID_DIM_Y 8
+#define CLUSTER_GRID_DIM_Z 24
 
 struct Frustum
 {

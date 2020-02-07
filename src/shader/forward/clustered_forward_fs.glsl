@@ -150,7 +150,7 @@ vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f
 
 #endif
 
-	uvec3 cluster_id  = uvec3(uvec2(gl_FragCoord.xy / cluster_size.x), cluster_z_index(linear_eye_depth(gl_FragCoord.z)));
+	uvec3 cluster_id  = uvec3(uvec2(gl_FragCoord.x / cluster_size.x, gl_FragCoord.y / cluster_size.y), cluster_z_index(linear_eye_depth(gl_FragCoord.z)));
     uint  cluster_idx = cluster_id.x +
 						cluster_size.x * cluster_id.y +
                    	    cluster_size.x * cluster_size.y * cluster_id.z;  

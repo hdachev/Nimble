@@ -2,6 +2,8 @@
 #include <../common/helper.glsl>
 #include <../tiled/common.glsl>
 
+#define BLOCK_SIZE 16
+
 // ------------------------------------------------------------------
 // STRUCTURES -------------------------------------------------------
 // ------------------------------------------------------------------
@@ -22,7 +24,7 @@ struct Sphere
 // INPUTS -----------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (local_size_x = TILE_SIZE, local_size_y = TILE_SIZE, local_size_z = 1) in;
+layout (local_size_x = BLOCK_SIZE, local_size_y = BLOCK_SIZE, local_size_z = 1) in;
 
 // ------------------------------------------------------------------
 // UNIFORMS ---------------------------------------------------------
@@ -130,7 +132,7 @@ void main()
 
     barrier();
 
-    for (uint i = (point_light_offset() + gl_LocalInvocationIndex); g_LightCount < MAX_LIGHTS_PER_TILE && i < point_light_count(); i += (TILE_SIZE * TILE_SIZE))
+    for (uint i = (point_light_offset() + gl_LocalInvocationIndex); g_LightCount < MAX_LIGHTS_PER_TILE && i < point_light_count(); i += (BLOCK_SIZE * BLOCK_SIZE))
     {
         if (is_point_light_visible(i, g_Cluster))
         {
@@ -148,7 +150,7 @@ void main()
     if (gl_LocalInvocationIndex == 0)
         g_PointLightCount = g_LightCount;
 
-    for (uint i = (spot_light_offset() + gl_LocalInvocationIndex); g_LightCount < MAX_LIGHTS_PER_TILE && i < spot_light_count(); i += (TILE_SIZE * TILE_SIZE))
+    for (uint i = (spot_light_offset() + gl_LocalInvocationIndex); g_LightCount < MAX_LIGHTS_PER_TILE && i < spot_light_count(); i += (BLOCK_SIZE * BLOCK_SIZE))
     {
         if (is_spot_light_visible(i, g_Cluster))
         {
@@ -179,10 +181,10 @@ void main()
 
     barrier();
 
-    for (uint i = gl_LocalInvocationIndex; i < g_PointLightCount; i += (TILE_SIZE * TILE_SIZE))
+    for (uint i = gl_LocalInvocationIndex; i < g_PointLightCount; i += (BLOCK_SIZE * BLOCK_SIZE))
         light_indices[g_PointLightStartOffset + i] = g_SharedLightList[i];
 
-    for (uint i = gl_LocalInvocationIndex; i < g_SpotLightCount; i += (TILE_SIZE * TILE_SIZE))
+    for (uint i = gl_LocalInvocationIndex; i < g_SpotLightCount; i += (BLOCK_SIZE * BLOCK_SIZE))
         light_indices[g_SpotLightStartOffset + i] = g_SharedLightList[i];
 }
 
