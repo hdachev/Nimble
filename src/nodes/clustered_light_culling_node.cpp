@@ -57,7 +57,7 @@ bool ClusteredLightCullingNode::initialize(Renderer* renderer, ResourceManager* 
 
 void ClusteredLightCullingNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
-    if (m_requires_precompute)
+    //if (m_requires_precompute)
         precompute_frustum(renderer, view);
 
     cull_lights(renderer, view);
@@ -88,6 +88,11 @@ void ClusteredLightCullingNode::precompute_frustum(Renderer* renderer, View* vie
 
     m_precomputed_clusters->bind_base(3);
 
+    int32_t tile_size_x = ceil(float(m_graph->actual_viewport_width()) / float(CLUSTER_GRID_DIM_X));
+    int32_t tile_size_y = ceil(float(m_graph->actual_viewport_height()) / float(CLUSTER_GRID_DIM_Y));
+
+    m_cluster_precompute_program->set_uniform("u_TileSize", glm::vec2(tile_size_x, tile_size_y));
+   
     dispatch_compute(CLUSTER_GRID_DIM_X, CLUSTER_GRID_DIM_Y, CLUSTER_GRID_DIM_Z, renderer, view, m_cluster_precompute_program.get(), 0, NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS);
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);

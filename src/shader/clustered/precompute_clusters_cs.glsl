@@ -17,6 +17,8 @@ layout (std430, binding = 3) buffer u_ClusterAABBs
 	ClusteredAABB clusters[];
 };
 
+uniform vec2 u_TileSize;
+
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
 // ------------------------------------------------------------------
@@ -49,14 +51,14 @@ void main()
 
     vec3 camera_pos_vs = vec3(0.0);
 
-    vec4 max_point_ss = vec4((gl_WorkGroupID.x + 1) * CLUSTER_GRID_DIM_X, (gl_WorkGroupID.y + 1) * CLUSTER_GRID_DIM_Y, 1, 1);
-    vec4 min_point_ss = vec4(gl_WorkGroupID.x * CLUSTER_GRID_DIM_X, gl_WorkGroupID.y * CLUSTER_GRID_DIM_Y, -1, 1); 
+    vec4 max_point_ss = vec4((gl_WorkGroupID.x + 1) * u_TileSize.x, (gl_WorkGroupID.y + 1) * u_TileSize.y, 1, 1);
+    vec4 min_point_ss = vec4(gl_WorkGroupID.x * u_TileSize.x, gl_WorkGroupID.y * u_TileSize.y, -1, 1); 
 
     vec4 max_point_vs = screen_to_view_space(max_point_ss, viewport_params.xy, inv_proj);
     vec4 min_point_vs = screen_to_view_space(min_point_ss, viewport_params.xy, inv_proj);
 
-    float tile_near = -z_buffer_params.x * pow(z_buffer_params.y / z_buffer_params.x, gl_WorkGroupID.z / float(gl_NumWorkGroups.z));
-    float tile_far  = -z_buffer_params.x * pow(z_buffer_params.y / z_buffer_params.x, (gl_WorkGroupID.z + 1) / float(gl_NumWorkGroups.z));
+    float tile_near = -near_plane * pow(far_plane / near_plane, gl_WorkGroupID.z / float(gl_NumWorkGroups.z));
+    float tile_far  = -near_plane * pow(far_plane / near_plane, (gl_WorkGroupID.z + 1) / float(gl_NumWorkGroups.z));
 
     vec3 min_point_near = line_intersection_to_z_plane(camera_pos_vs, min_point_vs.xyz, tile_near);
     vec3 min_point_far  = line_intersection_to_z_plane(camera_pos_vs, min_point_vs.xyz, tile_far);
