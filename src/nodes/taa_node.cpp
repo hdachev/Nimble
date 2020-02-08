@@ -54,7 +54,7 @@ bool TAANode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_color_rt    = find_input_render_target("Color");
     m_velocity_rt = find_input_render_target("Velocity");
-    m_depth_rt = find_input_render_target("Depth");
+    m_depth_rt    = find_input_render_target("Depth");
 
     m_taa_rtv             = RenderTargetView(0, 0, 0, m_taa_rt->texture);
     m_reprojection_rtv[0] = RenderTargetView(0, 0, 0, m_reprojection_rt[0]->texture);

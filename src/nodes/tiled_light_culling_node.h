@@ -36,7 +36,7 @@ private:
     std::shared_ptr<ShaderStorageBuffer> m_light_counter;
     std::shared_ptr<RenderTarget>        m_depth_rt;
 
-	std::shared_ptr<Shader>  m_tiled_light_cull_cs;
+    std::shared_ptr<Shader>  m_tiled_light_cull_cs;
     std::shared_ptr<Program> m_tiled_light_cull_program;
 
     std::shared_ptr<Shader>  m_reset_counter_cs;

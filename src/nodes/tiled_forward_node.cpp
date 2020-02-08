@@ -40,7 +40,7 @@ bool TiledForwardNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     m_depth_rt = find_input_render_target("Depth");
 
     m_light_indices = find_input_buffer("LightIndices");
-    m_light_grid = find_input_buffer("LightGrid");
+    m_light_grid    = find_input_buffer("LightGrid");
 
     m_library = renderer->shader_cache().load_generated_library("shader/forward/forward_vs.glsl", "shader/forward/tiled_forward_fs.glsl");
 

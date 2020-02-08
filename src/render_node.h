@@ -78,27 +78,27 @@ public:
 
     struct InputBuffer
     {
-        std::string                          slot_name;
-        std::string                          prev_slot_name;
-        std::shared_ptr<ComputeBuffer>       prev_buffer;
-        std::shared_ptr<RenderNode>          prev_node;
+        std::string                    slot_name;
+        std::string                    prev_slot_name;
+        std::shared_ptr<ComputeBuffer> prev_buffer;
+        std::shared_ptr<RenderNode>    prev_node;
     };
 
     RenderNode(RenderGraph* graph);
     ~RenderNode();
 
-    std::shared_ptr<RenderTarget>        find_output_render_target(const std::string& name);
-    std::shared_ptr<RenderTarget>        find_intermediate_render_target(const std::string& name);
-    std::shared_ptr<RenderTarget>        find_input_render_target(const std::string& name);
-    std::shared_ptr<ComputeBuffer>       find_output_buffer(const std::string& name);
-    std::shared_ptr<ComputeBuffer>       find_input_buffer(const std::string& name);
-    OutputRenderTarget*                  find_output_render_target_slot(const std::string& name);
-    InputRenderTarget*                   find_input_render_target_slot(const std::string& name);
-    OutputBuffer*                        find_output_buffer_slot(const std::string& name);
-    InputBuffer*                         find_input_buffer_slot(const std::string& name);
-    void                                 set_input(const std::string& name, OutputRenderTarget* render_target, std::shared_ptr<RenderNode> owner);
-    void                                 set_input(const std::string& name, OutputBuffer* buffer, std::shared_ptr<RenderNode> owner);
-    std::string                          shadow_test_source();
+    std::shared_ptr<RenderTarget>  find_output_render_target(const std::string& name);
+    std::shared_ptr<RenderTarget>  find_intermediate_render_target(const std::string& name);
+    std::shared_ptr<RenderTarget>  find_input_render_target(const std::string& name);
+    std::shared_ptr<ComputeBuffer> find_output_buffer(const std::string& name);
+    std::shared_ptr<ComputeBuffer> find_input_buffer(const std::string& name);
+    OutputRenderTarget*            find_output_render_target_slot(const std::string& name);
+    InputRenderTarget*             find_input_render_target_slot(const std::string& name);
+    OutputBuffer*                  find_output_buffer_slot(const std::string& name);
+    InputBuffer*                   find_input_buffer_slot(const std::string& name);
+    void                           set_input(const std::string& name, OutputRenderTarget* render_target, std::shared_ptr<RenderNode> owner);
+    void                           set_input(const std::string& name, OutputBuffer* buffer, std::shared_ptr<RenderNode> owner);
+    std::string                    shadow_test_source();
 
     // Inline getters
     inline std::vector<InputRenderTarget>&  input_render_targets() { return m_input_rts; }

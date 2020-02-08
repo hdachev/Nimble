@@ -28,7 +28,7 @@ void StopNaNsNode::declare_connections()
     // Declare the inputs to this render node
     register_input_render_target("Color");
 
-	m_output_rt = register_scaled_output_render_target("Color", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT);
+    m_output_rt = register_scaled_output_render_target("Color", 1.0f, 1.0f, GL_TEXTURE_2D, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ bool StopNaNsNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     m_texture = find_input_render_target("Color");
 
-	m_output_rtv = RenderTargetView(0, 0, 0, m_output_rt->texture);
+    m_output_rtv = RenderTargetView(0, 0, 0, m_output_rt->texture);
 
     m_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
     m_fs = res_mgr->load_shader("shader/post_process/stop_nans_fs.glsl", GL_FRAGMENT_SHADER);

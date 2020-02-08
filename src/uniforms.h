@@ -8,13 +8,13 @@ namespace nimble
 {
 struct LightData
 {
-                         // | Spot                     | Directional                                        | Point                    |
-    glm::ivec4 indices0; // | x: shadow map, y: matrix | x: first shadow map index, y: first cascade matrix | x: shadow map            | 
+    // | Spot                     | Directional                                        | Point                    |
+    glm::ivec4 indices0; // | x: shadow map, y: matrix | x: first shadow map index, y: first cascade matrix | x: shadow map            |
     glm::ivec4 indices1; // |                          |                                                    |                          |
-    glm::vec4 data0;     // | xyz: position, w: bias   | xyz: direction, w: bias                            | xyz: positon, w: bias    |
-    glm::vec4 data1;     // | xy: cutoff               | xyz: color, w: intensity                           | x: near, y: far          |
-    glm::vec4 data2;     // | xyz: direction, w: range | xyzw: far planes                                   | xyz: color, w: intensity |
-    glm::vec4 data3;     // | xyz: color, w: intensity |                                                    |                          |
+    glm::vec4  data0;    // | xyz: position, w: bias   | xyz: direction, w: bias                            | xyz: positon, w: bias    |
+    glm::vec4  data1;    // | xy: cutoff               | xyz: color, w: intensity                           | x: near, y: far          |
+    glm::vec4  data2;    // | xyz: direction, w: range | xyzw: far planes                                   | xyz: color, w: intensity |
+    glm::vec4  data3;    // | xyz: color, w: intensity |                                                    |                          |
 };
 
 struct PerViewUniforms
