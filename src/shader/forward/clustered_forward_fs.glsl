@@ -135,7 +135,15 @@ void fragment_func(inout MaterialProperties m, inout FragmentProperties f)
 
 uint cluster_z_index(in float view_z)
 {
-	return uint(max(log(-view_z * recip_near_denom.x) * recip_near_denom.y, 0.0));
+	return uint(max(log2(view_z) * recip_near_denom.x + recip_near_denom.y, 0.0));
+	// return uint(max(log(-view_z * recip_near_denom.x) * recip_near_denom.y, 0.0));
+}
+
+float linearDepth(float depthSample){
+    float depthRange = 2.0 * depthSample - 1.0;
+    // Near... Far... wherever you are...
+    float linear = 2.0 * near_plane * far_plane / (far_plane + near_plane - depthRange * (far_plane - near_plane));
+    return linear;
 }
 
 // ------------------------------------------------------------------
@@ -150,7 +158,7 @@ vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f
 
 #endif
 
-	uvec3 cluster_id  = uvec3(uvec2(gl_FragCoord.x / cluster_size.x, gl_FragCoord.y / cluster_size.y), cluster_z_index(linear_eye_depth(gl_FragCoord.z)));
+	uvec3 cluster_id  = uvec3(uvec2(gl_FragCoord.x / cluster_size.x, gl_FragCoord.y / cluster_size.y), cluster_z_index(linearDepth(gl_FragCoord.z)));
     uint  cluster_idx = cluster_id.x +
 						cluster_id.y * CLUSTER_GRID_DIM_X +
                    	    cluster_id.z * CLUSTER_GRID_DIM_X * CLUSTER_GRID_DIM_Y;  
