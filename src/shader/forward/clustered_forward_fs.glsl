@@ -136,14 +136,7 @@ void fragment_func(inout MaterialProperties m, inout FragmentProperties f)
 uint cluster_z_index(in float view_z)
 {
 	return uint(max(log2(view_z) * recip_near_denom.x + recip_near_denom.y, 0.0));
-	// return uint(max(log(-view_z * recip_near_denom.x) * recip_near_denom.y, 0.0));
-}
-
-float linearDepth(float depthSample){
-    float depthRange = 2.0 * depthSample - 1.0;
-    // Near... Far... wherever you are...
-    float linear = 2.0 * near_plane * far_plane / (far_plane + near_plane - depthRange * (far_plane - near_plane));
-    return linear;
+	//return uint(max(log(-view_z * recip_near_denom.x) * recip_near_denom.y, 0.0));
 }
 
 // ------------------------------------------------------------------
@@ -158,7 +151,7 @@ vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f
 
 #endif
 
-	uvec3 cluster_id  = uvec3(uvec2(gl_FragCoord.x / cluster_size.x, gl_FragCoord.y / cluster_size.y), cluster_z_index(linearDepth(gl_FragCoord.z)));
+	uvec3 cluster_id  = uvec3(uvec2(gl_FragCoord.xy / cluster_size.x), cluster_z_index(linear_eye_depth(gl_FragCoord.z)));
     uint  cluster_idx = cluster_id.x +
 						cluster_id.y * CLUSTER_GRID_DIM_X +
                    	    cluster_id.z * CLUSTER_GRID_DIM_X * CLUSTER_GRID_DIM_Y;  
@@ -235,6 +228,19 @@ void main()
 
 	// vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
 	vec3 color = Lo + m.albedo.xyz * 0.1;
+
+	uint z_idx = cluster_z_index(linear_eye_depth(gl_FragCoord.z));
+	uint z_idx_mod = z_idx % 3;
+	vec3 debug_color = vec3(0.0);
+
+	uvec2 cluster_id = uvec2(gl_FragCoord.xy / cluster_size.x);
+
+	// if (z_idx_mod == 0)
+	// 	debug_color = vec3(1.0, 0.0, 0.0);
+	// else if (z_idx_mod == 1)
+	// 	debug_color = vec3(0.0, 1.0, 0.0);
+	// else if (z_idx_mod == 2)
+	// 	debug_color = vec3(0.0, 0.0, 1.0);
 
     FS_OUT_Color = color;
 	FS_OUT_Velocity = motion_vector(FS_IN_LastScreenPosition, FS_IN_ScreenPosition);

@@ -51,8 +51,8 @@ void main()
 
     vec3 camera_pos_vs = vec3(0.0);
 
-    vec4 max_point_ss = vec4((gl_WorkGroupID.x + 1) * u_TileSize.x, (gl_WorkGroupID.y + 1) * u_TileSize.y, -1, 1);
-    vec4 min_point_ss = vec4(gl_WorkGroupID.x * u_TileSize.x, gl_WorkGroupID.y * u_TileSize.y, -1, 1); 
+    vec4 max_point_ss = vec4((gl_WorkGroupID.x + 1) * u_TileSize.x, (gl_WorkGroupID.y + 1) * u_TileSize.x, -1, 1);
+    vec4 min_point_ss = vec4(gl_WorkGroupID.x * u_TileSize.x, gl_WorkGroupID.y * u_TileSize.x, -1, 1); 
 
     vec4 max_point_vs = screen_to_view_space(max_point_ss, viewport_params.xy, inv_proj);
     vec4 min_point_vs = screen_to_view_space(min_point_ss, viewport_params.xy, inv_proj);
@@ -65,11 +65,11 @@ void main()
     vec3 max_point_near = line_intersection_to_z_plane(camera_pos_vs, max_point_vs.xyz, tile_near);
     vec3 max_point_far  = line_intersection_to_z_plane(camera_pos_vs, max_point_vs.xyz, tile_far);
 
-    vec3 aabb_min = min(min(min_point_near, min_point_far),min(max_point_near, max_point_far));
-    vec3 aabb_max = max(max(min_point_near, min_point_far),max(max_point_near, max_point_far));
+    vec3 aabb_min = min(min(min_point_near, min_point_far), min(max_point_near, max_point_far));
+    vec3 aabb_max = max(max(min_point_near, min_point_far), max(max_point_near, max_point_far));
 
-    clusters[cluster_idx].aabb_min  = vec4(aabb_min , 0.0);
-    clusters[cluster_idx].aabb_max  = vec4(aabb_max , 0.0);
+    clusters[cluster_idx].aabb_min = vec4(aabb_min, 0.0);
+    clusters[cluster_idx].aabb_max = vec4(aabb_max, 0.0);
 }
 
 // ------------------------------------------------------------------

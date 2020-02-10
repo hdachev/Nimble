@@ -88,7 +88,7 @@ bool sphere_intersects_aabb(in Sphere sphere, in ClusteredAABB aabb)
 	vec3 closest_point = closest_point(aabb, sphere.c);
 	float dist_sq = pow(length(sphere.c - closest_point), 2.0);
 	float radius_sq = sphere.r * sphere.r;
-	return dist_sq < radius_sq;
+	return dist_sq <= radius_sq;
 }
 
 // ------------------------------------------------------------------
@@ -103,6 +103,7 @@ bool is_point_light_visible(uint idx, in ClusteredAABB aabb)
     sphere.r = point_light_far_field(idx);
 
     return sphere_intersects_aabb(sphere, aabb);
+    // return true;
 }
 
 // ------------------------------------------------------------------
@@ -111,6 +112,34 @@ bool is_spot_light_visible(uint idx, in ClusteredAABB aabb)
 {
     return false;
 }
+
+float sqDistPointAABB(vec3 point, ClusteredAABB aabb)
+{
+    float sqDist = 0.0;
+    
+    for(int i = 0; i < 3; ++i)
+    {
+        float v = point[i];
+
+        if(v < aabb.aabb_min[i])
+            sqDist += (aabb.aabb_min[i] - v) * (aabb.aabb_min[i] - v);
+        
+        if(v > aabb.aabb_max[i])
+            sqDist += (v - aabb.aabb_max[i]) * (v - aabb.aabb_max[i]);
+    }
+
+    return sqDist;
+}
+
+bool testSphereAABB(uint idx, ClusteredAABB aabb)
+{
+    float radius = point_light_far_field(idx);
+    vec3 center  = vec3(view_mat * vec4(point_light_position(idx), 1.0));
+    float squaredDistance = sqDistPointAABB(center, aabb);
+
+    return squaredDistance <= (radius * radius);
+}
+
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -134,7 +163,7 @@ void main()
 
     for (uint i = (point_light_offset() + gl_LocalInvocationIndex); g_LightCount < MAX_LIGHTS_PER_TILE && i < point_light_count(); i += (BLOCK_SIZE * BLOCK_SIZE))
     {
-        if (is_point_light_visible(i, g_Cluster))
+        if (testSphereAABB(i, g_Cluster))
         {
             const uint idx = atomicAdd(g_LightCount, 1);
 
