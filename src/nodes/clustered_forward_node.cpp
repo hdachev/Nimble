@@ -66,8 +66,8 @@ void ClusteredForwardNode::execute(double delta, Renderer* renderer, Scene* scen
 {
     uint32_t tile_size_x  = ceil(float(m_graph->actual_viewport_width()) / float(CLUSTER_GRID_DIM_X));
     uint32_t tile_size_y  = ceil(float(m_graph->actual_viewport_height()) / float(CLUSTER_GRID_DIM_Y));
-    uint32_t grid_to_dim_y = (m_graph->actual_viewport_height() + CLUSTER_GRID_DIM_Y - 1) / CLUSTER_GRID_DIM_Y;
-    float    sD            = 2.0f * tanf(glm::radians(view->fov) * 0.5f) / float(grid_to_dim_y);
+    uint32_t grid_2d_dim_y = (m_graph->actual_viewport_height() + tile_size_y - 1) / tile_size_y;
+    float    sD            = 2.0f * tanf(glm::radians(view->fov) * 0.5f) / float(grid_2d_dim_y);
 
     ClusterData cluster_data = 
     {
