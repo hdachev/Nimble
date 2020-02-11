@@ -51,8 +51,8 @@ void main()
 
     vec3 camera_pos_vs = vec3(0.0);
 
-    vec4 max_point_ss = vec4((gl_WorkGroupID.x + 1) * u_TileSize.x, (gl_WorkGroupID.y + 1) * u_TileSize.x, -1, 1);
-    vec4 min_point_ss = vec4(gl_WorkGroupID.x * u_TileSize.x, gl_WorkGroupID.y * u_TileSize.x, -1, 1); 
+    vec4 max_point_ss = vec4((gl_WorkGroupID.x + 1) * u_TileSize.x, (gl_WorkGroupID.y + 1) * u_TileSize.x, -1.0, 1.0);
+    vec4 min_point_ss = vec4(gl_WorkGroupID.x * u_TileSize.x, gl_WorkGroupID.y * u_TileSize.x, -1.0, 1.0); 
 
     vec4 max_point_vs = screen_to_view_space(max_point_ss, viewport_params.xy, inv_proj);
     vec4 min_point_vs = screen_to_view_space(min_point_ss, viewport_params.xy, inv_proj);

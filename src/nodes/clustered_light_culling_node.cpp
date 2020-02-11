@@ -88,8 +88,8 @@ void ClusteredLightCullingNode::precompute_frustum(Renderer* renderer, View* vie
 
     m_precomputed_clusters->bind_base(3);
 
-    int32_t tile_size_x = ceil(float(m_graph->actual_viewport_width()) / float(CLUSTER_GRID_DIM_X));
-    int32_t tile_size_y = ceil(float(m_graph->actual_viewport_height()) / float(CLUSTER_GRID_DIM_Y));
+    int32_t tile_size_x = (float(m_graph->actual_viewport_width() + CLUSTER_GRID_DIM_X - 1) / float(CLUSTER_GRID_DIM_X));
+    int32_t tile_size_y = (float(m_graph->actual_viewport_height() + CLUSTER_GRID_DIM_X - 1) / float(CLUSTER_GRID_DIM_Y));
 
     m_cluster_precompute_program->set_uniform("u_TileSize", glm::vec2(tile_size_x, tile_size_y));
    

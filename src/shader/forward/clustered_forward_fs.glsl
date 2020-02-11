@@ -136,7 +136,6 @@ void fragment_func(inout MaterialProperties m, inout FragmentProperties f)
 uint cluster_z_index(in float view_z)
 {
 	return uint(max(log2(view_z) * recip_near_denom.x + recip_near_denom.y, 0.0));
-	//return uint(max(log(-view_z * recip_near_denom.x) * recip_near_denom.y, 0.0));
 }
 
 // ------------------------------------------------------------------
