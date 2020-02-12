@@ -57,7 +57,7 @@ bool ClusteredLightCullingNode::initialize(Renderer* renderer, ResourceManager* 
 
 void ClusteredLightCullingNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
-    //if (m_requires_precompute)
+    if (m_requires_precompute)
         precompute_frustum(renderer, view);
 
     cull_lights(renderer, view);
@@ -70,7 +70,7 @@ void ClusteredLightCullingNode::on_window_resized(const uint32_t& w, const uint3
     m_culled_light_indices = std::make_shared<ShaderStorageBuffer>(0, sizeof(glm::uvec4) * CLUSTER_GRID_DIM_X * CLUSTER_GRID_DIM_Y * CLUSTER_GRID_DIM_Z * MAX_LIGHTS_PER_CLUSTER);
     m_light_grid           = std::make_shared<ShaderStorageBuffer>(0, sizeof(glm::uvec4) * CLUSTER_GRID_DIM_X * CLUSTER_GRID_DIM_Y * CLUSTER_GRID_DIM_Z);
     m_light_counter        = std::make_shared<ShaderStorageBuffer>(0, sizeof(glm::uvec4));
-    m_precomputed_clusters = std::make_shared<ShaderStorageBuffer>(0, sizeof(Frustum) * CLUSTER_GRID_DIM_X * CLUSTER_GRID_DIM_Y * CLUSTER_GRID_DIM_Z);
+    m_precomputed_clusters = std::make_shared<ShaderStorageBuffer>(0, sizeof(ClusterAABB) * CLUSTER_GRID_DIM_X * CLUSTER_GRID_DIM_Y * CLUSTER_GRID_DIM_Z);
 
     register_output_buffer("LightIndices", m_culled_light_indices);
     register_output_buffer("LightGrid", m_light_grid);
@@ -89,7 +89,7 @@ void ClusteredLightCullingNode::precompute_frustum(Renderer* renderer, View* vie
     m_precomputed_clusters->bind_base(3);
 
     int32_t tile_size_x = (float(m_graph->actual_viewport_width() + CLUSTER_GRID_DIM_X - 1) / float(CLUSTER_GRID_DIM_X));
-    int32_t tile_size_y = (float(m_graph->actual_viewport_height() + CLUSTER_GRID_DIM_X - 1) / float(CLUSTER_GRID_DIM_Y));
+    int32_t tile_size_y = (float(m_graph->actual_viewport_height() + CLUSTER_GRID_DIM_Y - 1) / float(CLUSTER_GRID_DIM_Y));
 
     m_cluster_precompute_program->set_uniform("u_TileSize", glm::vec2(tile_size_x, tile_size_y));
    
