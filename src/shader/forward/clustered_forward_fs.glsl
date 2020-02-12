@@ -1,6 +1,8 @@
 #include <../common/uniforms.glsl>
 #include <../tiled/common.glsl>
 
+#define CLUSTER_DEBUG_MAX_LIGHTS 300
+
 // ------------------------------------------------------------------
 // SAMPLERS ---------------------------------------------------------
 // ------------------------------------------------------------------
@@ -62,8 +64,7 @@ layout(std430, binding = 4) buffer u_LightGrid
 
 layout (std140, binding = 5) uniform u_ClusterData
 {
-	uvec4 cluster_size;
-	vec4  recip_near_denom;
+	vec4 scale_bias_aabb_extent;
 };
 
 // ------------------------------------------------------------------
@@ -133,9 +134,21 @@ void fragment_func(inout MaterialProperties m, inout FragmentProperties f)
 
 // ------------------------------------------------------------------
 
-uint cluster_z_index(in float view_z)
+uint cluster_z_id(in float view_z)
 {
-	return uint(max(log2(view_z) * recip_near_denom.x + recip_near_denom.y, 0.0));
+	return uint(max(log2(view_z) * scale_bias_aabb_extent.x + scale_bias_aabb_extent.y, 0.0));
+}
+
+// ------------------------------------------------------------------
+
+uint cluster_index(vec4 frag_coord)
+{
+	uvec3 cluster_id  = uvec3(frag_coord.xy * scale_bias_aabb_extent.z, cluster_z_id(linear_eye_depth(frag_coord.z)));
+    uint  cluster_idx = cluster_id.x +
+						cluster_id.y * CLUSTER_GRID_DIM_X +
+                   	    cluster_id.z * CLUSTER_GRID_DIM_X * CLUSTER_GRID_DIM_Y;
+
+	return cluster_idx;
 }
 
 // ------------------------------------------------------------------
@@ -149,11 +162,7 @@ vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f
 		Lo += pbr_directional_light_contribution(m, f, pbr, i);
 
 #endif
-
-	uvec3 cluster_id  = uvec3(uvec2(gl_FragCoord.xy / cluster_size.x), cluster_z_index(linear_eye_depth(gl_FragCoord.z)));
-    uint  cluster_idx = cluster_id.x +
-						cluster_id.y * CLUSTER_GRID_DIM_X +
-                   	    cluster_id.z * CLUSTER_GRID_DIM_X * CLUSTER_GRID_DIM_Y;  
+    uint cluster_idx = cluster_index(gl_FragCoord);  
 
 #ifdef POINT_LIGHTS
 	uint pl_offset = visible_point_light_start_offset(cluster_idx);
@@ -161,7 +170,6 @@ vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f
 
 	for (uint i = 0; i < pl_count; i++)
 		Lo += pbr_point_light_contribution(m, f, pbr, int(indices[pl_offset + i]));
-
 #endif
 
 #ifdef SPOT_LIGHTS
@@ -228,20 +236,19 @@ void main()
 	// vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
 	vec3 color = Lo + m.albedo.xyz * 0.1;
 
-	uint z_idx = cluster_z_index(linear_eye_depth(gl_FragCoord.z));
-	uint z_idx_mod = z_idx % 3;
-	vec3 debug_color = vec3(0.0);
+	uint cluster_idx = cluster_index(gl_FragCoord);  
 
-	uvec2 cluster_id = uvec2(gl_FragCoord.xy / cluster_size.x);
+	uint visible_light_count = visible_point_light_count(cluster_idx) + visible_spot_light_count(cluster_idx);
+	float intensity = float(clamp(int(visible_light_count), 0, CLUSTER_DEBUG_MAX_LIGHTS)) / float(CLUSTER_DEBUG_MAX_LIGHTS);
 
-	// if (z_idx_mod == 0)
-	// 	debug_color = vec3(1.0, 0.0, 0.0);
-	// else if (z_idx_mod == 1)
-	// 	debug_color = vec3(0.0, 1.0, 0.0);
-	// else if (z_idx_mod == 2)
-	// 	debug_color = vec3(0.0, 0.0, 1.0);
+	float minimum = 0.0;
+	float maximum = 1.0;
+	float ratio = 2 * (intensity - minimum) / (maximum - minimum);
+	float b = max(0, 1 - ratio);
+	float r = max(0, ratio - 1);
+	float g = max(0, 1.0 - b - r);
 
-    FS_OUT_Color = color;
+    FS_OUT_Color = color;// * vec3(r,g,b);
 	FS_OUT_Velocity = motion_vector(FS_IN_LastScreenPosition, FS_IN_ScreenPosition);
 }
 

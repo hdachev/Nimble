@@ -7,12 +7,6 @@ namespace nimble
 {
 DEFINE_RENDER_NODE_FACTORY(ClusteredForwardNode)
 
-struct ClusterData
-{
-    glm::uvec4 cluster_size;
-    glm::vec4  scale_bias;
-};
-
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 ClusteredForwardNode::ClusteredForwardNode(RenderGraph* graph) :
@@ -55,7 +49,7 @@ bool ClusteredForwardNode::initialize(Renderer* renderer, ResourceManager* res_m
     m_color_rtv[1] = RenderTargetView(0, 0, 0, m_velocity_rt->texture);
     m_depth_rtv    = RenderTargetView(0, 0, 0, m_depth_rt->texture);
 
-    m_cluster_data = std::shared_ptr<UniformBuffer>(new UniformBuffer(GL_DYNAMIC_DRAW, sizeof(ClusterData)));
+    m_cluster_data = std::shared_ptr<UniformBuffer>(new UniformBuffer(GL_DYNAMIC_DRAW, sizeof(glm::vec4)));
 
     return true;
 }
@@ -67,16 +61,16 @@ void ClusteredForwardNode::execute(double delta, Renderer* renderer, Scene* scen
     uint32_t tile_size_x = (float(m_graph->actual_viewport_width() + CLUSTER_GRID_DIM_X - 1) / float(CLUSTER_GRID_DIM_X));
     uint32_t tile_size_y = (float(m_graph->actual_viewport_height() + CLUSTER_GRID_DIM_Y - 1) / float(CLUSTER_GRID_DIM_Y));
 
-    ClusterData cluster_data = 
-    {
-        glm::uvec4(tile_size_x, tile_size_x, 0, 0),
-        glm::vec4((float)CLUSTER_GRID_DIM_Z / std::log2f(view->far_plane / view->near_plane), 
-        -((float)CLUSTER_GRID_DIM_Z * std::log2f(view->near_plane) / std::log2f(view->far_plane / view->near_plane)), 0.0f, 0.0f)
-    };
+    uint32_t largest_tile_extent = std::max(tile_size_x, tile_size_y);
+
+    glm::vec4 cluster_data = glm::vec4((float)CLUSTER_GRID_DIM_Z / std::log2f(view->far_plane / view->near_plane),
+                                       -((float)CLUSTER_GRID_DIM_Z * std::log2f(view->near_plane) / std::log2f(view->far_plane / view->near_plane)),
+                                       1.0f / float(largest_tile_extent),
+                                       0.0f);
 
     void* ptr = m_cluster_data->map(GL_WRITE_ONLY);
 
-    memcpy(ptr, &cluster_data, sizeof(ClusterData));
+    memcpy(ptr, &cluster_data, sizeof(cluster_data));
 
     m_cluster_data->unmap();
 
