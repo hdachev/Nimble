@@ -10,26 +10,18 @@ uniform samplerCube s_PrefilteredMap;
 uniform sampler2D s_BRDF;
 uniform sampler2DArray s_ShadowMap;
 
+uniform sampler2D s_GBufferRT1;
+uniform sampler2D s_GBufferRT2;
+uniform sampler2D s_GBufferRT3;
+uniform sampler2D s_GBufferRT4;
+uniform sampler2D s_Depth;
+uniform sampler2D s_SSAO;
+
 // ------------------------------------------------------------------
 // INPUT VARIABLES  -------------------------------------------------
 // ------------------------------------------------------------------
 
-in vec3 FS_IN_Position;
-in vec4 FS_IN_NDCFragPos;
-in vec4 FS_IN_ScreenPosition;
-in vec4 FS_IN_LastScreenPosition;
-in vec3 FS_IN_Normal;
 in vec2 FS_IN_TexCoord;
-
-#ifdef TEXTURE_NORMAL
-	in vec3 FS_IN_Tangent;
-	in vec3 FS_IN_Bitangent;
-#endif
-
-#ifdef DISPLACEMENT_TYPE_PARALLAX_OCCLUSION
-	in vec3 FS_IN_TangentViewPos;
-	in vec3 FS_IN_TangentFragPos;
-#endif
 
 #include <../common/helper.glsl>
 #include <../common/material.glsl>
@@ -40,7 +32,6 @@ in vec2 FS_IN_TexCoord;
 // ------------------------------------------------------------------
 
 layout (location = 0) out vec3 FS_OUT_Color;
-layout (location = 1) out vec2 FS_OUT_Velocity;
 
 // ------------------------------------------------------------------
 // UNIFORMS ---------------------------------------------------------
@@ -97,38 +88,64 @@ uint visible_spot_light_start_offset(uint cluster_idx)
 // FUNCTIONS --------------------------------------------------------
 // ------------------------------------------------------------------
 
-void fill_fragment_properties(inout FragmentProperties f)
+vec3 unpack_normal()
 {
-	f.Position = FS_IN_Position;
-	f.Normal = FS_IN_Normal;
-	f.FragDepth = (FS_IN_NDCFragPos.z / FS_IN_NDCFragPos.w) * 0.5 + 0.5;
-#ifdef TEXTURE_NORMAL
-	f.Tangent = FS_IN_Tangent;
-	f.Bitangent = FS_IN_Bitangent;
-#endif
-#ifdef DISPLACEMENT_TYPE_PARALLAX_OCCLUSION
-	f.TangentViewPos = FS_IN_TangentViewPos;
-	f.TangentFragPos = FS_IN_TangentFragPos;
-	f.TexCoords = get_parallax_occlusion_texcoords(FS_IN_TexCoord, FS_IN_TangentViewPos, FS_IN_TangentFragPos);
-#else
-	f.TexCoords = FS_IN_TexCoord;
-#endif
+    return normalize(texture(s_GBufferRT2, FS_IN_TexCoord).rgb);
 }
 
 // ------------------------------------------------------------------
 
-#ifndef FRAGMENT_SHADER_FUNC
-#define FRAGMENT_SHADER_FUNC
-
-void fragment_func(inout MaterialProperties m, inout FragmentProperties f)
+vec4 unpack_albedo()
 {
-	m.albedo = get_albedo(f.TexCoords);
-	m.normal = get_normal(f);
-	m.metallic = get_metallic(f.TexCoords);
-	m.roughness = get_roughness(f.TexCoords);
+    return vec4(texture(s_GBufferRT1, FS_IN_TexCoord).xyz, 1.0);
 }
 
-#endif
+// ------------------------------------------------------------------
+
+float unpack_metalness()
+{
+    return texture(s_GBufferRT4, FS_IN_TexCoord).x;
+}
+
+// ------------------------------------------------------------------
+
+float unpack_roughness()
+{
+    return texture(s_GBufferRT4, FS_IN_TexCoord).y;
+}
+
+// ------------------------------------------------------------------
+
+float unpack_depth()
+{
+	return texture(s_Depth, FS_IN_TexCoord).x;
+}
+
+// ------------------------------------------------------------------
+
+float unpack_ssao()
+{
+	return texture(s_SSAO, FS_IN_TexCoord).x;
+}
+
+// ------------------------------------------------------------------
+
+void fill_fragment_properties(inout FragmentProperties f)
+{
+	f.FragDepth = unpack_depth();
+	f.Position = world_position_from_depth(FS_IN_TexCoord, f.FragDepth);
+	f.TexCoords = FS_IN_TexCoord;
+}
+
+// ------------------------------------------------------------------
+
+void fragment_func(inout MaterialProperties m)
+{
+	m.albedo = unpack_albedo();
+	m.normal = unpack_normal();
+	m.metallic = unpack_metalness();
+	m.roughness = unpack_roughness();
+}
 
 // ------------------------------------------------------------------
 
@@ -151,7 +168,7 @@ uint cluster_index(vec4 frag_coord)
 
 // ------------------------------------------------------------------
 
-vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f,  in PBRProperties pbr)
+vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f, in PBRProperties pbr)
 {
 	vec3 Lo = vec3(0.0);
 
@@ -160,7 +177,7 @@ vec3 visible_light_contribution(in MaterialProperties m, in FragmentProperties f
 		Lo += pbr_directional_light_contribution(m, f, pbr, i);
 
 #endif
-    uint cluster_idx = cluster_index(vec4(gl_FragCoord.xy, f.FragDepth, gl_FragCoord.w));  
+    uint cluster_idx = cluster_index(vec4(gl_FragCoord.xy, f.FragDepth, gl_FragCoord.w));
 
 #ifdef POINT_LIGHTS
 	uint pl_offset = visible_point_light_start_offset(cluster_idx);
@@ -195,13 +212,7 @@ void main()
 	MaterialProperties m;
 
 	// Set material properties
-	fragment_func(m, f);
-
-#ifdef BLEND_MODE_MASKED
-	// Discard fragments below alpha threshold
-	if (m.albedo.w < 0.1)
-		discard;
-#endif
+	fragment_func(m);
 
 	PBRProperties pbr;
 
@@ -232,9 +243,10 @@ void main()
 	// vec3 specular = prefilteredColor * (pbr.F * brdf.x + brdf.y);
 
 	// vec3 ambient = (pbr.kD * diffuse + specular) * kAmbient;
-	vec3 color = Lo + m.albedo.xyz * 0.1;
+	float ambient = unpack_ssao();
+	vec3 color = Lo + (m.albedo.xyz * ambient * 0.3);// + ambient;
 
-	uint cluster_idx = cluster_index(gl_FragCoord);  
+	uint cluster_idx = cluster_index(vec4(gl_FragCoord.xy, f.FragDepth, gl_FragCoord.w));
 
 	uint visible_light_count = visible_point_light_count(cluster_idx) + visible_spot_light_count(cluster_idx);
 	float intensity = float(clamp(int(visible_light_count), 0, CLUSTER_DEBUG_MAX_LIGHTS)) / float(CLUSTER_DEBUG_MAX_LIGHTS);
@@ -246,12 +258,10 @@ void main()
 	float r = max(0, ratio - 1);
 	float g = max(0, 1.0 - b - r);
 
-	if (scale_bias_aabb_extent.w == 1.0)
+    if (scale_bias_aabb_extent.w == 1.0)
 		FS_OUT_Color = vec3(r,g,b);
 	else
 		FS_OUT_Color = color;
-
-	FS_OUT_Velocity = motion_vector(FS_IN_LastScreenPosition, FS_IN_ScreenPosition);
 }
 
 // ------------------------------------------------------------------

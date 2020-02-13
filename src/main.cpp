@@ -36,6 +36,7 @@
 #include "nodes/tiled_forward_node.h"
 #include "nodes/tiled_deferred_node.h"
 #include "nodes/clustered_forward_node.h"
+#include "nodes/clustered_deferred_node.h"
 #include "nodes/tiled_light_culling_node.h"
 #include "nodes/clustered_light_culling_node.h"
 #include "nodes/depth_prepass_node.h"
@@ -249,12 +250,13 @@ private:
         REGISTER_RENDER_NODE(TiledForwardNode, m_resource_manager);
         REGISTER_RENDER_NODE(TiledDeferredNode, m_resource_manager);
         REGISTER_RENDER_NODE(ClusteredForwardNode, m_resource_manager);
+        REGISTER_RENDER_NODE(ClusteredDeferredNode, m_resource_manager);
         REGISTER_RENDER_NODE(TiledLightCullingNode, m_resource_manager);
         REGISTER_RENDER_NODE(ClusteredLightCullingNode, m_resource_manager);
         REGISTER_RENDER_NODE(DepthPrepassNode, m_resource_manager);
 
         // Create Forward render graph
-        m_forward_graph = m_resource_manager.load_render_graph("graph/clustered_forward_graph.json", &m_renderer);
+        m_forward_graph = m_resource_manager.load_render_graph("graph/clustered_deferred_graph.json", &m_renderer);
 
         // Create Point Light render graph
         m_pcf_point_light_graph = m_resource_manager.load_shadow_render_graph("PCFPointLightDepthNode", &m_renderer);

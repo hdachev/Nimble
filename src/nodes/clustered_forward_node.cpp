@@ -66,7 +66,7 @@ void ClusteredForwardNode::execute(double delta, Renderer* renderer, Scene* scen
     glm::vec4 cluster_data = glm::vec4((float)CLUSTER_GRID_DIM_Z / std::log2f(view->far_plane / view->near_plane),
                                        -((float)CLUSTER_GRID_DIM_Z * std::log2f(view->near_plane) / std::log2f(view->far_plane / view->near_plane)),
                                        1.0f / float(largest_tile_extent),
-                                       0.0f);
+                                       (float)m_visualize_heat_map);
 
     void* ptr = m_cluster_data->map(GL_WRITE_ONLY);
 

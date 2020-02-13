@@ -1,4 +1,5 @@
-#include "tiled_deferred_node.h"
+#include "clustered_deferred_node.h"
+#include "clustered_light_culling_node.h"
 #include "../render_graph.h"
 #include "../resource_manager.h"
 #include "../renderer.h"
@@ -6,11 +7,11 @@
 
 namespace nimble
 {
-DEFINE_RENDER_NODE_FACTORY(TiledDeferredNode)
+DEFINE_RENDER_NODE_FACTORY(ClusteredDeferredNode)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-TiledDeferredNode::TiledDeferredNode(RenderGraph* graph) :
+ClusteredDeferredNode::ClusteredDeferredNode(RenderGraph* graph) :
     RenderNode(graph)
 {
     m_flags = NODE_USAGE_PER_VIEW_UBO | NODE_USAGE_POINT_LIGHTS | NODE_USAGE_SPOT_LIGHTS | NODE_USAGE_DIRECTIONAL_LIGHTS | NODE_USAGE_SHADOW_MAPPING | NODE_USAGE_STATIC_MESH | NODE_USAGE_SKELETAL_MESH;
@@ -18,13 +19,13 @@ TiledDeferredNode::TiledDeferredNode(RenderGraph* graph) :
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-TiledDeferredNode::~TiledDeferredNode()
+ClusteredDeferredNode::~ClusteredDeferredNode()
 {
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void TiledDeferredNode::declare_connections()
+void ClusteredDeferredNode::declare_connections()
 {
     // Declare the inputs to this render node
     register_input_render_target("G-Buffer1");
@@ -44,7 +45,7 @@ void TiledDeferredNode::declare_connections()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-bool TiledDeferredNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
+bool ClusteredDeferredNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 {
     register_bool_parameter("Visualize Heat Map", m_visualize_heat_map);
 
@@ -58,10 +59,12 @@ bool TiledDeferredNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
     m_light_indices = find_input_buffer("LightIndices");
     m_light_grid = find_input_buffer("LightGrid");
 
+    m_cluster_data = std::shared_ptr<UniformBuffer>(new UniformBuffer(GL_DYNAMIC_DRAW, sizeof(glm::vec4)));
+
     m_color_rtv = RenderTargetView(0, 0, 0, m_color_rt->texture);
 
     m_vs = res_mgr->load_shader("shader/post_process/fullscreen_triangle_vs.glsl", GL_VERTEX_SHADER);
-    m_fs = res_mgr->load_shader("shader/deferred/tiled_deferred_fs.glsl", GL_FRAGMENT_SHADER, m_flags, renderer);
+    m_fs = res_mgr->load_shader("shader/deferred/clustered_deferred_fs.glsl", GL_FRAGMENT_SHADER, m_flags, renderer);
 
     if (m_vs && m_fs)
     {
@@ -84,8 +87,24 @@ bool TiledDeferredNode::initialize(Renderer* renderer, ResourceManager* res_mgr)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void TiledDeferredNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
+void ClusteredDeferredNode::execute(double delta, Renderer* renderer, Scene* scene, View* view)
 {
+    uint32_t tile_size_x = (float(m_graph->actual_viewport_width() + CLUSTER_GRID_DIM_X - 1) / float(CLUSTER_GRID_DIM_X));
+    uint32_t tile_size_y = (float(m_graph->actual_viewport_height() + CLUSTER_GRID_DIM_Y - 1) / float(CLUSTER_GRID_DIM_Y));
+
+    uint32_t largest_tile_extent = std::max(tile_size_x, tile_size_y);
+
+    glm::vec4 cluster_data = glm::vec4((float)CLUSTER_GRID_DIM_Z / std::log2f(view->far_plane / view->near_plane),
+                                       -((float)CLUSTER_GRID_DIM_Z * std::log2f(view->near_plane) / std::log2f(view->far_plane / view->near_plane)),
+                                       1.0f / float(largest_tile_extent),
+                                       (float)m_visualize_heat_map);
+
+    void* ptr = m_cluster_data->map(GL_WRITE_ONLY);
+
+    memcpy(ptr, &cluster_data, sizeof(cluster_data));
+
+    m_cluster_data->unmap();
+
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
@@ -117,21 +136,22 @@ void TiledDeferredNode::execute(double delta, Renderer* renderer, Scene* scene, 
 
     m_light_indices->buffer->bind_base(3);
     m_light_grid->buffer->bind_base(4);
+    m_cluster_data->bind_base(5);
 
     render_fullscreen_triangle(renderer, view, m_program.get(), tex_unit, m_flags);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-void TiledDeferredNode::shutdown()
+void ClusteredDeferredNode::shutdown()
 {
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-std::string TiledDeferredNode::name()
+std::string ClusteredDeferredNode::name()
 {
-    return "Tiled Deferred";
+    return "Clustered Deferred";
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------

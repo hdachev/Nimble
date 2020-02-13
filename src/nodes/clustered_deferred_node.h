@@ -4,11 +4,11 @@
 
 namespace nimble
 {
-class TiledDeferredNode : public RenderNode
+class ClusteredDeferredNode : public RenderNode
 {
 public:
-    TiledDeferredNode(RenderGraph* graph);
-    ~TiledDeferredNode();
+    ClusteredDeferredNode(RenderGraph* graph);
+    ~ClusteredDeferredNode();
 
     void        declare_connections() override;
     bool        initialize(Renderer* renderer, ResourceManager* res_mgr) override;
@@ -34,7 +34,8 @@ private:
     std::shared_ptr<RenderTarget> m_depth_rt;
     std::shared_ptr<ComputeBuffer> m_light_indices;
     std::shared_ptr<ComputeBuffer> m_light_grid;
+    std::shared_ptr<UniformBuffer> m_cluster_data;
 };
 
-DECLARE_RENDER_NODE_FACTORY(TiledDeferredNode);
+DECLARE_RENDER_NODE_FACTORY(ClusteredDeferredNode);
 } // namespace nimble

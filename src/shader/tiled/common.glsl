@@ -8,6 +8,7 @@
 #define CLUSTER_GRID_DIM_X 16
 #define CLUSTER_GRID_DIM_Y 8
 #define CLUSTER_GRID_DIM_Z 24
+#define CLUSTER_DEBUG_MAX_LIGHTS 200
 
 struct Frustum
 {
