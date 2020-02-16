@@ -1,6 +1,11 @@
 // ------------------------------------------------------------------
-// PCF  -------------------------------------------------------------
+// PCSS  ------------------------------------------------------------
 // ------------------------------------------------------------------
+
+#define PCSS_RADIUS 0.5
+#define POISSON_DISK_SAMPLE_COUNT 64 
+#define DIRECTIONAL_LIGHT_NEAR_PLANE 1.0
+#define DIRECTIONAL_LIGHT_FAR_PLANE 3000.0
 
 float depth_compare(float a, float b, float bias)
 {
@@ -42,8 +47,6 @@ vec3 csm_debug_color(float frag_depth, uint light_idx)
 }
 
 // ------------------------------------------------------------------
-
-#define POISSON_DISK_SAMPLE_COUNT 64 
 
 #if POISSON_DISK_SAMPLE_COUNT == 25
 
@@ -421,17 +424,38 @@ const vec2 kPoissonSamples[128] = vec2[](
 
 #endif
 
-// Using similar triangles from the surface point to the area light
-vec2 search_region_radius_uv(float zWorld)
+// ------------------------------------------------------------------
+
+float linear_to_eye_depth(float z, float near, float far)
 {
-    return g_lightRadiusUV * (zWorld - g_lightZNear) / zWorld;
+    return near + (far - near) * z;
 }
+
+// ------------------------------------------------------------------
+
+// Using similar triangles from the surface point to the area light
+vec2 search_region_radius_uv(float z_vs)
+{
+    return PCSS_RADIUS * (z_vs - near_plane) / z_vs;
+}
+
+// ------------------------------------------------------------------
 
 // Using similar triangles between the area light, the blocking plane and the surface point
 vec2 penumbra_radius_uv(float zReceiver, float zBlocker)
 {
-    return g_lightRadiusUV * (zReceiver - zBlocker) / zBlocker;
+    return PCSS_RADIUS * (zReceiver - zBlocker) / zBlocker;
 }
+
+// ------------------------------------------------------------------
+
+// Project UV size to the near plane of the light
+vec2 project_to_light_uv(vec2 size_uv, float z_vs)
+{
+    return size_uv * DIRECTIONAL_LIGHT_NEAR_PLANE / z_vs;
+}
+
+// ------------------------------------------------------------------
 
 // Derivatives of light-space depth with respect to texture2D coordinates
 vec2 depth_gradient(vec2 uv, float z)
@@ -453,15 +477,12 @@ vec2 depth_gradient(vec2 uv, float z)
     return dz_duv;
 }
 
-float biasedZ(float z0, vec2 dz_duv, vec2 offset)
-{
-    return z0 + dot(dz_duv, offset);
-}
-
+// ------------------------------------------------------------------
 
 // Returns average blocker depth in the search region, as well as the number of found blockers.
 // Blockers are defined as shadow-map samples between the surface point and the light.
-void find_blocker(out float accum_blocker_depth, 
+void find_blocker(in int idx,
+                  out float accum_blocker_depth, 
     			  out float num_blockers,
     			  out float max_blockers,
     			  vec2 uv,
@@ -479,24 +500,42 @@ void find_blocker(out float accum_blocker_depth,
         float shadow_map_depth = texture(s_DirectionalLightShadowMaps, vec3(uv + offset, float(idx))).r;
 		
         // float z = biasedZ(z0, dz_duv, offset);
-        float biased_depth = shadow_map_depth - bias;
+        float biased_depth = z0 - bias;
 
-        if (biased_depth < z0)
+        if (shadow_map_depth < biased_depth)
         {
-            accum_blocker_depth += biased_depth;
+            accum_blocker_depth += shadow_map_depth;
             num_blockers++;
         }
     }
 }
 
-float pcss_shadow(vec2 uv, float z, vec2 dz_duv, float zEye)
+// ------------------------------------------------------------------
+
+float pcf_poisson_filter(int idx, vec2 uv, float z0, float bias, vec2 filter_radius_uv)
+{
+    float sum = 0.0;
+
+    for (int i = 0; i < POISSON_DISK_SAMPLE_COUNT; ++i)
+    {
+        vec2 offset = kPoissonSamples[i] * filter_radius_uv;
+        float shadow_map_depth = texture(s_DirectionalLightShadowMaps, vec3(uv + offset, float(idx))).r;
+        sum +=  shadow_map_depth < (z0 - bias) ? 1.0 : 0.0;
+    }
+
+    return sum / float(POISSON_DISK_SAMPLE_COUNT);
+}
+
+// ------------------------------------------------------------------
+
+float pcss_filter(int idx, vec2 uv, float z, float bias, float z_vs)
 {
     // ------------------------
     // STEP 1: blocker search
     // ------------------------
     float accum_blocker_depth, num_blockers, max_blockers;
-    vec2 search_region_radius_uv = search_region_radius_uv(zEye);
-    findBlocker(accum_blocker_depth, num_blockers, max_blockers, uv, z, dz_duv, search_region_radius_uv);
+    vec2 search_region_radius_uv = search_region_radius_uv(z_vs);
+    find_blocker(idx, accum_blocker_depth, num_blockers, max_blockers, uv, z, bias, search_region_radius_uv);
 
     // Early out if not in the penumbra
     if (num_blockers == 0.0)
@@ -505,25 +544,23 @@ float pcss_shadow(vec2 uv, float z, vec2 dz_duv, float zEye)
     // ------------------------
     // STEP 2: penumbra size
     // ------------------------
-    float avgBlockerDepth = accum_blocker_depth / num_blockers;
-    float avgBlockerDepthWorld = zClipToEye(avgBlockerDepth);
-    vec2 penumbraRadius = penumbraRadiusUV(zEye, avgBlockerDepthWorld);
-    vec2 filterRadius = projectToLightUV(penumbraRadius, zEye);
+    float avg_blocker_depth = accum_blocker_depth / num_blockers;
+    float avg_blocker_depth_vs = linear_to_eye_depth(avg_blocker_depth, DIRECTIONAL_LIGHT_NEAR_PLANE, DIRECTIONAL_LIGHT_FAR_PLANE);
+    vec2 penumbra_radius = penumbra_radius_uv(z_vs, avg_blocker_depth_vs);
+    vec2 filter_radius = project_to_light_uv(penumbra_radius, z_vs);
 
     // ------------------------
     // STEP 3: filtering
     // ------------------------
-    return pcfFilter(uv, z, dz_duv, filterRadius);
+    return pcf_poisson_filter(uv, z, bias, filter_radius);
 }
-
 
 // ------------------------------------------------------------------
 
 float directional_light_shadows(in FragmentProperties f, uint light_idx)
 {
 	int index = 0;
-    float blend = 0.0;
-    
+
 	vec4 far_planes = directional_light_cascade_far_planes(light_idx);
     
 	// Find shadow cascade.
@@ -536,11 +573,6 @@ float directional_light_shadows(in FragmentProperties f, uint light_idx)
 	int shadow_matrix_idx = directional_light_first_shadow_matrix_index(light_idx) + index;
 	int shadow_map_idx = directional_light_first_shadow_map_index(light_idx) + index;
 
-	blend = clamp( (f.FragDepth - far_planes[index] * 0.995) * 200.0, 0.0, 1.0);
-    
-    // Apply blend options.
-    //blend *= options.z;
-
 	// Transform frag position into Light-space.
 	vec4 light_space_pos = shadow_matrices[shadow_matrix_idx] * vec4(f.Position, 1.0);
 
@@ -548,28 +580,10 @@ float directional_light_shadows(in FragmentProperties f, uint light_idx)
     
 	vec3 n = f.Normal;
 	vec3 l = directional_light_direction(light_idx);
-	float bias = max(0.0005 * (1.0 - dot(n, l)), 0.0005);  
+	float bias = max(0.0005 * (1.0 - dot(n, l)), 0.0005);
+    float z_vs = linear_to_eye_depth(current_depth, DIRECTIONAL_LIGHT_NEAR_PLANE, DIRECTIONAL_LIGHT_FAR_PLANE);  
 
-	return directional_light_shadow_test(shadow_map_idx, light_space_pos.xy, current_depth, bias);
-
-    // if (options.x == 1.0)
-    // {
-    //     //if (blend > 0.0 && index != num_cascades - 1)
-    //     //{
-    //     //    light_space_pos = texture_matrices[index + 1] * vec4(PS_IN_WorldFragPos, 1.0f);
-    //     //    shadow_map_depth = texture(s_ShadowMap, vec3(light_space_pos.xy, float(index + 1))).r;
-    //     //    current_depth = light_space_pos.z;
-    //     //    float next_shadow = depth_compare(current_depth, shadow_map_depth, bias);
-    //     //    
-    //     //    return (1.0 - blend) * shadow + blend * next_shadow;
-    //     //}
-    //     //else
-	// 		return (1.0 - shadow);
-    // }
-    // else
-    //     return 0.0;
-
-	// return 1.0;
+	return pcss_filter(shadow_map_idx, light_space_pos.xy, current_depth, bias, z_vs);
 }
 
 // ------------------------------------------------------------------

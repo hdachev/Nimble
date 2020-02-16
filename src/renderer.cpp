@@ -1083,7 +1083,7 @@ void Renderer::setup_cascade_views(DirectionalLight& dir_light, View* dependent_
             }
             else
             {
-                glm::mat4 t_ortho    = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -dependent_view->far_plane, -tmin.z);
+                glm::mat4 t_ortho    = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 3000.0f);
                 glm::mat4 t_shad_mvp = t_ortho * modelview;
 
                 // find the extends of the frustum slice as projected in light's homogeneous coordinates

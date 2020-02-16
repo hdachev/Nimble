@@ -279,7 +279,7 @@ private:
 
         m_renderer.set_scene_render_graph(m_forward_graph);
 
-        create_random_point_lights(4096);
+        //create_random_point_lights(4096);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
