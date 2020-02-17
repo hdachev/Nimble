@@ -7,6 +7,8 @@ An OpenGL renderer with a modern and extensible rendering pipeline.
 * Forward and Deferred rendering paths.
 * Physically Based Shading
 * Image Based Lighting
+* Tiled Forward/Deferred Shading
+* Clustered Forward/Deferred Shading
 * Cascaded Shadow Maps with Percentage Closer Filtering (PCF)
 * Screen Space Ambient Occlusion (SSAO)
 * Temporal Anti-Aliasing (TAA)
