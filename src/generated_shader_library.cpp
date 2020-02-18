@@ -290,7 +290,7 @@ Program* GeneratedShaderLibrary::create_program(const MeshType& type, const uint
             auto shadow_test_defines = dir_light_node->shadow_test_source_defines();
 
             for (auto define : shadow_test_defines)
-                fs_defines.push_back(define);
+                fs_defines.push_back("#define " + define);
         }
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && spot_light_render_graph)
@@ -302,7 +302,7 @@ Program* GeneratedShaderLibrary::create_program(const MeshType& type, const uint
             auto shadow_test_defines = spot_light_node->shadow_test_source_defines();
 
             for (auto define : shadow_test_defines)
-                fs_defines.push_back(define);
+                fs_defines.push_back("#define " + define);
         }
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && point_light_render_graph)
@@ -314,7 +314,7 @@ Program* GeneratedShaderLibrary::create_program(const MeshType& type, const uint
             auto shadow_test_defines = point_light_node->shadow_test_source_defines();
 
             for (auto define : shadow_test_defines)
-                fs_defines.push_back(define);
+                fs_defines.push_back("#define " + define);
         }
 
         if (material->has_fragment_shader_func())

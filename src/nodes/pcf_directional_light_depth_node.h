@@ -38,6 +38,7 @@ public:
     ~PCFDirectionalLightDepthNode();
 
     std::string shadow_test_source_path() override;
+    std::vector<std::string> shadow_test_source_defines() override;
     std::string name() override;
 };
 
@@ -50,6 +51,7 @@ public:
     ~PCFSpotLightDepthNode();
 
     std::string shadow_test_source_path() override;
+    std::vector<std::string> shadow_test_source_defines() override;
     std::string name() override;
 };
 

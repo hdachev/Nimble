@@ -97,4 +97,11 @@ std::string PCFPointLightDepthNode::shadow_test_source_path()
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
+
+std::vector<std::string> PCFPointLightDepthNode::shadow_test_source_defines()
+{
+    return { "USE_SHADOW_SAMPLERS_POINT" };
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 } // namespace nimble

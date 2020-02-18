@@ -13,6 +13,7 @@
 #include "nodes/cubemap_skybox_node.h"
 #include "nodes/pcf_point_light_depth_node.h"
 #include "nodes/pcf_directional_light_depth_node.h"
+#include "nodes/pcss_directional_light_depth_node.h"
 #include "nodes/copy_node.h"
 #include "nodes/g_buffer_node.h"
 #include "nodes/deferred_node.h"
@@ -227,6 +228,7 @@ private:
         REGISTER_RENDER_NODE(PCFPointLightDepthNode, m_resource_manager);
         REGISTER_RENDER_NODE(PCFDirectionalLightDepthNode, m_resource_manager);
         REGISTER_RENDER_NODE(PCFSpotLightDepthNode, m_resource_manager);
+        REGISTER_RENDER_NODE(PCSSDirectionalLightDepthNode, m_resource_manager);
         REGISTER_RENDER_NODE(CopyNode, m_resource_manager);
         REGISTER_RENDER_NODE(GBufferNode, m_resource_manager);
         REGISTER_RENDER_NODE(DeferredNode, m_resource_manager);
@@ -265,7 +267,7 @@ private:
         m_pcf_spot_light_graph = m_resource_manager.load_shadow_render_graph("PCFSpotLightDepthNode", &m_renderer);
 
         // Create Directional Light render graph
-        m_pcf_directional_light_graph = m_resource_manager.load_shadow_render_graph("PCFDirectionalLightDepthNode", &m_renderer);
+        m_pcf_directional_light_graph = m_resource_manager.load_shadow_render_graph("PCSSDirectionalLightDepthNode", &m_renderer);
 
         m_bruneton_probe_renderer = std::make_shared<BrunetonProbeRenderer>();
 

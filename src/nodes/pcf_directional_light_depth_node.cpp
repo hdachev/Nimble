@@ -106,6 +106,13 @@ std::string PCFDirectionalLightDepthNode::shadow_test_source_path()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+std::vector<std::string> PCFDirectionalLightDepthNode::shadow_test_source_defines()
+{
+    return { "USE_SHADOW_SAMPLERS_DIRECTIONAL" };
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 std::string PCFDirectionalLightDepthNode::name()
 {
     return "PCF Directional Light Depth Node";
@@ -137,5 +144,14 @@ std::string PCFSpotLightDepthNode::name()
 {
     return "PCF Spot Light Depth Node";
 }
+
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+std::vector<std::string> PCFSpotLightDepthNode::shadow_test_source_defines()
+{
+    return { "USE_SHADOW_SAMPLERS_SPOT" };
+}
+
 // -----------------------------------------------------------------------------------------------------------------------------------
 } // namespace nimble

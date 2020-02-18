@@ -12,6 +12,7 @@ public:
 
     std::string shadow_test_source_path() override;
     std::string name() override;
+    std::vector<std::string> PCSSDirectionalLightDepthNode::shadow_test_source_defines() override;
 };
 
 DECLARE_RENDER_NODE_FACTORY(PCSSDirectionalLightDepthNode);

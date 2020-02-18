@@ -811,18 +811,33 @@ std::shared_ptr<Shader> ResourceManager::load_shader(const std::string& path, co
         {
             source += renderer->directional_light_render_node()->shadow_test_source();
             source += "\n\n";
+
+            auto shadow_test_defines = renderer->directional_light_render_node()->shadow_test_source_defines();
+
+            for (auto define : shadow_test_defines)
+                defines.push_back("#define " + define);
         }
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && renderer->spot_light_render_graph())
         {
             source += renderer->spot_light_render_node()->shadow_test_source();
             source += "\n\n";
+
+            auto shadow_test_defines = renderer->spot_light_render_node()->shadow_test_source_defines();
+
+            for (auto define : shadow_test_defines)
+                defines.push_back("#define " + define);
         }
 
         if (HAS_BIT_FLAG(flags, NODE_USAGE_SHADOW_MAPPING) && renderer->point_light_render_graph())
         {
             source += renderer->point_light_render_node()->shadow_test_source();
             source += "\n\n";
+
+            auto shadow_test_defines = renderer->point_light_render_node()->shadow_test_source_defines();
+
+            for (auto define : shadow_test_defines)
+                defines.push_back("#define " + define);
         }
     }
 

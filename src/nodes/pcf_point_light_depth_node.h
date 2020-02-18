@@ -16,6 +16,7 @@ public:
     void        shutdown() override;
     std::string name() override;
     std::string shadow_test_source_path() override;
+    std::vector<std::string> shadow_test_source_defines() override;
     void        set_shader_uniforms(View* view, Program* program, int32_t& tex_unit);
 
 private:

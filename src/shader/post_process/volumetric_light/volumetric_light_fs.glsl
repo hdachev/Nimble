@@ -63,7 +63,11 @@ float attenuation(vec3 frag_pos, uint light_idx)
 
 	float current_depth = light_space_pos.z;
 
-	return texture(s_DirectionalLightShadowMaps, vec4(light_space_pos.xy, float(shadow_map_idx), current_depth));        
+#ifdef USE_SHADOW_SAMPLERS_DIRECTIONAL
+	return texture(s_DirectionalLightShadowMaps, vec4(light_space_pos.xy, float(shadow_map_idx), current_depth));
+#else
+	return texture(s_DirectionalLightShadowMaps, vec3(light_space_pos.xy, float(shadow_map_idx))).r < current_depth ? 0.0 : 1.0;
+#endif
 }
 
 // ------------------------------------------------------------------

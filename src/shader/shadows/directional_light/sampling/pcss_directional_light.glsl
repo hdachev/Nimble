@@ -2,7 +2,7 @@
 // PCSS  ------------------------------------------------------------
 // ------------------------------------------------------------------
 
-#define PCSS_RADIUS 0.5
+#define PCSS_RADIUS 0.02
 #define POISSON_DISK_SAMPLE_COUNT 64 
 #define DIRECTIONAL_LIGHT_NEAR_PLANE 1.0
 #define DIRECTIONAL_LIGHT_FAR_PLANE 3000.0
@@ -10,13 +10,6 @@
 float depth_compare(float a, float b, float bias)
 {
     return a - bias > b ? 1.0 : 0.0;
-}
-
-// ------------------------------------------------------------------
-
-float shadow_map_sample(vec2 coord, float z, float bias)
-{
-
 }
 
 // ------------------------------------------------------------------
@@ -436,7 +429,7 @@ float linear_to_eye_depth(float z, float near, float far)
 // Using similar triangles from the surface point to the area light
 vec2 search_region_radius_uv(float z_vs)
 {
-    return PCSS_RADIUS * (z_vs - near_plane) / z_vs;
+    return vec2(PCSS_RADIUS) * (z_vs - DIRECTIONAL_LIGHT_NEAR_PLANE) / z_vs;
 }
 
 // ------------------------------------------------------------------
@@ -444,7 +437,7 @@ vec2 search_region_radius_uv(float z_vs)
 // Using similar triangles between the area light, the blocking plane and the surface point
 vec2 penumbra_radius_uv(float zReceiver, float zBlocker)
 {
-    return PCSS_RADIUS * (zReceiver - zBlocker) / zBlocker;
+    return vec2(PCSS_RADIUS) * (zReceiver - zBlocker) / zBlocker;
 }
 
 // ------------------------------------------------------------------
@@ -520,7 +513,7 @@ float pcf_poisson_filter(int idx, vec2 uv, float z0, float bias, vec2 filter_rad
     {
         vec2 offset = kPoissonSamples[i] * filter_radius_uv;
         float shadow_map_depth = texture(s_DirectionalLightShadowMaps, vec3(uv + offset, float(idx))).r;
-        sum +=  shadow_map_depth < (z0 - bias) ? 1.0 : 0.0;
+        sum +=  shadow_map_depth < (z0 - bias) ? 0.0 : 1.0;
     }
 
     return sum / float(POISSON_DISK_SAMPLE_COUNT);
@@ -552,7 +545,7 @@ float pcss_filter(int idx, vec2 uv, float z, float bias, float z_vs)
     // ------------------------
     // STEP 3: filtering
     // ------------------------
-    return pcf_poisson_filter(uv, z, bias, filter_radius);
+    return pcf_poisson_filter(idx, uv, z, bias, filter_radius);
 }
 
 // ------------------------------------------------------------------

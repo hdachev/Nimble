@@ -312,15 +312,27 @@ layout (std140) uniform u_PerSkeleton
 #endif
 
 #ifdef DIRECTIONAL_LIGHT_SHADOW_MAPPING
-	uniform sampler2DArrayShadow   s_DirectionalLightShadowMaps;
+	#ifdef USE_SHADOW_SAMPLERS_DIRECTIONAL
+		uniform sampler2DArrayShadow s_DirectionalLightShadowMaps;
+	#else
+		uniform sampler2DArray s_DirectionalLightShadowMaps;
+	#endif
 #endif
 
 #ifdef SPOT_LIGHT_SHADOW_MAPPING
-	uniform sampler2DArrayShadow   s_SpotLightShadowMaps;
+	#ifdef USE_SHADOW_SAMPLERS_SPOT
+		uniform sampler2DArrayShadow s_SpotLightShadowMaps;
+	#else
+		uniform sampler2DArray s_SpotLightShadowMaps;
+	#endif
 #endif
 
 #ifdef POINT_LIGHT_SHADOW_MAPPING
-	uniform samplerCubeArrayShadow s_PointLightShadowMaps;
+	#ifdef USE_SHADOW_SAMPLERS_POINT
+		uniform samplerCubeArrayShadow s_PointLightShadowMaps;
+	#else
+		uniform samplerCubeArray s_PointLightShadowMaps;
+	#endif
 #endif
 
 // ------------------------------------------------------------------

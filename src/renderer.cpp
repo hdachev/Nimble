@@ -124,7 +124,10 @@ bool Renderer::initialize(ResourceManager* res_mgr, const uint32_t& w, const uin
         current_graph->on_window_resized(m_window_width, m_window_height);
 
         if (!current_graph->initialize(this, res_mgr))
+        {
+            NIMBLE_LOG_ERROR("Failed to initialize Graph");
             return false;
+        }
     }
 
     if (m_global_probe_renderer)
