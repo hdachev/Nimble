@@ -2,7 +2,7 @@
 // PCSS  ------------------------------------------------------------
 // ------------------------------------------------------------------
 
-#define PCSS_RADIUS 0.02
+#define PCSS_RADIUS 2.5
 #define POISSON_DISK_SAMPLE_COUNT 64 
 #define DIRECTIONAL_LIGHT_NEAR_PLANE 1.0
 #define DIRECTIONAL_LIGHT_FAR_PLANE 3000.0
@@ -435,17 +435,17 @@ vec2 search_region_radius_uv(float z_vs)
 // ------------------------------------------------------------------
 
 // Using similar triangles between the area light, the blocking plane and the surface point
-vec2 penumbra_radius_uv(float zReceiver, float zBlocker)
+float penumbra_estimate(float zReceiver, float zBlocker)
 {
-    return vec2(PCSS_RADIUS) * (zReceiver - zBlocker) / zBlocker;
+    return (zReceiver - zBlocker) / zBlocker;
 }
 
 // ------------------------------------------------------------------
 
 // Project UV size to the near plane of the light
-vec2 project_to_light_uv(vec2 size_uv, float z_vs)
+vec2 project_to_light_uv(float penumbra_radius, float z_vs)
 {
-    return size_uv * DIRECTIONAL_LIGHT_NEAR_PLANE / z_vs;
+    return vec2(penumbra_radius * PCSS_RADIUS) * DIRECTIONAL_LIGHT_NEAR_PLANE / z_vs;
 }
 
 // ------------------------------------------------------------------
@@ -538,8 +538,7 @@ float pcss_filter(int idx, vec2 uv, float z, float bias, float z_vs)
     // STEP 2: penumbra size
     // ------------------------
     float avg_blocker_depth = accum_blocker_depth / num_blockers;
-    float avg_blocker_depth_vs = linear_to_eye_depth(avg_blocker_depth, DIRECTIONAL_LIGHT_NEAR_PLANE, DIRECTIONAL_LIGHT_FAR_PLANE);
-    vec2 penumbra_radius = penumbra_radius_uv(z_vs, avg_blocker_depth_vs);
+    float penumbra_radius = penumbra_estimate(z, avg_blocker_depth);
     vec2 filter_radius = project_to_light_uv(penumbra_radius, z_vs);
 
     // ------------------------
