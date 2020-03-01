@@ -188,4 +188,256 @@ bool RenderGraph::is_node_pushed(std::shared_ptr<RenderNode> node)
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderResourceID::RenderResourceID(std::string name)
+{
+    m_id = NIMBLE_HASH(name.c_str());
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderResource::add_usage(RenderPass* pass)
+{
+    usages[usage_count] = pass;
+    usage_count++;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderResourceManager::RenderResourceManager()
+{
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderResourceManager::~RenderResourceManager()
+{
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderResource* RenderResourceManager::add_output_buffer(const RenderResourceID& id, const RenderBufferResourceDesc& desc)
+{
+    uint32_t idx = m_resource_count++;
+
+    RenderResource* res = &m_resources[idx];
+
+    res->id          = id;
+    res->buffer_desc = desc;
+
+    m_resource_map.set(id.m_id, res);
+
+    return res;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderResource* RenderResourceManager::add_output_texture(const RenderResourceID& id, const RenderTextureResourceDesc& desc)
+{
+    uint32_t idx = m_resource_count++;
+
+    RenderResource* res = &m_resources[idx];
+
+    res->id           = id;
+    res->texture_desc = desc;
+
+    m_resource_map.set(id.m_id, res);
+
+    return res;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderResource* RenderResourceManager::find_resource(const RenderResourceID& id)
+{
+    RenderResource* res = nullptr;
+
+    m_resource_map.get(id.m_id, res);
+
+    return res;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderResourceManager::realize_resource(RenderResource* res)
+{
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderResourceManager::reclaim_resource(RenderResource* res)
+{
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderPass::RenderPass()
+{
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderPass::~RenderPass()
+{
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderPass::render_to_backbuffer(bool backbuffer)
+{
+    m_render_to_backbuffer = backbuffer;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+bool RenderPass::is_render_to_backbuffer()
+{
+    return m_render_to_backbuffer;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderResource* RenderPass::add_buffer_dependency(const RenderResourceID& id, RenderResourceManager& manager)
+{
+    RenderResource* res = manager.find_resource(id);
+    
+    res->owner = this;
+    res->add_usage(this);
+
+    m_inputs.set(id.m_id, res);
+
+    return res;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderResource* RenderPass::add_sampled_texture_dependency(const RenderResourceID& id, RenderResourceManager& manager)
+{
+    RenderResource* res = manager.find_resource(id);
+
+    res->owner = this;
+    res->add_usage(this);
+
+    m_inputs.set(id.m_id, res);
+
+    return res;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderResource* RenderPass::add_storage_texture_dependency(const RenderResourceID& id, RenderResourceManager& manager)
+{
+    RenderResource* res = manager.find_resource(id);
+
+    res->owner = this;
+    res->add_usage(this);
+
+    m_inputs.set(id.m_id, res);
+
+    return res;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderResource* RenderPass::add_output_buffer(const RenderResourceID& id, const RenderBufferResourceDesc& desc, RenderResourceManager& manager)
+{
+    RenderResource* res = manager.add_output_buffer(id, desc);
+
+    res->owner = this;
+    m_outputs.set(id.m_id, res);
+
+    return res;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderResource* RenderPass::add_output_texture(const RenderResourceID& id, const RenderTextureResourceDesc& desc, RenderResourceManager& manager)
+{
+    RenderResource* res = manager.add_output_texture(id, desc);
+
+    res->owner = this;
+    m_outputs.set(id.m_id, res);
+
+    return res;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderResource* RenderPass::add_existing_output_texture(const RenderResourceID& id, RenderResourceManager& manager)
+{
+    // @TODO: Implement this!
+    return nullptr;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderPass::execute()
+{
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderGraphBuilder::RenderGraphBuilder(RenderGraphNew& graph) :
+    m_render_graph(graph)
+{
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderGraphBuilder::~RenderGraphBuilder()
+{
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderGraphNew::RenderGraphNew()
+{
+    // Allocate a small buffer for the LinearAllocator to use.
+    size_t buffer_size      = 1024 * 1024;
+    m_render_pass_buffer    = malloc(buffer_size);
+
+    // Create LinearAllocatr for allocating dynamic sized RenderPassWithData<T> objects.
+    m_render_pass_allocator = std::make_unique<LinearAllocator>(m_render_pass_buffer, buffer_size);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+RenderGraphNew::~RenderGraphNew()
+{
+    // Release render pass linear allocator
+    m_render_pass_allocator.reset();
+
+    // Free the buffer used in the allocator.
+    free(m_render_pass_buffer);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderGraphNew::execute()
+{
+    // Clear linear allocator to begin allocating render passes for this frame.
+    m_render_pass_allocator->clear();
+
+    // Create render graph builder for this frame.
+    RenderGraphBuilder builder(*this);
+
+    // Build the render graph by calling the overriden build method of the child RenderGraph class.
+    build(builder, m_resource_manager);
+
+    // Flatten the previously built render graph in order to traverse it linearly and remove redundant passes.
+    flatten();
+
+    // Iterate over the flattened render graph and call each passes' execute method.
+    for (uint32_t i = 0; i < m_render_pass_count; i++)
+        m_render_passes_flattened[i]->execute();
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderGraphNew::flatten()
+{
+
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
 } // namespace nimble
