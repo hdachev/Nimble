@@ -4,6 +4,7 @@
 #include "view.h"
 #include "static_hash_map.h"
 #include "linear_allocator.h"
+#include <unordered_set>
 
 namespace nimble
 {
@@ -96,6 +97,7 @@ class RenderResource
 public:
     friend class RenderPass;
     friend class RenderResourceManager;
+    friend class RenderGraphNew;
 
     RenderResourceType type;
     Texture*           texture = nullptr;
@@ -121,13 +123,14 @@ public:
     friend class RenderResource;
 
 private:
-    uint32_t                                       m_resource_count = 0;
-    RenderResource                                 m_resources[1024];
+    std::vector<RenderResource>                    m_resources;
     StaticHashMap<uint64_t, RenderResource*, 1024> m_resource_map;
 
 public:
     RenderResourceManager();
     ~RenderResourceManager();
+
+    void reset();
 
     RenderResource* add_output_buffer(const RenderResourceID& id, const RenderBufferResourceDesc& desc);
     RenderResource* add_output_texture(const RenderResourceID& id, const RenderTextureResourceDesc& desc);
@@ -139,7 +142,12 @@ public:
 
 class RenderPass
 {
+public:
+    friend class RenderGraphNew;
+
 private:
+    uint32_t                                     m_id                   = 0;
+    uint32_t                                     m_idx                  = 0;
     bool                                         m_render_to_backbuffer = false;
     StaticHashMap<uint64_t, RenderResource*, 32> m_inputs;
     StaticHashMap<uint64_t, RenderResource*, 32> m_outputs;
@@ -148,6 +156,8 @@ public:
     RenderPass();
     ~RenderPass();
 
+    uint32_t index();
+    uint32_t id();
     void render_to_backbuffer(bool backbuffer);
     bool is_render_to_backbuffer();
 
@@ -208,11 +218,12 @@ public:
 
 private:
     RenderResourceManager            m_resource_manager;
-    uint32_t                         m_render_pass_count = 0;
     void*                            m_render_pass_buffer;
     std::unique_ptr<LinearAllocator> m_render_pass_allocator;
-    RenderPass*                      m_render_passes_allocated[256];
-    RenderPass*                      m_render_passes_flattened[256];
+    std::vector<RenderPass*>         m_render_passes_allocated;
+    std::vector<RenderPass*>         m_render_passes_flattened;
+    std::vector<RenderPass*>         m_render_pass_stack;
+    std::unordered_set<uint32_t>     m_visited_render_passes;
 
 public:
     RenderGraphNew();
@@ -226,13 +237,20 @@ private:
     template <typename T>
     RenderPassWithData<T>* allocate_render_pass()
     {
-        uint32_t               idx = m_render_pass_count++;
-        RenderPassWithData<T>* rp = NIMBLE_NEW(m_render_pass_allocator.get()) RenderPassWithData<T>();
-        m_render_passes_allocated[idx] = rp;
+        uint32_t               idx = m_render_passes_allocated.size();
+        RenderPassWithData<T>* rp  = NIMBLE_NEW(m_render_pass_allocator.get()) RenderPassWithData<T>();
+        rp->m_id                   = idx;
+
+        m_render_passes_allocated.push_back(rp);
 
         return rp;
     }
 
     void flatten();
+    void flatten(RenderPass* rp);
+    bool is_visited(RenderPass* rp);
+    bool is_redundant(RenderPass* rp);
+    void visit_rp(RenderPass* rp);
+    void ignore(RenderPass* rp);
 };
 } // namespace nimble

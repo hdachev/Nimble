@@ -206,6 +206,7 @@ void RenderResource::add_usage(RenderPass* pass)
 
 RenderResourceManager::RenderResourceManager()
 {
+    m_resources.reserve(1024);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -216,12 +217,21 @@ RenderResourceManager::~RenderResourceManager()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+void RenderResourceManager::reset()
+{
+    m_resources.clear();
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 RenderResource* RenderResourceManager::add_output_buffer(const RenderResourceID& id, const RenderBufferResourceDesc& desc)
 {
-    uint32_t idx = m_resource_count++;
+    uint32_t idx = m_resources.size();
+    m_resources.push_back(RenderResource());
 
     RenderResource* res = &m_resources[idx];
 
+    res->type        = RENDER_RESOURCE_BUFFER;
     res->id          = id;
     res->buffer_desc = desc;
 
@@ -234,10 +244,12 @@ RenderResource* RenderResourceManager::add_output_buffer(const RenderResourceID&
 
 RenderResource* RenderResourceManager::add_output_texture(const RenderResourceID& id, const RenderTextureResourceDesc& desc)
 {
-    uint32_t idx = m_resource_count++;
+    uint32_t idx = m_resources.size();
+    m_resources.push_back(RenderResource());
 
     RenderResource* res = &m_resources[idx];
 
+    res->type         = RENDER_RESOURCE_TEXTURE;
     res->id           = id;
     res->texture_desc = desc;
 
@@ -283,6 +295,20 @@ RenderPass::~RenderPass()
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
+uint32_t RenderPass::index()
+{
+    return m_idx;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+uint32_t RenderPass::id()
+{
+    return m_id;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
 void RenderPass::render_to_backbuffer(bool backbuffer)
 {
     m_render_to_backbuffer = backbuffer;
@@ -300,7 +326,7 @@ bool RenderPass::is_render_to_backbuffer()
 RenderResource* RenderPass::add_buffer_dependency(const RenderResourceID& id, RenderResourceManager& manager)
 {
     RenderResource* res = manager.find_resource(id);
-    
+
     res->owner = this;
     res->add_usage(this);
 
@@ -393,11 +419,16 @@ RenderGraphBuilder::~RenderGraphBuilder()
 RenderGraphNew::RenderGraphNew()
 {
     // Allocate a small buffer for the LinearAllocator to use.
-    size_t buffer_size      = 1024 * 1024;
-    m_render_pass_buffer    = malloc(buffer_size);
+    size_t buffer_size   = 1024 * 1024;
+    m_render_pass_buffer = malloc(buffer_size);
 
     // Create LinearAllocatr for allocating dynamic sized RenderPassWithData<T> objects.
     m_render_pass_allocator = std::make_unique<LinearAllocator>(m_render_pass_buffer, buffer_size);
+
+    m_render_passes_allocated.reserve(256);
+    m_render_passes_flattened.reserve(256);
+    m_render_pass_stack.reserve(256);
+    m_visited_render_passes.reserve(256);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -415,6 +446,13 @@ RenderGraphNew::~RenderGraphNew()
 
 void RenderGraphNew::execute()
 {
+    // Reset allocated render passes and resources.
+    m_render_passes_allocated.clear();
+    m_render_passes_flattened.clear();
+    m_render_pass_stack.clear();
+    m_visited_render_passes.clear();
+    m_resource_manager.reset();
+
     // Clear linear allocator to begin allocating render passes for this frame.
     m_render_pass_allocator->clear();
 
@@ -428,15 +466,141 @@ void RenderGraphNew::execute()
     flatten();
 
     // Iterate over the flattened render graph and call each passes' execute method.
-    for (uint32_t i = 0; i < m_render_pass_count; i++)
-        m_render_passes_flattened[i]->execute();
+    for (const auto& render_pass : m_render_passes_flattened)
+        render_pass->execute();
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 void RenderGraphNew::flatten()
 {
+    if (m_render_passes_allocated.size() > 0)
+    {
+        RenderPass* rp = m_render_passes_allocated[0];
 
+        while (rp->m_inputs.size() > 0)
+            rp = rp->m_inputs.m_value[0]->owner;
+
+        flatten(rp);
+
+        for (auto& rp : m_render_passes_flattened)
+        {
+            for (int i = 0; i < rp->m_outputs.size(); i++)
+            {
+                RenderResource* res = rp->m_outputs.m_value[i];
+
+                res->usage_start = rp->index();
+                res->usage_end   = -1;
+
+                for (uint32_t j = 0; j < res->usage_count; j++)
+                {
+                    RenderPass* usage = res->usages[j];
+                    res->usage_end    = std::max(res->usage_end, usage->index());
+                }
+            }
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderGraphNew::flatten(RenderPass* root)
+{
+    m_render_pass_stack.push_back(root);
+
+    while (!m_render_pass_stack.empty())
+    {
+        bool skip = false;
+
+        RenderPass* rp = m_render_pass_stack.back();
+
+        for (int i = 0; i < rp->m_inputs.size(); i++)
+        {
+            RenderPass* owner = rp->m_inputs.m_value[i]->owner;
+
+            if (!is_visited(owner))
+            {
+                m_render_pass_stack.push_back(owner);
+                skip = true;
+                break;
+            }
+        }
+
+        if (skip)
+            continue;
+
+        if (!is_visited(rp))
+        {
+            if (is_redundant(rp))
+                ignore(rp);
+            else
+                visit_rp(rp);
+        }
+
+        m_render_pass_stack.pop_back();
+
+        for (int i = 0; i < rp->m_outputs.size(); i++)
+        {
+            RenderResource* res = rp->m_outputs.m_value[i];
+
+            for (int j = 0; j < res->usage_count; j++)
+            {
+                if (!is_visited(res->usages[j]))
+                {
+                    m_render_pass_stack.push_back(res->usages[j]);
+                    skip = true;
+                    break;
+                }
+            }
+
+            if (skip)
+                break;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+bool RenderGraphNew::is_visited(RenderPass* rp)
+{
+    return m_visited_render_passes.find(rp->id()) != m_visited_render_passes.end();
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+bool RenderGraphNew::is_redundant(RenderPass* rp)
+{
+    // If a node has no outputs, assume it is presenting? Or maybe have an 'is_presenting' bool option when building the graph.
+    if (rp->m_outputs.size() == 0)
+        return false;
+
+    for (int i = 0; i < rp->m_outputs.size(); i++)
+    {
+        RenderResource* res = rp->m_outputs.m_value[i];
+
+        // If at least one output is used, it is not redundant, thus early exit.
+        if (res->usage_count > 0)
+            return false;
+    }
+
+    return true;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderGraphNew::visit_rp(RenderPass* rp)
+{
+    rp->m_idx = m_render_passes_flattened.size();
+
+    m_visited_render_passes.insert(rp->id());
+    m_render_passes_flattened.push_back(rp);
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+void RenderGraphNew::ignore(RenderPass* rp)
+{
+    m_visited_render_passes.insert(rp->id());
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
